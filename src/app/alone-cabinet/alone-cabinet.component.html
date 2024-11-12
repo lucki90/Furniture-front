@@ -1,0 +1,28 @@
+<div>
+    <h2>Kalkulator</h2>
+    <form (ngSubmit)="onSubmit()">
+      <label>
+        x:
+        <input type="number" [(ngModel)]="x" name="x" required />
+      </label>
+      <br />
+      <label>
+        y:
+        <input type="number" [(ngModel)]="y" name="y" required />
+      </label>
+      <br />
+      <label>
+        z:
+        <input type="number" [(ngModel)]="z" name="z" required />
+      </label>
+      <br />
+      <button type="submit">Oblicz</button>
+    </form>
+  
+    <div *ngIf="result">
+      <h3>Wynik:</h3>
+      <p>x: {{ result.x }}</p>
+      <p>y: {{ result.y }}</p>
+      <p>z: {{ result.z }}</p>
+    </div>
+  </div>
