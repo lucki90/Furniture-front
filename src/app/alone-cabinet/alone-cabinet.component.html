@@ -1,28 +1,63 @@
 <div>
-    <h2>Kalkulator</h2>
-    <form (ngSubmit)="onSubmit()">
-      <label>
-        x:
-        <input type="number" [(ngModel)]="x" name="x" required />
+  <h2>Oblicz parametry szafki</h2>
+  <form (ngSubmit)="calculateCabinet()">
+    <label>
+      Wysokość:
+      <input type="number" [(ngModel)]="height" name="height" required />
+    </label>
+    <label>
+      Szerokość:
+      <input type="number" [(ngModel)]="width" name="width" required />
+    </label>
+    <label>
+      Głębokość:
+      <input type="number" [(ngModel)]="depth" name="depth" required />
+    </label>
+    <label>
+      Ilość półek:
+      <input type="number" [(ngModel)]="shelfQuantity" name="shelfQuantity" required />
+    </label>
+
+    <!-- Przełącznik Jeden/Dwa Fronty -->
+    <label>
+      <span>{{ oneFront ? 'Jeden front' : 'Dwa fronty' }}</span>
+      <label class="switch">
+        <input type="checkbox" [(ngModel)]="oneFront" name="oneFront" />
+        <span class="slider"></span>
       </label>
-      <br />
-      <label>
-        y:
-        <input type="number" [(ngModel)]="y" name="y" required />
-      </label>
-      <br />
-      <label>
-        z:
-        <input type="number" [(ngModel)]="z" name="z" required />
-      </label>
-      <br />
-      <button type="submit">Oblicz</button>
-    </form>
-  
-    <div *ngIf="result">
-      <h3>Wynik:</h3>
-      <p>x: {{ result.x }}</p>
-      <p>y: {{ result.y }}</p>
-      <p>z: {{ result.z }}</p>
-    </div>
+    </label>
+
+    <button type="submit">Wyślij</button>
+  </form>
+
+  <div *ngIf="response" class="response-container">
+    <h3>Lista płyt:</h3>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nazwa płyty</th>
+          <th>Długość</th>
+          <th>Okleina</th>
+          <th>Szerokość</th>
+          <th>Okleina</th>
+          <th>Grubość płyty</th>
+          <th>Malowana</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let board of response.boardList; index as i">
+          <td>{{ i + 1 }}</td>
+          <td>{{ board.boardName }}</td>
+          <td>{{ board.sideX ?? 'N/A' }}</td>
+          <td>{{ board.veneerX ?? 'N/A' }}</td>
+          <td>{{ board.sideY }}</td>
+          <td>{{ board.veneerY }}</td>
+          <td>{{ board.boardThickness ?? '1.8' }}</td>
+          <td>{{ board.painted ? 'TAK' : 'NIE' }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
+</div>
