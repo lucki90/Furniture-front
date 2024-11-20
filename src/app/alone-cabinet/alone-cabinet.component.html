@@ -27,6 +27,55 @@
       </label>
     </label>
 
+        <!-- Przełącznik plecki hdf -->
+        <label>
+          <span>{{ needBacks ? 'Plecki HDF' : 'Brak plecków' }}</span>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="needBacks" name="needBacks" />
+            <span class="slider"></span>
+          </label>
+        </label>
+
+        <h3>Materiał korpusu</h3>
+        <label>
+          Materiał:
+          <select [(ngModel)]="boxMaterial" name="boxMaterial">
+            <option *ngFor="let material of materials" [value]="material.value">{{ material.label }}</option>
+          </select>
+        </label>
+        <label>
+          Grubość płyty:
+          <select [(ngModel)]="boxBoardThickness" name="boxBoardThickness">
+            <option *ngFor="let thickness of thicknesses" [value]="thickness">{{ thickness }}</option>
+          </select>
+        </label>
+        <label>
+          Kolor:
+          <select [(ngModel)]="boxColor" name="boxColor">
+            <option *ngFor="let color of colors" [value]="color">{{ color }}</option>
+          </select>
+        </label>
+
+        <h3>Materiał frontu</h3>
+  <label>
+    Materiał:
+    <select [(ngModel)]="frontMaterial" name="frontMaterial">
+      <option *ngFor="let material of materials" [value]="material.value">{{ material.label }}</option>
+    </select>
+  </label>
+  <label>
+    Grubość płyty:
+    <select [(ngModel)]="frontBoardThickness" name="frontBoardThickness">
+      <option *ngFor="let thickness of thicknesses" [value]="thickness">{{ thickness }}</option>
+    </select>
+  </label>
+  <label>
+    Kolor:
+    <select [(ngModel)]="frontColor" name="frontColor">
+      <option *ngFor="let color of colors" [value]="color">{{ color }}</option>
+    </select>
+  </label>
+
     <button type="submit">Wyślij</button>
   </form>
 
@@ -56,6 +105,23 @@
           <td>{{ board.veneerY }}</td>
           <td>{{ board.boardThickness ?? '1.8' }}</td>
           <td>{{ board.painted ? 'TAK' : 'NIE' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>Lista potrzenych elementów:</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nazwa elementu</th>
+          <th>Ilość</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let component of response.componentList; index as i">
+          <td>{{ i + 1 }}</td>
+          <td>{{ component.componentName }}</td>
+          <td>{{ component.quantity ?? '0' }}</td>
         </tr>
       </tbody>
     </table>
