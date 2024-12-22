@@ -1,35 +1,45 @@
+
+<div>
+  <label for="language">{{ translations['select_language'] || 'Select Language' }}</label>
+  <select id="language" (change)="onLanguageChangeEvent($event)">
+    <option value="pl" [selected]="selectedLanguage === 'pl'">Polski</option>
+    <option value="en" [selected]="selectedLanguage === 'en'">English</option>
+    <option value="de" [selected]="selectedLanguage === 'de'">Deutsch</option>
+  </select>
+</div>
+
 <div>
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
   <div>
-    <h3>Wizualizacja szafki</h3>
+    <h3>{{ translations['alone-cabin.responseContainerTitle'] }} </h3>
     <canvas id="cabinetCanvas" width="400" height="400" style="border:1px solid #ddd;"></canvas>
   </div>
-  <h2>Oblicz parametry szafki</h2>
+  <h2>{{ translations['alone-cabin.calculateTheCabinetParameters'] }}</h2>
   <form>
     <div class="form-row">
       <!-- Pierwsza kolumna: Wymiary, półki, przełączniki -->
       <div class="dimensions-and-switches">
         <label>
-          Wysokość (mm)
+          {{ translations['alone-cabin.height'] }}
           <input type="number" [(ngModel)]="height" name="height" />
         </label>
         <label>
-          Szerokość (mm)
+          {{ translations['alone-cabin.width'] }}
           <input type="number" [(ngModel)]="width" name="width" />
         </label>
         <label>
-          Głębokość (mm)
+          {{ translations['alone-cabin.depth'] }}
           <input type="number" [(ngModel)]="depth" name="depth" />
         </label>
         <label>
-          Liczba półek
+          {{ translations['alone-cabin.shelfQuantity'] }}
           <input type="number" [(ngModel)]="shelfQuantity" name="shelfQuantity" />
         </label>
         <!-- Przełącznik jeden/dwa fronty -->
         <label>
-          Typ frontu
+          {{ translations['alone-cabin.frontType'] }}
           <select [(ngModel)]="frontType" name="frontType">
             <option *ngFor="let type of frontTypes" [value]="type.value">
               {{ type.label }}
@@ -40,7 +50,7 @@
         <!-- Pole widoczne tylko przy wyborze DRAWER -->
         <div *ngIf="frontType === 'DRAWER'">
           <label>
-            Ilość szuflad
+            {{ translations['alone-cabin.drawerQuantity'] }}
             <input type="number" [(ngModel)]="drawerQuantity" name="drawerQuantity" min="1" />
           </label>
         </div>
@@ -48,11 +58,11 @@
 
         <!-- Przełącznik plecki hdf -->
         <label>
-          <span>{{ needBacks ? 'Plecki HDF' : 'Brak plecków' }}</span>
+          <span>{{ translations[ 'alone-cabin.' + needBacks ?  'hdfBacks' : 'noBacks'] }}</span>
           <label class="switch">
             <input type="checkbox" [(ngModel)]="needBacks" name="needBacks" />
             <span class="slider"></span>
-            <span class="tooltip">Czy dodac plecy z płyty HDF</span>
+            <span class="tooltip">{{ translations['alone-cabin.shouldAddBack'] }}</span>
           </label>
         </label>
       </div>
@@ -60,7 +70,7 @@
       <!-- Druga kolumna: Materiał korpusu i frontu -->
       <div class="materials">
         <label>
-          Materiał korpusu
+          {{ translations['alone-cabin.materialBox'] }}
           <select [(ngModel)]="boxMaterial" name="boxMaterial">
             <option *ngFor="let material of materials" [value]="material.value">
               {{ material.label }}
@@ -68,7 +78,7 @@
           </select>
         </label>
         <label>
-          Grubość korpusu (mm)
+          {{ translations['alone-cabin.boxBoardThickness'] }}
           <select [(ngModel)]="boxBoardThickness" name="boxBoardThickness">
             <option *ngFor="let thickness of thicknesses" [value]="thickness">
               {{ thickness }}
@@ -76,13 +86,13 @@
           </select>
         </label>
         <label>
-          Kolor korpusu
+          {{ translations['alone-cabin.colorBox'] }}
           <select [(ngModel)]="boxColor" name="boxColor">
             <option *ngFor="let color of colors" [value]="color">{{ color }}</option>
           </select>
         </label>
         <label>
-          Materiał frontu
+          {{ translations['alone-cabin.materialFront'] }}
           <select [(ngModel)]="frontMaterial" name="frontMaterial">
             <option *ngFor="let material of materials" [value]="material.value">
               {{ material.label }}
@@ -91,15 +101,15 @@
         </label>
         <!-- Przełącznik czy lakierowany front -->
         <label *ngIf="frontMaterial === 'MDF'">
-          <span>{{ varnishedFront ? 'Front Lakierowany' : 'Front z okleiną' }}</span>
+          <span>{{ translations[ 'alone-cabin.' + varnishedFront ?  'varnishedFront' : 'frontWithVeneer'] }}</span>
           <label class="switch">
             <input type="checkbox" [(ngModel)]="varnishedFront" name="varnishedFront" />
             <span class="slider"></span>
-            <span class="tooltip">Fronty z okleiną czy lakierowane?</span>
+            <span class="tooltip">{{ translations['alone-cabin.frontWithVeneerOrVarnished'] }}</span>
           </label>
         </label>
         <label>
-          Grubość frontu (mm)
+          {{ translations['alone-cabin.frontBoardThickness'] }}
           <select [(ngModel)]="frontBoardThickness" name="frontBoardThickness">
             <option *ngFor="let thickness of thicknesses" [value]="thickness">
               {{ thickness }}
@@ -107,7 +117,7 @@
           </select>
         </label>
         <label>
-          Kolor frontu
+          {{ translations['alone-cabin.colorFront'] }}
           <select [(ngModel)]="frontColor" name="frontColor">
             <option *ngFor="let color of colors" [value]="color">{{ color }}</option>
           </select>
@@ -119,27 +129,27 @@
 
 
   <div *ngIf="response" class="response-container">
-    <h3>Lista płyt:</h3>
+    <h3>{{ translations['alone-cabin.boardList'] }}</h3>
 
     <table>
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Nazwa płyty</th>
-          <th>sztuk</th>
-          <th>Długość</th>
-          <th>Okleina</th>
-          <th>Szerokość</th>
-          <th>Okleina</th>
-          <th>Grubość płyty</th>
-          <th>Malowana</th>
+          <th>{{ translations['alone-cabin.id'] }}</th>
+          <th>{{ translations['alone-cabin.boardName'] }}</th>
+          <th>{{ translations['alone-cabin.quantity'] }}</th>
+          <th>{{ translations['alone-cabin.length'] }}</th>
+          <th>{{ translations['alone-cabin.veneer'] }}</th>
+          <th>{{ translations['alone-cabin.width'] }}</th>
+          <th>{{ translations['alone-cabin.veneer'] }}</th>
+          <th>{{ translations['alone-cabin.thickness'] }}</th>
+          <th>{{ translations['alone-cabin.isVarnished'] }}</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let board of response.boardList; index as i">
           <td>{{ i + 1 }}</td>
           <td>{{ board.boardName }}</td>
-          <td>{{ board.quantity }}</td>
+          <td>{{ board.pieces }}</td>
           <td>{{ board.sideX ?? 'N/A' }}</td>
           <td>{{ board.veneerX ?? 'N/A' }}</td>
           <td>{{ board.sideY }}</td>
@@ -149,20 +159,47 @@
         </tr>
       </tbody>
     </table>
-    <h3>Lista potrzenych elementów:</h3>
+    <h3>{{ translations['alone-cabin.requiredComponents'] }}</h3>
     <table>
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Nazwa elementu</th>
-          <th>Ilość</th>
+          <th>{{ translations['alone-cabin.id'] }}</th>
+          <th>{{ translations['alone-cabin.elementType'] }}</th>
+          <th>{{ translations['alone-cabin.elementModel'] }}</th>
+          <th>{{ translations['alone-cabin.additionalInfo'] }}</th>
+          <th>{{ translations['alone-cabin.quantity'] }}</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let component of response.componentList; index as i">
           <td>{{ i + 1 }}</td>
-          <td>{{ component.componentName }}</td>
+          <td>{{ component.type }}</td>
+          <td>{{ component.model }}</td>
+          <td>{{ component.info }}</td>
           <td>{{ component.quantity ?? '0' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <h3>{{ translations['alone-cabin.jobList'] }}</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>{{ translations['alone-cabin.id'] }}</th>
+          <th>{{ translations['alone-cabin.name'] }}</th>
+          <th>{{ translations['alone-cabin.quantity'] }}</th>
+          <th>{{ translations['alone-cabin.unit'] }}</th>
+          <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
+          <th>{{ translations['alone-cabin.pricePtotalPriceerUnit'] }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let job of response.jobsList; index as i">
+          <td>{{ i + 1 }}</td>
+          <td>{{ job.name }}</td>
+          <td>{{ job.quantity ?? '0' }}</td>
+          <td>{{ job.quantityUnit }}</td>
+          <td>{{ job.pricePerUnit }}</td>
+          <td>{{ job.totalPrice }}</td>
         </tr>
       </tbody>
     </table>

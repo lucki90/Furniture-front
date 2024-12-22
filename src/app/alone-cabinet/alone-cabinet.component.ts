@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { AloneCabinetService } from '../alone-cabinet.service';
+import { TranslationService } from '../translation/translation.service';
 
 @Component({
   selector: 'app-alone-cabinet',
   templateUrl: './alone-cabinet.component.html',
   styleUrls: ['./alone-cabinet.component.css']
 })
-export class AloneCabinetComponent {
+export class AloneCabinetComponent implements OnInit {
   height: number = 600;
   width: number = 400;
   depth: number = 300;
@@ -28,6 +29,8 @@ export class AloneCabinetComponent {
   response: any;
   errorMessage: string | null = null;
 
+  translations: { [key: string]: string } = {};
+  selectedLanguage: string = 'pl'; // Default language
 
   frontTypes = [
     { value: 'OPEN', label: 'Otwarta' },
@@ -140,10 +143,47 @@ export class AloneCabinetComponent {
     );
   }
 
-  constructor(private cabinetService: AloneCabinetService) { }
+  constructor(
+    private cabinetService: AloneCabinetService,
+    private translationService: TranslationService
+  ) {}
 
   ngOnInit(): void {
+    const browserLanguage = this.getBrowserLanguage();
+    this.loadTranslations(browserLanguage);
     this.drawCabinet();
+  }
+
+    // Pobierz język przeglądarki
+    getBrowserLanguage(): string {
+      const lang = navigator.language || navigator.languages[0];
+      return lang ? lang.split('-')[0] : this.selectedLanguage; // np. 'en-US' → 'en'
+    }
+
+  loadTranslations(lang: string) {
+    this.translationService.getTranslations(this.selectedLanguage, 'alone-cabin').subscribe(
+      (translations) => {
+        this.translations = translations;
+      },
+      (error) => {
+        console.error('Failed to load translations:', error);
+        this.errorMessage = 'Failed to load translations.';
+      }
+    );
+  }
+
+  onLanguageChangeEvent(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    const selectedValue = target.value;
+    this.onLanguageChange(selectedValue);
+  }
+
+  onLanguageChange(lang: string) {
+    this.selectedLanguage = lang;
+    if(this.selectedLanguage == null){
+      this.selectedLanguage='pl';
+    }
+    this.loadTranslations(this.selectedLanguage);
   }
 
   objectKeys(obj: any): string[] {
@@ -184,7 +224,7 @@ export class AloneCabinetComponent {
         if (error.status === 406) {
           this.errorMessage = error.error.message;
         } else {
-          this.errorMessage = 'Unexpected error occurred. Please try again later.';
+          this.errorMessage = this.translations['unexpected_error'] || 'Unexpected error occurred. Please try again later.';
         }
         console.error('Error:', error);
       }
