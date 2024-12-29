@@ -8,9 +8,9 @@ describe('AloneCabinetComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AloneCabinetComponent ]
+      declarations: [AloneCabinetComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(AloneCabinetComponent);
     component = fixture.componentInstance;

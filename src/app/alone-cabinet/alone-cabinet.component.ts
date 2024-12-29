@@ -56,12 +56,12 @@ export class AloneCabinetComponent implements OnInit {
   drawCabinet(): void {
     const canvas = document.getElementById('cabinetCanvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
-  
+
     if (!ctx) return;
-  
+
     // Resetowanie canvasu
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
     // Proporcje szafki
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
@@ -69,10 +69,10 @@ export class AloneCabinetComponent implements OnInit {
       canvasWidth / (this.width || 100),
       canvasHeight / (this.height || 100)
     );
-  
+
     const cabinetWidth = (this.width || 100) * scaleFactor;
     const cabinetHeight = (this.height || 100) * scaleFactor;
-  
+
     // Korpus
     ctx.fillStyle = '#ddd';
     ctx.fillRect(
@@ -81,7 +81,7 @@ export class AloneCabinetComponent implements OnInit {
       cabinetWidth,
       cabinetHeight
     );
-  
+
     // Półki
     const shelfQuantity = this.shelfQuantity || 0;
     if (shelfQuantity > 0) {
@@ -94,7 +94,7 @@ export class AloneCabinetComponent implements OnInit {
         ctx.stroke();
       }
     }
-  
+
     // Fronty/Szuflady
     const frontType = this.frontType;
     if (frontType === 'DRAWER' && this.drawerQuantity) {
@@ -132,7 +132,7 @@ export class AloneCabinetComponent implements OnInit {
         cabinetHeight / 2 - 2
       );
     }
-  
+
     // Obrys
     ctx.strokeStyle = '#000';
     ctx.strokeRect(
@@ -146,7 +146,7 @@ export class AloneCabinetComponent implements OnInit {
   constructor(
     private cabinetService: AloneCabinetService,
     private translationService: TranslationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const browserLanguage = this.getBrowserLanguage();
@@ -154,14 +154,15 @@ export class AloneCabinetComponent implements OnInit {
     this.drawCabinet();
   }
 
-    // Pobierz język przeglądarki
-    getBrowserLanguage(): string {
-      const lang = navigator.language || navigator.languages[0];
-      return lang ? lang.split('-')[0] : this.selectedLanguage; // np. 'en-US' → 'en'
-    }
+  // Pobierz język przeglądarki
+  getBrowserLanguage(): string {
+    const lang = navigator.language || navigator.languages[0];
+    return lang ? lang.split('-')[0] : this.selectedLanguage; // np. 'en-US' → 'en'
+  }
 
   loadTranslations(lang: string) {
-    this.translationService.getTranslations(this.selectedLanguage, 'alone-cabin').subscribe(
+    this.selectedLanguage = lang;
+    this.translationService.getTranslations(lang, 'alone-cabin').subscribe(
       (translations) => {
         this.translations = translations;
       },
@@ -180,8 +181,8 @@ export class AloneCabinetComponent implements OnInit {
 
   onLanguageChange(lang: string) {
     this.selectedLanguage = lang;
-    if(this.selectedLanguage == null){
-      this.selectedLanguage='pl';
+    if (this.selectedLanguage == null) {
+      this.selectedLanguage = 'pl';
     }
     this.loadTranslations(this.selectedLanguage);
   }
@@ -194,6 +195,7 @@ export class AloneCabinetComponent implements OnInit {
     this.errorMessage = null; // Clear previous errors
 
     const requestBody = {
+      lang: this.selectedLanguage,
       height: this.height,
       width: this.width,
       depth: this.depth,
@@ -220,7 +222,7 @@ export class AloneCabinetComponent implements OnInit {
         this.drawCabinet();
       },
       (error) => {
-        console.log(error); 
+        console.log(error);
         if (error.status === 406) {
           this.errorMessage = error.error.message;
         } else {
