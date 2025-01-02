@@ -8,6 +8,8 @@ import { TranslationService } from '../translation/translation.service';
   styleUrls: ['./alone-cabinet.component.css']
 })
 export class AloneCabinetComponent implements OnInit {
+  translationLoading: boolean = true;
+
   height: number = 600;
   width: number = 400;
   depth: number = 300;
@@ -20,11 +22,11 @@ export class AloneCabinetComponent implements OnInit {
 
   boxMaterial: string = 'CHIPBOARD';
   boxBoardThickness: number = 18;
-  boxColor: string = 'czerwony';
+  boxColor: string = 'white';
 
   frontMaterial: string = 'CHIPBOARD';
   frontBoardThickness: number = 18;
-  frontColor: string = 'bialy';
+  frontColor: string = 'white';
 
   response: any;
   errorMessage: string | null = null;
@@ -33,18 +35,22 @@ export class AloneCabinetComponent implements OnInit {
   selectedLanguage: string = 'pl'; // Default language
 
   frontTypes = [
-    { value: 'OPEN', label: 'Otwarta' },
-    { value: 'ONE_DOOR', label: 'Jedne drzwi' },
-    { value: 'TWO_DOORS', label: 'Dwoje drzwi' },
-    { value: 'DRAWER', label: 'Szuflady' }
+    { value: 'OPEN', label: 'alone-cabin.front.open' },
+    { value: 'ONE_DOOR', label: 'alone-cabin.front.oneDoor' },
+    { value: 'TWO_DOORS', label: 'alone-cabin.front.twoDoors' },
+    { value: 'DRAWER', label: 'alone-cabin.front.drawer' }
   ];
 
   materials = [
-    { value: 'CHIPBOARD', label: 'Płyta wiórowa' },
-    { value: 'MDF', label: 'MDF' }
+    { value: 'CHIPBOARD', label: 'alone-cabin.material.chipboard' },
+    { value: 'MDF', label: 'alone-cabin.material.MDF' }
   ];
   thicknesses = [16, 18, 20];
-  colors = ['bialy', 'czarny', 'czerwony'];
+  colors = [
+    { value: 'white', label: 'alone-cabin.color.white' },
+    { value: 'black', label: 'alone-cabin.color.black' },
+    { value: 'red', label: 'alone-cabin.color.red' }
+  ];
 
   onFrontTypeChange(): void {
     // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
@@ -151,7 +157,7 @@ export class AloneCabinetComponent implements OnInit {
   ngOnInit(): void {
     const browserLanguage = this.getBrowserLanguage();
     this.loadTranslations(browserLanguage);
-    this.drawCabinet();
+    // this.drawCabinet();
   }
 
   // Pobierz język przeglądarki
@@ -165,6 +171,7 @@ export class AloneCabinetComponent implements OnInit {
     this.translationService.getTranslations(lang, 'alone-cabin').subscribe(
       (translations) => {
         this.translations = translations;
+        this.translationLoading=false;
       },
       (error) => {
         console.error('Failed to load translations:', error);
@@ -240,4 +247,12 @@ export class AloneCabinetComponent implements OnInit {
   //   }
   //   return messages.join(', ');
   // }
+
+  logMessage(message: string): void {
+    console.log(message);
+  }
+ 
+  logMessage2(message: {}): void {
+    console.log(message);
+  }
 }

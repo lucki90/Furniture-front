@@ -6,8 +6,11 @@
     <option value="de" [selected]="selectedLanguage === 'de'">Deutsch</option>
   </select>
 </div>
+<div *ngIf="translationLoading">
+  ...... ANIMACJA WCZYTYWANIA .......
+</div>
 
-<div>
+<div *ngIf="!translationLoading">
   <div *ngIf="errorMessage" class="error-message">
     {{ errorMessage }}
   </div>
@@ -41,7 +44,7 @@
           {{ translations['alone-cabin.frontType'] }}
           <select [(ngModel)]="frontType" name="frontType">
             <option *ngFor="let type of frontTypes" [value]="type.value">
-              {{ type.label }}
+              {{ translations[type.label] }}
             </option>
           </select>
         </label>
@@ -54,10 +57,9 @@
           </label>
         </div>
 
-
         <!-- Przełącznik plecki hdf -->
         <label>
-          <span>{{ translations[ 'alone-cabin.' + needBacks ? 'hdfBacks' : 'noBacks'] }}</span>
+          <span>{{ needBacks ? translations[ 'alone-cabin.hdfBacks'] : translations[ 'alone-cabin.noBacks']}}</span>
           <label class="switch">
             <input type="checkbox" [(ngModel)]="needBacks" name="needBacks" />
             <span class="slider"></span>
@@ -72,7 +74,7 @@
           {{ translations['alone-cabin.materialBox'] }}
           <select [(ngModel)]="boxMaterial" name="boxMaterial">
             <option *ngFor="let material of materials" [value]="material.value">
-              {{ material.label }}
+              {{ translations[material.label] }}
             </option>
           </select>
         </label>
@@ -87,20 +89,23 @@
         <label>
           {{ translations['alone-cabin.colorBox'] }}
           <select [(ngModel)]="boxColor" name="boxColor">
-            <option *ngFor="let color of colors" [value]="color">{{ color }}</option>
+            <option *ngFor="let color of colors" [value]="color.value">
+              {{ translations[color.label] }}
+            </option>
           </select>
         </label>
         <label>
           {{ translations['alone-cabin.materialFront'] }}
           <select [(ngModel)]="frontMaterial" name="frontMaterial">
             <option *ngFor="let material of materials" [value]="material.value">
-              {{ material.label }}
+              {{ translations[material.label] }}
             </option>
           </select>
         </label>
         <!-- Przełącznik czy lakierowany front -->
         <label *ngIf="frontMaterial === 'MDF'">
-          <span>{{ translations[ 'alone-cabin.' + varnishedFront ? 'varnishedFront' : 'frontWithVeneer'] }}</span>
+          <span>{{ varnishedFront ? translations['alone-cabin.varnishedFront'] :
+            translations['alone-cabin.frontWithVeneer'] }}</span>
           <label class="switch">
             <input type="checkbox" [(ngModel)]="varnishedFront" name="varnishedFront" />
             <span class="slider"></span>
@@ -118,7 +123,9 @@
         <label>
           {{ translations['alone-cabin.colorFront'] }}
           <select [(ngModel)]="frontColor" name="frontColor">
-            <option *ngFor="let color of colors" [value]="color">{{ color }}</option>
+            <option *ngFor="let color of colors" [value]="color.value">
+              {{ translations[color.label] }}
+            </option>
           </select>
         </label>
       </div>
@@ -149,13 +156,18 @@
           <td>{{ i + 1 }}</td>
           <td>{{ translations[board.boardName] }}</td>
           <td>{{ board.quantity }}</td>
-          <td>{{ board.sideX ?? 'N/A' }}</td>
-          <td>{{ board.veneerX ?? 'N/A' }}</td>
+          <td>{{ board.sideX }}</td>
+          <td>{{ board.veneerX ?? '0' }}</td>
           <td>{{ board.sideY }}</td>
-          <td>{{ board.veneerY }}</td>
-          <td>{{ board.boardThickness ?? '1.8' }}</td>
-          <td>{{ board.varnished ? 'TAK' : 'NIE' }}</td>
+          <td>{{ board.veneerY ?? '0' }}</td>
+          <td>{{ board.boardThickness ?? '18' }}</td>
+          <td>{{ board.varnished ? translations['GENERAL.yes'] : translations['GENERAL.no'] }}</td>
         </tr>
+        <!-- Wiersz z kosztami -->
+        <tr>
+          <td style="border: none; background-color: white;" colspan="6"></td> <!-- Puste komórki dla lewej strony tabeli -->
+          <td colspan="2" class="highlight-cell">Koszty Płyt:</td>
+          <td> {{ response.boardTotalCost }}</td></tr>
       </tbody>
     </table>
     <h3>{{ translations['alone-cabin.requiredComponents'] }}</h3>
@@ -172,11 +184,19 @@
       <tbody>
         <tr *ngFor="let component of response.componentList; index as i">
           <td>{{ i + 1 }}</td>
-          <td>{{ translations[component.type] }}</td>
-          <td>{{ component.model }}</td>
+          <td>{{ translations[component.category] }}</td>
+          <td>{{ translations[component.model] !==null && translations[component.model] !== undefined ?
+            translations[component.model] : component.model }}</td>
           <td>{{ component.info }}</td>
           <td>{{ component.quantity ?? '0' }}</td>
         </tr>
+        <!-- Wiersz z kosztami -->
+        <tr>
+          <td style="border: none; background-color: white;" colspan="3"></td> <!-- Puste komórki dla lewej strony tabeli -->
+          <td class="highlight-cell">Koszty komponentów:</td>
+          <td> {{ response.componentTotalCost }}</td>
+        </tr>
+
       </tbody>
     </table>
     <h3>{{ translations['alone-cabin.jobList'] }}</h3>
@@ -194,12 +214,19 @@
       <tbody>
         <tr *ngFor="let job of response.jobsList; index as i">
           <td>{{ i + 1 }}</td>
-          <td>{{ translations[job.name] }}</td>
+          <td>{{ translations[job.category] }}</td>
           <td>{{ job.quantity ?? '0' }}</td>
-          <td>{{ job.quantityUnit }}</td>
-          <td>{{ job.pricePerUnit }}</td>
+          <td>{{ job.scrapedElement.unit }}</td>
+          <td>{{ job.scrapedElement.price }}</td>
           <td>{{ job.totalPrice }}</td>
         </tr>
+        <!-- Wiersz z kosztami -->
+        <tr>
+          <td style="border: none; background-color: white; " colspan="4"></td> <!-- Puste komórki dla lewej strony tabeli -->
+          <td class="highlight-cell">Koszty prac:</td>
+          <td> {{ response.jobTotalCost }}</td>
+        </tr>
+
       </tbody>
     </table>
   </div>
