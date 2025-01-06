@@ -94,6 +94,14 @@
             </option>
           </select>
         </label>
+        <label >
+          {{ translations['alone-cabin.boxVeneerColor'] }}
+          <select [(ngModel)]="boxVeneerColor" name="boxVeneerColor">
+            <option *ngFor="let color of colors" [value]="color.value">
+              {{ translations[color.label] }}
+            </option>
+          </select>
+        </label>
         <label>
           {{ translations['alone-cabin.materialFront'] }}
           <select [(ngModel)]="frontMaterial" name="frontMaterial">
@@ -128,6 +136,15 @@
             </option>
           </select>
         </label>
+        <label *ngIf="!varnishedFront">
+          {{ translations['alone-cabin.frontVeneerColor'] }}
+          <select [(ngModel)]="frontVeneerColor" name="frontVeneerColor">
+            <option *ngFor="let color of colors" [value]="color.value">
+              {{ translations[color.label] }}
+            </option>
+          </select>
+        </label>
+
       </div>
     </div>
     <button type="button" (click)="calculateCabinet()">Oblicz</button>
@@ -214,7 +231,9 @@
       <tbody>
         <tr *ngFor="let job of response.jobsList; index as i">
           <td>{{ i + 1 }}</td>
-          <td>{{ translations[job.category] }}</td>
+          <td class="tooltip-cell" [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)">
+            {{ translations[job.category] }}
+          </td>
           <td>{{ job.quantity ?? '0' }}</td>
           <td>{{ job.scrapedElement.unit }}</td>
           <td>{{ job.scrapedElement.price }}</td>

@@ -284,3 +284,28 @@ canvas {
   font-weight: bold; /* Pogrubiona czcionka */
   text-align: right; /* Wyrównanie do prawej */
 }
+
+/* Styl dla komórki z tooltipem */
+.tooltip-cell {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Opcjonalny styl do nadania tooltipowi ładniejszego wyglądu */
+.tooltip-cell:hover::after {
+  content: attr(title);
+  position: absolute;
+  white-space: pre-wrap; /* Umożliwia wyświetlanie nowych linii */
+  background: #333;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  top: 100%; /* Wyświetl poniżej komórki */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  width: max-content;
+  max-width: 200px;
+}

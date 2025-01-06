@@ -23,10 +23,12 @@ export class AloneCabinetComponent implements OnInit {
   boxMaterial: string = 'CHIPBOARD';
   boxBoardThickness: number = 18;
   boxColor: string = 'white';
+  boxVeneerColor: string = 'white';
 
   frontMaterial: string = 'CHIPBOARD';
   frontBoardThickness: number = 18;
   frontColor: string = 'white';
+  frontVeneerColor: string = 'white'; //TODO zmienic na null jesli lakierowany
 
   response: any;
   errorMessage: string | null = null;
@@ -42,14 +44,14 @@ export class AloneCabinetComponent implements OnInit {
   ];
 
   materials = [
-    { value: 'CHIPBOARD', label: 'alone-cabin.material.chipboard' },
-    { value: 'MDF', label: 'alone-cabin.material.MDF' }
+    { value: 'CHIPBOARD', label: 'GENERAL.material.chipboard' },
+    { value: 'MDF', label: 'GENERAL.material.MDF' }
   ];
   thicknesses = [16, 18, 20];
   colors = [
-    { value: 'white', label: 'alone-cabin.color.white' },
-    { value: 'black', label: 'alone-cabin.color.black' },
-    { value: 'red', label: 'alone-cabin.color.red' }
+    { value: 'white', label: 'GENERAL.color.white' },
+    { value: 'black', label: 'GENERAL.color.black' },
+    { value: 'red', label: 'GENERAL.color.red' }
   ];
 
   onFrontTypeChange(): void {
@@ -168,7 +170,12 @@ export class AloneCabinetComponent implements OnInit {
 
   loadTranslations(lang: string) {
     this.selectedLanguage = lang;
-    this.translationService.getTranslations(lang, 'alone-cabin').subscribe(
+    this.translationService.getTranslationsByPrefixes(lang, ['alone-cabin', 'GENERAL',
+            'VeneerModelEnum',
+            'ComponentCategoryEnum',
+            'JobCategoryEnum',
+            'BoardNameEnum',
+            'CuttingTypeEnum']).subscribe(
       (translations) => {
         this.translations = translations;
         this.translationLoading=false;
@@ -179,6 +186,17 @@ export class AloneCabinetComponent implements OnInit {
       }
     );
   }
+
+    // Metoda tłumacząca listę additionalInfo
+    getTranslatedAdditionalInfo(additionalInfo: string[] | undefined): string {
+      if (!additionalInfo) {
+        return ''; // Jeśli brak danych, zwróć pusty ciąg
+      }
+  
+      return additionalInfo
+        .map((info) => this.translations[info] || info) // Tłumacz każdy element lub pozostaw oryginał
+        .join('\n'); // Łącz przetłumaczone elementy w ciąg znaków
+    }
 
   onLanguageChangeEvent(event: Event) {
     const target = event.target as HTMLSelectElement;
@@ -218,7 +236,9 @@ export class AloneCabinetComponent implements OnInit {
         boxColor: this.boxColor,
         frontMaterial: this.frontMaterial,
         frontBoardThickness: this.frontBoardThickness,
-        frontColor: this.frontColor
+        frontColor: this.frontColor,
+        frontVeneerColor: this.frontVeneerColor,
+        boxVeneerColor: this.boxVeneerColor
       }
     };
 

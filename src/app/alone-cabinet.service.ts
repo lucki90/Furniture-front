@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class AloneCabinetService {
 
-  private apiUrl = 'http://localhost:8080/api/furniture/free-standing/calculate';
+  private apiUrl = 'http://localhost:8080/api/furniture/alone/calculate';
 
   constructor(private http: HttpClient) { }
 
