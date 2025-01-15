@@ -94,7 +94,7 @@
             </option>
           </select>
         </label>
-        <label >
+        <label>
           {{ translations['alone-cabin.boxVeneerColor'] }}
           <select [(ngModel)]="boxVeneerColor" name="boxVeneerColor">
             <option *ngFor="let color of colors" [value]="color.value">
@@ -165,11 +165,12 @@
           <th>{{ translations['alone-cabin.width'] }}</th>
           <th>{{ translations['alone-cabin.veneer'] }}</th>
           <th>{{ translations['alone-cabin.thickness'] }}</th>
-          <th>{{ translations['alone-cabin.isVarnished'] }}</th>
+          <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
+          <th>{{ translations['alone-cabin.totalPrice'] }}</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let board of response.boardList; index as i">
+        <tr *ngFor="let board of response.boards; index as i">
           <td>{{ i + 1 }}</td>
           <td>{{ translations[board.boardName] }}</td>
           <td>{{ board.quantity }}</td>
@@ -178,13 +179,16 @@
           <td>{{ board.sideY }}</td>
           <td>{{ board.veneerY ?? '0' }}</td>
           <td>{{ board.boardThickness ?? '18' }}</td>
-          <td>{{ board.varnished ? translations['GENERAL.yes'] : translations['GENERAL.no'] }}</td>
+          <td>{{ board.scrapedElement.price }} PLN</td>
+          <td>{{ board.totalPrice }} PLN</td>
         </tr>
         <!-- Wiersz z kosztami -->
         <tr>
-          <td style="border: none; background-color: white;" colspan="6"></td> <!-- Puste komórki dla lewej strony tabeli -->
+          <td style="border: none; background-color: white;" colspan="7"></td>
+          <!-- Puste komórki dla lewej strony tabeli -->
           <td colspan="2" class="highlight-cell">Koszty Płyt:</td>
-          <td> {{ response.boardTotalCost }}</td></tr>
+          <td> {{ response.boardTotalCost }} PLN</td>
+        </tr>
       </tbody>
     </table>
     <h3>{{ translations['alone-cabin.requiredComponents'] }}</h3>
@@ -194,24 +198,31 @@
           <th>{{ translations['alone-cabin.id'] }}</th>
           <th>{{ translations['alone-cabin.elementType'] }}</th>
           <th>{{ translations['alone-cabin.elementModel'] }}</th>
-          <th>{{ translations['alone-cabin.additionalInfo'] }}</th>
           <th>{{ translations['alone-cabin.quantity'] }}</th>
+          <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
+          <th>{{ translations['alone-cabin.totalPrice'] }}</th>
         </tr>
       </thead>
+
       <tbody>
-        <tr *ngFor="let component of response.componentList; index as i">
+        <tr *ngFor="let component of response.components; index as i">
           <td>{{ i + 1 }}</td>
-          <td>{{ translations[component.category] }}</td>
+          <td>{{ translations[component.category] }} {{ (component.additionalInfo !== null &&
+            component.additionalInfo.length>0 ? ' ' + component.additionalInfo[0] :'') }}</td>
           <td>{{ translations[component.model] !==null && translations[component.model] !== undefined ?
-            translations[component.model] : component.model }}</td>
-          <td>{{ component.info }}</td>
-          <td>{{ component.quantity ?? '0' }}</td>
+            translations[component.model] : component.model }} {{ (component.additionalInfo !== null &&
+            component.additionalInfo.length>0 ? ' '+ translations['GENERAL.color'] +' ' +
+            translations[component.additionalInfo[1]] :'') }}</td>
+          <td>{{ component.quantity ?? '0' }} {{ translations[component.scrapedElement.unit] !==null && translations[component.scrapedElement.unit] !== undefined ? translations[component.scrapedElement.unit] : component.scrapedElement.unit }}</td>
+          <td>{{ component.scrapedElement.price }} PLN</td>
+          <td>{{ component.totalPrice }} PLN</td>
         </tr>
         <!-- Wiersz z kosztami -->
         <tr>
-          <td style="border: none; background-color: white;" colspan="3"></td> <!-- Puste komórki dla lewej strony tabeli -->
-          <td class="highlight-cell">Koszty komponentów:</td>
-          <td> {{ response.componentTotalCost }}</td>
+          <td style="border: none; background-color: white;" colspan="3"></td>
+          <!-- Puste komórki dla lewej strony tabeli -->
+          <td class="highlight-cell" colspan="2">Koszty komponentów:</td>
+          <td> {{ response.componentTotalCost }} PLN</td>
         </tr>
 
       </tbody>
@@ -229,7 +240,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let job of response.jobsList; index as i">
+        <tr *ngFor="let job of response.jobs; index as i">
           <td>{{ i + 1 }}</td>
           <td class="tooltip-cell" [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)">
             {{ translations[job.category] }}
@@ -241,9 +252,10 @@
         </tr>
         <!-- Wiersz z kosztami -->
         <tr>
-          <td style="border: none; background-color: white; " colspan="4"></td> <!-- Puste komórki dla lewej strony tabeli -->
+          <td style="border: none; background-color: white; " colspan="4"></td>
+          <!-- Puste komórki dla lewej strony tabeli -->
           <td class="highlight-cell">Koszty prac:</td>
-          <td> {{ response.jobTotalCost }}</td>
+          <td> {{ response.jobTotalCost }} PLN</td>
         </tr>
 
       </tbody>

@@ -44,7 +44,7 @@ export class AloneCabinetComponent implements OnInit {
   ];
 
   materials = [
-    { value: 'CHIPBOARD', label: 'GENERAL.material.chipboard' },
+    { value: 'CHIPBOARD', label: 'GENERAL.material.CHIPBOARD' },
     { value: 'MDF', label: 'GENERAL.material.MDF' }
   ];
   thicknesses = [16, 18, 20];
@@ -170,33 +170,36 @@ export class AloneCabinetComponent implements OnInit {
 
   loadTranslations(lang: string) {
     this.selectedLanguage = lang;
-    this.translationService.getTranslationsByPrefixes(lang, ['alone-cabin', 'GENERAL',
-            'VeneerModelEnum',
-            'ComponentCategoryEnum',
-            'JobCategoryEnum',
-            'BoardNameEnum',
-            'CuttingTypeEnum']).subscribe(
-      (translations) => {
-        this.translations = translations;
-        this.translationLoading=false;
-      },
-      (error) => {
-        console.error('Failed to load translations:', error);
-        this.errorMessage = 'Failed to load translations.';
-      }
-    );
+    this.translationService.getTranslationsByPrefixes(lang, [
+      'alone-cabin',
+      'GENERAL',
+      'VeneerModelEnum',
+      'ComponentCategoryEnum',
+      'JobCategoryEnum',
+      'BoardNameEnum',
+      'CuttingTypeEnum',
+      'ShelfSupportModelEnum']).subscribe(
+        (translations) => {
+          this.translations = translations;
+          this.translationLoading = false;
+        },
+        (error) => {
+          console.error('Failed to load translations:', error);
+          this.errorMessage = 'Failed to load translations.';
+        }
+      );
   }
 
-    // Metoda tłumacząca listę additionalInfo
-    getTranslatedAdditionalInfo(additionalInfo: string[] | undefined): string {
-      if (!additionalInfo) {
-        return ''; // Jeśli brak danych, zwróć pusty ciąg
-      }
-  
-      return additionalInfo
-        .map((info) => this.translations[info] || info) // Tłumacz każdy element lub pozostaw oryginał
-        .join('\n'); // Łącz przetłumaczone elementy w ciąg znaków
+  // Metoda tłumacząca listę additionalInfo
+  getTranslatedAdditionalInfo(additionalInfo: string[] | undefined): string {
+    if (!additionalInfo) {
+      return ''; // Jeśli brak danych, zwróć pusty ciąg
     }
+
+    return additionalInfo
+      .map((info) => this.translations[info] || info) // Tłumacz każdy element lub pozostaw oryginał
+      .join('\n'); // Łącz przetłumaczone elementy w ciąg znaków
+  }
 
   onLanguageChangeEvent(event: Event) {
     const target = event.target as HTMLSelectElement;
@@ -271,7 +274,7 @@ export class AloneCabinetComponent implements OnInit {
   logMessage(message: string): void {
     console.log(message);
   }
- 
+
   logMessage2(message: {}): void {
     console.log(message);
   }
