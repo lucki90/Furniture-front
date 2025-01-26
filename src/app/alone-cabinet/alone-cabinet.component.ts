@@ -19,6 +19,7 @@ export class AloneCabinetComponent implements OnInit {
   needBacks: boolean = true;
   varnishedFront: boolean = false;
   frontType: string = 'ONE_DOOR';
+  cabinetType: string = 'STANDARD';
 
   boxMaterial: string = 'CHIPBOARD';
   boxBoardThickness: number = 18;
@@ -35,6 +36,11 @@ export class AloneCabinetComponent implements OnInit {
 
   translations: { [key: string]: string } = {};
   selectedLanguage: string = 'pl'; // Default language
+
+cabinetTypes = [
+  { value: 'STANDARD', label: 'GENERAL.cabinet.standard' },
+  { value: 'INTERNAL', label: 'GENERAL.cabinet.internal' },
+];
 
   frontTypes = [
     { value: 'OPEN', label: 'alone-cabin.front.open' },
@@ -232,6 +238,7 @@ export class AloneCabinetComponent implements OnInit {
       needBacks: this.needBacks,
       varnishedFront: this.varnishedFront,
       frontType: this.frontType,
+      cabinetType: this.cabinetType,
       drawerQuantity: this.frontType === 'DRAWER' ? this.drawerQuantity : null,
       materialRequest: {
         boxMaterial: this.boxMaterial,

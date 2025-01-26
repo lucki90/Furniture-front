@@ -309,3 +309,26 @@ canvas {
   width: max-content;
   max-width: 200px;
 }
+/* PASEK BOCZNY */
+.main-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+}
+
+.sidenav {
+  width: 250px;
+  padding: 16px;
+  background-color: #f3f4f6;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.active-link {
+  font-weight: bold;
+  color: #1a73e8;
+}
+
+mat-sidenav-content {
+  padding: 24px;
+  overflow: auto;
+}

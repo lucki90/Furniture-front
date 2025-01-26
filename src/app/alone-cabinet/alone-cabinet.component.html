@@ -21,6 +21,17 @@
   <h2>{{ translations['alone-cabin.calculateTheCabinetParameters'] }}</h2>
   <form>
     <div class="form-row">
+      <!-- wybor typu szafki -->
+      <div class="dimensions-and-switches">
+        <label>
+          {{ translations['GENERAL.cabinetType'] }}
+          <select [(ngModel)]="cabinetType" name="cabinetType">
+            <option *ngFor="let type of cabinetTypes" [value]="type.value">
+              {{ translations[type.label] }}
+            </option>
+          </select>
+        </label>
+      </div>
       <!-- Pierwsza kolumna: Wymiary, półki, przełączniki -->
       <div class="dimensions-and-switches">
         <label>
