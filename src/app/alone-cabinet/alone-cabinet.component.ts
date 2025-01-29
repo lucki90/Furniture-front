@@ -17,6 +17,11 @@ export class AloneCabinetComponent implements OnInit {
   drawerQuantity: number = 0;
   oneFront: boolean = true;
   needBacks: boolean = true;
+  isHanging: boolean = false;
+  isHangingOnRail: boolean = false;
+  isBackInGroove: boolean = false;
+  isFrontExtended: boolean = false;
+  isCoveredWithCounterTop: boolean = false;
   varnishedFront: boolean = false;
   frontType: string = 'ONE_DOOR';
   cabinetType: string = 'STANDARD';
@@ -46,6 +51,7 @@ cabinetTypes = [
     { value: 'OPEN', label: 'alone-cabin.front.open' },
     { value: 'ONE_DOOR', label: 'alone-cabin.front.oneDoor' },
     { value: 'TWO_DOORS', label: 'alone-cabin.front.twoDoors' },
+    { value: 'UPWARDS', label: 'alone-cabin.front.upward' },
     { value: 'DRAWER', label: 'alone-cabin.front.drawer' }
   ];
 
@@ -184,7 +190,12 @@ cabinetTypes = [
       'JobCategoryEnum',
       'BoardNameEnum',
       'CuttingTypeEnum',
-      'ShelfSupportModelEnum']).subscribe(
+      'ShelfSupportModelEnum',
+      'HangerModelEnum',
+      'HingeTypeEnum',
+    'MillingTypeEnum'
+    
+    ]).subscribe(
         (translations) => {
           this.translations = translations;
           this.translationLoading = false;
@@ -221,6 +232,14 @@ cabinetTypes = [
     this.loadTranslations(this.selectedLanguage);
   }
 
+  // switche
+  // czy plecki potrzebne?
+  onNeedBacksChange(): void {
+    if (!this.needBacks) {
+      this.isBackInGroove = false;
+    }
+  }
+
   objectKeys(obj: any): string[] {
     return Object.keys(obj);
   }
@@ -236,6 +255,11 @@ cabinetTypes = [
       shelfQuantity: this.shelfQuantity,
       oneFront: this.oneFront,
       needBacks: this.needBacks,
+      isHanging: this.isHanging,
+      isHangingOnRail: this.isHangingOnRail,
+      isBackInGroove: this.isBackInGroove,
+      isFrontExtended: this.isFrontExtended,
+      isCoveredWithCounterTop: this.isCoveredWithCounterTop,
       varnishedFront: this.varnishedFront,
       frontType: this.frontType,
       cabinetType: this.cabinetType,

@@ -72,11 +72,43 @@
         <label>
           <span>{{ needBacks ? translations[ 'alone-cabin.hdfBacks'] : translations[ 'alone-cabin.noBacks']}}</span>
           <label class="switch">
-            <input type="checkbox" [(ngModel)]="needBacks" name="needBacks" />
+            <input id="needBacksSwitch" type="checkbox" [(ngModel)]="needBacks" (change)="onNeedBacksChange()"
+              name="needBacks" />
             <span class="slider"></span>
             <span class="tooltip">{{ translations['alone-cabin.shouldAddBack'] }}</span>
           </label>
         </label>
+        <!-- Przełącznik czy HDF we wpuscie - wlaczane jesli HDF=true -->
+        <div *ngIf="needBacks">
+          <label>
+            <span>{{ isBackInGroove ? translations[ 'alone-cabin.backInGroove'] : translations[
+              'alone-cabin.backNotInGroove']}}</span>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="isBackInGroove" name="isBackInGroove" [disabled]="!needBacks" />
+              <span class="slider"></span>
+            </label>
+          </label>
+        </div>
+        <!-- Przełącznik czy szafka wiszaca -->
+        <label>
+          <span>{{ isHanging ? translations[ 'alone-cabin.isHanging'] : translations[
+            'alone-cabin.isNotHanging']}}</span>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="isHanging" name="isHanging" />
+            <span class="slider"></span>
+          </label>
+        </label>
+        <!-- Przełącznik czy zawieszona na szynie? wlaczony jesli wiszaca -->
+        <div *ngIf="isHanging">
+          <label>
+            <span>{{ isHangingOnRail ? translations[ 'alone-cabin.isHangingOnRail'] : translations[
+              'alone-cabin.isHangingNotRail']}}</span>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="isHangingOnRail" name="isHangingOnRail" />
+              <span class="slider"></span>
+            </label>
+          </label>
+        </div>
       </div>
 
       <!-- Druga kolumna: Materiał korpusu i frontu -->
@@ -121,6 +153,28 @@
             </option>
           </select>
         </label>
+        <!-- Przełącznik czy Front przedluzony o 2cm -->
+        <div *ngIf="frontType !== 'DRAWER' && isHanging">
+          <label>
+            <span>{{ isFrontExtended ? translations[ 'alone-cabin.isFrontExtended'] : translations[
+              'alone-cabin.isFrontNotExtended']}}</span>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="isFrontExtended" name="isFrontExtended" />
+              <span class="slider"></span>
+            </label>
+          </label>
+        </div>
+        <!-- Przełącznik czy na szafce bedzie blat/plyta (np kuchenne) - tylko jesli nie wisza -->
+        <div *ngIf="!isHanging">
+          <label>
+            <span>{{ isCoveredWithCounterTop ? translations[ 'alone-cabin.isCoveredWithCounterTop'] : translations[
+              'alone-cabin.isNotCoveredWithCounterTop']}}</span>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="isCoveredWithCounterTop" name="isCoveredWithCounterTop" />
+              <span class="slider"></span>
+            </label>
+          </label>
+        </div>
         <!-- Przełącznik czy lakierowany front -->
         <label *ngIf="frontMaterial === 'MDF'">
           <span>{{ varnishedFront ? translations['alone-cabin.varnishedFront'] :
@@ -224,7 +278,9 @@
             translations[component.model] : component.model }} {{ (component.additionalInfo !== null &&
             component.additionalInfo.length>0 ? ' '+ translations['GENERAL.color'] +' ' +
             translations[component.additionalInfo[1]] :'') }}</td>
-          <td>{{ component.quantity ?? '0' }} {{ translations[component.scrapedElement.unit] !==null && translations[component.scrapedElement.unit] !== undefined ? translations[component.scrapedElement.unit] : component.scrapedElement.unit }}</td>
+          <td>{{ component.quantity ?? '0' }} {{ translations[component.scrapedElement.unit] !==null &&
+            translations[component.scrapedElement.unit] !== undefined ? translations[component.scrapedElement.unit] :
+            component.scrapedElement.unit }}</td>
           <td>{{ component.scrapedElement.price }} PLN</td>
           <td>{{ component.totalPrice }} PLN</td>
         </tr>
@@ -244,6 +300,7 @@
         <tr>
           <th>{{ translations['alone-cabin.id'] }}</th>
           <th>{{ translations['alone-cabin.name'] }}</th>
+          <th>{{ translations['alone-cabin.type'] }}</th>
           <th>{{ translations['alone-cabin.quantity'] }}</th>
           <th>{{ translations['alone-cabin.unit'] }}</th>
           <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
@@ -256,8 +313,11 @@
           <td class="tooltip-cell" [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)">
             {{ translations[job.category] }}
           </td>
+          <td>{{ translations[job.type] }}</td>
           <td>{{ job.quantity ?? '0' }}</td>
-          <td>{{ job.scrapedElement.unit }}</td>
+          <td>{{ translations[job.scrapedElement.unit] !==null &&
+            translations[job.scrapedElement.unit] !== undefined ? translations[job.scrapedElement.unit] :
+            job.scrapedElement.unit }}</td>
           <td>{{ job.scrapedElement.price }}</td>
           <td>{{ job.totalPrice }}</td>
         </tr>
