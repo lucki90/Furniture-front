@@ -12,12 +12,14 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { PrintDocComponent } from './print-doc/print-doc.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         AloneCabinetComponent,
-        MultiCabinetComponent
+        MultiCabinetComponent,
+        PrintDocComponent
     ],
     imports: [
         BrowserModule,

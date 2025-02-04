@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AloneCabinetService {
+  furnitureData: any; // Dane z endpointu /api/furniture/alone/calculate
 
   private apiUrl = 'http://localhost:8080/api/furniture/alone/calculate';
 

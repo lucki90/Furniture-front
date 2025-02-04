@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild  } from '@angular/core';
 import { AloneCabinetService } from '../alone-cabinet.service';
 import { TranslationService } from '../translation/translation.service';
+import { PrintDocService } from '../services/print-doc.service';
+import { PrintDocComponent } from '../print-doc/print-doc.component';
 
 @Component({
   selector: 'app-alone-cabinet',
@@ -8,6 +10,8 @@ import { TranslationService } from '../translation/translation.service';
   styleUrls: ['./alone-cabinet.component.css']
 })
 export class AloneCabinetComponent implements OnInit {
+
+  @ViewChild(PrintDocComponent) printDocComponent!: PrintDocComponent;
   translationLoading: boolean = true;
 
   height: number = 600;
@@ -65,6 +69,30 @@ cabinetTypes = [
     { value: 'black', label: 'GENERAL.color.black' },
     { value: 'red', label: 'GENERAL.color.red' }
   ];
+
+  prepareDocPrintRequest(): any {
+    // throw new Error('Method not implemented.');
+    if (!this.response || !this.response.boards) {
+      return null;
+    }
+    return this.response.boards.map((board: any) => {
+      return {
+        quantity: board.quantity,
+        symbol: board.color,
+        thickness: board.boardThickness,
+        length: board.sideX,
+        lengthVeneer: board.veneerX,
+        width: board.sideY,
+        widthVeneer: board.veneerY,
+        veneerColor: board.veneerColor,
+        sticker: this.translations[board.boardName], 
+        remarks: '' //TODO 
+
+      };
+    });
+
+    // return { boards: newBoards };
+  }
 
   onFrontTypeChange(): void {
     // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
@@ -165,7 +193,8 @@ cabinetTypes = [
 
   constructor(
     private cabinetService: AloneCabinetService,
-    private translationService: TranslationService
+    private translationService: TranslationService,
+    // private printDocComponent: PrintDocComponent,
   ) { }
 
   ngOnInit(): void {
@@ -242,6 +271,10 @@ cabinetTypes = [
 
   objectKeys(obj: any): string[] {
     return Object.keys(obj);
+  }
+
+  printDoc(){
+    this.printDocComponent.downloadExcel2(this.response);
   }
 
   calculateCabinet() {

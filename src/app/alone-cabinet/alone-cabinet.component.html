@@ -213,6 +213,9 @@
       </div>
     </div>
     <button type="button" (click)="calculateCabinet()">Oblicz</button>
+    <div *ngIf="response">
+      <app-print-doc [response]="prepareDocPrintRequest()"></app-print-doc>
+    </div>
   </form>
 
 
