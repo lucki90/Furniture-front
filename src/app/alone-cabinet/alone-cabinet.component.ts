@@ -21,6 +21,7 @@ export class AloneCabinetComponent implements OnInit {
   needBacks: boolean = true;
   isHanging: boolean = false;
   isHangingOnRail: boolean = false;
+  isStandingOnFeet: boolean = false;
   isBackInGroove: boolean = false;
   isFrontExtended: boolean = false;
   isCoveredWithCounterTop: boolean = false;
@@ -223,6 +224,7 @@ cabinetTypes = [
       'ShelfSupportModelEnum',
       'HangerModelEnum',
       'HingeTypeEnum',
+      'FeetModelEnum',
     'MillingTypeEnum'
     
     ]).subscribe(
@@ -291,6 +293,7 @@ cabinetTypes = [
       needBacks: this.needBacks,
       isHanging: this.isHanging,
       isHangingOnRail: this.isHangingOnRail,
+      isStandingOnFeet: this.isStandingOnFeet,
       isBackInGroove: this.isBackInGroove,
       isFrontExtended: this.isFrontExtended,
       isCoveredWithCounterTop: this.isCoveredWithCounterTop,
@@ -341,6 +344,7 @@ cabinetTypes = [
         needBacks: this.needBacks,
         isHanging: this.isHanging,
         isHangingOnRail: this.isHangingOnRail,
+        isStandingOnFeet: this.isStandingOnFeet,
         isBackInGroove: this.isBackInGroove,
         isFrontExtended: this.isFrontExtended,
         isCoveredWithCounterTop: this.isCoveredWithCounterTop,

@@ -108,6 +108,17 @@
               <span class="slider"></span>
             </label>
           </label>
+        </div>        
+        <!-- Przełącznik czy stoi na nozkach -->
+        <div *ngIf="!isHanging">
+          <label>
+            <span>{{ isStandingOnFeet ? translations[ 'alone-cabin.isOnFeet'] : translations[
+              'alone-cabin.isNotOnFeet']}}</span>
+            <label class="switch">
+              <input type="checkbox" [(ngModel)]="isStandingOnFeet" name="isStandingOnFeet" />
+              <span class="slider"></span>
+            </label>
+          </label>
         </div>
       </div>
 
