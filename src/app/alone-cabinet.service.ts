@@ -8,11 +8,16 @@ import { Observable } from 'rxjs';
 export class AloneCabinetService {
   furnitureData: any; // Dane z endpointu /api/furniture/alone/calculate
 
-  private apiUrl = 'http://localhost:8080/api/furniture/alone/calculate';
+  private singleCalcUrl = 'http://localhost:8080/api/furniture/alone/calculate';
+  private manyCalcUrl = 'http://localhost:8080/api/furniture/alone/calculate-many';
 
   constructor(private http: HttpClient) { }
 
   calculateCabinet(data: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, data);
+    return this.http.post<any>(this.singleCalcUrl, data);
+  }
+
+  calculateMany(data: any[]): Observable<any> {
+    return this.http.post<any>(this.manyCalcUrl, data);
   }
 }

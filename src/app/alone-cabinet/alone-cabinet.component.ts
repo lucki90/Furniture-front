@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild  } from '@angular/core';
 import { AloneCabinetService } from '../alone-cabinet.service';
 import { TranslationService } from '../translation/translation.service';
-import { PrintDocService } from '../services/print-doc.service';
 import { PrintDocComponent } from '../print-doc/print-doc.component';
 
 @Component({
@@ -10,7 +9,6 @@ import { PrintDocComponent } from '../print-doc/print-doc.component';
   styleUrls: ['./alone-cabinet.component.css']
 })
 export class AloneCabinetComponent implements OnInit {
-
   @ViewChild(PrintDocComponent) printDocComponent!: PrintDocComponent;
   translationLoading: boolean = true;
 
@@ -69,6 +67,9 @@ cabinetTypes = [
     { value: 'black', label: 'GENERAL.color.black' },
     { value: 'red', label: 'GENERAL.color.red' }
   ];
+
+    // Tablica przechowująca przygotowane requesty
+    multiRequests: any[] = [];
 
   prepareDocPrintRequest(): any {
     // throw new Error('Method not implemented.');
@@ -323,6 +324,61 @@ cabinetTypes = [
           this.errorMessage = this.translations['unexpected_error'] || 'Unexpected error occurred. Please try again later.';
         }
         console.error('Error:', error);
+      }
+    );
+  }
+  // Dodawanie wielu requestow z szafkami 
+    // Dodaje przygotowany request do listy multiRequests
+    addRequest(): void {
+      // Przygotowujemy obiekt requestu na podstawie bieżących danych formularza
+      const req = {
+        lang: this.selectedLanguage,
+        height: this.height,
+        width: this.width,
+        depth: this.depth,
+        shelfQuantity: this.shelfQuantity,
+        oneFront: this.oneFront,
+        needBacks: this.needBacks,
+        isHanging: this.isHanging,
+        isHangingOnRail: this.isHangingOnRail,
+        isBackInGroove: this.isBackInGroove,
+        isFrontExtended: this.isFrontExtended,
+        isCoveredWithCounterTop: this.isCoveredWithCounterTop,
+        varnishedFront: this.varnishedFront,
+        frontType: this.frontType,
+        cabinetType: this.cabinetType,
+        drawerQuantity: this.frontType === 'DRAWER' ? this.drawerQuantity : null,
+        materialRequest: {
+          boxMaterial: this.boxMaterial,
+          boxBoardThickness: this.boxBoardThickness,
+          boxColor: this.boxColor,
+          frontMaterial: this.frontMaterial,
+          frontBoardThickness: this.frontBoardThickness,
+          frontColor: this.frontColor,
+          frontVeneerColor: this.frontVeneerColor,
+          boxVeneerColor: this.boxVeneerColor
+        }
+      };
+  
+      this.multiRequests.push(req);
+      console.log('Added request:', req);
+    }
+
+      // Wysyła listę przygotowanych requestów do endpointu /calculate-many
+  calculateMany(): void {
+    if (this.multiRequests.length === 0) {
+      console.warn('Brak przygotowanych requestów do wysłania');
+      return;
+    }
+    this.cabinetService.calculateMany(this.multiRequests).subscribe(
+      (response) => {
+        console.log('Response from calculateMany:', response);
+        this.response = response;
+        // Możesz tutaj przypisać odpowiedź do właściwości lub wykonać inne akcje
+      },
+      (error) => {
+        console.error('Error in calculateMany:', error);
+        this.errorMessage = this.translations['unexpected_error'] || 'Unexpected error occurred. Please try again later.';
       }
     );
   }

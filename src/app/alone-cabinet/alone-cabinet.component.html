@@ -216,6 +216,25 @@
     <div *ngIf="response">
       <app-print-doc [response]="prepareDocPrintRequest()"></app-print-doc>
     </div>
+    <!-- Nowy przycisk do dodania requestu do listy -->
+<button type="button" (click)="addRequest()">
+  {{ translations['alone-cabin.addBoard'] || 'Dodaj szafkę' }}
+</button>
+<!-- Wyświetlenie listy przygotowanych requestów (opcjonalnie) -->
+<div *ngIf="multiRequests && multiRequests.length > 0">
+  <h3>{{ translations['alone-cabin.preparedRequests'] || 'Przygotowane requesty:' }}</h3>
+  <ul>
+    <li *ngFor="let req of multiRequests; index as i">
+      Request {{ i + 1 }}
+    </li>
+  </ul>
+  <!-- Przycisk wysyłający wszystkie requesty -->
+  <button type="button" (click)="calculateMany()">
+    {{ translations['alone-cabin.calculateMany'] || 'Wyślij wiele' }}
+  </button>
+</div>
+
+
   </form>
 
 
