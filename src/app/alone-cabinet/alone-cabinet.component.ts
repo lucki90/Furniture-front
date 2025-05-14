@@ -28,6 +28,7 @@ export class AloneCabinetComponent implements OnInit {
   varnishedFront: boolean = false;
   frontType: string = 'ONE_DOOR';
   cabinetType: string = 'STANDARD';
+  openingType: string = 'HANDLE';
 
   boxMaterial: string = 'CHIPBOARD';
   boxBoardThickness: number = 18;
@@ -49,6 +50,13 @@ cabinetTypes = [
   { value: 'STANDARD', label: 'GENERAL.cabinet.standard' },
   { value: 'INTERNAL', label: 'GENERAL.cabinet.internal' },
 ];
+
+openingTypes = [
+  { value: 'HANDLE', label: 'OpeningModelEnum.HANDLE' },
+  { value: 'CLICK', label: 'OpeningModelEnum.CLICK' },
+  { value: 'MILLED', label: 'OpeningModelEnum.MILLED' },
+  { value: 'NONE', label: 'OpeningModelEnum.NONE' },
+]
 
   frontTypes = [
     { value: 'OPEN', label: 'alone-cabin.front.open' },
@@ -225,6 +233,7 @@ cabinetTypes = [
       'HangerModelEnum',
       'HingeTypeEnum',
       'FeetModelEnum',
+      'OpeningModelEnum',
     'MillingTypeEnum'
     
     ]).subscribe(
@@ -300,6 +309,7 @@ cabinetTypes = [
       varnishedFront: this.varnishedFront,
       frontType: this.frontType,
       cabinetType: this.cabinetType,
+      openingType: this.openingType,
       drawerQuantity: this.frontType === 'DRAWER' ? this.drawerQuantity : null,
       materialRequest: {
         boxMaterial: this.boxMaterial,
@@ -351,6 +361,7 @@ cabinetTypes = [
         varnishedFront: this.varnishedFront,
         frontType: this.frontType,
         cabinetType: this.cabinetType,
+        openingType: this.openingType,
         drawerQuantity: this.frontType === 'DRAWER' ? this.drawerQuantity : null,
         materialRequest: {
           boxMaterial: this.boxMaterial,
