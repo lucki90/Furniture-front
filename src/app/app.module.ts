@@ -13,13 +13,21 @@ import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { PrintDocComponent } from './print-doc/print-doc.component';
+import { CabinetVisualizationComponent } from './cabinet-visualization/cabinet-visualization.component';
+import { RadioButtonComponent } from './utils/radio-button/radio-button.component';
+import { DropdownComponent } from './utils/dropdown/dropdown.component';
+import { NumericInputComponent } from './utils/numeric-input/numeric-input.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         AloneCabinetComponent,
         MultiCabinetComponent,
-        PrintDocComponent
+        PrintDocComponent,
+        CabinetVisualizationComponent,
+        RadioButtonComponent,
+        DropdownComponent,
+        NumericInputComponent
     ],
     imports: [
         BrowserModule,

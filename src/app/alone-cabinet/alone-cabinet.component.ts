@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild  } from '@angular/core';
 import { AloneCabinetService } from '../alone-cabinet.service';
 import { TranslationService } from '../translation/translation.service';
 import { PrintDocComponent } from '../print-doc/print-doc.component';
+import { CabinetVisualizationComponent } from '../cabinet-visualization/cabinet-visualization.component';
 
 @Component({
   selector: 'app-alone-cabinet',
@@ -10,6 +11,8 @@ import { PrintDocComponent } from '../print-doc/print-doc.component';
 })
 export class AloneCabinetComponent implements OnInit {
   @ViewChild(PrintDocComponent) printDocComponent!: PrintDocComponent;
+  @ViewChild(CabinetVisualizationComponent) cabinetVisualizationComponent!: CabinetVisualizationComponent;
+
   translationLoading: boolean = true;
 
   height: number = 600;
@@ -38,7 +41,7 @@ export class AloneCabinetComponent implements OnInit {
   frontMaterial: string = 'CHIPBOARD';
   frontBoardThickness: number = 18;
   frontColor: string = 'white';
-  frontVeneerColor: string = 'white'; //TODO zmienic na null jesli lakierowany
+  frontVeneerColor: string | null = 'white'; //TODO zmienic na null jesli lakierowany
 
   response: any;
   errorMessage: string | null = null;
@@ -70,7 +73,11 @@ openingTypes = [
     { value: 'CHIPBOARD', label: 'GENERAL.material.CHIPBOARD' },
     { value: 'MDF', label: 'GENERAL.material.MDF' }
   ];
-  thicknesses = [16, 18, 20];
+  thicknesses = [
+    {value: 16, label: '16'},
+    {value: 18, label: '18'},
+    {value: 20, label: '20'}
+  ];
   colors = [
     { value: 'white', label: 'GENERAL.color.white' },
     { value: 'black', label: 'GENERAL.color.black' },
@@ -95,8 +102,8 @@ openingTypes = [
         width: board.sideY,
         widthVeneer: board.veneerY,
         veneerColor: board.veneerColor,
-        sticker: this.translations[board.boardName], 
-        remarks: '' //TODO 
+        sticker: this.translations[board.boardName],
+        remarks: '' //TODO
 
       };
     });
@@ -104,102 +111,7 @@ openingTypes = [
     // return { boards: newBoards };
   }
 
-  onFrontTypeChange(): void {
-    // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
-    if (this.frontType !== 'DRAWER') {
-      this.drawerQuantity = 0;
-    }
-  }
 
-  drawCabinet(): void {
-    const canvas = document.getElementById('cabinetCanvas') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d');
-
-    if (!ctx) return;
-
-    // Resetowanie canvasu
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Proporcje szafki
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-    const scaleFactor = Math.min(
-      canvasWidth / (this.width || 100),
-      canvasHeight / (this.height || 100)
-    );
-
-    const cabinetWidth = (this.width || 100) * scaleFactor;
-    const cabinetHeight = (this.height || 100) * scaleFactor;
-
-    // Korpus
-    ctx.fillStyle = '#ddd';
-    ctx.fillRect(
-      (canvasWidth - cabinetWidth) / 2,
-      (canvasHeight - cabinetHeight) / 2,
-      cabinetWidth,
-      cabinetHeight
-    );
-
-    // Półki
-    const shelfQuantity = this.shelfQuantity || 0;
-    if (shelfQuantity > 0) {
-      const shelfHeight = cabinetHeight / (shelfQuantity + 1);
-      ctx.strokeStyle = '#000';
-      for (let i = 1; i <= shelfQuantity; i++) {
-        ctx.beginPath();
-        ctx.moveTo((canvasWidth - cabinetWidth) / 2, (canvasHeight - cabinetHeight) / 2 + i * shelfHeight);
-        ctx.lineTo((canvasWidth + cabinetWidth) / 2, (canvasHeight - cabinetHeight) / 2 + i * shelfHeight);
-        ctx.stroke();
-      }
-    }
-
-    // Fronty/Szuflady
-    const frontType = this.frontType;
-    if (frontType === 'DRAWER' && this.drawerQuantity) {
-      const drawerQuantity = this.drawerQuantity;
-      const drawerHeight = cabinetHeight / drawerQuantity;
-      ctx.fillStyle = '#888';
-      for (let i = 0; i < drawerQuantity; i++) {
-        ctx.fillRect(
-          (canvasWidth - cabinetWidth) / 2,
-          (canvasHeight - cabinetHeight) / 2 + i * drawerHeight,
-          cabinetWidth,
-          drawerHeight - 5
-        );
-      }
-    } else if (frontType === 'ONE_FRONT') {
-      ctx.fillStyle = '#888';
-      ctx.fillRect(
-        (canvasWidth - cabinetWidth) / 2,
-        (canvasHeight - cabinetHeight) / 2,
-        cabinetWidth,
-        cabinetHeight
-      );
-    } else if (frontType === 'TWO_FRONTS') {
-      ctx.fillStyle = '#888';
-      ctx.fillRect(
-        (canvasWidth - cabinetWidth) / 2,
-        (canvasHeight - cabinetHeight) / 2,
-        cabinetWidth,
-        cabinetHeight / 2 - 2
-      );
-      ctx.fillRect(
-        (canvasWidth - cabinetWidth) / 2,
-        (canvasHeight - cabinetHeight) / 2 + cabinetHeight / 2 + 2,
-        cabinetWidth,
-        cabinetHeight / 2 - 2
-      );
-    }
-
-    // Obrys
-    ctx.strokeStyle = '#000';
-    ctx.strokeRect(
-      (canvasWidth - cabinetWidth) / 2,
-      (canvasHeight - cabinetHeight) / 2,
-      cabinetWidth,
-      cabinetHeight
-    );
-  }
 
   constructor(
     private cabinetService: AloneCabinetService,
@@ -210,7 +122,6 @@ openingTypes = [
   ngOnInit(): void {
     const browserLanguage = this.getBrowserLanguage();
     this.loadTranslations(browserLanguage);
-    // this.drawCabinet();
   }
 
   // Pobierz język przeglądarki
@@ -222,6 +133,7 @@ openingTypes = [
   loadTranslations(lang: string) {
     this.selectedLanguage = lang;
     this.translationService.getTranslationsByPrefixes(lang, [
+      'ERROR',
       'alone-cabin',
       'GENERAL',
       'VeneerModelEnum',
@@ -235,7 +147,7 @@ openingTypes = [
       'FeetModelEnum',
       'OpeningModelEnum',
     'MillingTypeEnum'
-    
+
     ]).subscribe(
         (translations) => {
           this.translations = translations;
@@ -275,10 +187,63 @@ openingTypes = [
 
   // switche
   // czy plecki potrzebne?
-  onNeedBacksChange(): void {
+  onNeedBacksChange(value: boolean): void {
+    this.needBacks = value;
     if (!this.needBacks) {
       this.isBackInGroove = false;
     }
+  }
+
+  /**
+   * Obsługa zmiany typu szafki
+   */
+  onCabinetTypeChange(value: string): void {
+    this.cabinetType = value;
+  }
+  onOpeningTypeChange(value: string): void {
+    this.openingType = value;
+  }
+
+  onFrontTypeChange(value: string): void {
+    this.frontType = value;
+    // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
+    if (this.frontType !== 'DRAWER') {
+      this.drawerQuantity = 0;
+    }
+  }
+
+  onDrawerQuantityChange(value: number): void {
+    this.drawerQuantity = value;
+  }
+
+  onBoxMaterialChange(value: string): void {
+    this.boxMaterial = value;
+  }
+  onBoxBoardThicknessChange(value: number): void {
+    this.boxBoardThickness = value;
+  }
+
+  onVarnishedFrontChange(value: boolean): void {
+    this.varnishedFront = value;
+    if (this.varnishedFront){
+      this.frontVeneerColor = null;
+    }
+  }
+
+  onHeightChange(newHeight: number): void {
+    this.height = newHeight;
+  }
+
+  onWidthChange(newWidth: number): void {
+    this.width = newWidth;
+  }
+
+  onDepthChange(newDepth: number): void {
+    this.depth = newDepth;
+  }
+
+  onShelfQuantityChange(newQuantity: number) {
+    this.shelfQuantity = newQuantity;
   }
 
   objectKeys(obj: any): string[] {
@@ -327,7 +292,10 @@ openingTypes = [
       (response) => {
         this.response = response;
 
-        this.drawCabinet();
+        // Wywołaj metodę drawCabinet z komponentu CabinetVisualization
+        if (this.cabinetVisualizationComponent) {
+          this.cabinetVisualizationComponent.drawCabinet();
+        }
       },
       (error) => {
         console.log(error);
@@ -340,7 +308,7 @@ openingTypes = [
       }
     );
   }
-  // Dodawanie wielu requestow z szafkami 
+  // Dodawanie wielu requestow z szafkami
     // Dodaje przygotowany request do listy multiRequests
     addRequest(): void {
       // Przygotowujemy obiekt requestu na podstawie bieżących danych formularza
@@ -374,7 +342,7 @@ openingTypes = [
           boxVeneerColor: this.boxVeneerColor
         }
       };
-  
+
       this.multiRequests.push(req);
       console.log('Added request:', req);
     }
@@ -413,4 +381,5 @@ openingTypes = [
   logMessage2(message: {}): void {
     console.log(message);
   }
+
 }

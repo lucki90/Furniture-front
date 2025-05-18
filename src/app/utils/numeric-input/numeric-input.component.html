@@ -1,0 +1,41 @@
+<div class="numeric-input-container" [id]="id">
+  <!-- Etykieta -->
+  <label *ngIf="label" [for]="id + '-input'" class="numeric-input-label">
+    {{ label }}
+  </label>
+
+  <!-- Tooltip z komunikatem błędu -->
+  <div class="error-tooltip" *ngIf="hasError" [id]="id + '-tooltip'">
+    {{ errorMessage }}
+    <div class="tooltip-arrow"></div>
+  </div>
+
+  <!-- Pole tekstowe -->
+  <input
+    type="number"
+    [id]="id + '-input'"
+  [(ngModel)]="value"
+  (ngModelChange)="onValueChange($event)"
+  [disabled]="isDisabled"
+  [class.error]="hasError"
+  [min]="min"
+  [max]="max"
+  [step]="step"
+  />
+
+  <!-- Suwak -->
+  <div class="range-container">
+    <span class="range-label">{{ min }}</span>
+    <input
+      type="range"
+      [id]="id + '-range'"
+    [(ngModel)]="value"
+    (ngModelChange)="onValueChange($event)"
+    [min]="min"
+    [max]="max"
+    [step]="step"
+    [disabled]="isDisabled"
+    />
+    <span class="range-label">{{ max }}</span>
+  </div>
+</div>

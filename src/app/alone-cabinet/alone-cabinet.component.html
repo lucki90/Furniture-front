@@ -16,220 +16,298 @@
   </div>
   <div>
     <h3>{{ translations['alone-cabin.responseContainerTitle'] }} </h3>
-    <canvas id="cabinetCanvas" width="400" height="400" style="border:1px solid #ddd;"></canvas>
+    <app-cabinet-visualization
+      [width]="width"
+      [height]="height"
+      [shelfQuantity]="shelfQuantity"
+      [frontType]="frontType"
+      [drawerQuantity]="drawerQuantity">
+    </app-cabinet-visualization>
   </div>
   <h2>{{ translations['alone-cabin.calculateTheCabinetParameters'] }}</h2>
   <form>
     <div class="form-row">
-      <!-- wybor typu szafki -->
       <div class="dimensions-and-switches">
-        <label>
-          {{ translations['GENERAL.cabinetType'] }}
-          <select [(ngModel)]="cabinetType" name="cabinetType">
-            <option *ngFor="let type of cabinetTypes" [value]="type.value">
-              {{ translations[type.label] }}
-            </option>
-          </select>
-        </label>
+        <!-- Typ szafki -->
+        <app-dropdown
+          id="cabinet-type"
+          [label]="translations['GENERAL.cabinetType']"
+          [options]="cabinetTypes"
+          [selectedValue]="cabinetType"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="onCabinetTypeChange($event)">
+        </app-dropdown>
         <!-- typ uchwytu -->
-        <label>
-          {{ translations['GENERAL.openingType'] }}
-          <select [(ngModel)]="openingType" name="openingType">
-            <option *ngFor="let type of openingTypes" [value]="type.value">
-              {{ translations[type.label] }}
-            </option>
-          </select>
-        </label>
-        </div>
+        <app-dropdown
+          id="opening-type"
+          [label]="translations['GENERAL.openingType']"
+          [options]="openingTypes"
+          [selectedValue]="openingType"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="onOpeningTypeChange($event)">
+        </app-dropdown>
+      </div>
 
       <!-- Pierwsza kolumna: Wymiary, półki, przełączniki -->
       <div class="dimensions-and-switches">
-        <label>
-          {{ translations['alone-cabin.height'] }}
-          <input type="number" [(ngModel)]="height" name="height" />
-        </label>
-        <label>
-          {{ translations['alone-cabin.width'] }}
-          <input type="number" [(ngModel)]="width" name="width" />
-        </label>
-        <label>
-          {{ translations['alone-cabin.depth'] }}
-          <input type="number" [(ngModel)]="depth" name="depth" />
-        </label>
-        <label>
-          {{ translations['alone-cabin.shelfQuantity'] }}
-          <input type="number" [(ngModel)]="shelfQuantity" name="shelfQuantity" />
-        </label>
-        <!-- Przełącznik jeden/dwa fronty -->
-        <label>
-          {{ translations['alone-cabin.frontType'] }}
-          <select [(ngModel)]="frontType" name="frontType">
-            <option *ngFor="let type of frontTypes" [value]="type.value">
-              {{ translations[type.label] }}
-            </option>
-          </select>
-        </label>
-
-        <!-- Pole widoczne tylko przy wyborze DRAWER -->
-        <div *ngIf="frontType === 'DRAWER'">
-          <label>
-            {{ translations['alone-cabin.drawerQuantity'] }}
-            <input type="number" [(ngModel)]="drawerQuantity" name="drawerQuantity" min="1" />
-          </label>
-        </div>
+        <!--        Wysokosc, szerokosc, glebokosc-->
+        <app-numeric-input
+          id="height"
+          [label]="translations['alone-cabin.height']"
+          [value]="height"
+          [min]="50"
+          [max]="2600"
+          [step]="1"
+          [errorMessage]="translations['ERROR.invalid.height']"
+          (valueChange)="onHeightChange($event)">
+        </app-numeric-input>
+        <app-numeric-input
+          id="width"
+          [label]="translations['alone-cabin.width']"
+          [value]="width"
+          [min]="50"
+          [max]="1000"
+          [step]="1"
+          [errorMessage]="translations['ERROR.invalid.width']"
+          (valueChange)="onWidthChange($event)">
+        </app-numeric-input>
+        <app-numeric-input
+          id="depth"
+          [label]="translations['alone-cabin.depth']"
+          [value]="depth"
+          [min]="50"
+          [max]="1000"
+          [step]="1"
+          [errorMessage]="translations['ERROR.invalid.depth']"
+          (valueChange)="onDepthChange($event)">
+        </app-numeric-input>
+        <!--        ilosc polek-->
+        <app-numeric-input
+          id="shelfQuantity"
+          [label]="translations['alone-cabin.shelfQuantity']"
+          [value]="shelfQuantity"
+          [min]="0"
+          [max]="20"
+          [step]="1"
+          [errorMessage]="translations['ERROR.invalid.shelfQuantity']"
+          (valueChange)="onShelfQuantityChange($event)">
+        </app-numeric-input>
+        <!-- ilosc frontow -->
+        <app-dropdown
+          id="front-type"
+          [label]="translations['GENERAL.frontType']"
+          [options]="frontTypes"
+          [selectedValue]="frontType"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="onFrontTypeChange($event)">
+        </app-dropdown>
+        <!--        ilosc szuflad-->
+        <app-numeric-input
+          id="drawer-quantity"
+          [label]="translations['alone-cabin.drawerQuantity']"
+          [value]="drawerQuantity"
+          [isDisabled]="frontType !== 'DRAWER'"
+          [min]="1"
+          [max]="20"
+          [step]="1"
+          [errorMessage]="translations['ERROR.invalid.drawerQuantity']"
+          (valueChange)="onDrawerQuantityChange($event)">
+        </app-numeric-input>
 
         <!-- Przełącznik plecki hdf -->
-        <label>
-          <span>{{ needBacks ? translations[ 'alone-cabin.hdfBacks'] : translations[ 'alone-cabin.noBacks']}}</span>
-          <label class="switch">
-            <input id="needBacksSwitch" type="checkbox" [(ngModel)]="needBacks" (change)="onNeedBacksChange()"
-              name="needBacks" />
-            <span class="slider"></span>
-            <span class="tooltip">{{ translations['alone-cabin.shouldAddBack'] }}</span>
-          </label>
-        </label>
+        <app-radio-button
+          [id]="'hdf-backs'"
+          [title]="translations['alone-cabin.shouldAddBack']"
+          [options]="[
+                      { value: true, label: translations['alone-cabin.hdfBacks'], tooltip: translations['alone-cabin.shouldAddBack'] },
+                      { value: false, label: translations['alone-cabin.noBacks'], tooltip: translations['alone-cabin.shouldAddBack'] }
+                    ]"
+          [selectedValue]="needBacks"
+          (selectedValueChange)="onNeedBacksChange($event)">
+        </app-radio-button>
         <!-- Przełącznik czy HDF we wpuscie - wlaczane jesli HDF=true -->
-        <div *ngIf="needBacks">
-          <label>
-            <span>{{ isBackInGroove ? translations[ 'alone-cabin.backInGroove'] : translations[
-              'alone-cabin.backNotInGroove']}}</span>
-            <label class="switch">
-              <input type="checkbox" [(ngModel)]="isBackInGroove" name="isBackInGroove" [disabled]="!needBacks" />
-              <span class="slider"></span>
-            </label>
-          </label>
-        </div>
+        <app-radio-button
+          [id]="'backs-in-groove'"
+          [title]="''"
+          [options]="[
+                      { value: true, label: translations['alone-cabin.backInGroove'] },
+                      { value: false, label: translations['alone-cabin.backNotInGroove'] }
+                    ]"
+          [disable]="!needBacks"
+          [selectedValue]="isBackInGroove"
+          (selectedValueChange)="isBackInGroove = $event">
+        </app-radio-button>
+
         <!-- Przełącznik czy szafka wiszaca -->
-        <label>
-          <span>{{ isHanging ? translations[ 'alone-cabin.isHanging'] : translations[
-            'alone-cabin.isNotHanging']}}</span>
-          <label class="switch">
-            <input type="checkbox" [(ngModel)]="isHanging" name="isHanging" />
-            <span class="slider"></span>
-          </label>
-        </label>
+        <app-radio-button
+          [id]="'is-hanging'"
+          [title]="''"
+          [options]="[
+                      { value: true, label: translations['alone-cabin.isHanging'] },
+                      { value: false, label: translations['alone-cabin.isNotHanging'] }
+                    ]"
+          [selectedValue]="isHanging"
+          (selectedValueChange)="isHanging = $event">
+        </app-radio-button>
+
         <!-- Przełącznik czy zawieszona na szynie? wlaczony jesli wiszaca -->
-        <div *ngIf="isHanging">
-          <label>
-            <span>{{ isHangingOnRail ? translations[ 'alone-cabin.isHangingOnRail'] : translations[
-              'alone-cabin.isHangingNotRail']}}</span>
-            <label class="switch">
-              <input type="checkbox" [(ngModel)]="isHangingOnRail" name="isHangingOnRail" />
-              <span class="slider"></span>
-            </label>
-          </label>
-        </div>        
+        <app-radio-button
+          [id]="'is-hanging-on-rail'"
+          [title]="''"
+          [disable]="!isHanging"
+          [options]="[
+                      { value: true, label: translations['alone-cabin.isHangingOnRail'] },
+                      { value: false, label: translations['alone-cabin.isHangingNotRail'] }
+                    ]"
+          [selectedValue]="isHangingOnRail"
+          (selectedValueChange)="isHangingOnRail = $event">
+        </app-radio-button>
+
         <!-- Przełącznik czy stoi na nozkach -->
-        <div *ngIf="!isHanging">
-          <label>
-            <span>{{ isStandingOnFeet ? translations[ 'alone-cabin.isOnFeet'] : translations[
-              'alone-cabin.isNotOnFeet']}}</span>
-            <label class="switch">
-              <input type="checkbox" [(ngModel)]="isStandingOnFeet" name="isStandingOnFeet" />
-              <span class="slider"></span>
-            </label>
-          </label>
-        </div>
+        <app-radio-button
+          [id]="'is-on-feet'"
+          [title]="''"
+          [disable]="isHanging"
+          [options]="[
+                      { value: true, label: translations['alone-cabin.isOnFeet'] },
+                      { value: false, label: translations['alone-cabin.isNotOnFeet'] }
+                    ]"
+          [selectedValue]="isStandingOnFeet"
+          (selectedValueChange)="isStandingOnFeet = $event">
+        </app-radio-button>
       </div>
 
       <!-- Druga kolumna: Materiał korpusu i frontu -->
       <div class="materials">
-        <label>
-          {{ translations['alone-cabin.materialBox'] }}
-          <select [(ngModel)]="boxMaterial" name="boxMaterial">
-            <option *ngFor="let material of materials" [value]="material.value">
-              {{ translations[material.label] }}
-            </option>
-          </select>
-        </label>
-        <label>
-          {{ translations['alone-cabin.boxBoardThickness'] }}
-          <select [(ngModel)]="boxBoardThickness" name="boxBoardThickness">
-            <option *ngFor="let thickness of thicknesses" [value]="thickness">
-              {{ thickness }}
-            </option>
-          </select>
-        </label>
-        <label>
-          {{ translations['alone-cabin.colorBox'] }}
-          <select [(ngModel)]="boxColor" name="boxColor">
-            <option *ngFor="let color of colors" [value]="color.value">
-              {{ translations[color.label] }}
-            </option>
-          </select>
-        </label>
-        <label>
-          {{ translations['alone-cabin.boxVeneerColor'] }}
-          <select [(ngModel)]="boxVeneerColor" name="boxVeneerColor">
-            <option *ngFor="let color of colors" [value]="color.value">
-              {{ translations[color.label] }}
-            </option>
-          </select>
-        </label>
-        <label>
-          {{ translations['alone-cabin.materialFront'] }}
-          <select [(ngModel)]="frontMaterial" name="frontMaterial">
-            <option *ngFor="let material of materials" [value]="material.value">
-              {{ translations[material.label] }}
-            </option>
-          </select>
-        </label>
+        <!-- material korpusu -->
+        <app-dropdown
+          id="box-material"
+          [label]="translations['alone-cabin.materialBox']"
+          [options]="materials"
+          [selectedValue]="boxMaterial"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="onBoxMaterialChange($event)">
+        </app-dropdown>
+        <!-- grubosc plyty korpusu -->
+        <app-dropdown
+          id="box-board-thickness"
+          [label]="translations['alone-cabin.boxBoardThickness']"
+          [options]="thicknesses"
+          [selectedValue]="boxBoardThickness"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="onBoxBoardThicknessChange($event)">
+        </app-dropdown>
+        <!-- kolor korpusu -->
+        <app-dropdown
+          id="box-color"
+          [label]="translations['alone-cabin.colorBox']"
+          [options]="colors"
+          [selectedValue]="boxColor"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="boxColor = $event">
+        </app-dropdown>
+        <!-- kolor korpusu -->
+        <app-dropdown
+          id="box-veneer-color"
+          [label]="translations['alone-cabin.boxVeneerColor']"
+          [options]="colors"
+          [selectedValue]="boxVeneerColor"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="boxVeneerColor = $event">
+        </app-dropdown>
+        <!-- material frontu -->
+        <app-dropdown
+          id="front-material"
+          [label]="translations['alone-cabin.materialFront']"
+          [options]="materials"
+          [selectedValue]="frontMaterial"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="frontMaterial = $event">
+        </app-dropdown>
         <!-- Przełącznik czy Front przedluzony o 2cm -->
-        <div *ngIf="frontType !== 'DRAWER' && isHanging">
-          <label>
-            <span>{{ isFrontExtended ? translations[ 'alone-cabin.isFrontExtended'] : translations[
-              'alone-cabin.isFrontNotExtended']}}</span>
-            <label class="switch">
-              <input type="checkbox" [(ngModel)]="isFrontExtended" name="isFrontExtended" />
-              <span class="slider"></span>
-            </label>
-          </label>
-        </div>
+        <app-radio-button
+          [id]="'is-front-extended'"
+          [disable]="frontType === 'DRAWER' || !isHanging"
+          [options]="[
+                          { value: false, label: translations['alone-cabin.isFrontExtended'] },
+                          { value: true, label: translations['alone-cabin.isFrontNotExtended'] }
+                        ]"
+          [selectedValue]="isFrontExtended"
+          (selectedValueChange)="isFrontExtended = $event">
+        </app-radio-button>
         <!-- Przełącznik czy na szafce bedzie blat/plyta (np kuchenne) - tylko jesli nie wisza -->
-        <div *ngIf="!isHanging">
-          <label>
-            <span>{{ isCoveredWithCounterTop ? translations[ 'alone-cabin.isCoveredWithCounterTop'] : translations[
-              'alone-cabin.isNotCoveredWithCounterTop']}}</span>
-            <label class="switch">
-              <input type="checkbox" [(ngModel)]="isCoveredWithCounterTop" name="isCoveredWithCounterTop" />
-              <span class="slider"></span>
-            </label>
-          </label>
-        </div>
+        <app-radio-button
+          [id]="'is-covered-with-counter-top'"
+          [title]="''"
+          [disable]="isHanging"
+          [options]="[
+                          { value: false, label: translations['alone-cabin.isNotCoveredWithCounterTop'] },
+                          { value: true, label: translations['alone-cabin.isCoveredWithCounterTop'] }
+                        ]"
+          [selectedValue]="isCoveredWithCounterTop"
+          (selectedValueChange)="isCoveredWithCounterTop = $event">
+        </app-radio-button>
         <!-- Przełącznik czy lakierowany front -->
-        <label *ngIf="frontMaterial === 'MDF'">
-          <span>{{ varnishedFront ? translations['alone-cabin.varnishedFront'] :
-            translations['alone-cabin.frontWithVeneer'] }}</span>
-          <label class="switch">
-            <input type="checkbox" [(ngModel)]="varnishedFront" name="varnishedFront" />
-            <span class="slider"></span>
-            <span class="tooltip">{{ translations['alone-cabin.frontWithVeneerOrVarnished'] }}</span>
-          </label>
-        </label>
-        <label>
-          {{ translations['alone-cabin.frontBoardThickness'] }}
-          <select [(ngModel)]="frontBoardThickness" name="frontBoardThickness">
-            <option *ngFor="let thickness of thicknesses" [value]="thickness">
-              {{ thickness }}
-            </option>
-          </select>
-        </label>
-        <label>
-          {{ translations['alone-cabin.colorFront'] }}
-          <select [(ngModel)]="frontColor" name="frontColor">
-            <option *ngFor="let color of colors" [value]="color.value">
-              {{ translations[color.label] }}
-            </option>
-          </select>
-        </label>
-        <label *ngIf="!varnishedFront">
-          {{ translations['alone-cabin.frontVeneerColor'] }}
-          <select [(ngModel)]="frontVeneerColor" name="frontVeneerColor">
-            <option *ngFor="let color of colors" [value]="color.value">
-              {{ translations[color.label] }}
-            </option>
-          </select>
-        </label>
+        <app-radio-button
+          [id]="'front-with-veneer-or-varnished'"
+          [title]="translations['alone-cabin.frontWithVeneerOrVarnished']"
+          [disable]="frontMaterial !== 'MDF'"
+          [options]="[
+                          { value: false, label: translations['alone-cabin.frontWithVeneer'] },
+                          { value: true, label: translations['alone-cabin.varnishedFront'] }
+                        ]"
+          [selectedValue]="varnishedFront"
+          (selectedValueChange)="onVarnishedFrontChange($event)">
+        </app-radio-button>
+        <!-- grubosc frontu -->
+        <app-dropdown
+          id="front-board-thickness"
+          [label]="translations['alone-cabin.frontBoardThickness']"
+          [options]="thicknesses"
+          [selectedValue]="frontBoardThickness"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="frontBoardThickness = $event">
+        </app-dropdown>
+        <!-- kolor frontu -->
+        <app-dropdown
+          id="front-color"
+          [label]="translations['alone-cabin.colorFront']"
+          [options]="colors"
+          [selectedValue]="frontColor"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="false"
+          (selectedValueChange)="frontColor = $event">
+        </app-dropdown>
+        <!-- kolor okleiny frontu -->
+        <app-dropdown
+          id="front-veneer-color"
+          [label]="translations['alone-cabin.frontVeneerColor']"
+          [options]="colors"
+          [selectedValue]="frontVeneerColor"
+          [translations]="translations"
+          [visible]="true"
+          [disable]="varnishedFront"
+          (selectedValueChange)="frontVeneerColor = $event">
+        </app-dropdown>
 
       </div>
     </div>
@@ -238,22 +316,22 @@
       <app-print-doc [response]="prepareDocPrintRequest()"></app-print-doc>
     </div>
     <!-- Nowy przycisk do dodania requestu do listy -->
-<button type="button" (click)="addRequest()">
-  {{ translations['alone-cabin.addBoard'] || 'Dodaj szafkę' }}
-</button>
-<!-- Wyświetlenie listy przygotowanych requestów (opcjonalnie) -->
-<div *ngIf="multiRequests && multiRequests.length > 0">
-  <h3>{{ translations['alone-cabin.preparedRequests'] || 'Przygotowane requesty:' }}</h3>
-  <ul>
-    <li *ngFor="let req of multiRequests; index as i">
-      Request {{ i + 1 }}
-    </li>
-  </ul>
-  <!-- Przycisk wysyłający wszystkie requesty -->
-  <button type="button" (click)="calculateMany()">
-    {{ translations['alone-cabin.calculateMany'] || 'Wyślij wiele' }}
-  </button>
-</div>
+    <button type="button" (click)="addRequest()">
+      {{ translations['alone-cabin.addBoard'] || 'Dodaj szafkę' }}
+    </button>
+    <!-- Wyświetlenie listy przygotowanych requestów (opcjonalnie) -->
+    <div *ngIf="multiRequests && multiRequests.length > 0">
+      <h3>{{ translations['alone-cabin.preparedRequests'] || 'Przygotowane requesty:' }}</h3>
+      <ul>
+        <li *ngFor="let req of multiRequests; index as i">
+          Request {{ i + 1 }}
+        </li>
+      </ul>
+      <!-- Przycisk wysyłający wszystkie requesty -->
+      <button type="button" (click)="calculateMany()">
+        {{ translations['alone-cabin.calculateMany'] || 'Wyślij wiele' }}
+      </button>
+    </div>
 
 
   </form>
@@ -264,113 +342,127 @@
 
     <table>
       <thead>
-        <tr>
-          <th>{{ translations['alone-cabin.id'] }}</th>
-          <th>{{ translations['alone-cabin.boardName'] }}</th>
-          <th>{{ translations['alone-cabin.quantity'] }}</th>
-          <th>{{ translations['alone-cabin.length'] }}</th>
-          <th>{{ translations['alone-cabin.veneer'] }}</th>
-          <th>{{ translations['alone-cabin.width'] }}</th>
-          <th>{{ translations['alone-cabin.veneer'] }}</th>
-          <th>{{ translations['alone-cabin.thickness'] }}</th>
-          <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
-          <th>{{ translations['alone-cabin.totalPrice'] }}</th>
-        </tr>
+      <tr>
+        <th>{{ translations['alone-cabin.id'] }}</th>
+        <th>{{ translations['alone-cabin.boardName'] }}</th>
+        <th>{{ translations['alone-cabin.quantity'] }}</th>
+        <th>{{ translations['alone-cabin.length'] }}</th>
+        <th>{{ translations['alone-cabin.veneer'] }}</th>
+        <th>{{ translations['alone-cabin.width'] }}</th>
+        <th>{{ translations['alone-cabin.veneer'] }}</th>
+        <th>{{ translations['alone-cabin.thickness'] }}</th>
+        <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
+        <th>{{ translations['alone-cabin.totalPrice'] }}</th>
+      </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let board of response.boards; index as i">
-          <td>{{ i + 1 }}</td>
-          <td>{{ translations[board.boardName] }}</td>
-          <td>{{ board.quantity }}</td>
-          <td>{{ board.sideX }}</td>
-          <td>{{ board.veneerX ?? '0' }}</td>
-          <td>{{ board.sideY }}</td>
-          <td>{{ board.veneerY ?? '0' }}</td>
-          <td>{{ board.boardThickness ?? '18' }}</td>
-          <td>{{ board.scrapedElement.price }} PLN</td>
-          <td>{{ board.totalPrice }} PLN</td>
-        </tr>
-        <!-- Wiersz z kosztami -->
-        <tr>
-          <td style="border: none; background-color: white;" colspan="7"></td>
-          <!-- Puste komórki dla lewej strony tabeli -->
-          <td colspan="2" class="highlight-cell">Koszty Płyt:</td>
-          <td> {{ response.boardTotalCost }} PLN</td>
-        </tr>
+      <tr *ngFor="let board of response.boards; index as i">
+        <td>{{ i + 1 }}</td>
+        <td>{{ translations[board.boardName] }}</td>
+        <td>{{ board.quantity }}</td>
+        <td>{{ board.sideX }}</td>
+        <td>{{ board.veneerX ?? '0' }}</td>
+        <td>{{ board.sideY }}</td>
+        <td>{{ board.veneerY ?? '0' }}</td>
+        <td>{{ board.boardThickness ?? '18' }}</td>
+        <td>{{ board.scrapedElement.price }} PLN</td>
+        <td>{{ board.totalPrice }} PLN</td>
+      </tr>
+      <!-- Wiersz z kosztami -->
+      <tr>
+        <td style="border: none; background-color: white;" colspan="7"></td>
+        <!-- Puste komórki dla lewej strony tabeli -->
+        <td colspan="2" class="highlight-cell">Koszty Płyt:</td>
+        <td> {{ response.boardTotalCost }} PLN</td>
+      </tr>
       </tbody>
     </table>
     <h3>{{ translations['alone-cabin.requiredComponents'] }}</h3>
     <table>
       <thead>
-        <tr>
-          <th>{{ translations['alone-cabin.id'] }}</th>
-          <th>{{ translations['alone-cabin.elementType'] }}</th>
-          <th>{{ translations['alone-cabin.elementModel'] }}</th>
-          <th>{{ translations['alone-cabin.quantity'] }}</th>
-          <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
-          <th>{{ translations['alone-cabin.totalPrice'] }}</th>
-        </tr>
+      <tr>
+        <th>{{ translations['alone-cabin.id'] }}</th>
+        <th>{{ translations['alone-cabin.elementType'] }}</th>
+        <th>{{ translations['alone-cabin.elementModel'] }}</th>
+        <th>{{ translations['alone-cabin.quantity'] }}</th>
+        <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
+        <th>{{ translations['alone-cabin.totalPrice'] }}</th>
+      </tr>
       </thead>
 
       <tbody>
-        <tr *ngFor="let component of response.components; index as i">
-          <td>{{ i + 1 }}</td>
-          <td>{{ translations[component.category] }} {{ (component.additionalInfo !== null &&
-            component.additionalInfo.length>0 ? ' ' + component.additionalInfo[0] :'') }}</td>
-          <td>{{ translations[component.model] !==null && translations[component.model] !== undefined ?
-            translations[component.model] : component.model }} {{ (component.additionalInfo !== null &&
-            component.additionalInfo.length>0 ? ' '+ translations['GENERAL.color'] +' ' +
-            translations[component.additionalInfo[1]] :'') }}</td>
-          <td>{{ component.quantity ?? '0' }} {{ translations[component.scrapedElement.unit] !==null &&
+      <tr *ngFor="let component of response.components; index as i">
+        <td>{{ i + 1 }}</td>
+        <td>{{ translations[component.category] }} {{
+            (component.additionalInfo !== null &&
+            component.additionalInfo.length > 0 ? ' ' + component.additionalInfo[0] : '')
+          }}
+        </td>
+        <td>{{
+            translations[component.model] !== null && translations[component.model] !== undefined ?
+              translations[component.model] : component.model
+          }} {{
+            (component.additionalInfo !== null &&
+            component.additionalInfo.length > 0 ? ' ' + translations['GENERAL.color'] + ' ' +
+              translations[component.additionalInfo[1]] : '')
+          }}
+        </td>
+        <td>{{ component.quantity ?? '0' }} {{
+            translations[component.scrapedElement.unit] !== null &&
             translations[component.scrapedElement.unit] !== undefined ? translations[component.scrapedElement.unit] :
-            component.scrapedElement.unit }}</td>
-          <td>{{ component.scrapedElement.price }} PLN</td>
-          <td>{{ component.totalPrice }} PLN</td>
-        </tr>
-        <!-- Wiersz z kosztami -->
-        <tr>
-          <td style="border: none; background-color: white;" colspan="3"></td>
-          <!-- Puste komórki dla lewej strony tabeli -->
-          <td class="highlight-cell" colspan="2">Koszty komponentów:</td>
-          <td> {{ response.componentTotalCost }} PLN</td>
-        </tr>
+              component.scrapedElement.unit
+          }}
+        </td>
+        <td>{{ component.scrapedElement.price }} PLN</td>
+        <td>{{ component.totalPrice }} PLN</td>
+      </tr>
+      <!-- Wiersz z kosztami -->
+      <tr>
+        <td style="border: none; background-color: white;" colspan="3"></td>
+        <!-- Puste komórki dla lewej strony tabeli -->
+        <td class="highlight-cell" colspan="2">Koszty komponentów:</td>
+        <td> {{ response.componentTotalCost }} PLN</td>
+      </tr>
 
       </tbody>
     </table>
     <h3>{{ translations['alone-cabin.jobList'] }}</h3>
     <table>
       <thead>
-        <tr>
-          <th>{{ translations['alone-cabin.id'] }}</th>
-          <th>{{ translations['alone-cabin.name'] }}</th>
-          <th>{{ translations['alone-cabin.type'] }}</th>
-          <th>{{ translations['alone-cabin.quantity'] }}</th>
-          <th>{{ translations['alone-cabin.unit'] }}</th>
-          <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
-          <th>{{ translations['alone-cabin.totalPrice'] }}</th>
-        </tr>
+      <tr>
+        <th>{{ translations['alone-cabin.id'] }}</th>
+        <th>{{ translations['alone-cabin.name'] }}</th>
+        <th>{{ translations['alone-cabin.type'] }}</th>
+        <th>{{ translations['alone-cabin.quantity'] }}</th>
+        <th>{{ translations['alone-cabin.unit'] }}</th>
+        <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
+        <th>{{ translations['alone-cabin.totalPrice'] }}</th>
+      </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let job of response.jobs; index as i">
-          <td>{{ i + 1 }}</td>
-          <td class="tooltip-cell" [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)">
-            {{ translations[job.category] }}
-          </td>
-          <td>{{ translations[job.type] }}</td>
-          <td>{{ job.quantity ?? '0' }}</td>
-          <td>{{ translations[job.scrapedElement.unit] !==null &&
+      <tr *ngFor="let job of response.jobs; index as i">
+        <td>{{ i + 1 }}</td>
+        <td class="tooltip-cell" [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)">
+          {{ translations[job.category] }}
+        </td>
+        <td>{{ translations[job.type] }}</td>
+        <td>{{ job.quantity ?? '0' }}</td>
+        <td>{{
+            translations[job.scrapedElement.unit] !== null &&
             translations[job.scrapedElement.unit] !== undefined ? translations[job.scrapedElement.unit] :
-            job.scrapedElement.unit }}</td>
-          <td>{{ job.scrapedElement.price }}</td>
-          <td>{{ job.totalPrice }}</td>
-        </tr>
-        <!-- Wiersz z kosztami -->
-        <tr>
-          <td style="border: none; background-color: white; " colspan="4"></td>
-          <!-- Puste komórki dla lewej strony tabeli -->
-          <td class="highlight-cell">Koszty prac:</td>
-          <td> {{ response.jobTotalCost }} PLN</td>
-        </tr>
+              job.scrapedElement.unit
+          }}
+        </td>
+        <td>{{ job.scrapedElement.price }}</td>
+        <td>{{ job.totalPrice }}</td>
+      </tr>
+      <!-- Wiersz z kosztami -->
+      <tr>
+        <td style="border: none; background-color: white; " colspan="4"></td>
+        <!-- Puste komórki dla lewej strony tabeli -->
+        <td class="highlight-cell">Koszty prac:</td>
+        <td> {{ response.jobTotalCost }} PLN</td>
+      </tr>
 
       </tbody>
     </table>

@@ -1,0 +1,59 @@
+.radio-button-group {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f9f9f9;
+}
+
+.group-title {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #555;
+  display: block;
+}
+
+.radio-option {
+  display: flex; /* Ustawiamy flexbox dla opcji */
+  align-items: flex-start; /* Wyrównanie w pionie */
+  cursor: pointer;
+  margin: 5px 0; /* Dodajemy odstęp między opcjami */
+}
+
+.radio-option input[type='radio'] {
+  margin: 0 8px 0 0; /* Dodajemy odstęp między przyciskiem a etykietą */
+  cursor: pointer;
+}
+
+.radio-option label {
+  font-size: 13px;
+  color: #333;
+  display: inline-block; /* Zapewniamy, że element tekstowy pozostaje w jednej linii */
+}
+
+.radio-option:hover label {
+  color: #007bff; /* Zmiana koloru tekstu podczas hovera */
+  cursor: pointer;
+}
+
+.radio-option:hover input[type='radio'] {
+  cursor: pointer;
+}
+
+/* Wygląd głównej grupy, gdy komponent jest wyłączony */
+.radio-button-group.disabled {
+  opacity: 0.5; /* Cały komponent jest wyszarzony */
+  pointer-events: none; /* Blokuje kliknięcia i interakcje */
+}
+
+/* Opcjonalne: Styl tytułu */
+.group-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* Styl każdej opcji */
+.radio-option {
+  margin: 4px 0;
+}

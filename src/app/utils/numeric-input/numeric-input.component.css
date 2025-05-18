@@ -1,0 +1,75 @@
+/* Kontener główny */
+.numeric-input-container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin: 10px 0;
+}
+
+/* Etykieta */
+.numeric-input-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+/* Tooltip błędu */
+.error-tooltip {
+  position: absolute;
+  left: 50%; /* Wyśrodkowanie tooltipa względem szerokości pola input */
+  transform: translateX(-50%); /* Wyśrodkowanie względem lewej krawędzi inputu */
+  background-color: rgba(255, 0, 0, 0.9);
+  color: white;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  z-index: 10;
+  white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Ogonek tooltipa */
+.error-tooltip .tooltip-arrow {
+  position: absolute;
+  bottom: -5px; /* Ogonek dotyka ramki inputu */
+  left: 50%; /* Wyśrodkowanie ogonka względem tooltipa */
+  transform: translateX(-50%); /* Ścisłe wyrównanie ogonka z tooltipem */
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid rgba(255, 0, 0, 0.9);
+}
+
+/* Pole tekstowe */
+input[type='number'] {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Czerwony obrys, gdy wystąpi błąd */
+input[type='number'].error {
+  border-color: red;
+  box-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
+}
+
+/* Styl suwaka */
+.range-container {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+input[type='range'] {
+  flex-grow: 1;
+  margin: 0 10px;
+}
+
+.range-label {
+  font-size: 12px;
+  color: gray;
+  width: 30px;
+  text-align: center;
+}

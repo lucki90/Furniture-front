@@ -1,0 +1,17 @@
+<div *ngIf="visible" class="dropdown-container" [id]="id">
+  <!-- Etykieta listy rozwijanej -->
+  <label *ngIf="label" class="dropdown-label">{{ label }}</label>
+
+  <!-- Lista rozwijana -->
+  <select
+    [id]="id + '-select'"
+    [disabled]="disable"
+  [ngModel]="selectedValue"
+  (change)="onSelectionChange($event)"
+  class="dropdown-select"
+  >
+  <option *ngFor="let option of options" [value]="option.value">
+    {{ translations[option.label] || option.label }}
+  </option>
+  </select>
+</div>
