@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 
 @Component({
   selector: 'app-dropdown',
@@ -30,9 +30,14 @@ export class DropdownComponent {
    */
   onSelectionChange(event: any): void {
     if (!this.disable) {
-      const value = event.target.value;
-      this.selectedValue = value;
-      this.selectedValueChange.emit(value); // Emituj nowy wybór
+      this.hasError = event.target.value == null;
+      if (!this.hasError) {
+        const value = event.target.value;
+        this.selectedValue = value;
+        this.selectedValueChange.emit(value); // Emituj nowy wybór
+      }
     }
   }
 }
+
+//TODO dodac walidacje w dropdown liscie, radiobuttonach na puste wartosci i moze w inpucie tez i na tylko liczby i tylko pełne

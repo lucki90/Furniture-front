@@ -17,6 +17,7 @@ import { CabinetVisualizationComponent } from './cabinet-visualization/cabinet-v
 import { RadioButtonComponent } from './utils/radio-button/radio-button.component';
 import { DropdownComponent } from './utils/dropdown/dropdown.component';
 import { NumericInputComponent } from './utils/numeric-input/numeric-input.component';
+import {MaxLengthForNumberDirective} from "./utils/directives/maxLengthForNumberDirective";
 
 @NgModule({
     declarations: [
@@ -27,7 +28,8 @@ import { NumericInputComponent } from './utils/numeric-input/numeric-input.compo
         CabinetVisualizationComponent,
         RadioButtonComponent,
         DropdownComponent,
-        NumericInputComponent
+        NumericInputComponent,
+        MaxLengthForNumberDirective
     ],
     imports: [
         BrowserModule,
