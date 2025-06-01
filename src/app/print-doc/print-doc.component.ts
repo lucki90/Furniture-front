@@ -1,5 +1,5 @@
-import { Component, Input  } from '@angular/core';
-import { PrintDocService } from '../services/print-doc.service';
+import {Component, Input} from '@angular/core';
+import {PrintDocService} from '../services/print-doc.service';
 
 @Component({
   selector: 'app-print-doc',
@@ -9,7 +9,8 @@ import { PrintDocService } from '../services/print-doc.service';
 export class PrintDocComponent {
   @Input() response: any; // Dane do wysłania w payloadzie
 
-  constructor(private printDocService: PrintDocService) {}
+  constructor(private printDocService: PrintDocService) {
+  }
 
   // Metoda do pobierania pliku Excel
   downloadExcel(response: any) {
@@ -31,6 +32,7 @@ export class PrintDocComponent {
       });
     }
   }
+
 // OPEN AI | a wyzej z DEEPSEEK
   downloadExcel2(responseData: any): void {
     this.printDocService.downloadExcel(responseData).subscribe(

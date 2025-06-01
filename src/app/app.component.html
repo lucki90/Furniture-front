@@ -1,24 +1,23 @@
 <mat-sidenav-container class="main-container">
-    <!-- Boczne menu -->
-    <mat-sidenav mode="side" opened class="sidenav">
-      <h3>Funkcjonalności</h3>
-      <mat-nav-list>
-        <mat-list-item>
-          <a mat-line routerLink="/alone-cabinet" routerLinkActive="active-link">
-            Tworzenie pojedynczej szafki
-          </a>
-        </mat-list-item>
-        <mat-list-item>
-          <a mat-line routerLink="/multi-cabinet" routerLinkActive="active-link">
-            Tworzenie wielu szafek
-          </a>
-        </mat-list-item>
-      </mat-nav-list>
-    </mat-sidenav>
-      <!-- Główna zawartość -->
+  <!-- Boczne menu -->
+  <mat-sidenav mode="side" opened class="sidenav">
+    <h3>Funkcjonalności</h3>
+    <mat-nav-list>
+      <mat-list-item>
+        <a mat-line routerLink="/alone-cabinet" routerLinkActive="active-link">
+          Tworzenie pojedynczej szafki
+        </a>
+      </mat-list-item>
+      <mat-list-item>
+        <a mat-line routerLink="/multi-cabinet" routerLinkActive="active-link">
+          Tworzenie wielu szafek
+        </a>
+      </mat-list-item>
+    </mat-nav-list>
+  </mat-sidenav>
+  <!-- Główna zawartość -->
   <mat-sidenav-content>
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>
 
-    

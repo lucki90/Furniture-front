@@ -6,12 +6,12 @@
   <select
     [id]="id + '-select'"
     [disabled]="disable"
-  [ngModel]="selectedValue"
-  (change)="onSelectionChange($event)"
-  class="dropdown-select"
+    [ngModel]="selectedValue"
+    (change)="onSelectionChange($event)"
+    class="dropdown-select"
   >
-  <option *ngFor="let option of options" [value]="option.value">
-    {{ translations[option.label] || option.label }}
-  </option>
+    <option *ngFor="let option of options" [value]="option.value">
+      {{ translations[option.label] || option.label }}
+    </option>
   </select>
 </div>

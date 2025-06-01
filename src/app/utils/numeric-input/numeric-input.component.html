@@ -14,13 +14,15 @@
   <input
     type="number"
     [id]="id + '-input'"
-  [(ngModel)]="value"
-  (ngModelChange)="onValueChange($event)"
-  [disabled]="isDisabled"
-  [class.error]="hasError"
-  [min]="min"
-  [max]="max"
-  [step]="step"
+    [(ngModel)]="value"
+    (ngModelChange)="onInputChange($event)"
+    [disabled]="isDisabled"
+    [class.error]="hasError"
+    [min]="min"
+    [max]="max"
+    [step]="step"
+    [appMaxLengthForNumber]="10"
+    [maxDecimalPlaces]="2"
   />
 
   <!-- Suwak -->
@@ -29,12 +31,12 @@
     <input
       type="range"
       [id]="id + '-range'"
-    [(ngModel)]="value"
-    (ngModelChange)="onValueChange($event)"
-    [min]="min"
-    [max]="max"
-    [step]="step"
-    [disabled]="isDisabled"
+      [(ngModel)]="value"
+      (ngModelChange)="onInputChange($event)"
+      [min]="min"
+      [max]="max"
+      [step]="step"
+      [disabled]="isDisabled"
     />
     <span class="range-label">{{ max }}</span>
   </div>

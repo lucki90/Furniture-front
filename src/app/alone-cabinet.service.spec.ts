@@ -1,6 +1,6 @@
-import { TestBed } from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 
-import { AloneCabinetService } from './alone-cabinet.service';
+import {AloneCabinetService} from './alone-cabinet.service';
 
 describe('AloneCabinetService', () => {
   let service: AloneCabinetService;

@@ -1,8 +1,9 @@
-import { Component, OnInit, ViewChild  } from '@angular/core';
-import { AloneCabinetService } from '../alone-cabinet.service';
-import { TranslationService } from '../translation/translation.service';
-import { PrintDocComponent } from '../print-doc/print-doc.component';
-import { CabinetVisualizationComponent } from '../cabinet-visualization/cabinet-visualization.component';
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AloneCabinetService} from '../alone-cabinet.service';
+import {TranslationService} from '../translation/translation.service';
+import {PrintDocComponent} from '../print-doc/print-doc.component';
+import {CabinetVisualizationComponent} from '../cabinet-visualization/cabinet-visualization.component';
 
 @Component({
   selector: 'app-alone-cabinet',
@@ -14,12 +15,6 @@ export class AloneCabinetComponent implements OnInit {
   @ViewChild(CabinetVisualizationComponent) cabinetVisualizationComponent!: CabinetVisualizationComponent;
 
   translationLoading: boolean = true;
-
-  height: number = 600;
-  width: number = 400;
-  depth: number = 300;
-  shelfQuantity: number = 0;
-  drawerQuantity: number = 0;
   oneFront: boolean = true;
   needBacks: boolean = true;
   isHanging: boolean = false;
@@ -49,29 +44,29 @@ export class AloneCabinetComponent implements OnInit {
   translations: { [key: string]: string } = {};
   selectedLanguage: string = 'pl'; // Default language
 
-cabinetTypes = [
-  { value: 'STANDARD', label: 'GENERAL.cabinet.standard' },
-  { value: 'INTERNAL', label: 'GENERAL.cabinet.internal' },
-];
+  cabinetTypes = [
+    {value: 'STANDARD', label: 'GENERAL.cabinet.standard'},
+    {value: 'INTERNAL', label: 'GENERAL.cabinet.internal'},
+  ];
 
-openingTypes = [
-  { value: 'HANDLE', label: 'OpeningModelEnum.HANDLE' },
-  { value: 'CLICK', label: 'OpeningModelEnum.CLICK' },
-  { value: 'MILLED', label: 'OpeningModelEnum.MILLED' },
-  { value: 'NONE', label: 'OpeningModelEnum.NONE' },
-]
+  openingTypes = [
+    {value: 'HANDLE', label: 'OpeningModelEnum.HANDLE'},
+    {value: 'CLICK', label: 'OpeningModelEnum.CLICK'},
+    {value: 'MILLED', label: 'OpeningModelEnum.MILLED'},
+    {value: 'NONE', label: 'OpeningModelEnum.NONE'},
+  ]
 
   frontTypes = [
-    { value: 'OPEN', label: 'alone-cabin.front.open' },
-    { value: 'ONE_DOOR', label: 'alone-cabin.front.oneDoor' },
-    { value: 'TWO_DOORS', label: 'alone-cabin.front.twoDoors' },
-    { value: 'UPWARDS', label: 'alone-cabin.front.upward' },
-    { value: 'DRAWER', label: 'alone-cabin.front.drawer' }
+    {value: 'OPEN', label: 'alone-cabin.front.open'},
+    {value: 'ONE_DOOR', label: 'alone-cabin.front.oneDoor'},
+    {value: 'TWO_DOORS', label: 'alone-cabin.front.twoDoors'},
+    {value: 'UPWARDS', label: 'alone-cabin.front.upward'},
+    {value: 'DRAWER', label: 'alone-cabin.front.drawer'}
   ];
 
   materials = [
-    { value: 'CHIPBOARD', label: 'GENERAL.material.CHIPBOARD' },
-    { value: 'MDF', label: 'GENERAL.material.MDF' }
+    {value: 'CHIPBOARD', label: 'GENERAL.material.CHIPBOARD'},
+    {value: 'MDF', label: 'GENERAL.material.MDF'}
   ];
   thicknesses = [
     {value: 16, label: '16'},
@@ -79,13 +74,13 @@ openingTypes = [
     {value: 20, label: '20'}
   ];
   colors = [
-    { value: 'white', label: 'GENERAL.color.white' },
-    { value: 'black', label: 'GENERAL.color.black' },
-    { value: 'red', label: 'GENERAL.color.red' }
+    {value: 'white', label: 'GENERAL.color.white'},
+    {value: 'black', label: 'GENERAL.color.black'},
+    {value: 'red', label: 'GENERAL.color.red'}
   ];
 
-    // Tablica przechowująca przygotowane requesty
-    multiRequests: any[] = [];
+  // Tablica przechowująca przygotowane requesty
+  multiRequests: any[] = [];
 
   prepareDocPrintRequest(): any {
     // throw new Error('Method not implemented.');
@@ -111,17 +106,70 @@ openingTypes = [
     // return { boards: newBoards };
   }
 
+/// tutaj definijemy domyslna wartosc
+  form: FormGroup = this.fb.group({
+    height: ['720', [
+      Validators.required,
+      Validators.min(50),
+      Validators.max(2600)
+    ]],
+    width: ['600', [
+      Validators.required,
+      Validators.min(50),
+      Validators.max(1000)
+    ]],
+    depth: ['300', [
+      Validators.required,
+      Validators.min(50),
+      Validators.max(1000)
+    ]],
+    shelfQuantity: ['0', [
+      Validators.required,
+      Validators.min(0),
+      Validators.max(20)
+    ]],
+    drawerQuantity: ['0', [
+      Validators.required,
+      Validators.min(0),
+      Validators.max(10)
+    ]],
+    cabinetType: ['STANDARD', Validators.required],
+    openingType: ['HANDLE', Validators.required],
+    frontType: ['ONE_DOOR', Validators.required],
+    // reszta kontrolek formularza
+  });
 
 
   constructor(
     private cabinetService: AloneCabinetService,
     private translationService: TranslationService,
+    private fb: FormBuilder
+
     // private printDocComponent: PrintDocComponent,
-  ) { }
+  ) {
+  }
+
 
   ngOnInit(): void {
     const browserLanguage = this.getBrowserLanguage();
     this.loadTranslations(browserLanguage);
+
+    // Nasłuchiwanie na zmiany w formularzu
+    this.form.get('cabinetType')?.valueChanges.subscribe(value => {
+      this.cabinetType = value;
+    });
+
+    this.form.get('openingType')?.valueChanges.subscribe(value => {
+      this.openingType = value;
+    });
+
+    this.form.get('frontType')?.valueChanges.subscribe(value => {
+      this.frontType = value;
+      // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
+      if (this.frontType !== 'DRAWER') {
+        this.form.patchValue({drawerQuantity: 0});
+      }
+    });
   }
 
   // Pobierz język przeglądarki
@@ -146,18 +194,18 @@ openingTypes = [
       'HingeTypeEnum',
       'FeetModelEnum',
       'OpeningModelEnum',
-    'MillingTypeEnum'
+      'MillingTypeEnum'
 
     ]).subscribe(
-        (translations) => {
-          this.translations = translations;
-          this.translationLoading = false;
-        },
-        (error) => {
-          console.error('Failed to load translations:', error);
-          this.errorMessage = 'Failed to load translations.';
-        }
-      );
+      (translations) => {
+        this.translations = translations;
+        this.translationLoading = false;
+      },
+      (error) => {
+        console.error('Failed to load translations:', error);
+        this.errorMessage = 'Failed to load translations.';
+      }
+    );
   }
 
   // Metoda tłumacząca listę additionalInfo
@@ -199,94 +247,74 @@ openingTypes = [
    */
   onCabinetTypeChange(value: string): void {
     this.cabinetType = value;
+    this.form.patchValue({cabinetType: value});
   }
+
   onOpeningTypeChange(value: string): void {
     this.openingType = value;
+    this.form.patchValue({openingType: value});
   }
 
   onFrontTypeChange(value: string): void {
     this.frontType = value;
+    this.form.patchValue({frontType: value});
     // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
     if (this.frontType !== 'DRAWER') {
-      this.drawerQuantity = 0;
+      this.form.patchValue({drawerQuantity: 0})
     }
   }
 
   onDrawerQuantityChange(value: number): void {
-    this.drawerQuantity = value;
+    this.form.patchValue({drawerQuantity: value});
   }
 
   onBoxMaterialChange(value: string): void {
     this.boxMaterial = value;
   }
+
   onBoxBoardThicknessChange(value: number): void {
     this.boxBoardThickness = value;
   }
 
   onVarnishedFrontChange(value: boolean): void {
     this.varnishedFront = value;
-    if (this.varnishedFront){
+    if (this.varnishedFront) {
       this.frontVeneerColor = null;
     }
   }
 
   onHeightChange(newHeight: number): void {
-    this.height = newHeight;
+    this.form.patchValue({height: newHeight});
   }
 
   onWidthChange(newWidth: number): void {
-    this.width = newWidth;
+    this.form.patchValue({width: newWidth});
   }
 
   onDepthChange(newDepth: number): void {
-    this.depth = newDepth;
+    this.form.patchValue({depth: newDepth});
   }
 
   onShelfQuantityChange(newQuantity: number) {
-    this.shelfQuantity = newQuantity;
+    this.form.patchValue({shelfQuantity: newQuantity});
   }
 
   objectKeys(obj: any): string[] {
     return Object.keys(obj);
   }
 
-  printDoc(){
+  printDoc() {
     this.printDocComponent.downloadExcel2(this.response);
+  }
+
+  get formValid(): boolean {
+    return this.form.valid;
   }
 
   calculateCabinet() {
     this.errorMessage = null; // Clear previous errors
 
-    const requestBody = {
-      lang: this.selectedLanguage,
-      height: this.height,
-      width: this.width,
-      depth: this.depth,
-      shelfQuantity: this.shelfQuantity,
-      oneFront: this.oneFront,
-      needBacks: this.needBacks,
-      isHanging: this.isHanging,
-      isHangingOnRail: this.isHangingOnRail,
-      isStandingOnFeet: this.isStandingOnFeet,
-      isBackInGroove: this.isBackInGroove,
-      isFrontExtended: this.isFrontExtended,
-      isCoveredWithCounterTop: this.isCoveredWithCounterTop,
-      varnishedFront: this.varnishedFront,
-      frontType: this.frontType,
-      cabinetType: this.cabinetType,
-      openingType: this.openingType,
-      drawerQuantity: this.frontType === 'DRAWER' ? this.drawerQuantity : null,
-      materialRequest: {
-        boxMaterial: this.boxMaterial,
-        boxBoardThickness: this.boxBoardThickness,
-        boxColor: this.boxColor,
-        frontMaterial: this.frontMaterial,
-        frontBoardThickness: this.frontBoardThickness,
-        frontColor: this.frontColor,
-        frontVeneerColor: this.frontVeneerColor,
-        boxVeneerColor: this.boxVeneerColor
-      }
-    };
+    const requestBody = this.prepareRequestBody();
 
     this.cabinetService.calculateCabinet(requestBody).subscribe(
       (response) => {
@@ -308,46 +336,51 @@ openingTypes = [
       }
     );
   }
-  // Dodawanie wielu requestow z szafkami
-    // Dodaje przygotowany request do listy multiRequests
-    addRequest(): void {
-      // Przygotowujemy obiekt requestu na podstawie bieżących danych formularza
-      const req = {
-        lang: this.selectedLanguage,
-        height: this.height,
-        width: this.width,
-        depth: this.depth,
-        shelfQuantity: this.shelfQuantity,
-        oneFront: this.oneFront,
-        needBacks: this.needBacks,
-        isHanging: this.isHanging,
-        isHangingOnRail: this.isHangingOnRail,
-        isStandingOnFeet: this.isStandingOnFeet,
-        isBackInGroove: this.isBackInGroove,
-        isFrontExtended: this.isFrontExtended,
-        isCoveredWithCounterTop: this.isCoveredWithCounterTop,
-        varnishedFront: this.varnishedFront,
-        frontType: this.frontType,
-        cabinetType: this.cabinetType,
-        openingType: this.openingType,
-        drawerQuantity: this.frontType === 'DRAWER' ? this.drawerQuantity : null,
-        materialRequest: {
-          boxMaterial: this.boxMaterial,
-          boxBoardThickness: this.boxBoardThickness,
-          boxColor: this.boxColor,
-          frontMaterial: this.frontMaterial,
-          frontBoardThickness: this.frontBoardThickness,
-          frontColor: this.frontColor,
-          frontVeneerColor: this.frontVeneerColor,
-          boxVeneerColor: this.boxVeneerColor
-        }
-      };
 
-      this.multiRequests.push(req);
-      console.log('Added request:', req);
-    }
+  private prepareRequestBody() {
+    return {
+      lang: this.selectedLanguage,
+      height: this.form.get('height')?.value,
+      width: this.form.get('width')?.value,
+      depth: this.form.get('depth')?.value,
+      shelfQuantity: this.form.get('shelfQuantity')?.value,
+      oneFront: this.oneFront,
+      needBacks: this.needBacks,
+      isHanging: this.isHanging,
+      isHangingOnRail: this.isHangingOnRail,
+      isStandingOnFeet: this.isStandingOnFeet,
+      isBackInGroove: this.isBackInGroove,
+      isFrontExtended: this.isFrontExtended,
+      isCoveredWithCounterTop: this.isCoveredWithCounterTop,
+      varnishedFront: this.varnishedFront,
+      frontType: this.frontType,
+      cabinetType: this.cabinetType,
+      openingType: this.openingType,
+      drawerQuantity: this.frontType === 'DRAWER' ? this.form.get('drawerQuantity')?.value : null,
+      materialRequest: {
+        boxMaterial: this.boxMaterial,
+        boxBoardThickness: this.boxBoardThickness,
+        boxColor: this.boxColor,
+        frontMaterial: this.frontMaterial,
+        frontBoardThickness: this.frontBoardThickness,
+        frontColor: this.frontColor,
+        frontVeneerColor: this.frontVeneerColor,
+        boxVeneerColor: this.boxVeneerColor
+      }
+    };
+  }
 
-      // Wysyła listę przygotowanych requestów do endpointu /calculate-many
+// Dodawanie wielu requestow z szafkami
+  // Dodaje przygotowany request do listy multiRequests
+  addRequest(): void {
+    // Przygotowujemy obiekt requestu na podstawie bieżących danych formularza
+    const req = this.prepareRequestBody();
+
+    this.multiRequests.push(req);
+    console.log('Added request:', req);
+  }
+
+  // Wysyła listę przygotowanych requestów do endpointu /calculate-many
   calculateMany(): void {
     if (this.multiRequests.length === 0) {
       console.warn('Brak przygotowanych requestów do wysłania');
@@ -365,14 +398,6 @@ openingTypes = [
       }
     );
   }
-
-  // formatValidationError(details: any): string {
-  //   const messages = [];
-  //   for (const [field, message] of Object.entries(details)) {
-  //     messages.push(`${field}: ${message}`);
-  //   }
-  //   return messages.join(', ');
-  // }
 
   logMessage(message: string): void {
     console.log(message);

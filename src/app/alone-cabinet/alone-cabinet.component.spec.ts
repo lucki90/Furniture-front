@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { AloneCabinetComponent } from './alone-cabinet.component';
+import {AloneCabinetComponent} from './alone-cabinet.component';
 
 describe('AloneCabinetComponent', () => {
   let component: AloneCabinetComponent;
