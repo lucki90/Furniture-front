@@ -345,3 +345,7 @@ mat-sidenav-content {
   padding: 24px;
   overflow: auto;
 }
+
+.invalid-control {
+  border: 1px solid red;
+}

@@ -20,35 +20,31 @@
       [width]="form.get('width')?.value"
       [height]="form.get('height')?.value"
       [shelfQuantity]="form.get('shelfQuantity')?.value"
-      [frontType]="frontType"
+      [frontType]="this.form.get('frontType')?.value"
       [drawerQuantity]="form.get('drawerQuantity')?.value">
     </app-cabinet-visualization>
   </div>
   <h2>{{ translations['alone-cabin.calculateTheCabinetParameters'] }}</h2>
-  <form [formGroup]="form" (ngSubmit)="calculateCabinet()">
+  <form [formGroup]="form" (ngSubmit)="calculate(false)">
     <div class="form-row">
       <div class="dimensions-and-switches">
         <!-- Typ szafki -->
         <app-dropdown
           id="cabinet-type"
           [label]="translations['GENERAL.cabinetType']"
+          formControlName="cabinetType"
           [options]="cabinetTypes"
-          [selectedValue]="cabinetType"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="onCabinetTypeChange($event)">
+          [visible]="true">
         </app-dropdown>
         <!-- typ uchwytu -->
         <app-dropdown
           id="opening-type"
           [label]="translations['GENERAL.openingType']"
+          formControlName="openingType"
           [options]="openingTypes"
-          [selectedValue]="openingType"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="onOpeningTypeChange($event)">
+          [visible]="true">
         </app-dropdown>
       </div>
 
@@ -71,8 +67,7 @@
           [min]="50"
           [max]="1000"
           [step]="1"
-          [errorMessage]="translations['ERROR.invalid.width']"
-          (valueChange)="onWidthChange($event)">
+          [errorMessage]="translations['ERROR.invalid.width']">
         </app-numeric-input>
         <app-numeric-input
           id="depth"
@@ -81,8 +76,7 @@
           [min]="50"
           [max]="1000"
           [step]="1"
-          [errorMessage]="translations['ERROR.invalid.depth']"
-          (valueChange)="onDepthChange($event)">
+          [errorMessage]="translations['ERROR.invalid.depth']">
         </app-numeric-input>
         <!--        ilosc polek-->
         <app-numeric-input
@@ -92,93 +86,80 @@
           [min]="0"
           [max]="20"
           [step]="1"
-          [errorMessage]="translations['ERROR.invalid.shelfQuantity']"
-          (valueChange)="onShelfQuantityChange($event)">
+          [errorMessage]="translations['ERROR.invalid.shelfQuantity']">
         </app-numeric-input>
         <!-- ilosc frontow -->
         <app-dropdown
           id="front-type"
           [label]="translations['GENERAL.frontType']"
+          formControlName="frontType"
           [options]="frontTypes"
-          [selectedValue]="frontType"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="onFrontTypeChange($event)">
+          [visible]="true">
         </app-dropdown>
         <!--        ilosc szuflad-->
         <app-numeric-input
           id="drawer-quantity"
           [label]="translations['alone-cabin.drawerQuantity']"
           formControlName="drawerQuantity"
-          [isDisabled]="frontType !== 'DRAWER'"
-          [min]="1"
-          [max]="20"
+          [min]="0"
+          [max]="10"
           [step]="1"
-          [errorMessage]="translations['ERROR.invalid.drawerQuantity']"
-          (valueChange)="onDrawerQuantityChange($event)">
+          [errorMessage]="translations['ERROR.invalid.drawerQuantity']">
         </app-numeric-input>
 
         <!-- Przełącznik plecki hdf -->
         <app-radio-button
           [id]="'hdf-backs'"
+          formControlName="needBacks"
           [title]="translations['alone-cabin.shouldAddBack']"
           [options]="[
                       { value: true, label: translations['alone-cabin.hdfBacks'], tooltip: translations['alone-cabin.shouldAddBack'] },
                       { value: false, label: translations['alone-cabin.noBacks'], tooltip: translations['alone-cabin.shouldAddBack'] }
-                    ]"
-          [selectedValue]="needBacks"
-          (selectedValueChange)="onNeedBacksChange($event)">
+                    ]">
         </app-radio-button>
         <!-- Przełącznik czy HDF we wpuscie - wlaczane jesli HDF=true -->
         <app-radio-button
           [id]="'backs-in-groove'"
-          [title]="''"
+          formControlName="isBackInGroove"
           [options]="[
                       { value: true, label: translations['alone-cabin.backInGroove'] },
                       { value: false, label: translations['alone-cabin.backNotInGroove'] }
                     ]"
-          [disable]="!needBacks"
-          [selectedValue]="isBackInGroove"
-          (selectedValueChange)="isBackInGroove = $event">
+        >
         </app-radio-button>
 
         <!-- Przełącznik czy szafka wiszaca -->
         <app-radio-button
           [id]="'is-hanging'"
+          formControlName="isHanging"
           [title]="''"
           [options]="[
                       { value: true, label: translations['alone-cabin.isHanging'] },
                       { value: false, label: translations['alone-cabin.isNotHanging'] }
-                    ]"
-          [selectedValue]="isHanging"
-          (selectedValueChange)="isHanging = $event">
+                    ]">
         </app-radio-button>
 
         <!-- Przełącznik czy zawieszona na szynie? wlaczony jesli wiszaca -->
         <app-radio-button
           [id]="'is-hanging-on-rail'"
+          formControlName="isHangingOnRail"
           [title]="''"
-          [disable]="!isHanging"
           [options]="[
                       { value: true, label: translations['alone-cabin.isHangingOnRail'] },
                       { value: false, label: translations['alone-cabin.isHangingNotRail'] }
-                    ]"
-          [selectedValue]="isHangingOnRail"
-          (selectedValueChange)="isHangingOnRail = $event">
+                    ]">
         </app-radio-button>
 
         <!-- Przełącznik czy stoi na nozkach -->
         <app-radio-button
           [id]="'is-on-feet'"
+          formControlName="isStandingOnFeet"
           [title]="''"
-          [disable]="isHanging"
           [options]="[
                       { value: true, label: translations['alone-cabin.isOnFeet'] },
                       { value: false, label: translations['alone-cabin.isNotOnFeet'] }
-                    ]"
-          [selectedValue]="isStandingOnFeet"
-          (selectedValueChange)="isStandingOnFeet = $event">
+                    ]">
         </app-radio-button>
       </div>
 
@@ -188,124 +169,102 @@
         <app-dropdown
           id="box-material"
           [label]="translations['alone-cabin.materialBox']"
+          formControlName="boxMaterial"
           [options]="materials"
-          [selectedValue]="boxMaterial"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="onBoxMaterialChange($event)">
+          [visible]="true">
         </app-dropdown>
         <!-- grubosc plyty korpusu -->
         <app-dropdown
           id="box-board-thickness"
           [label]="translations['alone-cabin.boxBoardThickness']"
+          formControlName="boxBoardThickness"
           [options]="thicknesses"
-          [selectedValue]="boxBoardThickness"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="onBoxBoardThicknessChange($event)">
+          [visible]="true">
         </app-dropdown>
         <!-- kolor korpusu -->
         <app-dropdown
           id="box-color"
           [label]="translations['alone-cabin.colorBox']"
+          formControlName="boxColor"
           [options]="colors"
-          [selectedValue]="boxColor"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="boxColor = $event">
+          [visible]="true">
         </app-dropdown>
         <!-- kolor korpusu -->
         <app-dropdown
           id="box-veneer-color"
           [label]="translations['alone-cabin.boxVeneerColor']"
+          formControlName="boxVeneerColor"
           [options]="colors"
-          [selectedValue]="boxVeneerColor"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="boxVeneerColor = $event">
+          [visible]="true">
         </app-dropdown>
         <!-- material frontu -->
         <app-dropdown
           id="front-material"
           [label]="translations['alone-cabin.materialFront']"
+          formControlName="frontMaterial"
           [options]="materials"
-          [selectedValue]="frontMaterial"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="frontMaterial = $event">
+          [visible]="true">
         </app-dropdown>
         <!-- Przełącznik czy Front przedluzony o 2cm -->
         <app-radio-button
           [id]="'is-front-extended'"
-          [disable]="frontType === 'DRAWER' || !isHanging"
+          formControlName="isFrontExtended"
           [options]="[
-                          { value: false, label: translations['alone-cabin.isFrontExtended'] },
-                          { value: true, label: translations['alone-cabin.isFrontNotExtended'] }
-                        ]"
-          [selectedValue]="isFrontExtended"
-          (selectedValueChange)="isFrontExtended = $event">
+                          { value: true, label: translations['alone-cabin.isFrontExtended'] },
+                          { value: false, label: translations['alone-cabin.isFrontNotExtended'] }
+                        ]">
         </app-radio-button>
         <!-- Przełącznik czy na szafce bedzie blat/plyta (np kuchenne) - tylko jesli nie wisza -->
         <app-radio-button
           [id]="'is-covered-with-counter-top'"
+          formControlName="isCoveredWithCounterTop"
           [title]="''"
-          [disable]="isHanging"
           [options]="[
                           { value: false, label: translations['alone-cabin.isNotCoveredWithCounterTop'] },
                           { value: true, label: translations['alone-cabin.isCoveredWithCounterTop'] }
-                        ]"
-          [selectedValue]="isCoveredWithCounterTop"
-          (selectedValueChange)="isCoveredWithCounterTop = $event">
+                        ]">
         </app-radio-button>
         <!-- Przełącznik czy lakierowany front -->
         <app-radio-button
           [id]="'front-with-veneer-or-varnished'"
           [title]="translations['alone-cabin.frontWithVeneerOrVarnished']"
-          [disable]="frontMaterial !== 'MDF'"
+          [disabled]="this.form.get('frontMaterial')?.value !== 'MDF'"
           [options]="[
                           { value: false, label: translations['alone-cabin.frontWithVeneer'] },
                           { value: true, label: translations['alone-cabin.varnishedFront'] }
-                        ]"
-          [selectedValue]="varnishedFront"
-          (selectedValueChange)="onVarnishedFrontChange($event)">
+                        ]">
         </app-radio-button>
         <!-- grubosc frontu -->
         <app-dropdown
           id="front-board-thickness"
           [label]="translations['alone-cabin.frontBoardThickness']"
+          formControlName="frontBoardThickness"
           [options]="thicknesses"
-          [selectedValue]="frontBoardThickness"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="frontBoardThickness = $event">
+          [visible]="true">
         </app-dropdown>
         <!-- kolor frontu -->
         <app-dropdown
           id="front-color"
           [label]="translations['alone-cabin.colorFront']"
+          formControlName="frontColor"
           [options]="colors"
-          [selectedValue]="frontColor"
           [translations]="translations"
-          [visible]="true"
-          [disable]="false"
-          (selectedValueChange)="frontColor = $event">
+          [visible]="true">
         </app-dropdown>
         <!-- kolor okleiny frontu -->
         <app-dropdown
           id="front-veneer-color"
           [label]="translations['alone-cabin.frontVeneerColor']"
+          formControlName="frontVeneerColor"
           [options]="colors"
-          [selectedValue]="frontVeneerColor"
           [translations]="translations"
-          [visible]="true"
-          [disable]="varnishedFront"
-          (selectedValueChange)="frontVeneerColor = $event">
+          [visible]="true">
         </app-dropdown>
 
       </div>
@@ -327,7 +286,7 @@
         </li>
       </ul>
       <!-- Przycisk wysyłający wszystkie requesty -->
-      <button type="button" (click)="calculateMany()">
+      <button type="button" (click)="calculate(true)">
         {{ translations['alone-cabin.calculateMany'] || 'Wyślij wiele' }}
       </button>
     </div>

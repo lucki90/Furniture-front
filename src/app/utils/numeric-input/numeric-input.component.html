@@ -1,4 +1,4 @@
-<div class="numeric-input-container" [id]="id">
+<div class="numeric-input-container" [id]="id" >
   <!-- Etykieta -->
   <label *ngIf="label" [for]="id + '-input'" class="numeric-input-label">
     {{ label }}
@@ -14,9 +14,9 @@
   <input
     type="number"
     [id]="id + '-input'"
-    [(ngModel)]="value"
-    (ngModelChange)="onInputChange($event)"
-    [disabled]="isDisabled"
+    [value]="value"
+    (input)="onInputChange($event)"
+    [disabled]="_isDisabled"
     [class.error]="hasError"
     [min]="min"
     [max]="max"
@@ -31,12 +31,12 @@
     <input
       type="range"
       [id]="id + '-range'"
-      [(ngModel)]="value"
-      (ngModelChange)="onInputChange($event)"
+      [value]="value"
+      (input)="onInputChange($event)"
       [min]="min"
       [max]="max"
       [step]="step"
-      [disabled]="isDisabled"
+      [disabled]="_isDisabled"
     />
     <span class="range-label">{{ max }}</span>
   </div>

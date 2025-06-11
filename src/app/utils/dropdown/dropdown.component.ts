@@ -1,43 +1,57 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import { Component, Input, forwardRef } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'app-dropdown',
   templateUrl: './dropdown.component.html',
   styleUrls: ['./dropdown.component.css'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DropdownComponent),
+      multi: true
+    }
+  ]
 })
-export class DropdownComponent {
+export class DropdownComponent implements ControlValueAccessor {
   @Input() id: string = '';
-  @Input() options: { value: any; label: string }[] = []; // Opcje w liście rozwijanej
-  @Input() selectedValue: any = null; // Aktualnie wybrana wartość
-  @Input() label: string = ''; // Etykieta dropdowna
-  @Input() visible: boolean = true; // Widoczność komponentu
-  @Input() disable: boolean = false; // Czy lista jest zablokowana
-  @Input() translations: { [key: string]: string } = {}; // Obiekt z tłumaczeniami
+  @Input() options: { value: any; label: string }[] = [];
+  @Input() label: string = '';
+  @Input() visible: boolean = true;
+  @Input() translations: { [key: string]: string } = {};
 
-  @Output() selectedValueChange = new EventEmitter<any>(); // Zdarzenie zmiany wyboru
+  value: any = null;
+  disabled: boolean = false;
 
-  hasError: boolean = false;
+  private onChange: any = () => {};
+  private onTouched: any = () => {};
 
-  constructor() {
-    // Generowanie unikalnego ID, jeśli nie podano.
+  ngOnInit() {
     if (!this.id) {
       this.id = `dropdown-${Math.random().toString(36).slice(2, 11)}`;
     }
   }
 
-  /**
-   * Obsługa zmian wyboru
-   */
-  onSelectionChange(event: any): void {
-    if (!this.disable) {
-      this.hasError = event.target.value == null;
-      if (!this.hasError) {
-        const value = event.target.value;
-        this.selectedValue = value;
-        this.selectedValueChange.emit(value); // Emituj nowy wybór
-      }
-    }
+  onSelectionChange(event: Event): void {
+    const selectElement = event.target as HTMLSelectElement;
+    this.value = selectElement.value;
+    this.onChange(this.value);
+    this.onTouched();
+  }
+
+  writeValue(value: any): void {
+    this.value = value;
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
   }
 }
-
-//TODO dodac walidacje w dropdown liscie, radiobuttonach na puste wartosci i moze w inpucie tez i na tylko liczby i tylko pełne

@@ -32,24 +32,4 @@ export class PrintDocComponent {
       });
     }
   }
-
-// OPEN AI | a wyzej z DEEPSEEK
-  downloadExcel2(responseData: any): void {
-    this.printDocService.downloadExcel(responseData).subscribe(
-      (blob: Blob) => {
-        // Tworzymy tymczasowy link do pobrania pliku
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'cabinet.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      },
-      (error) => {
-        console.error('Error generating Excel', error);
-      }
-    );
-  }
 }

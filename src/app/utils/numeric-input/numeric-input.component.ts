@@ -20,12 +20,11 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
   @Input() max: number = 100;
   @Input() step: number = 1;
   @Input() errorMessage: string = '';
-  @Input() isDisabled: boolean = false; // Dodajemy nowy Input
 
   @Output() valueChange = new EventEmitter<number>();
-
+   _isDisabled = false;
   private _value: number = 0;
-  disabled: boolean = false;
+
   onChange: any = () => {
   };
   onTouch: any = () => {
@@ -39,7 +38,7 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
 
   @Input()
   set value(val: number) {
-    if (!this.isDisabled) { // Sprawdzamy czy kontrolka nie jest wyłączona
+    if (!this._isDisabled) { // Sprawdzamy czy kontrolka nie jest wyłączona
       this._value = val;
       this.onChange(val);
       this.valueChange.emit(val);
@@ -62,12 +61,12 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
     this.onTouch = fn;
   }
 
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-  }
 
-  onInputChange(value: number): void {
-    if (!this.isDisabled) { // Sprawdzamy czy kontrolka nie jest wyłączona
+  onInputChange(rawEvent: Event): void {
+    const inputElement = rawEvent.target as HTMLInputElement;
+    const value = inputElement?.valueAsNumber;
+
+    if (!this._isDisabled && !isNaN(value)) {
       this._value = value;
       this.onChange(value);
       this.onTouch();
@@ -82,7 +81,11 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
   }
 
   get hasError(): boolean {
-    return !this.isValid() && !this.isDisabled; // Nie pokazujemy błędu dla wyłączonej kontrolki
+    return !this.isValid() && !this._isDisabled; // Nie pokazujemy błędu dla wyłączonej kontrolki
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this._isDisabled = isDisabled;
   }
 
 }

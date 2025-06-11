@@ -1,27 +1,65 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  forwardRef,
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+} from '@angular/forms';
 
 @Component({
   selector: 'app-radio-button',
   templateUrl: './radio-button.component.html',
   styleUrls: ['./radio-button.component.css'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => RadioButtonComponent),
+      multi: true,
+    },
+  ],
 })
-export class RadioButtonComponent {
-  @Input() id: string = ''; // id
-  @Input() options: { value: any; label: string; tooltip?: string }[] = []; // Opcje radiobuttonów
-  @Input() selectedValue: any = null; // Aktualnie wybrana wartość
-  @Input() title: string = ''; // Tytuł sekcji
+export class RadioButtonComponent implements ControlValueAccessor {
+  @Input() id: string = '';
+  @Input() options: { value: any; label: string; tooltip?: string }[] = [];
+  @Input() title: string = '';
+  @Input() visible: boolean = true;
+  @Input() disabled: boolean = false;
 
-  @Input() visible: boolean = true; // Kontroluje widoczność komponentu
-  @Input() disable: boolean = false; // Kontroluje możliwość interakcji
+  @Output() selectedValueChange = new EventEmitter<any>();
 
-  @Output() selectedValueChange = new EventEmitter<any>(); // Zdarzenie dla zmiany wyboru
+  selectedValue: any = null;
 
-  // Funkcja obsługująca zmianę
+  // ControlValueAccessor callbacks
+  onChange: (value: any) => void = () => {};
+  onTouch: () => void = () => {};
+
+  // Zmiana zaznaczenia
   onSelectionChange(value: any): void {
-    if (this.disable) {
-      return; // Ignoruj kliknięcia, jeśli komponent jest zablokowany
-    }
+    if (this.disabled) return;
     this.selectedValue = value;
-    this.selectedValueChange.emit(value); // Emituj nowy wybór
+    this.onChange(value);
+    this.onTouch();
+    this.selectedValueChange.emit(value);
+  }
+
+  // ControlValueAccessor methods
+  writeValue(value: any): void {
+    this.selectedValue = value;
+  }
+
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: any): void {
+    this.onTouch = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
   }
 }

@@ -1,12 +1,10 @@
 <div *ngIf="visible" class="dropdown-container" [id]="id">
-  <!-- Etykieta listy rozwijanej -->
   <label *ngIf="label" class="dropdown-label">{{ label }}</label>
 
-  <!-- Lista rozwijana -->
   <select
     [id]="id + '-select'"
-    [disabled]="disable"
-    [ngModel]="selectedValue"
+    [disabled]="disabled"
+    [value]="value"
     (change)="onSelectionChange($event)"
     class="dropdown-select"
   >
