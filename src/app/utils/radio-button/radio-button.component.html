@@ -1,4 +1,4 @@
-<div *ngIf="visible" class="radio-button-group" [class.disabled]="disabled">
+<div *ngIf="visible" class="radio-button-group" [class.disabled]="disabled" [class.has-error]="hasError">
   <span *ngIf="title" class="group-title">{{ title }}</span>
 
   <div *ngFor="let option of options; let i = index" class="radio-option">
@@ -18,3 +18,4 @@
     </label>
   </div>
 </div>
+

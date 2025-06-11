@@ -62,4 +62,14 @@ export class RadioButtonComponent implements ControlValueAccessor {
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
   }
+
+  isValid(): boolean {
+    return !(this.selectedValue === null || this.selectedValue === undefined);
+
+  }
+
+  get hasError(): boolean {
+    return !this.isValid() && !this.disabled; // Nie pokazujemy błędu dla wyłączonej kontrolki
+  }
+
 }

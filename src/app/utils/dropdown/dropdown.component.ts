@@ -54,4 +54,14 @@ export class DropdownComponent implements ControlValueAccessor {
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
   }
+
+  isValid(): boolean {
+    return !(this.value === null || this.value === undefined);
+
+  }
+
+  get hasError(): boolean {
+    return !this.isValid() && !this.disabled; // Nie pokazujemy błędu dla wyłączonej kontrolki
+  }
+
 }

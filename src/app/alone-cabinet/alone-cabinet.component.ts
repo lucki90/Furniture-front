@@ -179,7 +179,11 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
 // Getter i Settery - Przelaczniki -------------------------------------------------------------------------------------
 
   get formValid(): boolean {
-    return this.form.valid;
+    let valid = this.form.valid;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+    }
+    return valid;
   }
 
   private prepareRequestBody() {

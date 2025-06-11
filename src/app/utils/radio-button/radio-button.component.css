@@ -18,6 +18,7 @@
   display: flex; /* Ustawiamy flexbox dla opcji */
   align-items: flex-start; /* Wyrównanie w pionie */
   cursor: pointer;
+  gap: 6px;
   margin: 5px 0; /* Dodajemy odstęp między opcjami */
 }
 
@@ -47,13 +48,34 @@
   pointer-events: none; /* Blokuje kliknięcia i interakcje */
 }
 
-/* Opcjonalne: Styl tytułu */
-.group-title {
-  font-weight: bold;
-  margin-bottom: 8px;
-}
 
 /* Styl każdej opcji */
 .radio-option {
   margin: 4px 0;
+}
+
+/* Czerwony obrys, gdy wystąpi błąd */
+input[type='radio'].error {
+  border-color: red;
+  box-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
+  background-color: #ffe6e6;
+}
+
+.radio-button-group.has-error {
+  border: 1px solid red;
+  background-color: #fff6f6;
+}
+
+.radio-button-group .error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.radio-option input[type="radio"] {
+  accent-color: #007bff; /* niebieski domyślny */
+}
+
+.radio-button-group.has-error input[type="radio"] {
+  accent-color: red;
 }

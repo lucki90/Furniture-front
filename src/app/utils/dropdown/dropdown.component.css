@@ -28,3 +28,14 @@
   border-color: #ddd;
   cursor: not-allowed;
 }
+
+/* Czerwony obrys, gdy wystąpi błąd */
+.dropdown-select.error {
+  border-color: red;
+  box-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
+  background-color: #ffe6e6;
+}
+
+.dropdown-select.error option {
+  background-color: white;
+}
