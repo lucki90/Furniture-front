@@ -322,7 +322,7 @@
         <td>{{ board.veneerX ?? '0' }}</td>
         <td>{{ board.sideY }}</td>
         <td>{{ board.veneerY ?? '0' }}</td>
-        <td>{{ board.boardThickness ?? '18' }}</td>
+        <td>{{ board.boardThickness}}</td>
         <td>{{ board.scrapedElement.price }} PLN</td>
         <td>{{ board.totalPrice }} PLN</td>
       </tr>
@@ -365,7 +365,7 @@
               translations[component.additionalInfo[1]] : '')
           }}
         </td>
-        <td>{{ component.quantity ?? '0' }} {{
+        <td>{{ component.quantity}} {{
             translations[component.scrapedElement.unit] !== null &&
             translations[component.scrapedElement.unit] !== undefined ? translations[component.scrapedElement.unit] :
               component.scrapedElement.unit
@@ -404,7 +404,7 @@
           {{ translations[job.category] }}
         </td>
         <td>{{ translations[job.type] }}</td>
-        <td>{{ job.quantity ?? '0' }}</td>
+        <td>{{ job.quantity}}</td>
         <td>{{
             translations[job.scrapedElement.unit] !== null &&
             translations[job.scrapedElement.unit] !== undefined ? translations[job.scrapedElement.unit] :

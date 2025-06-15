@@ -1,16 +1,22 @@
-<div *ngIf="visible" class="dropdown-container" [id]="id">
-  <label *ngIf="label" class="dropdown-label">{{ label }}</label>
+@if (visible) {
+  <div class="dropdown-container" [id]="id">
+    @if (label) {
+      <label [for]="id + '-select'" class="dropdown-label">{{ label }}</label>
+    }
 
-  <select
-    [id]="id + '-select'"
-    [disabled]="disabled"
-    [value]="value"
-    (change)="onSelectionChange($event)"
-    [class.error]="hasError"
-    class="dropdown-select"
-  >
-    <option *ngFor="let option of options" [value]="option.value">
-      {{ translations[option.label] || option.label }}
-    </option>
-  </select>
-</div>
+    <select
+      [id]="id + '-select'"
+      [disabled]="disabled"
+      [(ngModel)]="value"
+      (ngModelChange)="onSelectionChange($event)"
+      [class.error]="hasError"
+      class="dropdown-select"
+    >
+      @for (option of options; track option.value) {
+        <option [value]="option.value">
+          {{ translations[option.label] || option.label }}
+        </option>
+      }
+    </select>
+  </div>
+}

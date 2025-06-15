@@ -1,14 +1,13 @@
 /**
  * Interfejsy dla danych formularza szafki
  */
-export interface CabinetFormData {
+export interface CabinetRequest {
   lang: string;
   height: number;
   width: number;
   depth: number;
   shelfQuantity: number;
   drawerQuantity: number | null;
-  oneFront: boolean;
   needBacks: boolean;
   isHanging: boolean;
   isHangingOnRail: boolean;
@@ -53,11 +52,12 @@ export interface Board {
   veneerX?: number;
   sideY: number;
   veneerY?: number;
-  boardThickness?: number;
+  boardThickness: number;
   color: string;
   veneerColor?: string;
   scrapedElement: ScrapedElement;
   totalPrice: number;
+  remarks: string;
 }
 
 export interface Component {
@@ -96,5 +96,7 @@ export interface PrintDocRequest {
   widthVeneer?: number;
   veneerColor?: string;
   sticker: string;
-  remarks: string;
+  remarks: string
 }
+
+

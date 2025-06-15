@@ -5,9 +5,10 @@ import {TranslationService} from '../translation/translation.service';
 import {PrintDocComponent} from '../print-doc/print-doc.component';
 import {CabinetVisualizationComponent} from '../cabinet-visualization/cabinet-visualization.component';
 import {CabinetConstants} from "./model/cabinet-constants";
-import {throttleTime, finalize, retry, takeUntil} from 'rxjs/operators';
-import {Subject} from 'rxjs';
-
+import {catchError, finalize, retry, takeUntil, throttleTime} from 'rxjs/operators';
+import {of, Subject} from 'rxjs';
+import {HttpErrorResponse} from "@angular/common/http";
+import {Board, CabinetRequest, CabinetResponse, PrintDocRequest} from "./model/cabinet-form.model";
 
 @Component({
     selector: 'app-alone-cabinet',
@@ -19,17 +20,34 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   @ViewChild(PrintDocComponent) printDocComponent!: PrintDocComponent;
   @ViewChild(CabinetVisualizationComponent) cabinetVisualizationComponent!: CabinetVisualizationComponent;
   /// stale
-  cabinetTypes = CabinetConstants.CABINET_TYPES;
-  openingTypes = CabinetConstants.OPENING_TYPES;
-  frontTypes = CabinetConstants.FRONT_TYPES;
-  materials = CabinetConstants.MATERIALS;
-  thicknesses = CabinetConstants.THICKNESSES;
-  colors = CabinetConstants.COLORS;
+  readonly cabinetTypes = CabinetConstants.CABINET_TYPES;
+  readonly openingTypes = CabinetConstants.OPENING_TYPES;
+  readonly frontTypes = CabinetConstants.FRONT_TYPES;
+  readonly materials = CabinetConstants.MATERIALS;
+  readonly thicknesses = CabinetConstants.THICKNESSES;
+  readonly colors = CabinetConstants.COLORS;
+  private readonly DEFAULT_MESSAGES = {
+    NO_REQUESTS: 'No requests prepared for sending',
+    NO_REQUESTS_PL: 'Brak przygotowanych requestów do wysłania',
+    VISUALIZATION_ERROR: 'Visualization error',
+    VISUALIZATION_UNAVAILABLE: 'cabinetVisualizationComponent not available',
+    NETWORK_ERROR: 'Network connection error',
+    INVALID_INPUT: 'Invalid input data',
+    INVALID_REQUEST: 'Invalid request. Please check your data.',
+    UNEXPECTED_ERROR: 'Unexpected error occurred. Please try again later.',
+    // ... inne
+  };
+  private readonly FORM_VALIDATORS = {
+    height: [Validators.required, Validators.min(50), Validators.max(2600)],
+    width: [Validators.required, Validators.min(50), Validators.max(1000)],
+    depth: [Validators.required, Validators.min(50), Validators.max(1000)],
+    shelfQuantity: [Validators.required, Validators.min(0), Validators.max(20)],
+    drawerQuantity: [Validators.required, Validators.min(0), Validators.max(10)],
+    // ... reszta walidatorów
+  };
+
   /// zmienne
   translationLoading: boolean = true;
-
-
-
   translations: { [key: string]: string } = {};
   selectedLanguage: string = 'pl'; // Default language
 
@@ -42,37 +60,18 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   // Tablica przechowująca przygotowane requesty
-  multiRequests: any[] = [];
-  response: any;
+  multiRequests: CabinetRequest[] = [];
+  response?: CabinetResponse;
   errorMessage: string | null = null;
 
   /// tutaj definijemy domyslna wartosc
-  form: FormGroup = this.fb.group({
-    height: ['720', [
-      Validators.required,
-      Validators.min(50),
-      Validators.max(2600)
-    ]],
-    width: ['600', [
-      Validators.required,
-      Validators.min(50),
-      Validators.max(1000)
-    ]],
-    depth: ['300', [
-      Validators.required,
-      Validators.min(50),
-      Validators.max(1000)
-    ]],
-    shelfQuantity: ['0', [
-      Validators.required,
-      Validators.min(0),
-      Validators.max(20)
-    ]],
-    drawerQuantity: [{value: '0', disabled: true}, [
-      Validators.required,
-      Validators.min(0),
-      Validators.max(10)
-    ]],
+  readonly form: FormGroup = this.fb.group({
+    height: ['720', this.FORM_VALIDATORS.height],
+    width: ['600', this.FORM_VALIDATORS.width],
+    depth: ['300', this.FORM_VALIDATORS.depth],
+    shelfQuantity: ['0', this.FORM_VALIDATORS.shelfQuantity],
+    drawerQuantity: [{value: '0', disabled: true},
+      this.FORM_VALIDATORS.drawerQuantity],
     cabinetType: ['STANDARD', Validators.required],
     openingType: ['HANDLE', Validators.required],
     frontType: ['ONE_DOOR', Validators.required],
@@ -87,14 +86,11 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     frontVeneerColor: ['white', Validators.required],
     frontMaterial: ['CHIPBOARD', Validators.required],
     boxMaterial: ['CHIPBOARD', Validators.required],
-    boxBoardThickness: ['18', Validators.required],
+    boxBoardThickness: [18, Validators.required],
     boxColor: ['white', Validators.required],
     boxVeneerColor: ['white', Validators.required],
     frontBoardThickness: [18, Validators.required],
     frontColor: ['white', Validators.required],
-
-
-    // reszta kontrolek formularza
   });
 
   constructor(
@@ -109,64 +105,74 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     const browserLanguage = this.getBrowserLanguage();
     this.loadTranslations(browserLanguage);
 
-    this.form.get('frontType')?.valueChanges.subscribe(newValue => {
-      // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
-      if (newValue !== 'DRAWER') {
-        this.form.patchValue({drawerQuantity: 0});
-        this.form.get('drawerQuantity')?.disable();
-        if (this.form.get('isHanging')?.value) {
-          this.form.get('isFrontExtended')?.enable()
+    this.form.get('frontType')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(newValue => {
+        // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
+        if (newValue !== 'DRAWER') {
+          this.form.patchValue({drawerQuantity: 0});
+          this.form.get('drawerQuantity')?.disable();
+          if (this.form.get('isHanging')?.value) {
+            this.form.get('isFrontExtended')?.enable()
+          }
+        } else if (newValue === 'DRAWER') {
+          this.form.patchValue({drawerQuantity: 1});
+          this.form.get('drawerQuantity')?.enable();
+          this.form.get('isFrontExtended')?.disable()
         }
-      } else if (newValue === 'DRAWER') {
-        this.form.patchValue({drawerQuantity: 1});
-        this.form.get('drawerQuantity')?.enable();
-        this.form.get('isFrontExtended')?.disable()
-      }
-    });
+      });
 
-    this.form.get('needBacks')?.valueChanges.subscribe(newValue => {
-      if (newValue) {
-        this.form.get('isBackInGroove')?.enable()
-      } else {
-        this.form.patchValue({isBackInGroove: null});
-        this.form.get('isBackInGroove')?.disable()
-      }
-    });
-
-    this.form.get('isHanging')?.valueChanges.subscribe(newValue => {
-      if (newValue) {
-        this.form.get('isHangingOnRail')?.enable()
-        this.form.get('isStandingOnFeet')?.disable()
-        this.form.patchValue({isStandingOnFeet: false});
-        if (this.form.get('frontType')?.value !== 'DRAWER') {
-          this.form.get('isFrontExtended')?.enable()
+    this.form.get('needBacks')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(newValue => {
+        if (newValue) {
+          this.form.get('isBackInGroove')?.enable()
+        } else {
+          this.form.patchValue({isBackInGroove: null});
+          this.form.get('isBackInGroove')?.disable()
         }
-        this.form.get('isCoveredWithCounterTop')?.disable()
-      }else {
-        this.form.patchValue({isHangingOnRail: false, isFrontExtended: false});
-        this.form.get('isHangingOnRail')?.disable()
-        this.form.get('isStandingOnFeet')?.enable()
-        this.form.get('isFrontExtended')?.disable()
-        this.form.get('isCoveredWithCounterTop')?.enable()
-      }
-    });
+      });
 
-    this.form.get('varnishedFront')?.valueChanges.subscribe(newValue => {
-      if (newValue) {
-        this.form.get('frontVeneerColor')?.disable()
-      } else {
-        this.form.patchValue({frontVeneerColor: null});
-        this.form.get('frontVeneerColor')?.enable()
-      }
-    });
-    this.form.get('frontMaterial')?.valueChanges.subscribe(newValue => {
-      if (newValue !== 'MDF') {
-        this.form.get('varnishedFront')?.disable()
-        this.form.patchValue({varnishedFront: false})
-      } else if (newValue === 'MDF') {
-        this.form.get('varnishedFront')?.enable()
-      }
-    });
+    this.form.get('isHanging')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(newValue => {
+        if (newValue) {
+          this.form.get('isHangingOnRail')?.enable()
+          this.form.get('isStandingOnFeet')?.disable()
+          this.form.patchValue({isStandingOnFeet: false});
+          if (this.form.get('frontType')?.value !== 'DRAWER') {
+            this.form.get('isFrontExtended')?.enable()
+          }
+          this.form.get('isCoveredWithCounterTop')?.disable()
+        } else {
+          this.form.patchValue({isHangingOnRail: false, isFrontExtended: false});
+          this.form.get('isHangingOnRail')?.disable()
+          this.form.get('isStandingOnFeet')?.enable()
+          this.form.get('isFrontExtended')?.disable()
+          this.form.get('isCoveredWithCounterTop')?.enable()
+        }
+      });
+
+    this.form.get('varnishedFront')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(newValue => {
+        if (newValue) {
+          this.form.get('frontVeneerColor')?.disable()
+        } else {
+          this.form.patchValue({frontVeneerColor: null});
+          this.form.get('frontVeneerColor')?.enable()
+        }
+      });
+    this.form.get('frontMaterial')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(newValue => {
+        if (newValue !== 'MDF') {
+          this.form.get('varnishedFront')?.disable()
+          this.form.patchValue({varnishedFront: false})
+        } else if (newValue === 'MDF') {
+          this.form.get('varnishedFront')?.enable()
+        }
+      });
 
   }
 
@@ -175,17 +181,14 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-// Getter i Settery - Przelaczniki -------------------------------------------------------------------------------------
-
   get formValid(): boolean {
-    let valid = this.form.valid;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
     }
-    return valid;
+    return this.form.valid;
   }
 
-  private prepareRequestBody() {
+  private prepareRequestBody(): CabinetRequest {
     return {
       lang: this.selectedLanguage,
       height: this.form.get('height')?.value,
@@ -220,8 +223,8 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   /// Sekcja wysylanai requestow---------------------------------------------------------------------------------------
   calculate(isMany: boolean): void {
     if (isMany && this.multiRequests.length === 0) {
-      console.warn('Brak przygotowanych requestów do wysłania');
-      this.errorMessage = this.translations['no_requests_prepared'] || 'No requests prepared for sending.';
+      console.warn(this.DEFAULT_MESSAGES.NO_REQUESTS_PL);
+      this.errorMessage = this.translations['no_requests_prepared'] || this.DEFAULT_MESSAGES.NO_REQUESTS;
       return;
     }
 
@@ -268,31 +271,30 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
 
   private handleVisualization(): void {
     if (!this.cabinetVisualizationComponent) {
-      console.warn('cabinetVisualizationComponent not available');
+      console.warn(this.DEFAULT_MESSAGES.VISUALIZATION_UNAVAILABLE);
       return;
     }
 
     try {
       this.cabinetVisualizationComponent.drawCabinet();
     } catch (e) {
-      console.error('Error in drawCabinet:', e);
-      this.errorMessage = this.translations['visualization_error'] || 'Visualization error';
+      console.error(this.DEFAULT_MESSAGES.VISUALIZATION_ERROR, e);
+      this.errorMessage = this.translations['visualization_error'] || this.DEFAULT_MESSAGES.VISUALIZATION_ERROR;
     }
   }
 
-  private handleRequestError(error: any): void {
+  private handleRequestError(error: HttpErrorResponse): void {
     if (error.status === 0) {
-      this.errorMessage = this.translations['network_error'] || 'Network connection error';
+      this.errorMessage = this.translations['network_error'] || this.DEFAULT_MESSAGES.NETWORK_ERROR;
       return;
     } else if (error.status === 406) {
-      this.errorMessage = error.error?.message || 'Invalid input data';
+      this.errorMessage = error.error?.message ?? this.DEFAULT_MESSAGES.INVALID_INPUT;
       return;
     } else if (error.status >= 400 && error.status < 500) {
-      this.errorMessage = this.translations['client_error'] || 'Invalid request. Please check your data.';
+      this.errorMessage = this.translations['client_error'] || this.DEFAULT_MESSAGES.INVALID_REQUEST;
       return;
     }
-    this.errorMessage = this.translations['unexpected_error']
-      || 'Unexpected error occurred. Please try again later.';
+    this.errorMessage = this.translations['unexpected_error'] || this.DEFAULT_MESSAGES.UNEXPECTED_ERROR;
   }
 
 // Dodawanie wielu requestow z szafkami
@@ -302,11 +304,10 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   }
 
   /// Sekcja drukowania ------------------------------------------------------------------------------------------------
-  prepareDocPrintRequest(): any {
-    if (!this.response || !this.response.boards) {
-      return null;
-    }
-    return this.response.boards.map((board: any) => {
+  prepareDocPrintRequest(): PrintDocRequest[] | null {
+    if (!this.response?.boards) return null;
+
+    return this.response?.boards?.map((board: Board) : PrintDocRequest => {
       return {
         quantity: board.quantity,
         symbol: board.color,
@@ -317,7 +318,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
         widthVeneer: board.veneerY,
         veneerColor: board.veneerColor,
         sticker: this.translations[board.boardName],
-        remarks: '' //TODO oznaczenia plyt
+        remarks: board.remarks
       };
     });
   }
@@ -342,20 +343,24 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
    *
    * @param {string} lang - Kod języka (np. 'pl', 'en'), dla którego mają zostać pobrane tłumaczenia.
    */
-  loadTranslations(lang: string): void {
-    this.selectedLanguage = lang;
-    this.translationService.getTranslationsByPrefixes(lang, CabinetConstants.TRANSLATION_PREFIXES)
-      .subscribe({
-        next: (translations) => {
-          this.translations = translations;
-          this.translationLoading = false;
-        },
 
-        error: (error) => {
-          console.error('Failed to load translations:', error);
-          this.errorMessage = 'Failed to load translations.';
-        }
+  loadTranslations(lang: string): void {
+    this.selectedLanguage = lang || 'pl';
+    this.translationService.getTranslationsByPrefixes(this.selectedLanguage, CabinetConstants.TRANSLATION_PREFIXES)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(() => of(this.getDefaultTranslations())))
+      .subscribe({
+        next: translations => this.translations = translations,
+        complete: () => this.translationLoading = false
       });
+  }
+
+  private getDefaultTranslations(): { [key: string]: string } {
+    return {
+      'network_error': 'Błąd połączenia',
+      //TODO  ... inne domyślne tłumaczenia
+    };
   }
 
   /**
@@ -403,6 +408,3 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   }
 
 }
-
-//TODO w trakcie porzadkow, posegregowalem sekcje w tym komponencie, i jestem w trakcie przerzucania czesci kodu do osobnych klas
-//TODO trzeba reszte inputow przeobic tak zeby byly form-group oraz przeniesc to co mozna do osobnych klas, zeby latwiej sie zarzadzailo kodem
