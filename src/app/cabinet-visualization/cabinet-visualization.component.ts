@@ -1,9 +1,10 @@
 import {Component, Input} from '@angular/core';
 
 @Component({
-  selector: 'app-cabinet-visualization',
-  templateUrl: './cabinet-visualization.component.html',
-  styleUrls: ['./cabinet-visualization.component.css']
+    selector: 'app-cabinet-visualization',
+    templateUrl: './cabinet-visualization.component.html',
+    styleUrls: ['./cabinet-visualization.component.css'],
+    standalone: false
 })
 export class CabinetVisualizationComponent {
   @Input() width: number = 400;

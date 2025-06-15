@@ -10,9 +10,10 @@ import {Subject} from 'rxjs';
 
 
 @Component({
-  selector: 'app-alone-cabinet',
-  templateUrl: './alone-cabinet.component.html',
-  styleUrls: ['./alone-cabinet.component.css']
+    selector: 'app-alone-cabinet',
+    templateUrl: './alone-cabinet.component.html',
+    styleUrls: ['./alone-cabinet.component.css'],
+    standalone: false
 })
 export class AloneCabinetComponent implements OnInit, OnDestroy {
   @ViewChild(PrintDocComponent) printDocComponent!: PrintDocComponent;

@@ -2,9 +2,10 @@ import {Component, Input} from '@angular/core';
 import {PrintDocService} from '../services/print-doc.service';
 
 @Component({
-  selector: 'app-print-doc',
-  templateUrl: './print-doc.component.html',
-  styleUrls: ['./print-doc.component.css']
+    selector: 'app-print-doc',
+    templateUrl: './print-doc.component.html',
+    styleUrls: ['./print-doc.component.css'],
+    standalone: false
 })
 export class PrintDocComponent {
   @Input() response: any; // Dane do wysłania w payloadzie

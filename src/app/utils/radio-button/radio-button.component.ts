@@ -11,16 +11,17 @@ import {
 } from '@angular/forms';
 
 @Component({
-  selector: 'app-radio-button',
-  templateUrl: './radio-button.component.html',
-  styleUrls: ['./radio-button.component.css'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => RadioButtonComponent),
-      multi: true,
-    },
-  ],
+    selector: 'app-radio-button',
+    templateUrl: './radio-button.component.html',
+    styleUrls: ['./radio-button.component.css'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => RadioButtonComponent),
+            multi: true,
+        },
+    ],
+    standalone: false
 })
 export class RadioButtonComponent implements ControlValueAccessor {
   @Input() id: string = '';
