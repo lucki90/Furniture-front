@@ -1,6 +1,13 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {PrintDocComponent} from './print-doc.component';
+import {MaxLengthForNumberDirective} from "../utils/directives/maxLengthForNumberDirective";
+import {PrintDocService} from "../services/print-doc.service";
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { importProvidersFrom } from '@angular/core';
+import { MatListModule } from '@angular/material/list';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 describe('PrintDocComponent', () => {
   let component: PrintDocComponent;
@@ -8,7 +15,13 @@ describe('PrintDocComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PrintDocComponent]
+      declarations: [PrintDocComponent, MaxLengthForNumberDirective],
+      providers: [PrintDocService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        importProvidersFrom(MatListModule),
+        provideAnimations()
+      ]
     })
       .compileComponents();
 

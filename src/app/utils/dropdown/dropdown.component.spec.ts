@@ -1,6 +1,11 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {DropdownComponent} from './dropdown.component';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { importProvidersFrom } from '@angular/core';
+import { MatListModule } from '@angular/material/list';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 describe('DropdownComponent', () => {
   let component: DropdownComponent;
@@ -8,7 +13,13 @@ describe('DropdownComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [DropdownComponent]
+      declarations: [DropdownComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        importProvidersFrom(MatListModule),
+        provideAnimations()
+      ]
     })
       .compileComponents();
 

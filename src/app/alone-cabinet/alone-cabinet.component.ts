@@ -109,8 +109,6 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     const browserLanguage = this.getBrowserLanguage();
     this.loadTranslations(browserLanguage);
 
-    console.log('reset drawer quantity');
-
     this.form.get('frontType')?.valueChanges.subscribe(newValue => {
       // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
       if (newValue !== 'DRAWER') {

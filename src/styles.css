@@ -329,7 +329,7 @@ canvas {
   flex-direction: row;
 }
 
-.sidenav {
+mat-sidenav.sidenav {
   width: 250px;
   padding: 16px;
   background-color: #f3f4f6;

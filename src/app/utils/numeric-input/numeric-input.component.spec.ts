@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-
-import {NumericInputComponent} from './numeric-input.component';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NumericInputComponent } from './numeric-input.component';
+import { ReactiveFormsModule } from '@angular/forms'; // 👈 to dodaj
 
 describe('NumericInputComponent', () => {
   let component: NumericInputComponent;
@@ -8,9 +8,9 @@ describe('NumericInputComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [NumericInputComponent]
-    })
-      .compileComponents();
+      declarations: [NumericInputComponent],
+      imports: [ReactiveFormsModule], // 👈 to dodaj
+    }).compileComponents();
 
     fixture = TestBed.createComponent(NumericInputComponent);
     component = fixture.componentInstance;

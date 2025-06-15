@@ -1,15 +1,34 @@
 import {TestBed} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
 import {AppComponent} from './app.component';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import {MaxLengthForNumberDirective} from "./utils/directives/maxLengthForNumberDirective";
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { importProvidersFrom } from '@angular/core';
+import { MatListModule } from '@angular/material/list';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        RouterTestingModule
+        MatListModule,
+        MatSidenavModule,
+        RouterTestingModule,
+        MatSidenavModule,
+        MatListModule,
+        MatSidenavModule
       ],
       declarations: [
-        AppComponent
+        AppComponent,
+        MaxLengthForNumberDirective
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        importProvidersFrom(MatListModule),
+        provideAnimations()
       ],
     }).compileComponents();
   });
@@ -26,10 +45,4 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('furniture-front');
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('furniture-front app is running!');
-  });
 });

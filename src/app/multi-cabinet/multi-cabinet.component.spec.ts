@@ -1,6 +1,11 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {MultiCabinetComponent} from './multi-cabinet.component';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { importProvidersFrom } from '@angular/core';
+import { MatListModule } from '@angular/material/list';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 describe('MultiCabinetComponent', () => {
   let component: MultiCabinetComponent;
@@ -8,7 +13,13 @@ describe('MultiCabinetComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [MultiCabinetComponent]
+      declarations: [MultiCabinetComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        importProvidersFrom(MatListModule),
+        provideAnimations()
+      ]
     })
       .compileComponents();
 
