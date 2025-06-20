@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {AloneCabinetService} from '../alone-cabinet.service';
+import {AloneCabinetService} from './service/alone-cabinet.service';
 import {TranslationService} from '../translation/translation.service';
 import {PrintDocComponent} from '../print-doc/print-doc.component';
 import {CabinetVisualizationComponent} from '../cabinet-visualization/cabinet-visualization.component';
@@ -349,18 +349,11 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     this.translationService.getTranslationsByPrefixes(this.selectedLanguage, CabinetConstants.TRANSLATION_PREFIXES)
       .pipe(
         takeUntil(this.destroy$),
-        catchError(() => of(this.getDefaultTranslations())))
+        catchError(() => of(this.translationService.getDefaultTranslations())))
       .subscribe({
         next: translations => this.translations = translations,
         complete: () => this.translationLoading = false
       });
-  }
-
-  private getDefaultTranslations(): { [key: string]: string } {
-    return {
-      'network_error': 'Błąd połączenia',
-      //TODO  ... inne domyślne tłumaczenia
-    };
   }
 
   /**

@@ -1,5 +1,5 @@
 import {Component, Input} from '@angular/core';
-import {PrintDocService} from '../services/print-doc.service';
+import {PrintDocService} from './service/print-doc.service';
 
 @Component({
     selector: 'app-print-doc',

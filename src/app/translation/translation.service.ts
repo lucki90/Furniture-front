@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, shareReplay } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import {DEFAULT_TRANSLATIONS} from "./default-translations";
 
 interface TranslationCache {
   [key: string]: string;
@@ -66,6 +67,10 @@ export class TranslationService {
       }),
       shareReplay(1)
     );
+  }
+
+   getDefaultTranslations(): { [key: string]: string } {
+    return { ...DEFAULT_TRANSLATIONS };
   }
 
   clearCache(clearAll: boolean = true, specificKey?: string): void {
