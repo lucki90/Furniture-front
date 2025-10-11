@@ -1,6 +1,6 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NumericInputComponent } from './numeric-input.component';
-import { ReactiveFormsModule } from '@angular/forms'; // 👈 to dodaj
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {NumericInputComponent} from './numeric-input.component';
+import {ReactiveFormsModule} from '@angular/forms'; // 👈 to dodaj
 
 describe('NumericInputComponent', () => {
   let component: NumericInputComponent;

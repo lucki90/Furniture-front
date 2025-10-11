@@ -1,9 +1,8 @@
 import {TestBed} from '@angular/core/testing';
 
 import {PrintDocService} from './print-doc.service';
-import {HttpClientTestingModule} from "@angular/common/http/testing";
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import {HttpClientTestingModule, provideHttpClientTesting} from "@angular/common/http/testing";
+import {provideHttpClient} from '@angular/common/http';
 
 describe('PrintDocService', () => {
   let service: PrintDocService;

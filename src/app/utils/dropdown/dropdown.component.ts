@@ -1,18 +1,18 @@
-import { Component, Input, forwardRef } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import {Component, forwardRef, Input} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
 @Component({
-    selector: 'app-dropdown',
-    templateUrl: './dropdown.component.html',
-    styleUrls: ['./dropdown.component.css'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => DropdownComponent),
-            multi: true
-        }
-    ],
-    standalone: false
+  selector: 'app-dropdown',
+  templateUrl: './dropdown.component.html',
+  styleUrls: ['./dropdown.component.css'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DropdownComponent),
+      multi: true
+    }
+  ],
+  standalone: false
 })
 export class DropdownComponent implements ControlValueAccessor {
   @Input() id: string = '';
@@ -24,8 +24,10 @@ export class DropdownComponent implements ControlValueAccessor {
   value: any = null;
   disabled: boolean = false;
 
-  private onChange: any = () => {};
-  private onTouched: any = () => {};
+  private onChange: any = () => {
+  };
+  private onTouched: any = () => {
+  };
 
   ngOnInit() {
     if (!this.id) {

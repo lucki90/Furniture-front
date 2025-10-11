@@ -2,17 +2,17 @@ import {Component, EventEmitter, forwardRef, Input, OnInit, Output} from '@angul
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
 @Component({
-    selector: 'app-numeric-input',
-    templateUrl: './numeric-input.component.html',
-    styleUrls: ['./numeric-input.component.css'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => NumericInputComponent),
-            multi: true
-        }
-    ],
-    standalone: false
+  selector: 'app-numeric-input',
+  templateUrl: './numeric-input.component.html',
+  styleUrls: ['./numeric-input.component.css'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => NumericInputComponent),
+      multi: true
+    }
+  ],
+  standalone: false
 })
 export class NumericInputComponent implements ControlValueAccessor, OnInit {
   @Input() id: string = '';
@@ -23,7 +23,7 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
   @Input() errorMessage: string = '';
 
   @Output() valueChange = new EventEmitter<number>();
-   _isDisabled = false;
+  _isDisabled = false;
   private _value: number = 0;
 
   onChange: any = () => {

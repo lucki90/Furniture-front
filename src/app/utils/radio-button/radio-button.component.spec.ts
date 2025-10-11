@@ -1,11 +1,11 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {RadioButtonComponent} from './radio-button.component';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { importProvidersFrom } from '@angular/core';
-import { MatListModule } from '@angular/material/list';
-import { provideAnimations } from '@angular/platform-browser/animations';
+import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClientTesting} from '@angular/common/http/testing';
+import {importProvidersFrom} from '@angular/core';
+import {MatListModule} from '@angular/material/list';
+import {provideAnimations} from '@angular/platform-browser/animations';
 
 describe('RadioButtonComponent', () => {
   let component: RadioButtonComponent;
@@ -21,7 +21,7 @@ describe('RadioButtonComponent', () => {
         provideAnimations()
       ]
     })
-      .compileComponents();
+    .compileComponents();
 
     fixture = TestBed.createComponent(RadioButtonComponent);
     component = fixture.componentInstance;

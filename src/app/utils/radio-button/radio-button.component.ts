@@ -1,27 +1,18 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  forwardRef,
-} from '@angular/core';
-import {
-  ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
-} from '@angular/forms';
+import {Component, EventEmitter, forwardRef, Input, Output,} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR,} from '@angular/forms';
 
 @Component({
-    selector: 'app-radio-button',
-    templateUrl: './radio-button.component.html',
-    styleUrls: ['./radio-button.component.css'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => RadioButtonComponent),
-            multi: true,
-        },
-    ],
-    standalone: false
+  selector: 'app-radio-button',
+  templateUrl: './radio-button.component.html',
+  styleUrls: ['./radio-button.component.css'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => RadioButtonComponent),
+      multi: true,
+    },
+  ],
+  standalone: false
 })
 export class RadioButtonComponent implements ControlValueAccessor {
   @Input() id: string = '';
@@ -35,8 +26,10 @@ export class RadioButtonComponent implements ControlValueAccessor {
   selectedValue: any = null;
 
   // ControlValueAccessor callbacks
-  onChange: (value: any) => void = () => {};
-  onTouch: () => void = () => {};
+  onChange: (value: any) => void = () => {
+  };
+  onTouch: () => void = () => {
+  };
 
   // Zmiana zaznaczenia
   onSelectionChange(value: any): void {

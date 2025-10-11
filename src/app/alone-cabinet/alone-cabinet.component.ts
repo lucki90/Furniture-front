@@ -11,10 +11,10 @@ import {HttpErrorResponse} from "@angular/common/http";
 import {Board, CabinetRequest, CabinetResponse, PrintDocRequest} from "./model/cabinet-form.model";
 
 @Component({
-    selector: 'app-alone-cabinet',
-    templateUrl: './alone-cabinet.component.html',
-    styleUrls: ['./alone-cabinet.component.css'],
-    standalone: false
+  selector: 'app-alone-cabinet',
+  templateUrl: './alone-cabinet.component.html',
+  styleUrls: ['./alone-cabinet.component.css'],
+  standalone: false
 })
 export class AloneCabinetComponent implements OnInit, OnDestroy {
   @ViewChild(PrintDocComponent) printDocComponent!: PrintDocComponent;
@@ -68,13 +68,13 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   readonly form: FormGroup = this.fb.group({
     height: ['720', this.FORM_VALIDATORS.height],
     width: ['600', this.FORM_VALIDATORS.width],
-    depth: ['300', this.FORM_VALIDATORS.depth],
+    depth: ['500', this.FORM_VALIDATORS.depth],
     shelfQuantity: ['0', this.FORM_VALIDATORS.shelfQuantity],
-    drawerQuantity: [{value: '0', disabled: true},
+    drawerQuantity: [{value: '1', disabled: false},
       this.FORM_VALIDATORS.drawerQuantity],
     cabinetType: ['STANDARD', Validators.required],
     openingType: ['HANDLE', Validators.required],
-    frontType: ['ONE_DOOR', Validators.required],
+    frontType: ['DRAWER', Validators.required],
     needBacks: [true, Validators.required],
     isBackInGroove: [false, Validators.required],
     isHanging: [false, Validators.required],
@@ -106,73 +106,73 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     this.loadTranslations(browserLanguage);
 
     this.form.get('frontType')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(newValue => {
-        // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
-        if (newValue !== 'DRAWER') {
-          this.form.patchValue({drawerQuantity: 0});
-          this.form.get('drawerQuantity')?.disable();
-          if (this.form.get('isHanging')?.value) {
-            this.form.get('isFrontExtended')?.enable()
-          }
-        } else if (newValue === 'DRAWER') {
-          this.form.patchValue({drawerQuantity: 1});
-          this.form.get('drawerQuantity')?.enable();
-          this.form.get('isFrontExtended')?.disable()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(newValue => {
+      // Resetuje ilość szuflad, jeśli wybrano inny typ frontu
+      if (newValue !== 'DRAWER') {
+        this.form.patchValue({drawerQuantity: 0});
+        this.form.get('drawerQuantity')?.disable();
+        if (this.form.get('isHanging')?.value) {
+          this.form.get('isFrontExtended')?.enable()
         }
-      });
+      } else if (newValue === 'DRAWER') {
+        this.form.patchValue({drawerQuantity: 1});
+        this.form.get('drawerQuantity')?.enable();
+        this.form.get('isFrontExtended')?.disable()
+      }
+    });
 
     this.form.get('needBacks')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(newValue => {
-        if (newValue) {
-          this.form.get('isBackInGroove')?.enable()
-        } else {
-          this.form.patchValue({isBackInGroove: null});
-          this.form.get('isBackInGroove')?.disable()
-        }
-      });
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(newValue => {
+      if (newValue) {
+        this.form.get('isBackInGroove')?.enable()
+      } else {
+        this.form.patchValue({isBackInGroove: null});
+        this.form.get('isBackInGroove')?.disable()
+      }
+    });
 
     this.form.get('isHanging')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(newValue => {
-        if (newValue) {
-          this.form.get('isHangingOnRail')?.enable()
-          this.form.get('isStandingOnFeet')?.disable()
-          this.form.patchValue({isStandingOnFeet: false});
-          if (this.form.get('frontType')?.value !== 'DRAWER') {
-            this.form.get('isFrontExtended')?.enable()
-          }
-          this.form.get('isCoveredWithCounterTop')?.disable()
-        } else {
-          this.form.patchValue({isHangingOnRail: false, isFrontExtended: false});
-          this.form.get('isHangingOnRail')?.disable()
-          this.form.get('isStandingOnFeet')?.enable()
-          this.form.get('isFrontExtended')?.disable()
-          this.form.get('isCoveredWithCounterTop')?.enable()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(newValue => {
+      if (newValue) {
+        this.form.get('isHangingOnRail')?.enable()
+        this.form.get('isStandingOnFeet')?.disable()
+        this.form.patchValue({isStandingOnFeet: false});
+        if (this.form.get('frontType')?.value !== 'DRAWER') {
+          this.form.get('isFrontExtended')?.enable()
         }
-      });
+        this.form.get('isCoveredWithCounterTop')?.disable()
+      } else {
+        this.form.patchValue({isHangingOnRail: false, isFrontExtended: false});
+        this.form.get('isHangingOnRail')?.disable()
+        this.form.get('isStandingOnFeet')?.enable()
+        this.form.get('isFrontExtended')?.disable()
+        this.form.get('isCoveredWithCounterTop')?.enable()
+      }
+    });
 
     this.form.get('varnishedFront')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(newValue => {
-        if (newValue) {
-          this.form.get('frontVeneerColor')?.disable()
-        } else {
-          this.form.patchValue({frontVeneerColor: null});
-          this.form.get('frontVeneerColor')?.enable()
-        }
-      });
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(newValue => {
+      if (newValue) {
+        this.form.get('frontVeneerColor')?.disable()
+      } else {
+        this.form.patchValue({frontVeneerColor: null});
+        this.form.get('frontVeneerColor')?.enable()
+      }
+    });
     this.form.get('frontMaterial')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(newValue => {
-        if (newValue !== 'MDF') {
-          this.form.get('varnishedFront')?.disable()
-          this.form.patchValue({varnishedFront: false})
-        } else if (newValue === 'MDF') {
-          this.form.get('varnishedFront')?.enable()
-        }
-      });
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(newValue => {
+      if (newValue !== 'MDF') {
+        this.form.get('varnishedFront')?.disable()
+        this.form.patchValue({varnishedFront: false})
+      } else if (newValue === 'MDF') {
+        this.form.get('varnishedFront')?.enable()
+      }
+    });
 
   }
 
@@ -307,7 +307,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   prepareDocPrintRequest(): PrintDocRequest[] | null {
     if (!this.response?.boards) return null;
 
-    return this.response?.boards?.map((board: Board) : PrintDocRequest => {
+    return this.response?.boards?.map((board: Board): PrintDocRequest => {
       return {
         quantity: board.quantity,
         symbol: board.color,
@@ -347,13 +347,13 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   loadTranslations(lang: string): void {
     this.selectedLanguage = lang || 'pl';
     this.translationService.getTranslationsByPrefixes(this.selectedLanguage, CabinetConstants.TRANSLATION_PREFIXES)
-      .pipe(
-        takeUntil(this.destroy$),
-        catchError(() => of(this.translationService.getDefaultTranslations())))
-      .subscribe({
-        next: translations => this.translations = translations,
-        complete: () => this.translationLoading = false
-      });
+    .pipe(
+      takeUntil(this.destroy$),
+      catchError(() => of(this.translationService.getDefaultTranslations())))
+    .subscribe({
+      next: translations => this.translations = translations,
+      complete: () => this.translationLoading = false
+    });
   }
 
   /**
@@ -372,8 +372,8 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     }
 
     return additionalInfo
-      .map((info) => this.translations[info] || info) // Tłumacz każdy element lub pozostaw oryginał
-      .join('\n'); // Łącz przetłumaczone elementy w ciąg znaków
+    .map((info) => this.translations[info] || info) // Tłumacz każdy element lub pozostaw oryginał
+    .join('\n'); // Łącz przetłumaczone elementy w ciąg znaków
   }
 
   /**

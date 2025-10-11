@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, shareReplay } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import {Injectable} from '@angular/core';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {Observable, of, shareReplay} from 'rxjs';
+import {tap} from 'rxjs/operators';
 import {DEFAULT_TRANSLATIONS} from "./default-translations";
 
 interface TranslationCache {
@@ -13,7 +13,7 @@ interface CacheStore {
   multi: Map<string, TranslationCache>;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class TranslationService {
   private readonly translationUrl = 'http://localhost:8080/api/furniture/translation';
   private readonly translationsUrl = 'http://localhost:8080/api/furniture/translations';
@@ -26,7 +26,8 @@ export class TranslationService {
 
   private cacheTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {
+  }
 
   getTranslations(language: string, prefix: string): Observable<TranslationCache> {
     const cacheKey = this.getCacheKey(language, [prefix]);
@@ -54,12 +55,12 @@ export class TranslationService {
     }
 
     const params = new HttpParams()
-      .set('lang', lang)
-      .set('prefixes', prefixes.join(','));
+    .set('lang', lang)
+    .set('prefixes', prefixes.join(','));
 
     return this.http.get<TranslationCache>(
       this.translationsUrl,
-      { params }
+      {params}
     ).pipe(
       tap(translations => {
         this.cache.multi.set(cacheKey, translations);
@@ -69,8 +70,8 @@ export class TranslationService {
     );
   }
 
-   getDefaultTranslations(): { [key: string]: string } {
-    return { ...DEFAULT_TRANSLATIONS };
+  getDefaultTranslations(): { [key: string]: string } {
+    return {...DEFAULT_TRANSLATIONS};
   }
 
   clearCache(clearAll: boolean = true, specificKey?: string): void {
@@ -93,7 +94,7 @@ export class TranslationService {
 
     for (const [key, value] of this.cache.multi.entries()) {
       if (key.startsWith(`${lang}_`)) {
-        this.cache.multi.set(key, { ...value, ...newTranslations });
+        this.cache.multi.set(key, {...value, ...newTranslations});
         this.setCacheTimer(key);
       }
     }

@@ -11,8 +11,8 @@ import {NgControl} from '@angular/forms';
  *   />
  */
 @Directive({
-    selector: '[appMaxLengthForNumber]',
-    standalone: false
+  selector: '[appMaxLengthForNumber]',
+  standalone: false
 })
 export class MaxLengthForNumberDirective {
   @Input('appMaxLengthForNumber') maxLength = 10;
