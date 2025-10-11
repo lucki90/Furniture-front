@@ -6,7 +6,7 @@ export interface CabinetRequest {
   height: number;
   width: number;
   depth: number;
-  shelfQuantity: number;
+  shelfQuantity: number | null;
   drawerQuantity: number | null;
   needBacks: boolean;
   isHanging: boolean;

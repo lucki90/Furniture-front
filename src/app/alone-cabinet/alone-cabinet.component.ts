@@ -69,7 +69,8 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     height: ['720', this.FORM_VALIDATORS.height],
     width: ['600', this.FORM_VALIDATORS.width],
     depth: ['500', this.FORM_VALIDATORS.depth],
-    shelfQuantity: ['0', this.FORM_VALIDATORS.shelfQuantity],
+    shelfQuantity: [{value: '1', disabled: true},
+      this.FORM_VALIDATORS.shelfQuantity],
     drawerQuantity: [{value: '1', disabled: false},
       this.FORM_VALIDATORS.drawerQuantity],
     cabinetType: ['STANDARD', Validators.required],
@@ -112,13 +113,16 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
       if (newValue !== 'DRAWER') {
         this.form.patchValue({drawerQuantity: 0});
         this.form.get('drawerQuantity')?.disable();
+        this.form.get('shelfQuantity')?.enable();
         if (this.form.get('isHanging')?.value) {
           this.form.get('isFrontExtended')?.enable()
         }
       } else if (newValue === 'DRAWER') {
         this.form.patchValue({drawerQuantity: 1});
+        this.form.patchValue({shelfQuantity: 0});
         this.form.get('drawerQuantity')?.enable();
         this.form.get('isFrontExtended')?.disable()
+        this.form.get('shelfQuantity')?.disable()
       }
     });
 

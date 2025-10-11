@@ -36,11 +36,17 @@ export class DropdownComponent implements ControlValueAccessor {
   }
 
   onSelectionChange(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    this.value = selectElement.value;
+    this.value = event;
     this.onChange(this.value);
     this.onTouched();
   }
+  //   onSelectionChange(event: any): void {
+  //     if (!this.disable) {
+  //       const value = event.target.value;
+  //       this.selectedValue = value;
+  //       this.selectedValueChange.emit(value); // Emituj nowy wybór
+  //     }
+  //   }
 
   writeValue(value: any): void {
     this.value = value;
