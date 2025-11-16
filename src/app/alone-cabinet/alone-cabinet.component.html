@@ -108,6 +108,26 @@
           [errorMessage]="translations['ERROR.invalid.drawerQuantity']">
         </app-numeric-input>
 
+        <app-dropdown
+          id="drawer-model"
+          [label]="translations['GENERAL.drawerModel']"
+          formControlName="drawerModel"
+          [options]="drawerModels"
+          [translations]="translations"
+          [visible]="true">
+        </app-dropdown>
+<!--TODO dodac tlumaczenia do nowych pol -->
+        <!-- Przełącznik plecki hdf -->
+        <app-radio-button
+          [id]="'drawer-base-hdf'"
+          formControlName="drawerBaseHdf"
+          [title]="translations['alone-cabin.drawerBaseHdf']"
+          [options]="[
+                      { value: true, label: translations['alone-cabin.drawerBaseHdf'], tooltip: translations['alone-cabin.shouldAddDrawerBaseHdf'] },
+                      { value: false, label: translations['alone-cabin.noDrawerBaseHdf'], tooltip: translations['alone-cabin.shouldAddDrawerBaseHdf'] }
+                    ]">
+        </app-radio-button>
+
         <!-- Przełącznik plecki hdf -->
         <app-radio-button
           [id]="'hdf-backs'"

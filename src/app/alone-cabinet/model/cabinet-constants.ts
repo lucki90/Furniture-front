@@ -22,6 +22,11 @@ export class CabinetConstants {
     {value: 'DRAWER', label: 'alone-cabin.front.drawer'}
   ];
 
+  static readonly DRAWER_MODELS = [
+    {value: 'ANTARO', label: 'alone-cabin.drawer-model.antaro'}, //TODO dodac info ze antaro tandembox
+    {value: 'SEVROLL_BALL', label: 'alone-cabin.drawer-model.sevrollBall'}
+  ];
+
   static readonly MATERIALS = [
     {value: 'CHIPBOARD', label: 'GENERAL.material.CHIPBOARD'},
     {value: 'MDF', label: 'GENERAL.material.MDF'}

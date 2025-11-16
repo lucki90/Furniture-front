@@ -23,6 +23,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   readonly cabinetTypes = CabinetConstants.CABINET_TYPES;
   readonly openingTypes = CabinetConstants.OPENING_TYPES;
   readonly frontTypes = CabinetConstants.FRONT_TYPES;
+  readonly drawerModels = CabinetConstants.DRAWER_MODELS;
   readonly materials = CabinetConstants.MATERIALS;
   readonly thicknesses = CabinetConstants.THICKNESSES;
   readonly colors = CabinetConstants.COLORS;
@@ -76,6 +77,8 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     cabinetType: ['STANDARD', Validators.required],
     openingType: ['HANDLE', Validators.required],
     frontType: ['DRAWER', Validators.required],
+    drawerModel: ['SEVROLL_BALL', Validators.required],
+    drawerBaseHdf: [true, Validators.required],
     needBacks: [true, Validators.required],
     isBackInGroove: [false, Validators.required],
     isHanging: [false, Validators.required],
@@ -113,6 +116,10 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
       if (newValue !== 'DRAWER') {
         this.form.patchValue({drawerQuantity: 0});
         this.form.get('drawerQuantity')?.disable();
+        this.form.patchValue({drawerModel: ''});
+        this.form.get('drawerModel')?.disable();
+        this.form.patchValue({drawerBaseHdf: false});
+        this.form.get('drawerBaseHdf')?.disable();
         this.form.get('shelfQuantity')?.enable();
         if (this.form.get('isHanging')?.value) {
           this.form.get('isFrontExtended')?.enable()
@@ -123,6 +130,10 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
         this.form.get('drawerQuantity')?.enable();
         this.form.get('isFrontExtended')?.disable()
         this.form.get('shelfQuantity')?.disable()
+        this.form.patchValue({drawerModel: 'ANTARO'});
+        this.form.get('drawerModel')?.enable();
+        this.form.patchValue({drawerBaseHdf: false});
+        this.form.get('drawerBaseHdf')?.enable();
       }
     });
 
@@ -211,6 +222,8 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
       cabinetType: this.form.get('cabinetType')?.value,
       openingType: this.form.get('openingType')?.value,
       drawerQuantity: this.form.get('drawerQuantity')?.value,
+      drawerModel: this.form.get('drawerModel')?.value,
+      drawerBaseHdf: this.form.get('drawerBaseHdf')?.value,
       materialRequest: {
         boxMaterial: this.form.get('boxMaterial')?.value,
         boxBoardThickness: this.form.get('boxBoardThickness')?.value,

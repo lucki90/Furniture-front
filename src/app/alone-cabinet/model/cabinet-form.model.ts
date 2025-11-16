@@ -8,6 +8,8 @@ export interface CabinetRequest {
   depth: number;
   shelfQuantity: number | null;
   drawerQuantity: number | null;
+  drawerModel: string,
+  drawerBaseHdf: boolean,
   needBacks: boolean;
   isHanging: boolean;
   isHangingOnRail: boolean;
