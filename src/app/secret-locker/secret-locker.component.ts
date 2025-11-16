@@ -25,6 +25,11 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   dims: DimensionsForm = { width: 100, height: 90, depth: 55 };
   colors: string[] = ['#ffffff', '#f5f5f5', '#d32f2f', '#1976d2', '#388e3c', '#ffa000', '#795548', '#212121'];
+  // przechowujemy aktualne kolory, przydatne dla inputów typu color
+  topColor = '#bbbbbb';
+  carcassColor = '#cccccc';
+  frontColor = '#ffffff';
+
   selectedPart?: ClickablePart;
   scene!: THREE.Scene;
   camera!: THREE.PerspectiveCamera;
@@ -36,6 +41,11 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
   drawerGroups: { front: ClickablePart; group: THREE.Group; openProgress: number; target: number }[] = [];
   canvasParent!: HTMLDivElement;
 
+  // współdzielone materiały - zmiana ich koloru od razu zaktualizuje meshe
+  private materialCarcass!: THREE.MeshPhongMaterial;
+  private materialTop!: THREE.MeshPhongMaterial;
+  private materialFront!: THREE.MeshPhongMaterial;
+
   private boundOnPointerDown = (ev: MouseEvent) => this.onPointerDown(ev);
   private boundOnResize = () => this.onResize();
 
@@ -45,7 +55,6 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.canvasParent = this.containerRef.nativeElement;
-    // jeśli element ma rozmiar 0, odczekaj chwilę i spróbuj
     if (this.canvasParent.clientWidth === 0 || this.canvasParent.clientHeight === 0) {
       setTimeout(() => this.initThree(), 50);
     } else {
@@ -93,6 +102,12 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
     this.scene.add(dirLight);
 
     this.scene.add(this.rootGroup);
+
+    // utwórz materiały przed budową szafki, by meshe korzystały ze współdzielonych materiałów
+    this.materialCarcass = new THREE.MeshPhongMaterial({ color: this.carcassColor });
+    this.materialTop = new THREE.MeshPhongMaterial({ color: this.topColor });
+    this.materialFront = new THREE.MeshPhongMaterial({ color: this.frontColor });
+
     this.buildCabinet();
 
     this.renderer.domElement.addEventListener('mousedown', this.boundOnPointerDown);
@@ -113,18 +128,16 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedPart = undefined;
 
     const { width: W, height: H, depth: D } = this.dims;
-    const materialCarcass = new THREE.MeshPhongMaterial({ color: '#cccccc' });
-    const materialTop = new THREE.MeshPhongMaterial({ color: '#bbbbbb' });
-    const materialFront = new THREE.MeshPhongMaterial({ color: '#ffffff' });
 
+    // używamy pól materiałów (nie klonujemy frontów) — dzięki temu zmiana materiału zmienia wszystkie fronty
     const carcassGeom = new THREE.BoxGeometry(W, H, D);
-    const carcass = new THREE.Mesh(carcassGeom, materialCarcass);
+    const carcass = new THREE.Mesh(carcassGeom, this.materialCarcass);
     carcass.position.set(0, H / 2, 0);
     carcass.userData['type'] = 'carcass';
     this.rootGroup.add(carcass);
 
     const topGeom = new THREE.BoxGeometry(W + 2, 3, D + 2);
-    const top = new THREE.Mesh(topGeom, materialTop);
+    const top = new THREE.Mesh(topGeom, this.materialTop);
     top.position.set(0, H + 1.5, 0);
     top.userData['type'] = 'top';
     this.rootGroup.add(top);
@@ -136,7 +149,8 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
       group.position.set(0, 0, 0);
 
       const frontGeom = new THREE.BoxGeometry(W - 4, drawerHeight - 4, 2);
-      const frontMesh = new THREE.Mesh(frontGeom, materialFront.clone());
+      // tutaj używamy współdzielonego this.materialFront (bez clone) by wszystkie fronty miały tę samą barwę
+      const frontMesh = new THREE.Mesh(frontGeom, this.materialFront);
       frontMesh.position.set(0, yCenter, D / 2 + 1);
       frontMesh.userData['type'] = 'drawerFront';
       frontMesh.userData['drawerIndex'] = i;
@@ -156,7 +170,26 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   applyDimensions(): void {
+    // zachowaj materiały i odbuduj geometrię
     this.buildCabinet();
+  }
+
+  // publiczny API do ustawiania koloru części
+  setPartColor(part: 'top' | 'carcass' | 'front', hex: string): void {
+    if (part === 'top') {
+      this.topColor = hex;
+      if (this.materialTop) this.materialTop.color.set(hex);
+    } else if (part === 'carcass') {
+      this.carcassColor = hex;
+      if (this.materialCarcass) this.materialCarcass.color.set(hex);
+    } else if (part === 'front') {
+      this.frontColor = hex;
+      if (this.materialFront) this.materialFront.color.set(hex);
+    }
+    // natychmiastowy render
+    if (this.renderer && this.scene && this.camera) {
+      this.renderer.render(this.scene, this.camera);
+    }
   }
 
   onPointerDown(event: MouseEvent): void {
@@ -211,4 +244,6 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
   trackByIndex(i: number): number {
     return i;
   }
+
+  protected readonly HTMLInputElement = HTMLInputElement;
 }
