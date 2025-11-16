@@ -6,7 +6,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {AloneCabinetComponent} from './alone-cabinet/alone-cabinet.component';
-import {MultiCabinetComponent} from './multi-cabinet/multi-cabinet.component';
+import {SecretLockerComponent} from './secret-locker/secret-locker.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatListModule} from '@angular/material/list';
@@ -23,7 +23,7 @@ import {MaxLengthForNumberDirective} from "./utils/directives/maxLengthForNumber
   declarations: [
     AppComponent,
     AloneCabinetComponent,
-    MultiCabinetComponent,
+    SecretLockerComponent,
     PrintDocComponent,
     CabinetVisualizationComponent,
     RadioButtonComponent,

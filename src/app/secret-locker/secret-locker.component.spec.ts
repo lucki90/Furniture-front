@@ -1,19 +1,19 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {MultiCabinetComponent} from './multi-cabinet.component';
+import {SecretLockerComponent} from './secret-locker.component';
 import {provideHttpClient} from '@angular/common/http';
 import {provideHttpClientTesting} from '@angular/common/http/testing';
 import {importProvidersFrom} from '@angular/core';
 import {MatListModule} from '@angular/material/list';
 import {provideAnimations} from '@angular/platform-browser/animations';
 
-describe('MultiCabinetComponent', () => {
-  let component: MultiCabinetComponent;
-  let fixture: ComponentFixture<MultiCabinetComponent>;
+describe('SecretLockerComponent', () => {
+  let component: SecretLockerComponent;
+  let fixture: ComponentFixture<SecretLockerComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [MultiCabinetComponent],
+      declarations: [SecretLockerComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -23,7 +23,7 @@ describe('MultiCabinetComponent', () => {
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(MultiCabinetComponent);
+    fixture = TestBed.createComponent(SecretLockerComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
