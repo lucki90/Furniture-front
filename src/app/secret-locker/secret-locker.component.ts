@@ -1,5 +1,9 @@
+// typescript
 import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import * as THREE from 'three';
+import { PresetsService } from '../color/presets.service';
+import { TextureService } from '../color/texture.service';
+import { Preset } from '../color/model//preset.model';
 
 interface DimensionsForm {
   width: number;
@@ -20,15 +24,20 @@ interface ClickablePart {
   standalone: false
 })
 export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
+  constructor(
+    private presetsService: PresetsService,
+    private textureService: TextureService
+  ) {}
 
   @ViewChild('threeContainer', { static: false }) containerRef!: ElementRef<HTMLDivElement>;
 
   dims: DimensionsForm = { width: 100, height: 90, depth: 55 };
-  colors: string[] = ['#ffffff', '#f5f5f5', '#d32f2f', '#1976d2', '#388e3c', '#ffa000', '#795548', '#212121'];
-  // przechowujemy aktualne kolory, przydatne dla inputów typu color
-  topColor = '#bbbbbb';
-  carcassColor = '#cccccc';
-  frontColor = '#ffffff';
+
+  presetOptions = [
+    { id: 'k003', label: 'Dąb craft złoty' },
+    { id: 'black', label: 'Black' },
+    { id: 'white', label: 'White' }
+  ];
 
   selectedPart?: ClickablePart;
   scene!: THREE.Scene;
@@ -41,17 +50,14 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
   drawerGroups: { front: ClickablePart; group: THREE.Group; openProgress: number; target: number }[] = [];
   canvasParent!: HTMLDivElement;
 
-  // współdzielone materiały - zmiana ich koloru od razu zaktualizuje meshe
-  private materialCarcass!: THREE.MeshPhongMaterial;
-  private materialTop!: THREE.MeshPhongMaterial;
-  private materialFront!: THREE.MeshPhongMaterial;
+  private materialCarcass!: THREE.MeshStandardMaterial;
+  private materialTop!: THREE.MeshStandardMaterial;
+  private materialFront!: THREE.MeshStandardMaterial;
 
   private boundOnPointerDown = (ev: MouseEvent) => this.onPointerDown(ev);
   private boundOnResize = () => this.onResize();
 
-  ngOnInit(): void {
-    // inicjalizacja przeniesiona do ngAfterViewInit
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this.canvasParent = this.containerRef.nativeElement;
@@ -91,24 +97,43 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(width, height);
 
+    // rzutowania na any, aby uniknąć błędów typów z różnymi wersjami @types/three
+    (this.renderer as any).outputEncoding = (THREE as any).sRGBEncoding;
+    (this.renderer as any).toneMapping = (THREE as any).ACESFilmicToneMapping;
+    (this.renderer as any).toneMappingExposure = 1.0;
+    (this.renderer as any).physicallyCorrectLights = true;
+
     if (!this.canvasParent.contains(this.renderer.domElement)) {
       this.canvasParent.appendChild(this.renderer.domElement);
     }
 
-    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.1);
-    this.scene.add(light);
+    // światła
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.9);
+    this.scene.add(hemi);
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
     dirLight.position.set(100, 200, 150);
     this.scene.add(dirLight);
 
     this.scene.add(this.rootGroup);
 
-    // utwórz materiały przed budową szafki, by meshe korzystały ze współdzielonych materiałów
-    this.materialCarcass = new THREE.MeshPhongMaterial({ color: this.carcassColor });
-    this.materialTop = new THREE.MeshPhongMaterial({ color: this.topColor });
-    this.materialFront = new THREE.MeshPhongMaterial({ color: this.frontColor });
+    // użyjemy baseHex z domyślnego presetu (jeśli istnieje) do inicjalizacji materiałów
+    const defaultPreset = this.presetsService.getById('k003');
+    const defaultHex = defaultPreset?.baseHex ?? '#bbbbbb';
+
+    // tworzenie materiałów z nieco niższym roughness dla jaśniejszych kolorów
+    this.materialCarcass = new THREE.MeshStandardMaterial({ color: new THREE.Color(defaultHex), roughness: 0.12, metalness: 0.0 });
+    this.materialTop = new THREE.MeshStandardMaterial({ color: new THREE.Color(defaultHex), roughness: 0.06, metalness: 0.0 });
+    this.materialFront = new THREE.MeshStandardMaterial({ color: new THREE.Color(defaultHex), roughness: 0.06, metalness: 0.0 });
 
     this.buildCabinet();
+
+    // zastosuj preset domyślny (jeśli jest)
+    if (defaultPreset) {
+      this.textureService.applyPresetToMaterial(this.materialTop, defaultPreset).catch(() => {});
+      this.textureService.applyPresetToMaterial(this.materialCarcass, defaultPreset).catch(() => {});
+      this.textureService.applyPresetToMaterial(this.materialFront, defaultPreset).catch(() => {});
+    }
 
     this.renderer.domElement.addEventListener('mousedown', this.boundOnPointerDown);
     window.addEventListener('resize', this.boundOnResize);
@@ -129,7 +154,6 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const { width: W, height: H, depth: D } = this.dims;
 
-    // używamy pól materiałów (nie klonujemy frontów) — dzięki temu zmiana materiału zmienia wszystkie fronty
     const carcassGeom = new THREE.BoxGeometry(W, H, D);
     const carcass = new THREE.Mesh(carcassGeom, this.materialCarcass);
     carcass.position.set(0, H / 2, 0);
@@ -149,14 +173,13 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
       group.position.set(0, 0, 0);
 
       const frontGeom = new THREE.BoxGeometry(W - 4, drawerHeight - 4, 2);
-      // tutaj używamy współdzielonego this.materialFront (bez clone) by wszystkie fronty miały tę samą barwę
       const frontMesh = new THREE.Mesh(frontGeom, this.materialFront);
       frontMesh.position.set(0, yCenter, D / 2 + 1);
       frontMesh.userData['type'] = 'drawerFront';
       frontMesh.userData['drawerIndex'] = i;
 
       const boxGeom = new THREE.BoxGeometry(W - 6, drawerHeight - 6, D - 10);
-      const boxMat = new THREE.MeshPhongMaterial({ color: '#eeeeee' });
+      const boxMat = new THREE.MeshStandardMaterial({ color: '#eeeeee', roughness: 0.9, metalness: 0.0 });
       const boxMesh = new THREE.Mesh(boxGeom, boxMat);
       boxMesh.position.set(0, yCenter, (D / 2) - (D - 10) / 2);
 
@@ -170,25 +193,25 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   applyDimensions(): void {
-    // zachowaj materiały i odbuduj geometrię
     this.buildCabinet();
   }
 
-  // publiczny API do ustawiania koloru części
-  setPartColor(part: 'top' | 'carcass' | 'front', hex: string): void {
-    if (part === 'top') {
-      this.topColor = hex;
-      if (this.materialTop) this.materialTop.color.set(hex);
-    } else if (part === 'carcass') {
-      this.carcassColor = hex;
-      if (this.materialCarcass) this.materialCarcass.color.set(hex);
-    } else if (part === 'front') {
-      this.frontColor = hex;
-      if (this.materialFront) this.materialFront.color.set(hex);
-    }
-    // natychmiastowy render
-    if (this.renderer && this.scene && this.camera) {
-      this.renderer.render(this.scene, this.camera);
+  async applyPresetOption(part: 'top' | 'carcass' | 'front', presetId: string): Promise<void> {
+    if (!presetId) return;
+    const preset = this.presetsService.getById(presetId);
+    if (!preset) return;
+    let mat: THREE.MeshStandardMaterial | undefined;
+    if (part === 'top') mat = this.materialTop;
+    if (part === 'carcass') mat = this.materialCarcass;
+    if (part === 'front') mat = this.materialFront;
+    if (!mat) return;
+    try {
+      await this.textureService.applyPresetToMaterial(mat, preset);
+      if (this.renderer && this.scene && this.camera) {
+        this.renderer.render(this.scene, this.camera);
+      }
+    } catch {
+      // ignoruj błędy ładowania tekstury
     }
   }
 
@@ -210,12 +233,6 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.selectedPart = undefined;
     }
-  }
-
-  setColor(hex: string): void {
-    if (!this.selectedPart) return;
-    const mat = (this.selectedPart.mesh.material as THREE.MeshPhongMaterial);
-    mat.color.set(hex);
   }
 
   toggleDrawer(): void {
