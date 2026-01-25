@@ -16,7 +16,7 @@ interface CacheStore {
 @Injectable({providedIn: 'root'})
 export class TranslationService {
   private readonly translationUrl = 'http://localhost:8080/api/furniture/translation';
-  private readonly translationsUrl = 'http://localhost:8080/api/furniture/translations';
+  private readonly translationBatchUrl = 'http://localhost:8080/api/furniture/translation/batch';
   private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minut
 
   private readonly cache: CacheStore = {
@@ -59,7 +59,7 @@ export class TranslationService {
     .set('prefixes', prefixes.join(','));
 
     return this.http.get<TranslationCache>(
-      this.translationsUrl,
+      this.translationBatchUrl,
       {params}
     ).pipe(
       tap(translations => {
