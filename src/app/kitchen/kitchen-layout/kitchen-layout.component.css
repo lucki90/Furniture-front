@@ -1,0 +1,17 @@
+.wall {
+  position: relative;
+  height: 120px;
+  border: 2px solid #333;
+  margin-top: 20px;
+}
+
+.cabinet {
+  position: absolute;
+  top: 20px;
+  height: 80px;
+  background: #90caf9;
+  border: 1px solid #1565c0;
+  text-align: center;
+  line-height: 80px;
+  font-size: 12px;
+}

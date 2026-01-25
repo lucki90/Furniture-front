@@ -1,0 +1,12 @@
+<h3>Podsumowanie</h3>
+
+<p><b>Koszt całkowity:</b> {{ result.summaryCosts | number:'1.2-2' }} zł</p>
+<p><b>Płyty:</b> {{ result.boardTotalCost | number:'1.2-2' }} zł</p>
+<p><b>Komponenty:</b> {{ result.componentTotalCost | number:'1.2-2' }} zł</p>
+<p><b>Robocizna:</b> {{ result.jobTotalCost | number:'1.2-2' }} zł</p>
+
+<h4>Formatki</h4>
+<div *ngFor="let b of result.boards">
+  {{ b.quantity }}× {{ b.sideX }} x {{ b.sideY }} mm
+  ({{ b.boardName }})
+</div>

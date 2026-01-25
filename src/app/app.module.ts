@@ -7,6 +7,7 @@ import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {AloneCabinetComponent} from './alone-cabinet/alone-cabinet.component';
 import {SecretLockerComponent} from './secret-locker/secret-locker.component';
+import {CabinetFormComponent} from './kitchen/cabinet-form/cabinet-form.component';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatSidenavModule} from '@angular/material/sidenav';
 import {MatListModule} from '@angular/material/list';
@@ -18,6 +19,8 @@ import {RadioButtonComponent} from './utils/radio-button/radio-button.component'
 import {DropdownComponent} from './utils/dropdown/dropdown.component';
 import {NumericInputComponent} from './utils/numeric-input/numeric-input.component';
 import {MaxLengthForNumberDirective} from "./utils/directives/maxLengthForNumberDirective";
+import {CabinetResultComponent} from "./kitchen/cabinet-result/cabinet-result.component";
+import {KitchenPageComponent} from "./kitchen/kitchen-page.component";
 
 @NgModule({
   declarations: [
@@ -40,7 +43,10 @@ import {MaxLengthForNumberDirective} from "./utils/directives/maxLengthForNumber
     MatButtonModule,  // Dla przycisków, jeśli będą używane
     MatIconModule,     // Dla ikon, jeśli będą używane
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    CabinetFormComponent,
+    CabinetResultComponent,
+    KitchenPageComponent
 
   ],
   providers: [provideHttpClient(withInterceptorsFromDi())],

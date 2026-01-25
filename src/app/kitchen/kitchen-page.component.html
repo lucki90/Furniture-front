@@ -1,0 +1,22 @@
+<h2>Kalkulator kuchni</h2>
+
+<!-- 1️⃣ Formularz -->
+<app-cabinet-form
+  (calculated)="onCalculated($event)">
+</app-cabinet-form>
+
+<hr>
+
+<!-- 2️⃣ Wynik szafki -->
+<app-cabinet-result
+  *ngIf="result"
+  [result]="result">
+</app-cabinet-result>
+
+<hr>
+
+<!-- 3️⃣ Layout kuchni (na razie mock / test) -->
+<app-kitchen-layout></app-kitchen-layout>
+
+
+

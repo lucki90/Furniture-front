@@ -1,0 +1,32 @@
+<h2>Kuchnia – układ</h2>
+
+<button (click)="calculate()">Oblicz układ</button>
+
+
+<div *ngIf="result">
+  <p>
+    Ściana: {{ result.wallLength }} mm |
+    Zajęte: {{ result.usedWidth }} mm |
+    Pozostało: {{ result.remainingWidth }} mm
+  </p>
+
+  <p *ngIf="!result.fits" style="color:red">
+    ❌ Szafki nie mieszczą się na ścianie
+  </p>
+
+  <p *ngIf="result.fits" style="color:green">
+    ✔️ Szafki mieszczą się
+  </p>
+
+  <!-- 2D VIEW -->
+  <div class="wall">
+    <div
+      class="cabinet"
+      *ngFor="let c of result.cabinets"
+      [style.left.px]="c.x / 5"
+      [style.width.px]="c.width / 5"
+    >
+      {{ c.cabinetId }}
+    </div>
+  </div>
+</div>

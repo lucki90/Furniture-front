@@ -1,0 +1,34 @@
+<form [formGroup]="form">
+
+  <label>
+    Typ szafki
+    <select formControlName="kitchenCabinetType">
+      <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
+      <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
+    </select>
+  </label>
+
+  <label>
+    Szerokość (mm)
+    <input type="number" formControlName="width">
+  </label>
+
+  <label>
+    Wysokość (mm)
+    <input type="number" formControlName="height">
+  </label>
+
+  <label>
+    Głębokość (mm)
+    <input type="number" formControlName="depth">
+  </label>
+
+  <button type="button" (click)="calculate()" [disabled]="loading">
+    Oblicz
+  </button>
+
+</form>
+
+<div *ngIf="loading">
+  Liczenie...
+</div>
