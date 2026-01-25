@@ -16,7 +16,7 @@ export class BaseTwoDoorCabinetPreparer
     // kitchenCabinetType: [KitchenCabinetType.BASE_TWO_DOOR], -- ta wartosc ustawiana jest przy wyborze typu szafki
     form.patchValue({
       width: 600,
-      height: 888,
+      height: 825,
       depth: 500,
       drawerModel: [null],
       drawerQuantity: 0,

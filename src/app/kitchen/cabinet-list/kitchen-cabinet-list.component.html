@@ -1,0 +1,50 @@
+<div class="cabinet-list">
+  <h3>Lista szafek</h3>
+
+  <div *ngIf="cabinets.length === 0" class="empty-state">
+    Brak dodanych szafek. Uzyj formularza powyzej, aby dodac szafke.
+  </div>
+
+  <table *ngIf="cabinets.length > 0">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Typ</th>
+        <th>Szerokosc</th>
+        <th>Wysokosc</th>
+        <th>Glebokosc</th>
+        <th>Polki</th>
+        <th>Koszt</th>
+        <th>Akcje</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let cabinet of cabinets; let i = index"
+          [class.editing]="isEditing(cabinet.id)">
+        <td>{{ i + 1 }}</td>
+        <td>{{ getCabinetTypeName(cabinet.type) }}</td>
+        <td>{{ cabinet.width }} mm</td>
+        <td>{{ cabinet.height }} mm</td>
+        <td>{{ cabinet.depth }} mm</td>
+        <td>{{ cabinet.shelfQuantity }}</td>
+        <td>{{ cabinet.calculatedResult?.totalCost?.toFixed(2) ?? '-' }} zl</td>
+        <td class="actions">
+          <button
+            class="btn-edit"
+            (click)="onEdit(cabinet.id)"
+            [disabled]="editingCabinetId !== null"
+            title="Edytuj szafke">
+            Edytuj
+          </button>
+          <button
+            class="btn-remove"
+            (click)="onRemove(cabinet.id)"
+            [disabled]="editingCabinetId !== null"
+            title="Usun szafke">
+            X
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

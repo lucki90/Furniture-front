@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { KitchenService } from '../service/kitchen.service';
 import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
-import {CommonModule} from "@angular/common";
+import { CommonModule } from "@angular/common";
+import { CabinetCalculatedEvent, KitchenCabinet } from '../model/kitchen-state.model';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -13,14 +14,24 @@ import {CommonModule} from "@angular/common";
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule]
 })
-export class CabinetFormComponent {
+export class CabinetFormComponent implements OnChanges {
+
+  @Input()
+  editingCabinet: KitchenCabinet | null = null;
 
   @Output()
-  calculated = new EventEmitter<any>();
+  calculated = new EventEmitter<CabinetCalculatedEvent>();
+
+  @Output()
+  cancelEdit = new EventEmitter<void>();
 
   form: FormGroup;
   visibility: any = {};
   loading = false;
+
+  get isEditMode(): boolean {
+    return this.editingCabinet !== null;
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -31,14 +42,42 @@ export class CabinetFormComponent {
     this.onTypeChange(this.form.value.kitchenCabinetType);
 
     this.form.get('kitchenCabinetType')!
-    .valueChanges
-    .subscribe(type => this.onTypeChange(type as KitchenCabinetType));
+      .valueChanges
+      .subscribe(type => this.onTypeChange(type as KitchenCabinetType));
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['editingCabinet'] && this.editingCabinet) {
+      this.fillFormWithCabinet(this.editingCabinet);
+    }
+  }
+
+  private fillFormWithCabinet(cabinet: KitchenCabinet): void {
+    this.form.patchValue({
+      kitchenCabinetType: cabinet.type,
+      width: cabinet.width,
+      height: cabinet.height,
+      depth: cabinet.depth,
+      shelfQuantity: cabinet.shelfQuantity
+    });
+
+    this.onTypeChange(cabinet.type);
   }
 
   private onTypeChange(type: KitchenCabinetType): void {
     const config = KitchenCabinetTypeConfig[type];
     config.preparer.prepare(this.form, this.visibility);
     config.validator.validate(this.form);
+
+    // Jeśli edytujemy, przywróć wartości po przygotowaniu
+    if (this.editingCabinet && this.editingCabinet.type === type) {
+      this.form.patchValue({
+        width: this.editingCabinet.width,
+        height: this.editingCabinet.height,
+        depth: this.editingCabinet.depth,
+        shelfQuantity: this.editingCabinet.shelfQuantity
+      });
+    }
   }
 
   calculate(): void {
@@ -46,11 +85,16 @@ export class CabinetFormComponent {
 
     const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;
     const mapper = KitchenCabinetTypeConfig[type].requestMapper;
-    const request = mapper.map(this.form.getRawValue());
+    const formData = this.form.getRawValue();
+    const request = mapper.map(formData);
 
     this.kitchenService.calculateCabinet(request).subscribe({
       next: res => {
-        this.calculated.emit(res); // ⬅️ kluczowa zmiana
+        this.calculated.emit({
+          formData: formData,
+          result: res,
+          editingCabinetId: this.editingCabinet?.id
+        });
         this.loading = false;
       },
       error: err => {
@@ -58,5 +102,9 @@ export class CabinetFormComponent {
         this.loading = false;
       }
     });
+  }
+
+  onCancel(): void {
+    this.cancelEdit.emit();
   }
 }

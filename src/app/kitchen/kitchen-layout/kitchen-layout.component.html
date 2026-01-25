@@ -1,32 +1,52 @@
-<h2>Kuchnia – układ</h2>
+<h3>Wizualizacja kuchni</h3>
 
-<button (click)="calculate()">Oblicz układ</button>
+<div *ngIf="cabinetPositions().length === 0" class="empty-state">
+  Dodaj szafki, aby zobaczyc wizualizacje
+</div>
 
-
-<div *ngIf="result">
+<div *ngIf="cabinetPositions().length > 0">
   <p>
-    Ściana: {{ result.wallLength }} mm |
-    Zajęte: {{ result.usedWidth }} mm |
-    Pozostało: {{ result.remainingWidth }} mm
+    Sciana: {{ wall().length }} mm |
+    Zajete: {{ totalWidth() }} mm |
+    Pozostalo: {{ remainingWidth() }} mm
   </p>
 
-  <p *ngIf="!result.fits" style="color:red">
-    ❌ Szafki nie mieszczą się na ścianie
+  <p *ngIf="!fitsOnWall()" class="warning">
+    Szafki nie mieszcza sie na scianie!
   </p>
 
-  <p *ngIf="result.fits" style="color:green">
-    ✔️ Szafki mieszczą się
+  <p *ngIf="fitsOnWall()" class="success">
+    Szafki mieszcza sie
   </p>
 
   <!-- 2D VIEW -->
-  <div class="wall">
+  <div class="wall" [style.width.px]="wallDisplayWidth()" [class.overflow]="!fitsOnWall()">
     <div
       class="cabinet"
-      *ngFor="let c of result.cabinets"
-      [style.left.px]="c.x / 5"
-      [style.width.px]="c.width / 5"
+      *ngFor="let c of cabinetPositions(); let i = index"
+      [style.left.px]="getScaledX(c.x)"
+      [style.width.px]="getScaledWidth(c.width)"
+      [class.overflow]="getScaledX(c.x) + getScaledWidth(c.width) > wallDisplayWidth()"
     >
-      {{ c.cabinetId }}
+      {{ i + 1 }}
     </div>
+
+    <!-- Remaining space indicator -->
+    <div
+      *ngIf="remainingWidth() > 0"
+      class="remaining-space"
+      [style.left.px]="getRemainingSpaceX()"
+      [style.width.px]="getRemainingSpaceWidth()"
+    >
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item">
+      <span class="legend-box cabinet-legend"></span> Szafka
+    </span>
+    <span class="legend-item">
+      <span class="legend-box remaining-legend"></span> Wolne miejsce
+    </span>
   </div>
 </div>

@@ -1,7 +1,6 @@
-import { Component } from '@angular/core';
-import {KitchenCabinetRequest, KitchenLayoutResponse, KitchenWall} from "./kitchen-layout.model";
-import {KitchenService} from "../service/kitchen.service";
-import {CommonModule} from "@angular/common";
+import { Component, inject, computed } from '@angular/core';
+import { CommonModule } from "@angular/common";
+import { KitchenStateService } from '../service/kitchen-state.service';
 
 @Component({
   selector: 'app-kitchen-layout',
@@ -12,38 +11,40 @@ import {CommonModule} from "@angular/common";
 })
 export class KitchenLayoutComponent {
 
-  wall: KitchenWall = {
-    length: 3600,
-    height: 2600
-  };
+  private stateService = inject(KitchenStateService);
 
-  cabinets: KitchenCabinetRequest[] = [
-    { cabinetId: 'c1', width: 600, height: 825 },
-    { cabinetId: 'c2', width: 800, height: 825 },
-    { cabinetId: 'c3', width: 600, height: 825 }
-  ];
+  readonly wall = this.stateService.wall;
+  readonly cabinetPositions = this.stateService.cabinetPositions;
+  readonly fitsOnWall = this.stateService.fitsOnWall;
+  readonly totalWidth = this.stateService.totalWidth;
+  readonly remainingWidth = this.stateService.remainingWidth;
 
-  result?: KitchenLayoutResponse;
-  loading = false;
+  private readonly BASE_WALL_DISPLAY_WIDTH = 720;
 
-  constructor(private layoutService: KitchenService) {}
+  readonly scaleFactor = computed(() => {
+    const wallLength = this.wall().length;
+    if (wallLength <= 0) return 1;
+    return this.BASE_WALL_DISPLAY_WIDTH / wallLength;
+  });
 
-  calculate(): void {
-    this.loading = true;
+  readonly wallDisplayWidth = computed(() => {
+    return this.wall().length * this.scaleFactor();
+  });
 
-    this.layoutService.postKitchenLayout({
-      wall: this.wall,
-      cabinets: this.cabinets
-    }).subscribe({
-      next: res => {
-        this.result = res;
-        this.loading = false;
-      },
-      error: err => {
-        console.error(err);
-        this.loading = false;
-      }
-    });
+  getScaledWidth(width: number): number {
+    return width * this.scaleFactor();
+  }
+
+  getScaledX(x: number): number {
+    return x * this.scaleFactor();
+  }
+
+  getRemainingSpaceWidth(): number {
+    if (this.remainingWidth() <= 0) return 0;
+    return this.remainingWidth() * this.scaleFactor();
+  }
+
+  getRemainingSpaceX(): number {
+    return this.totalWidth() * this.scaleFactor();
   }
 }
-

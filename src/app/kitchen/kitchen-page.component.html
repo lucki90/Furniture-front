@@ -1,13 +1,35 @@
 <h2>Kalkulator kuchni</h2>
 
-<!-- 1️⃣ Formularz -->
-<app-cabinet-form
-  (calculated)="onCalculated($event)">
-</app-cabinet-form>
+<!-- 1. Wymiary sciany -->
+<section class="wall-config">
+  <h3>Wymiary sciany</h3>
+  <div class="wall-inputs">
+    <label>
+      Dlugosc (mm)
+      <input type="number" [(ngModel)]="wallLength" (change)="onWallChange()">
+    </label>
+    <label>
+      Wysokosc (mm)
+      <input type="number" [(ngModel)]="wallHeight" (change)="onWallChange()">
+    </label>
+  </div>
+</section>
 
 <hr>
 
-<!-- 2️⃣ Wynik szafki -->
+<!-- 2. Formularz szafki -->
+<section class="cabinet-form-section">
+  <h3>{{ formTitle }}</h3>
+  <app-cabinet-form
+    [editingCabinet]="editingCabinet"
+    (calculated)="onCabinetCalculated($event)"
+    (cancelEdit)="onCancelEdit()">
+  </app-cabinet-form>
+</section>
+
+<hr>
+
+<!-- 3. Wynik ostatniej kalkulacji -->
 <app-cabinet-result
   *ngIf="result"
   [result]="result">
@@ -15,8 +37,43 @@
 
 <hr>
 
-<!-- 3️⃣ Layout kuchni (na razie mock / test) -->
+<!-- 4. Lista szafek -->
+<app-kitchen-cabinet-list
+  [cabinets]="cabinets()"
+  [editingCabinetId]="editingCabinetId"
+  (edit)="onEditCabinet($event)"
+  (remove)="onRemoveCabinet($event)">
+</app-kitchen-cabinet-list>
+
+<hr>
+
+<!-- 5. Podsumowanie -->
+<section class="summary" *ngIf="cabinets().length > 0">
+  <h3>Podsumowanie</h3>
+  <div class="summary-grid">
+    <div class="summary-item">
+      <span class="label">Calkowity koszt:</span>
+      <span class="value">{{ totalCost().toFixed(2) }} zl</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Zajeta szerokosc:</span>
+      <span class="value">{{ totalWidth() }} mm / {{ wall().length }} mm</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Pozostalo:</span>
+      <span class="value">{{ remainingWidth() }} mm</span>
+    </div>
+    <div class="summary-item status">
+      <span *ngIf="fitsOnWall()" class="fits">Szafki mieszcza sie na scianie</span>
+      <span *ngIf="!fitsOnWall()" class="overflow">Szafki NIE mieszcza sie na scianie!</span>
+    </div>
+  </div>
+  <button class="btn-clear" (click)="clearAll()" [disabled]="editingCabinetId !== null">
+    Wyczysc wszystkie
+  </button>
+</section>
+
+<hr>
+
+<!-- 6. Wizualizacja layoutu -->
 <app-kitchen-layout></app-kitchen-layout>
-
-
-

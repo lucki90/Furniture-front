@@ -1,0 +1,84 @@
+.wall-config {
+  margin: 20px 0;
+}
+
+.wall-inputs {
+  display: flex;
+  gap: 20px;
+}
+
+.wall-inputs label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.wall-inputs input {
+  padding: 8px;
+  width: 150px;
+}
+
+.cabinet-form-section {
+  margin: 20px 0;
+}
+
+.summary {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.summary h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.summary-item {
+  display: flex;
+  gap: 10px;
+}
+
+.summary-item .label {
+  font-weight: 600;
+}
+
+.summary-item.status {
+  grid-column: 1 / -1;
+}
+
+.fits {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.overflow {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+.btn-clear {
+  background: #757575;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-clear:hover {
+  background: #616161;
+}
+
+hr {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid #ddd;
+}
