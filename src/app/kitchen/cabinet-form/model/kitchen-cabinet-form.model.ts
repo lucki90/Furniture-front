@@ -57,7 +57,7 @@ export interface Board {
   boardThickness: number;
   color: string;
   veneerColor?: string;
-  scrapedElement: ScrapedElement;
+  priceEntry: PriceEntry;
   totalPrice: number;
   remarks: string;
 }
@@ -67,7 +67,7 @@ export interface Component {
   model: string;
   quantity: number;
   additionalInfo: string[] | null;
-  scrapedElement: ScrapedElement;
+  priceEntry: PriceEntry;
   totalPrice: number;
 }
 
@@ -76,11 +76,11 @@ export interface Job {
   type: string;
   quantity: number;
   additionalInfo: string[] | undefined;
-  scrapedElement: ScrapedElement;
+  priceEntry: PriceEntry;
   totalPrice: number;
 }
 
-export interface ScrapedElement {
+export interface PriceEntry {
   price: number;
   unit: string;
 }

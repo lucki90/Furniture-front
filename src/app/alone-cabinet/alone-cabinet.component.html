@@ -343,7 +343,7 @@
         <td>{{ board.sideY }}</td>
         <td>{{ board.veneerY ?? '0' }}</td>
         <td>{{ board.boardThickness }}</td>
-        <td>{{ board.scrapedElement.price }} PLN</td>
+        <td>{{ board.priceEntry.price }} PLN</td>
         <td>{{ board.totalPrice }} PLN</td>
       </tr>
       <!-- Wiersz z kosztami -->
@@ -383,12 +383,12 @@
           }}
         </td>
         <td>{{ component.quantity }} {{
-            translations[component.scrapedElement.unit] !== null &&
-            translations[component.scrapedElement.unit] !== undefined ? translations[component.scrapedElement.unit] :
-              component.scrapedElement.unit
+            translations[component.priceEntry.unit] !== null &&
+            translations[component.priceEntry.unit] !== undefined ? translations[component.priceEntry.unit] :
+              component.priceEntry.unit
           }}
         </td>
-        <td>{{ component.scrapedElement.price }} PLN</td>
+        <td>{{ component.priceEntry.price }} PLN</td>
         <td>{{ component.totalPrice }} PLN</td>
       </tr>
       <!-- Wiersz z kosztami -->
@@ -423,12 +423,12 @@
         <td>{{ getJobTypeTranslation(job) }}</td>
         <td>{{ job.quantity }}</td>
         <td>{{
-            translations[job.scrapedElement.unit] !== null &&
-            translations[job.scrapedElement.unit] !== undefined ? translations[job.scrapedElement.unit] :
-              job.scrapedElement.unit
+            translations[job.priceEntry.unit] !== null &&
+            translations[job.priceEntry.unit] !== undefined ? translations[job.priceEntry.unit] :
+              job.priceEntry.unit
           }}
         </td>
-        <td>{{ job.scrapedElement.price }}</td>
+        <td>{{ job.priceEntry.price }}</td>
         <td>{{ job.totalPrice }}</td>
       </tr>
       <!-- Wiersz z kosztami -->
