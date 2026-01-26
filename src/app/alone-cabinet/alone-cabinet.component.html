@@ -1,5 +1,5 @@
 <div>
-  <label for="language">{{ translations['select_language'] || 'Select Language' }}</label>
+  <label for="language">{{ translations['UI.selectLanguage'] || 'Select Language' }}</label>
   <select id="language" (change)="onLanguageChangeEvent($event)">
     <option value="pl" [selected]="selectedLanguage === 'pl'">Polski</option>
     <option value="en" [selected]="selectedLanguage === 'en'">English</option>
@@ -15,7 +15,7 @@
     {{ errorMessage }}
   </div>
   <div>
-    <h3>{{ translations['alone-cabin.responseContainerTitle'] }} </h3>
+    <h3>{{ translations['UI.responseContainerTitle'] }} </h3>
     <app-cabinet-visualization
       [width]="form.get('width')?.value"
       [height]="form.get('height')?.value"
@@ -24,14 +24,14 @@
       [drawerQuantity]="form.get('drawerQuantity')?.value">
     </app-cabinet-visualization>
   </div>
-  <h2>{{ translations['alone-cabin.calculateTheCabinetParameters'] }}</h2>
+  <h2>{{ translations['UI.calculateTheCabinetParameters'] }}</h2>
   <form [formGroup]="form" (ngSubmit)="calculate(false)">
     <div class="form-row">
       <div class="dimensions-and-switches">
         <!-- Typ szafki -->
         <app-dropdown
           id="cabinet-type"
-          [label]="translations['GENERAL.cabinetType']"
+          [label]="translations['UI.cabinetType']"
           formControlName="cabinetType"
           [options]="cabinetTypes"
           [translations]="translations"
@@ -40,7 +40,7 @@
         <!-- typ uchwytu -->
         <app-dropdown
           id="opening-type"
-          [label]="translations['GENERAL.openingType']"
+          [label]="translations['UI.openingType']"
           formControlName="openingType"
           [options]="openingTypes"
           [translations]="translations"
@@ -53,45 +53,45 @@
         <!--        Wysokosc, szerokosc, glebokosc-->
         <app-numeric-input
           id="height"
-          [label]="translations['alone-cabin.height']"
+          [label]="translations['UI.height']"
           formControlName="height"
           [min]="50"
           [max]="2600"
           [step]="1"
-          [errorMessage]="translations['ERROR.invalid.height']">
+          [errorMessage]="translations['ERROR.INVALID_HEIGHT']">
         </app-numeric-input>
         <app-numeric-input
           id="width"
-          [label]="translations['alone-cabin.width']"
+          [label]="translations['UI.width']"
           formControlName="width"
           [min]="50"
           [max]="1000"
           [step]="1"
-          [errorMessage]="translations['ERROR.invalid.width']">
+          [errorMessage]="translations['ERROR.INVALID_WIDTH']">
         </app-numeric-input>
         <app-numeric-input
           id="depth"
-          [label]="translations['alone-cabin.depth']"
+          [label]="translations['UI.depth']"
           formControlName="depth"
           [min]="50"
           [max]="1000"
           [step]="1"
-          [errorMessage]="translations['ERROR.invalid.depth']">
+          [errorMessage]="translations['ERROR.INVALID_DEPTH']">
         </app-numeric-input>
         <!--        ilosc polek-->
         <app-numeric-input
           id="shelfQuantity"
-          [label]="translations['alone-cabin.shelfQuantity']"
+          [label]="translations['UI.shelfQuantity']"
           formControlName="shelfQuantity"
           [min]="0"
           [max]="20"
           [step]="1"
-          [errorMessage]="translations['ERROR.invalid.shelfQuantity']">
+          [errorMessage]="translations['ERROR.INVALID_SHELF_QUANTITY']">
         </app-numeric-input>
         <!-- ilosc frontow -->
         <app-dropdown
           id="front-type"
-          [label]="translations['GENERAL.frontType']"
+          [label]="translations['UI.frontType']"
           formControlName="frontType"
           [options]="frontTypes"
           [translations]="translations"
@@ -100,31 +100,31 @@
         <!--        ilosc szuflad-->
         <app-numeric-input
           id="drawer-quantity"
-          [label]="translations['alone-cabin.drawerQuantity']"
+          [label]="translations['UI.drawerQuantity']"
           formControlName="drawerQuantity"
           [min]="0"
           [max]="10"
           [step]="1"
-          [errorMessage]="translations['ERROR.invalid.drawerQuantity']">
+          [errorMessage]="translations['ERROR.INVALID_DRAWER_QUANTITY']">
         </app-numeric-input>
 
         <app-dropdown
           id="drawer-model"
-          [label]="translations['GENERAL.drawerModel']"
+          [label]="translations['UI.drawerModel']"
           formControlName="drawerModel"
           [options]="drawerModels"
           [translations]="translations"
           [visible]="true">
         </app-dropdown>
-<!--TODO dodac tlumaczenia do nowych pol -->
+
         <!-- Przełącznik plecki hdf -->
         <app-radio-button
           [id]="'drawer-base-hdf'"
           formControlName="drawerBaseHdf"
-          [title]="translations['alone-cabin.drawerBaseHdf']"
+          [title]="translations['UI.drawerBaseHdf']"
           [options]="[
-                      { value: true, label: translations['alone-cabin.drawerBaseHdf'], tooltip: translations['alone-cabin.shouldAddDrawerBaseHdf'] },
-                      { value: false, label: translations['alone-cabin.noDrawerBaseHdf'], tooltip: translations['alone-cabin.shouldAddDrawerBaseHdf'] }
+                      { value: true, label: translations['UI.drawerBaseHdf'], tooltip: translations['UI.shouldAddDrawerBaseHdf'] },
+                      { value: false, label: translations['UI.noDrawerBaseHdf'], tooltip: translations['UI.shouldAddDrawerBaseHdf'] }
                     ]">
         </app-radio-button>
 
@@ -132,10 +132,10 @@
         <app-radio-button
           [id]="'hdf-backs'"
           formControlName="needBacks"
-          [title]="translations['alone-cabin.shouldAddBack']"
+          [title]="translations['UI.shouldAddBack']"
           [options]="[
-                      { value: true, label: translations['alone-cabin.hdfBacks'], tooltip: translations['alone-cabin.shouldAddBack'] },
-                      { value: false, label: translations['alone-cabin.noBacks'], tooltip: translations['alone-cabin.shouldAddBack'] }
+                      { value: true, label: translations['UI.hdfBacks'], tooltip: translations['UI.shouldAddBack'] },
+                      { value: false, label: translations['UI.noBacks'], tooltip: translations['UI.shouldAddBack'] }
                     ]">
         </app-radio-button>
         <!-- Przełącznik czy HDF we wpuscie - wlaczane jesli HDF=true -->
@@ -143,8 +143,8 @@
           [id]="'backs-in-groove'"
           formControlName="isBackInGroove"
           [options]="[
-                      { value: true, label: translations['alone-cabin.backInGroove'] },
-                      { value: false, label: translations['alone-cabin.backNotInGroove'] }
+                      { value: true, label: translations['UI.backInGroove'] },
+                      { value: false, label: translations['UI.backNotInGroove'] }
                     ]"
         >
         </app-radio-button>
@@ -155,8 +155,8 @@
           formControlName="isHanging"
           [title]="''"
           [options]="[
-                      { value: true, label: translations['alone-cabin.isHanging'] },
-                      { value: false, label: translations['alone-cabin.isNotHanging'] }
+                      { value: true, label: translations['UI.isHanging'] },
+                      { value: false, label: translations['UI.isNotHanging'] }
                     ]">
         </app-radio-button>
 
@@ -166,8 +166,8 @@
           formControlName="isHangingOnRail"
           [title]="''"
           [options]="[
-                      { value: true, label: translations['alone-cabin.isHangingOnRail'] },
-                      { value: false, label: translations['alone-cabin.isHangingNotRail'] }
+                      { value: true, label: translations['UI.isHangingOnRail'] },
+                      { value: false, label: translations['UI.isHangingNotRail'] }
                     ]">
         </app-radio-button>
 
@@ -177,8 +177,8 @@
           formControlName="isStandingOnFeet"
           [title]="''"
           [options]="[
-                      { value: true, label: translations['alone-cabin.isOnFeet'] },
-                      { value: false, label: translations['alone-cabin.isNotOnFeet'] }
+                      { value: true, label: translations['UI.isOnFeet'] },
+                      { value: false, label: translations['UI.isNotOnFeet'] }
                     ]">
         </app-radio-button>
       </div>
@@ -188,7 +188,7 @@
         <!-- material korpusu -->
         <app-dropdown
           id="box-material"
-          [label]="translations['alone-cabin.materialBox']"
+          [label]="translations['UI.materialBox']"
           formControlName="boxMaterial"
           [options]="materials"
           [translations]="translations"
@@ -197,7 +197,7 @@
         <!-- grubosc plyty korpusu -->
         <app-dropdown
           id="box-board-thickness"
-          [label]="translations['alone-cabin.boxBoardThickness']"
+          [label]="translations['UI.boxBoardThickness']"
           formControlName="boxBoardThickness"
           [options]="thicknesses"
           [translations]="translations"
@@ -206,7 +206,7 @@
         <!-- kolor korpusu -->
         <app-dropdown
           id="box-color"
-          [label]="translations['alone-cabin.colorBox']"
+          [label]="translations['UI.colorBox']"
           formControlName="boxColor"
           [options]="colors"
           [translations]="translations"
@@ -215,7 +215,7 @@
         <!-- kolor korpusu -->
         <app-dropdown
           id="box-veneer-color"
-          [label]="translations['alone-cabin.boxVeneerColor']"
+          [label]="translations['UI.boxVeneerColor']"
           formControlName="boxVeneerColor"
           [options]="colors"
           [translations]="translations"
@@ -224,7 +224,7 @@
         <!-- material frontu -->
         <app-dropdown
           id="front-material"
-          [label]="translations['alone-cabin.materialFront']"
+          [label]="translations['UI.materialFront']"
           formControlName="frontMaterial"
           [options]="materials"
           [translations]="translations"
@@ -235,8 +235,8 @@
           [id]="'is-front-extended'"
           formControlName="isFrontExtended"
           [options]="[
-                          { value: true, label: translations['alone-cabin.isFrontExtended'] },
-                          { value: false, label: translations['alone-cabin.isFrontNotExtended'] }
+                          { value: true, label: translations['UI.isFrontExtended'] },
+                          { value: false, label: translations['UI.isFrontNotExtended'] }
                         ]">
         </app-radio-button>
         <!-- Przełącznik czy na szafce bedzie blat/plyta (np kuchenne) - tylko jesli nie wisza -->
@@ -245,24 +245,24 @@
           formControlName="isCoveredWithCounterTop"
           [title]="''"
           [options]="[
-                          { value: false, label: translations['alone-cabin.isNotCoveredWithCounterTop'] },
-                          { value: true, label: translations['alone-cabin.isCoveredWithCounterTop'] }
+                          { value: false, label: translations['UI.isNotCoveredWithCounterTop'] },
+                          { value: true, label: translations['UI.isCoveredWithCounterTop'] }
                         ]">
         </app-radio-button>
         <!-- Przełącznik czy lakierowany front -->
         <app-radio-button
           [id]="'front-with-veneer-or-varnished'"
-          [title]="translations['alone-cabin.frontWithVeneerOrVarnished']"
+          [title]="translations['UI.frontWithVeneerOrVarnished']"
           [disabled]="this.form.get('frontMaterial')?.value !== 'MDF'"
           [options]="[
-                          { value: false, label: translations['alone-cabin.frontWithVeneer'] },
-                          { value: true, label: translations['alone-cabin.varnishedFront'] }
+                          { value: false, label: translations['UI.frontWithVeneer'] },
+                          { value: true, label: translations['UI.varnishedFront'] }
                         ]">
         </app-radio-button>
         <!-- grubosc frontu -->
         <app-dropdown
           id="front-board-thickness"
-          [label]="translations['alone-cabin.frontBoardThickness']"
+          [label]="translations['UI.frontBoardThickness']"
           formControlName="frontBoardThickness"
           [options]="thicknesses"
           [translations]="translations"
@@ -271,7 +271,7 @@
         <!-- kolor frontu -->
         <app-dropdown
           id="front-color"
-          [label]="translations['alone-cabin.colorFront']"
+          [label]="translations['UI.colorFront']"
           formControlName="frontColor"
           [options]="colors"
           [translations]="translations"
@@ -280,7 +280,7 @@
         <!-- kolor okleiny frontu -->
         <app-dropdown
           id="front-veneer-color"
-          [label]="translations['alone-cabin.frontVeneerColor']"
+          [label]="translations['UI.frontVeneerColor']"
           formControlName="frontVeneerColor"
           [options]="colors"
           [translations]="translations"
@@ -295,11 +295,11 @@
     </div>
     <!-- Nowy przycisk do dodania requestu do listy -->
     <button type="button" (click)="addRequest()">
-      {{ translations['alone-cabin.addBoard'] || 'Dodaj szafkę' }}
+      {{ translations['UI.addBoard'] || 'Dodaj szafkę' }}
     </button>
     <!-- Wyświetlenie listy przygotowanych requestów (opcjonalnie) -->
     <div *ngIf="multiRequests && multiRequests.length > 0">
-      <h3>{{ translations['alone-cabin.preparedRequests'] || 'Przygotowane requesty:' }}</h3>
+      <h3>{{ translations['UI.preparedRequests'] || 'Przygotowane requesty:' }}</h3>
       <ul>
         <li *ngFor="let req of multiRequests; index as i">
           Request {{ i + 1 }}
@@ -307,7 +307,7 @@
       </ul>
       <!-- Przycisk wysyłający wszystkie requesty -->
       <button type="button" (click)="calculate(true)">
-        {{ translations['alone-cabin.calculateMany'] || 'Wyślij wiele' }}
+        {{ translations['UI.calculateMany'] || 'Wyślij wiele' }}
       </button>
     </div>
 
@@ -316,27 +316,27 @@
 
 
   <div *ngIf="response" class="response-container">
-    <h3>{{ translations['alone-cabin.boardList'] }}</h3>
+    <h3>{{ translations['UI.boardList'] }}</h3>
 
     <table>
       <thead>
       <tr>
-        <th>{{ translations['alone-cabin.id'] }}</th>
-        <th>{{ translations['alone-cabin.boardName'] }}</th>
-        <th>{{ translations['alone-cabin.quantity'] }}</th>
-        <th>{{ translations['alone-cabin.length'] }}</th>
-        <th>{{ translations['alone-cabin.veneer'] }}</th>
-        <th>{{ translations['alone-cabin.width'] }}</th>
-        <th>{{ translations['alone-cabin.veneer'] }}</th>
-        <th>{{ translations['alone-cabin.thickness'] }}</th>
-        <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
-        <th>{{ translations['alone-cabin.totalPrice'] }}</th>
+        <th>{{ translations['UI.id'] }}</th>
+        <th>{{ translations['UI.boardName'] }}</th>
+        <th>{{ translations['UI.quantity'] }}</th>
+        <th>{{ translations['UI.length'] }}</th>
+        <th>{{ translations['UI.veneer'] }}</th>
+        <th>{{ translations['UI.width'] }}</th>
+        <th>{{ translations['UI.veneer'] }}</th>
+        <th>{{ translations['UI.thickness'] }}</th>
+        <th>{{ translations['UI.pricePerUnit'] }}</th>
+        <th>{{ translations['UI.totalPrice'] }}</th>
       </tr>
       </thead>
       <tbody>
       <tr *ngFor="let board of response.boards; index as i">
         <td>{{ i + 1 }}</td>
-        <td>{{ translations[board.boardName] }}</td>
+        <td>{{ translations['BOARD_NAME.' + board.boardName] }}</td>
         <td>{{ board.quantity }}</td>
         <td>{{ board.sideX }}</td>
         <td>{{ board.veneerX ?? '0' }}</td>
@@ -355,34 +355,31 @@
       </tr>
       </tbody>
     </table>
-    <h3>{{ translations['alone-cabin.requiredComponents'] }}</h3>
+    <h3>{{ translations['UI.requiredComponents'] }}</h3>
     <table>
       <thead>
       <tr>
-        <th>{{ translations['alone-cabin.id'] }}</th>
-        <th>{{ translations['alone-cabin.elementType'] }}</th>
-        <th>{{ translations['alone-cabin.elementModel'] }}</th>
-        <th>{{ translations['alone-cabin.quantity'] }}</th>
-        <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
-        <th>{{ translations['alone-cabin.totalPrice'] }}</th>
+        <th>{{ translations['UI.id'] }}</th>
+        <th>{{ translations['UI.elementType'] }}</th>
+        <th>{{ translations['UI.elementModel'] }}</th>
+        <th>{{ translations['UI.quantity'] }}</th>
+        <th>{{ translations['UI.pricePerUnit'] }}</th>
+        <th>{{ translations['UI.totalPrice'] }}</th>
       </tr>
       </thead>
 
       <tbody>
       <tr *ngFor="let component of response.components; index as i">
         <td>{{ i + 1 }}</td>
-        <td>{{ translations[component.category] }} {{
+        <td>{{ translations['COMPONENT_CATEGORY.' + component.category] }} {{
             (component.additionalInfo !== null &&
             component.additionalInfo.length > 0 ? ' ' + component.additionalInfo[0] : '')
           }}
         </td>
-        <td>{{
-            translations[component.model] !== null && translations[component.model] !== undefined ?
-              translations[component.model] : component.model
-          }} {{
+        <td>{{ getComponentModelTranslation(component) }} {{
             (component.additionalInfo !== null &&
-            component.additionalInfo.length > 0 ? ' ' + translations['GENERAL.color'] + ' ' +
-              translations[component.additionalInfo[1]] : '')
+            component.additionalInfo.length > 0 ? ' ' + translations['GENERAL.COLOR'] + ' ' +
+              translations['COLOR.' + component.additionalInfo[1]] : '')
           }}
         </td>
         <td>{{ component.quantity }} {{
@@ -404,26 +401,26 @@
 
       </tbody>
     </table>
-    <h3>{{ translations['alone-cabin.jobList'] }}</h3>
+    <h3>{{ translations['UI.jobList'] }}</h3>
     <table>
       <thead>
       <tr>
-        <th>{{ translations['alone-cabin.id'] }}</th>
-        <th>{{ translations['alone-cabin.name'] }}</th>
-        <th>{{ translations['alone-cabin.type'] }}</th>
-        <th>{{ translations['alone-cabin.quantity'] }}</th>
-        <th>{{ translations['alone-cabin.unit'] }}</th>
-        <th>{{ translations['alone-cabin.pricePerUnit'] }}</th>
-        <th>{{ translations['alone-cabin.totalPrice'] }}</th>
+        <th>{{ translations['UI.id'] }}</th>
+        <th>{{ translations['UI.name'] }}</th>
+        <th>{{ translations['UI.type'] }}</th>
+        <th>{{ translations['UI.quantity'] }}</th>
+        <th>{{ translations['UI.unit'] }}</th>
+        <th>{{ translations['UI.pricePerUnit'] }}</th>
+        <th>{{ translations['UI.totalPrice'] }}</th>
       </tr>
       </thead>
       <tbody>
       <tr *ngFor="let job of response.jobs; index as i">
         <td>{{ i + 1 }}</td>
         <td class="tooltip-cell" [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)">
-          {{ translations[job.category] }}
+          {{ translations['JOB_CATEGORY.' + job.category] }}
         </td>
-        <td>{{ translations[job.type] }}</td>
+        <td>{{ getJobTypeTranslation(job) }}</td>
         <td>{{ job.quantity }}</td>
         <td>{{
             translations[job.scrapedElement.unit] !== null &&

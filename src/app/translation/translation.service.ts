@@ -17,6 +17,7 @@ interface CacheStore {
 export class TranslationService {
   private readonly translationUrl = 'http://localhost:8080/api/furniture/translation';
   private readonly translationBatchUrl = 'http://localhost:8080/api/furniture/translation/batch';
+  private readonly translationAllUrl = 'http://localhost:8080/api/furniture/translation/all';
   private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minut
 
   private readonly cache: CacheStore = {
@@ -29,15 +30,15 @@ export class TranslationService {
   constructor(private readonly http: HttpClient) {
   }
 
-  getTranslations(language: string, prefix: string): Observable<TranslationCache> {
-    const cacheKey = this.getCacheKey(language, [prefix]);
+  getByCategory(category: string): Observable<TranslationCache> {
+    const cacheKey = this.getCacheKey([category]);
 
     if (this.cache.single.has(cacheKey)) {
       return of(this.cache.single.get(cacheKey)!);
     }
 
     return this.http.get<TranslationCache>(
-      `${this.translationUrl}?lang=${language}&prefix=${prefix}`
+      `${this.translationUrl}?category=${category}`
     ).pipe(
       tap(translations => {
         this.cache.single.set(cacheKey, translations);
@@ -47,21 +48,36 @@ export class TranslationService {
     );
   }
 
-  getTranslationsByPrefixes(lang: string, prefixes: string[]): Observable<TranslationCache> {
-    const cacheKey = this.getCacheKey(lang, prefixes);
+  getByCategories(categories: string[]): Observable<TranslationCache> {
+    const cacheKey = this.getCacheKey(categories);
 
     if (this.cache.multi.has(cacheKey)) {
       return of(this.cache.multi.get(cacheKey)!);
     }
 
     const params = new HttpParams()
-    .set('lang', lang)
-    .set('prefixes', prefixes.join(','));
+      .set('categories', categories.join(','));
 
     return this.http.get<TranslationCache>(
       this.translationBatchUrl,
       {params}
     ).pipe(
+      tap(translations => {
+        this.cache.multi.set(cacheKey, translations);
+        this.setCacheTimer(cacheKey);
+      }),
+      shareReplay(1)
+    );
+  }
+
+  getAll(): Observable<TranslationCache> {
+    const cacheKey = 'ALL';
+
+    if (this.cache.multi.has(cacheKey)) {
+      return of(this.cache.multi.get(cacheKey)!);
+    }
+
+    return this.http.get<TranslationCache>(this.translationAllUrl).pipe(
       tap(translations => {
         this.cache.multi.set(cacheKey, translations);
         this.setCacheTimer(cacheKey);
@@ -87,21 +103,8 @@ export class TranslationService {
     }
   }
 
-  updateCacheEntry(lang: string, prefix: string, newTranslations: TranslationCache): void {
-    const cacheKey = this.getCacheKey(lang, [prefix]);
-    this.cache.single.set(cacheKey, newTranslations);
-    this.setCacheTimer(cacheKey);
-
-    for (const [key, value] of this.cache.multi.entries()) {
-      if (key.startsWith(`${lang}_`)) {
-        this.cache.multi.set(key, {...value, ...newTranslations});
-        this.setCacheTimer(key);
-      }
-    }
-  }
-
-  private getCacheKey(lang: string, prefixes: string[]): string {
-    return `${lang}_${[...prefixes].sort().join('_')}`;
+  private getCacheKey(categories: string[]): string {
+    return [...categories].sort().join('_');
   }
 
   private setCacheTimer(cacheKey: string): void {

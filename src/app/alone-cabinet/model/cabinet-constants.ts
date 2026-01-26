@@ -3,33 +3,33 @@
  */
 export class CabinetConstants {
   static readonly CABINET_TYPES = [
-    {value: 'STANDARD', label: 'GENERAL.cabinet.standard'},
-    {value: 'INTERNAL', label: 'GENERAL.cabinet.internal'},
+    {value: 'STANDARD', label: 'CABINET_TYPE.STANDARD'},
+    {value: 'INTERNAL', label: 'CABINET_TYPE.INTERNAL'},
   ];
 
   static readonly OPENING_TYPES = [
-    {value: 'HANDLE', label: 'OpeningModelEnum.HANDLE'},
-    {value: 'CLICK', label: 'OpeningModelEnum.CLICK'},
-    {value: 'MILLED', label: 'OpeningModelEnum.MILLED'},
-    {value: 'NONE', label: 'OpeningModelEnum.NONE'},
+    {value: 'HANDLE', label: 'OPENING_MODEL.HANDLE'},
+    {value: 'CLICK', label: 'OPENING_MODEL.CLICK'},
+    {value: 'MILLED', label: 'OPENING_MODEL.MILLED'},
+    {value: 'NONE', label: 'OPENING_MODEL.NONE'},
   ];
 
   static readonly FRONT_TYPES = [
-    {value: 'OPEN', label: 'alone-cabin.front.open'},
-    {value: 'ONE_DOOR', label: 'alone-cabin.front.oneDoor'},
-    {value: 'TWO_DOORS', label: 'alone-cabin.front.twoDoors'},
-    {value: 'UPWARDS', label: 'alone-cabin.front.upward'},
-    {value: 'DRAWER', label: 'alone-cabin.front.drawer'}
+    {value: 'OPEN', label: 'UI.frontOpen'},
+    {value: 'ONE_DOOR', label: 'UI.frontOneDoor'},
+    {value: 'TWO_DOORS', label: 'UI.frontTwoDoors'},
+    {value: 'UPWARDS', label: 'UI.frontUpward'},
+    {value: 'DRAWER', label: 'UI.frontDrawer'}
   ];
 
   static readonly DRAWER_MODELS = [
-    {value: 'ANTARO', label: 'alone-cabin.drawer-model.antaro'}, //TODO dodac info ze antaro tandembox
-    {value: 'SEVROLL_BALL', label: 'alone-cabin.drawer-model.sevrollBall'}
+    {value: 'ANTARO', label: 'UI.drawerModelAntaro'},
+    {value: 'SEVROLL_BALL', label: 'UI.drawerModelSevrollBall'}
   ];
 
   static readonly MATERIALS = [
-    {value: 'CHIPBOARD', label: 'GENERAL.material.CHIPBOARD'},
-    {value: 'MDF', label: 'GENERAL.material.MDF'}
+    {value: 'CHIPBOARD', label: 'MATERIAL.CHIPBOARD'},
+    {value: 'MDF', label: 'MATERIAL.MDF'}
   ];
 
   static readonly THICKNESSES = [
@@ -39,25 +39,29 @@ export class CabinetConstants {
   ];
 
   static readonly COLORS = [
-    {value: 'white', label: 'GENERAL.color.white'},
-    {value: 'black', label: 'GENERAL.color.black'},
-    {value: 'red', label: 'GENERAL.color.red'}
+    {value: 'white', label: 'COLOR.WHITE'},
+    {value: 'black', label: 'COLOR.BLACK'},
+    {value: 'red', label: 'COLOR.RED'}
   ];
 
-  static readonly TRANSLATION_PREFIXES = [
+  static readonly TRANSLATION_CATEGORIES = [
+    'UI',
     'ERROR',
-    'alone-cabin',
     'GENERAL',
-    'VeneerModelEnum',
-    'ComponentCategoryEnum',
-    'JobCategoryEnum',
-    'BoardNameEnum',
-    'CuttingTypeEnum',
-    'ShelfSupportModelEnum',
-    'HangerModelEnum',
-    'HingeTypeEnum',
-    'FeetModelEnum',
-    'OpeningModelEnum',
-    'MillingTypeEnum'
+    'BOARD_NAME',
+    'COMPONENT_CATEGORY',
+    'JOB_CATEGORY',
+    'HINGE_TYPE',
+    'HANGER_MODEL',
+    'FEET_MODEL',
+    'LIFT_TYPE',
+    'SHELF_SUPPORT_MODEL',
+    'OPENING_MODEL',
+    'VENEER_MODEL',
+    'CUTTING_TYPE',
+    'MILLING_TYPE',
+    'CABINET_TYPE',
+    'COLOR',
+    'MATERIAL'
   ];
 }

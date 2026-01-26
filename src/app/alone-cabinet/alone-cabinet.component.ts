@@ -363,7 +363,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
 
   loadTranslations(lang: string): void {
     this.selectedLanguage = lang || 'pl';
-    this.translationService.getTranslationsByPrefixes(this.selectedLanguage, CabinetConstants.TRANSLATION_PREFIXES)
+    this.translationService.getByCategories(CabinetConstants.TRANSLATION_CATEGORIES)
     .pipe(
       takeUntil(this.destroy$),
       catchError(() => of(this.translationService.getDefaultTranslations())))
@@ -385,12 +385,44 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
    */
   getTranslatedAdditionalInfo(additionalInfo: string[] | undefined): string {
     if (!additionalInfo) {
-      return ''; // Jeśli brak danych, zwróć pusty ciąg
+      return '';
     }
 
     return additionalInfo
-    .map((info) => this.translations[info] || info) // Tłumacz każdy element lub pozostaw oryginał
-    .join('\n'); // Łącz przetłumaczone elementy w ciąg znaków
+    .map((info) => this.translations[info] || info)
+    .join('\n');
+  }
+
+  /**
+   * Zwraca tłumaczenie modelu komponentu na podstawie kategorii.
+   */
+  getComponentModelTranslation(component: { category: string; model: string }): string {
+    const categoryToPrefix: { [key: string]: string } = {
+      'HINGE': 'HINGE_TYPE',
+      'HANGER': 'HANGER_MODEL',
+      'FEET': 'FEET_MODEL',
+      'LIFT': 'LIFT_TYPE',
+      'SHELF_SUPPORT': 'SHELF_SUPPORT_MODEL',
+      'OPENING': 'OPENING_MODEL',
+      'VENEER': 'VENEER_MODEL',
+      'DRAWER': 'DRAWER_MODEL'
+    };
+    const prefix = categoryToPrefix[component.category] || component.category;
+    const key = `${prefix}.${component.model}`;
+    return this.translations[key] || component.model;
+  }
+
+  /**
+   * Zwraca tłumaczenie typu joba na podstawie kategorii.
+   */
+  getJobTypeTranslation(job: { category: string; type: string }): string {
+    const categoryToPrefix: { [key: string]: string } = {
+      'BOARD_CUTTING': 'CUTTING_TYPE',
+      'MILLING': 'MILLING_TYPE'
+    };
+    const prefix = categoryToPrefix[job.category] || job.category;
+    const key = `${prefix}.${job.type}`;
+    return this.translations[key] || job.type;
   }
 
   /**
