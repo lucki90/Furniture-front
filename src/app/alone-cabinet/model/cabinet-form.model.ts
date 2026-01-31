@@ -7,9 +7,6 @@ export interface CabinetRequest {
   width: number;
   depth: number;
   shelfQuantity: number | null;
-  drawerQuantity: number | null;
-  drawerModel: string,
-  drawerBaseHdf: boolean,
   needBacks: boolean;
   isHanging: boolean;
   isHangingOnRail: boolean;
@@ -21,7 +18,20 @@ export interface CabinetRequest {
   frontType: string;
   cabinetType: string;
   openingType: string;
+  drawerRequest: DrawerRequest | null;
   materialRequest: MaterialRequest;
+}
+
+export interface DrawerRequest {
+  drawerModel: string;
+  drawerQuantity: number;
+  drawerBaseHdf: boolean;
+  drawerFrontDetails: DrawerFrontDetail[] | null;
+}
+
+export interface DrawerFrontDetail {
+  height: number | null;
+  name: string | null;
 }
 
 export interface MaterialRequest {

@@ -204,6 +204,14 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   }
 
   private prepareRequestBody(): CabinetRequest {
+    const frontType = this.form.get('frontType')?.value;
+    const drawerRequest = frontType === 'DRAWER' ? {
+      drawerModel: this.form.get('drawerModel')?.value,
+      drawerQuantity: this.form.get('drawerQuantity')?.value,
+      drawerBaseHdf: this.form.get('drawerBaseHdf')?.value,
+      drawerFrontDetails: null
+    } : null;
+
     return {
       lang: this.selectedLanguage,
       height: this.form.get('height')?.value,
@@ -218,12 +226,10 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
       isFrontExtended: this.form.get('isFrontExtended')?.value,
       isCoveredWithCounterTop: this.form.get('isCoveredWithCounterTop')?.value,
       varnishedFront: this.form.get('varnishedFront')?.value,
-      frontType: this.form.get('frontType')?.value,
+      frontType: frontType,
       cabinetType: this.form.get('cabinetType')?.value,
       openingType: this.form.get('openingType')?.value,
-      drawerQuantity: this.form.get('drawerQuantity')?.value,
-      drawerModel: this.form.get('drawerModel')?.value,
-      drawerBaseHdf: this.form.get('drawerBaseHdf')?.value,
+      drawerRequest: drawerRequest,
       materialRequest: {
         boxMaterial: this.form.get('boxMaterial')?.value,
         boxBoardThickness: this.form.get('boxBoardThickness')?.value,

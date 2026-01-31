@@ -12,7 +12,6 @@ export class BaseTwoDoorRequestMapper
       depth: form.depth,
 
       shelfQuantity: form.shelfQuantity ?? 1,
-      drawerQuantity: 0,
 
       needBacks: true,
       isHanging: false,
@@ -26,6 +25,8 @@ export class BaseTwoDoorRequestMapper
       frontType: 'TWO_DOORS',
       cabinetType: 'STANDARD',
       openingType: 'HANDLE',
+
+      drawerRequest: null,
 
       materialRequest: {
         boxMaterial: 'CHIPBOARD',
