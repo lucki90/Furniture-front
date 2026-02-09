@@ -1,9 +1,9 @@
 <div>
   <label for="language">{{ translations['UI.selectLanguage'] || 'Select Language' }}</label>
   <select id="language" (change)="onLanguageChangeEvent($event)">
-    <option value="pl" [selected]="selectedLanguage === 'pl'">Polski</option>
-    <option value="en" [selected]="selectedLanguage === 'en'">English</option>
-    <option value="de" [selected]="selectedLanguage === 'de'">Deutsch</option>
+    <option value="pl" [selected]="selectedLanguage === 'PL'">Polski</option>
+    <option value="en" [selected]="selectedLanguage === 'EN'">English</option>
+    <option value="de" [selected]="selectedLanguage === 'DE'">Deutsch</option>
   </select>
 </div>
 <div *ngIf="translationLoading">
@@ -117,14 +117,14 @@
           [visible]="true">
         </app-dropdown>
 
-        <!-- Przełącznik plecki hdf -->
+        <!-- Przełącznik podstawa szuflady z  hdf -->
         <app-radio-button
           [id]="'drawer-base-hdf'"
           formControlName="drawerBaseHdf"
-          [title]="translations['UI.drawerBaseHdf']"
+          [title]="translations['UI.isDrawerBaseHdf']"
           [options]="[
-                      { value: true, label: translations['UI.drawerBaseHdf'], tooltip: translations['UI.shouldAddDrawerBaseHdf'] },
-                      { value: false, label: translations['UI.noDrawerBaseHdf'], tooltip: translations['UI.shouldAddDrawerBaseHdf'] }
+                      { value: true, label: translations['UI.drawerBaseHdf'], tooltip: translations['UI.shouldAddDrawerBaseHdfTooltip'] },
+                      { value: false, label: translations['UI.noDrawerBaseHdf'], tooltip: translations['UI.shouldAddDrawerBaseHdfTooltip'] }
                     ]">
         </app-radio-button>
 
@@ -156,7 +156,7 @@
           [title]="''"
           [options]="[
                       { value: true, label: translations['UI.isHanging'] },
-                      { value: false, label: translations['UI.isNotHanging'] }
+                      { value: false, label: translations['UI.isStanding'] }
                     ]">
         </app-radio-button>
 
@@ -167,7 +167,7 @@
           [title]="''"
           [options]="[
                       { value: true, label: translations['UI.isHangingOnRail'] },
-                      { value: false, label: translations['UI.isHangingNotRail'] }
+                      { value: false, label: translations['UI.isHangingOnHooks'] }
                     ]">
         </app-radio-button>
 
@@ -245,7 +245,7 @@
           formControlName="isCoveredWithCounterTop"
           [title]="''"
           [options]="[
-                          { value: false, label: translations['UI.isNotCoveredWithCounterTop'] },
+                          { value: false, label: translations['UI.cabinetWithFullTopWreath'] },
                           { value: true, label: translations['UI.isCoveredWithCounterTop'] }
                         ]">
         </app-radio-button>
@@ -295,11 +295,11 @@
     </div>
     <!-- Nowy przycisk do dodania requestu do listy -->
     <button type="button" (click)="addRequest()">
-      {{ translations['UI.addBoard'] || 'Dodaj szafkę' }}
+      {{ translations['UI.addBoard']  }}
     </button>
     <!-- Wyświetlenie listy przygotowanych requestów (opcjonalnie) -->
     <div *ngIf="multiRequests && multiRequests.length > 0">
-      <h3>{{ translations['UI.preparedRequests'] || 'Przygotowane requesty:' }}</h3>
+      <h3>{{ translations['UI.preparedRequests'] }}</h3>
       <ul>
         <li *ngFor="let req of multiRequests; index as i">
           Request {{ i + 1 }}
@@ -307,7 +307,7 @@
       </ul>
       <!-- Przycisk wysyłający wszystkie requesty -->
       <button type="button" (click)="calculate(true)">
-        {{ translations['UI.calculateMany'] || 'Wyślij wiele' }}
+        {{ translations['UI.calculateMany']  }}
       </button>
     </div>
 
@@ -328,7 +328,7 @@
         <th>{{ translations['UI.veneer'] }}</th>
         <th>{{ translations['UI.width'] }}</th>
         <th>{{ translations['UI.veneer'] }}</th>
-        <th>{{ translations['UI.thickness'] }}</th>
+        <th>{{ translations['UI.boardThickness'] }}</th>
         <th>{{ translations['UI.pricePerUnit'] }}</th>
         <th>{{ translations['UI.totalPrice'] }}</th>
       </tr>
@@ -376,10 +376,14 @@
             component.additionalInfo.length > 0 ? ' ' + component.additionalInfo[0] : '')
           }}
         </td>
-        <td>{{ getComponentModelTranslation(component) }} {{
-            (component.additionalInfo !== null &&
-            component.additionalInfo.length > 0 ? ' ' + translations['GENERAL.COLOR'] + ' ' +
-              translations['COLOR.' + component.additionalInfo[1]] : '')
+        <td>
+          {{ component.category ==='SHEET_WASTE'
+          ? translations[component.model]
+          : translations[component.translationKey] }}
+          {{
+            (component.additionalInfo !== null && component.additionalInfo.length > 0
+              ? ' ' + translations['COLOR.COLOR'] + ' ' +  translations[component.additionalInfo[1]]
+              : '')
           }}
         </td>
         <td>{{ component.quantity }} {{
@@ -420,7 +424,7 @@
         <td class="tooltip-cell" [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)">
           {{ translations['JOB_CATEGORY.' + job.category] }}
         </td>
-        <td>{{ getJobTypeTranslation(job) }}</td>
+        <td>{{ translations[job.translationKey] }}</td>
         <td>{{ job.quantity }}</td>
         <td>{{
             translations[job.priceEntry.unit] !== null &&
@@ -433,7 +437,7 @@
       </tr>
       <!-- Wiersz z kosztami -->
       <tr>
-        <td style="border: none; background-color: white; " colspan="4"></td>
+        <td style="border: none; background-color: white; " colspan="5"></td>
         <!-- Puste komórki dla lewej strony tabeli -->
         <td class="highlight-cell">Koszty prac:</td>
         <td> {{ response.jobTotalCost }} PLN</td>

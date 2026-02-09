@@ -70,6 +70,7 @@ export interface Board {
   priceEntry: PriceEntry;
   totalPrice: number;
   remarks: string;
+  translationKey: string;
 }
 
 export interface Component {
@@ -79,6 +80,7 @@ export interface Component {
   additionalInfo: string[] | null;
   priceEntry: PriceEntry;
   totalPrice: number;
+  translationKey: string;
 }
 
 export interface Job {
@@ -88,6 +90,7 @@ export interface Job {
   additionalInfo: string[] | undefined;
   priceEntry: PriceEntry;
   totalPrice: number;
+  translationKey: string;
 }
 
 export interface PriceEntry {

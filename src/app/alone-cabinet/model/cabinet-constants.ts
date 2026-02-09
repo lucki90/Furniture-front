@@ -2,6 +2,7 @@
  * Stałe definicje opcji wyboru dla formularza szafki
  */
 export class CabinetConstants {
+  //TODO docelowo pobierac z bazy
   static readonly CABINET_TYPES = [
     {value: 'STANDARD', label: 'CABINET_TYPE.STANDARD'},
     {value: 'INTERNAL', label: 'CABINET_TYPE.INTERNAL'},
@@ -23,7 +24,7 @@ export class CabinetConstants {
   ];
 
   static readonly DRAWER_MODELS = [
-    {value: 'ANTARO', label: 'UI.drawerModelAntaro'},
+    {value: 'ANTARO', label: 'UI.drawerModelBlumAntaroTandembox'},
     {value: 'SEVROLL_BALL', label: 'UI.drawerModelSevrollBall'}
   ];
 
@@ -62,6 +63,7 @@ export class CabinetConstants {
     'MILLING_TYPE',
     'CABINET_TYPE',
     'COLOR',
-    'MATERIAL'
+    'MATERIAL',
+    'DRAWER'
   ];
 }
