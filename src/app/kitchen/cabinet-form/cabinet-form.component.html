@@ -9,6 +9,13 @@
   </label>
 
   <label>
+    Typ otwarcia
+    <select formControlName="openingType">
+      <option *ngFor="let opt of openingTypes" [value]="opt.value">{{ opt.label }}</option>
+    </select>
+  </label>
+
+  <label>
     Szerokość (mm)
     <input type="number" formControlName="width">
     <span class="error" *ngIf="form.get('width')?.touched && form.get('width')?.errors">

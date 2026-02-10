@@ -4,6 +4,7 @@ import { KitchenService } from '../service/kitchen.service';
 import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
+import { OPENING_TYPES } from './model/kitchen-cabinet-constants';
 import { CommonModule } from "@angular/common";
 import { CabinetCalculatedEvent, KitchenCabinet } from '../model/kitchen-state.model';
 
@@ -28,6 +29,8 @@ export class CabinetFormComponent implements OnChanges {
   form: FormGroup;
   visibility: any = {};
   loading = false;
+
+  readonly openingTypes = OPENING_TYPES;
 
   get isEditMode(): boolean {
     return this.editingCabinet !== null;
@@ -55,6 +58,7 @@ export class CabinetFormComponent implements OnChanges {
   private fillFormWithCabinet(cabinet: KitchenCabinet): void {
     this.form.patchValue({
       kitchenCabinetType: cabinet.type,
+      openingType: cabinet.openingType,
       width: cabinet.width,
       height: cabinet.height,
       depth: cabinet.depth,
@@ -72,6 +76,7 @@ export class CabinetFormComponent implements OnChanges {
     // Jeśli edytujemy, przywróć wartości po przygotowaniu
     if (this.editingCabinet && this.editingCabinet.type === type) {
       this.form.patchValue({
+        openingType: this.editingCabinet.openingType,
         width: this.editingCabinet.width,
         height: this.editingCabinet.height,
         depth: this.editingCabinet.depth,

@@ -1,8 +1,10 @@
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 
 export interface KitchenCabinet {
   id: string;
   type: KitchenCabinetType;
+  openingType: OpeningType;
   width: number;
   height: number;
   depth: number;
@@ -31,6 +33,7 @@ export interface CabinetPosition {
 
 export interface CabinetFormData {
   kitchenCabinetType: KitchenCabinetType;
+  openingType: OpeningType;
   width: number;
   height: number;
   depth: number;

@@ -3,7 +3,7 @@ import { Preset } from './preset.model';
 
 export const PRESETS: Preset[] = [
   {
-    id: 'black',
+    id: 'BLACK',
     name: 'Czarny',
     baseHex: '#000000',
     textureUrl: 'assets/textures/black.png',
@@ -12,7 +12,7 @@ export const PRESETS: Preset[] = [
     repeat: { x: 1, y: 1 }
   },
   {
-    id: 'white',
+    id: 'WHITE',
     name: 'Biały',
     baseHex: '#ffffff',
     textureUrl: 'assets/textures/white.png',

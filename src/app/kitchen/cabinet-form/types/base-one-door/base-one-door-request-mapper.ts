@@ -24,19 +24,19 @@ export class BaseOneDoorRequestMapper
 
       frontType: 'ONE_DOOR',
       cabinetType: 'STANDARD',
-      openingType: 'HANDLE',
+      openingType: form.openingType ?? 'HANDLE',
 
       drawerRequest: null,
 
       materialRequest: {
         boxMaterial: 'CHIPBOARD',
         boxBoardThickness: 18,
-        boxColor: 'white',
+        boxColor: 'WHITE',
         frontMaterial: 'CHIPBOARD',
         frontBoardThickness: 18,
-        frontColor: 'white',
-        frontVeneerColor: 'white',
-        boxVeneerColor: 'white'
+        frontColor: 'WHITE',
+        frontVeneerColor: 'WHITE',
+        boxVeneerColor: 'WHITE'
       }
     };
   }

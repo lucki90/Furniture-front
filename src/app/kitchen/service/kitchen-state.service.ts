@@ -6,6 +6,7 @@ import {
   CabinetFormData,
   CabinetCalculationResult
 } from '../model/kitchen-state.model';
+import { KitchenProjectRequest, ProjectCabinetRequest } from '../model/kitchen-project.model';
 
 @Injectable({
   providedIn: 'root'
@@ -68,6 +69,7 @@ export class KitchenStateService {
     const newCabinet: KitchenCabinet = {
       id: this.generateId(),
       type: formData.kitchenCabinetType,
+      openingType: formData.openingType,
       width: formData.width,
       height: formData.height,
       depth: formData.depth,
@@ -96,6 +98,7 @@ export class KitchenStateService {
         return {
           ...cab,
           type: formData.kitchenCabinetType,
+          openingType: formData.openingType,
           width: formData.width,
           height: formData.height,
           depth: formData.depth,
@@ -115,6 +118,52 @@ export class KitchenStateService {
 
   clearAll(): void {
     this._cabinets.set([]);
+  }
+
+  /**
+   * Buduje request do kalkulacji całego projektu kuchni.
+   * Automatycznie oblicza pozycje X (od lewej do prawej).
+   */
+  buildProjectRequest(): KitchenProjectRequest {
+    const cabinets = this._cabinets();
+    const wall = this._wall();
+
+    // Oblicz pozycje X automatycznie
+    let currentX = 0;
+    const projectCabinets: ProjectCabinetRequest[] = cabinets.map(cab => {
+      const request: ProjectCabinetRequest = {
+        cabinetId: cab.id,
+        kitchenCabinetType: cab.type,
+        openingType: cab.openingType,
+        height: cab.height,
+        width: cab.width,
+        depth: cab.depth,
+        positionX: currentX,
+        positionY: 0, // MVP: wszystkie szafki na podłodze
+        shelfQuantity: cab.shelfQuantity,
+        varnishedFront: false,
+        materialRequest: {
+          boxMaterial: 'CHIPBOARD',
+          boxBoardThickness: 18,
+          boxColor: 'WHITE',
+          boxVeneerColor: 'WHITE',
+          frontMaterial: 'CHIPBOARD',
+          frontBoardThickness: 18,
+          frontColor: 'WHITE',
+          frontVeneerColor: 'WHITE'
+        }
+      };
+      currentX += cab.width;
+      return request;
+    });
+
+    return {
+      wall: {
+        length: wall.length,
+        height: wall.height
+      },
+      cabinets: projectCabinets
+    };
   }
 
   private mapCalculationResult(result: any): CabinetCalculationResult | undefined {

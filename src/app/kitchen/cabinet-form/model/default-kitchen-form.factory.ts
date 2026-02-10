@@ -5,6 +5,7 @@ export class DefaultKitchenFormFactory {
   static create(fb: FormBuilder): FormGroup {
     return fb.group({
       kitchenCabinetType: [KitchenCabinetType.BASE_ONE_DOOR],
+      openingType: ['HANDLE'],  // domyślnie uchwyt
       width: null,
       height: null,
       depth: null,

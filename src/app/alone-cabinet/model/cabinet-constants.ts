@@ -40,9 +40,9 @@ export class CabinetConstants {
   ];
 
   static readonly COLORS = [
-    {value: 'white', label: 'COLOR.WHITE'},
-    {value: 'black', label: 'COLOR.BLACK'},
-    {value: 'red', label: 'COLOR.RED'}
+    {value: 'WHITE', label: 'COLOR.WHITE'},
+    {value: 'BLACK', label: 'COLOR.BLACK'},
+    {value: 'RED', label: 'COLOR.RED'}
   ];
 
   static readonly TRANSLATION_CATEGORIES = [

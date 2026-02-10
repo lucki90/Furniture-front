@@ -87,14 +87,14 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     isFrontExtended: [{value: false, disabled: true}, Validators.required],
     isCoveredWithCounterTop: [false, Validators.required],
     varnishedFront: [{value: false, disabled: true}, Validators.required],
-    frontVeneerColor: ['white', Validators.required],
+    frontVeneerColor: ['WHITE', Validators.required],
     frontMaterial: ['CHIPBOARD', Validators.required],
     boxMaterial: ['CHIPBOARD', Validators.required],
     boxBoardThickness: [18, Validators.required],
-    boxColor: ['white', Validators.required],
-    boxVeneerColor: ['white', Validators.required],
+    boxColor: ['WHITE', Validators.required],
+    boxVeneerColor: ['WHITE', Validators.required],
     frontBoardThickness: [18, Validators.required],
-    frontColor: ['white', Validators.required],
+    frontColor: ['WHITE', Validators.required],
   });
 
   constructor(

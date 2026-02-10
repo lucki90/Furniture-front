@@ -35,8 +35,8 @@ export class SecretLockerComponent implements OnInit, AfterViewInit, OnDestroy {
 
   presetOptions = [
     { id: 'k003', label: 'Dąb craft złoty' },
-    { id: 'black', label: 'Black' },
-    { id: 'white', label: 'White' }
+    { id: 'BLACK', label: 'Black' },
+    { id: 'WHITE', label: 'White' }
   ];
 
   selectedPart?: ClickablePart;

@@ -64,6 +64,32 @@
   font-weight: 600;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.btn-calculate-project {
+  background: #1976d2;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.btn-calculate-project:hover:not(:disabled) {
+  background: #1565c0;
+}
+
+.btn-calculate-project:disabled {
+  background: #90caf9;
+  cursor: not-allowed;
+}
+
 .btn-clear {
   background: #757575;
   color: white;
@@ -73,8 +99,131 @@
   cursor: pointer;
 }
 
-.btn-clear:hover {
+.btn-clear:hover:not(:disabled) {
   background: #616161;
+}
+
+.btn-clear:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+
+/* Wynik projektu */
+.project-result {
+  margin: 20px 0;
+  padding: 20px;
+  background: #e3f2fd;
+  border-radius: 8px;
+  border: 1px solid #1976d2;
+}
+
+.project-result h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #1565c0;
+}
+
+.project-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.project-summary-item {
+  display: flex;
+  gap: 10px;
+}
+
+.project-summary-item .label {
+  font-weight: 600;
+}
+
+.project-summary-item.total {
+  grid-column: 1 / -1;
+  font-size: 1.2rem;
+  padding: 10px;
+  background: #bbdefb;
+  border-radius: 4px;
+}
+
+.project-summary-item.total .value {
+  color: #1565c0;
+  font-weight: 700;
+}
+
+.layout-info {
+  margin: 15px 0;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+}
+
+.layout-info p {
+  margin: 5px 0;
+}
+
+.fits-status {
+  font-weight: 600;
+  margin-top: 10px !important;
+}
+
+.fits-status.fits {
+  color: #2e7d32;
+}
+
+.fits-status.overflow {
+  color: #d32f2f;
+}
+
+/* Szczegóły szafek */
+.cabinet-details {
+  margin-top: 15px;
+}
+
+.cabinet-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 10px;
+  background: #bbdefb;
+  border-radius: 4px;
+}
+
+.cabinet-detail {
+  margin: 10px 0;
+  padding: 15px;
+  background: white;
+  border-radius: 4px;
+  border-left: 3px solid #1976d2;
+}
+
+.cabinet-detail h4 {
+  margin: 0 0 10px 0;
+  color: #1565c0;
+}
+
+.cabinet-detail p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
+
+/* Błąd projektu */
+.project-error {
+  margin: 20px 0;
+  padding: 20px;
+  background: #ffebee;
+  border-radius: 8px;
+  border: 1px solid #d32f2f;
+}
+
+.project-error h3 {
+  margin-top: 0;
+  color: #c62828;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-weight: 500;
 }
 
 hr {

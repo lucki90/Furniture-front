@@ -22,3 +22,15 @@ export const KitchenCabinetConstraints = {
     SHELF_MAX: 4
   }
 } as const;
+
+/**
+ * Typy otwarcia szafki (uchwyt, click, frezowany, brak).
+ */
+export const OPENING_TYPES = [
+  { value: 'HANDLE', label: 'Uchwyt' },
+  { value: 'CLICK', label: 'Click (TIP-ON)' },
+  { value: 'MILLED', label: 'Frezowany' },
+  { value: 'NONE', label: 'Brak' }
+] as const;
+
+export type OpeningType = typeof OPENING_TYPES[number]['value'];

@@ -68,9 +68,72 @@
       <span *ngIf="!fitsOnWall()" class="overflow">Szafki NIE mieszcza sie na scianie!</span>
     </div>
   </div>
-  <button class="btn-clear" (click)="clearAll()" [disabled]="editingCabinetId !== null">
-    Wyczysc wszystkie
-  </button>
+
+  <div class="action-buttons">
+    <button
+      class="btn-calculate-project"
+      (click)="calculateProject()"
+      [disabled]="editingCabinetId !== null || isCalculatingProject">
+      {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
+    </button>
+    <button class="btn-clear" (click)="clearAll()" [disabled]="editingCabinetId !== null">
+      Wyczysc wszystkie
+    </button>
+  </div>
+</section>
+
+<!-- 5a. Wynik kalkulacji projektu -->
+<section class="project-result" *ngIf="projectResult">
+  <h3>Wynik kalkulacji projektu</h3>
+
+  <div class="project-summary-grid">
+    <div class="project-summary-item">
+      <span class="label">Koszt desek:</span>
+      <span class="value">{{ projectResult.totalBoardCost.toFixed(2) }} zl</span>
+    </div>
+    <div class="project-summary-item">
+      <span class="label">Koszt komponentow:</span>
+      <span class="value">{{ projectResult.totalComponentCost.toFixed(2) }} zl</span>
+    </div>
+    <div class="project-summary-item">
+      <span class="label">Koszt pracy:</span>
+      <span class="value">{{ projectResult.totalJobCost.toFixed(2) }} zl</span>
+    </div>
+    <div class="project-summary-item total">
+      <span class="label">RAZEM:</span>
+      <span class="value">{{ projectResult.totalProjectCost.toFixed(2) }} zl</span>
+    </div>
+  </div>
+
+  <div class="layout-info">
+    <p>Szafki dolne: {{ projectResult.usedWidthBottom }} mm / {{ projectResult.wall.length }} mm
+      (pozostalo: {{ projectResult.remainingWidthBottom }} mm)</p>
+    <p *ngIf="projectResult.usedWidthTop > 0">
+      Szafki gorne: {{ projectResult.usedWidthTop }} mm / {{ projectResult.wall.length }} mm
+      (pozostalo: {{ projectResult.remainingWidthTop }} mm)
+    </p>
+    <p class="fits-status" [class.fits]="projectResult.fits" [class.overflow]="!projectResult.fits">
+      {{ projectResult.fits ? 'Wszystkie szafki mieszcza sie na scianie' : 'UWAGA: Szafki nie mieszcza sie!' }}
+    </p>
+  </div>
+
+  <!-- Szczegoly per szafka -->
+  <details class="cabinet-details">
+    <summary>Szczegoly szafek ({{ projectResult.cabinets.length }})</summary>
+    <div class="cabinet-detail" *ngFor="let cab of projectResult.cabinets">
+      <h4>{{ cab.cabinetId }} ({{ cab.kitchenCabinetType }})</h4>
+      <p>Pozycja: X={{ cab.positionX }}mm, Y={{ cab.positionY }}mm</p>
+      <p>Wymiary: {{ cab.width }} x {{ cab.height }} x {{ cab.depth }} mm</p>
+      <p>Koszt: {{ cab.totalCost.toFixed(2) }} zl
+        (deski: {{ cab.boardCost.toFixed(2) }}, komponenty: {{ cab.componentCost.toFixed(2) }}, praca: {{ cab.jobCost.toFixed(2) }})</p>
+    </div>
+  </details>
+</section>
+
+<!-- 5b. Blad kalkulacji projektu -->
+<section class="project-error" *ngIf="projectError">
+  <h3>Blad kalkulacji</h3>
+  <p class="error-message">{{ projectError }}</p>
 </section>
 
 <hr>
