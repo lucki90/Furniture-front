@@ -2,8 +2,36 @@ import { Board, Component, Job } from '../cabinet-form/model/kitchen-cabinet-for
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 
+// ============ WALL TYPES ============
+
+export type WallType = 'MAIN' | 'LEFT' | 'RIGHT' | 'CORNER_LEFT' | 'CORNER_RIGHT' | 'ISLAND';
+
+export const WALL_TYPES: { value: WallType; label: string }[] = [
+  { value: 'MAIN', label: 'Ściana główna' },
+  { value: 'LEFT', label: 'Ściana lewa' },
+  { value: 'RIGHT', label: 'Ściana prawa' },
+  { value: 'CORNER_LEFT', label: 'Narożnik lewy' },
+  { value: 'CORNER_RIGHT', label: 'Narożnik prawy' },
+  { value: 'ISLAND', label: 'Wyspa kuchenna' }
+];
+
+// ============ PROJECT STATUS ============
+
+export type ProjectStatus = 'DRAFT' | 'CALCULATED' | 'CONFIRMED' | 'IN_PRODUCTION' | 'COMPLETED' | 'CANCELLED';
+
+export const PROJECT_STATUSES: { value: ProjectStatus; label: string }[] = [
+  { value: 'DRAFT', label: 'Szkic' },
+  { value: 'CALCULATED', label: 'Obliczony' },
+  { value: 'CONFIRMED', label: 'Potwierdzony' },
+  { value: 'IN_PRODUCTION', label: 'W produkcji' },
+  { value: 'COMPLETED', label: 'Zakończony' },
+  { value: 'CANCELLED', label: 'Anulowany' }
+];
+
+// ============ LEGACY - SIMPLE CALCULATE ============
+
 /**
- * Request do kalkulacji całego projektu kuchni
+ * Request do kalkulacji całego projektu kuchni (legacy - single wall)
  */
 export interface KitchenProjectRequest {
   wall: KitchenWallRequest;
@@ -81,4 +109,112 @@ export interface CabinetSummary {
   componentCost: number;
   jobCost: number;
   totalCost: number;
+}
+
+// ============ PROJECT MANAGEMENT CRUD ============
+
+/**
+ * Request do utworzenia nowego projektu kuchni (z wieloma ścianami)
+ */
+export interface CreateKitchenProjectRequest {
+  name: string;
+  description?: string;
+  walls: ProjectWallRequest[];
+}
+
+export interface ProjectWallRequest {
+  wallType: WallType;
+  widthMm: number;
+  heightMm: number;
+  cabinets: ProjectCabinetRequest[];
+}
+
+/**
+ * Request do aktualizacji projektu
+ */
+export interface UpdateKitchenProjectRequest {
+  name: string;
+  description?: string;
+  status?: ProjectStatus;
+  walls: ProjectWallRequest[];
+}
+
+/**
+ * Response - lista projektów (podsumowanie)
+ */
+export interface KitchenProjectListResponse {
+  id: number;
+  name: string;
+  description?: string;
+  status: ProjectStatus;
+  totalCost: number;
+  wallCount: number;
+  cabinetCount: number;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Response - szczegóły projektu
+ */
+export interface KitchenProjectDetailResponse {
+  id: number;
+  name: string;
+  description?: string;
+  status: ProjectStatus;
+  version: number;
+
+  totalCost: number;
+  totalBoardsCost: number;
+  totalComponentsCost: number;
+  totalJobsCost: number;
+
+  walls: WallDetailResponse[];
+
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WallDetailResponse {
+  id: number;
+  wallType: WallType;
+  widthMm: number;
+  heightMm: number;
+  wallCost: number;
+
+  cabinets: CabinetPlacementResponse[];
+
+  cabinetCount: number;
+  usedWidthMm: number;
+  remainingWidthMm: number;
+}
+
+export interface CabinetPlacementResponse {
+  id: number;
+  cabinetId?: string;
+  cabinetType: KitchenCabinetType;
+
+  positionX: number;
+  positionY: number;
+
+  widthMm: number;
+  heightMm: number;
+  depthMm: number;
+
+  boxMaterialCode: string;
+  boxThicknessMm: number;
+  boxColorCode: string;
+  frontMaterialCode?: string;
+  frontThicknessMm?: number;
+  frontColorCode?: string;
+
+  openingType?: string;
+
+  boardsCost: number;
+  componentsCost: number;
+  jobsCost: number;
+  totalCost: number;
+
+  displayOrder: number;
 }
