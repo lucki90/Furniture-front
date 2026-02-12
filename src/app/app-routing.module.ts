@@ -9,6 +9,10 @@ const routes: Routes = [
   {path: 'alone-cabinet', component: AloneCabinetComponent},
   {path: 'secret-locker', component: SecretLockerComponent},
   {path: 'kitchen', component: KitchenPageComponent},
+  {
+    path: 'admin',
+    loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
+  },
 ];
 
 @NgModule({

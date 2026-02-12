@@ -1,0 +1,136 @@
+<div class="price-list-container">
+  <header class="header">
+    <h1>Zarządzanie cenami</h1>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Dodaj cenę
+      </button>
+      <button mat-raised-button (click)="openImportDialog()">
+        <mat-icon>upload_file</mat-icon>
+        Import CSV/Excel
+      </button>
+      <button mat-raised-button color="accent"
+              (click)="onScrapeAll()"
+              [disabled]="scrapingInProgress()">
+        <mat-icon>sync</mat-icon>
+        Aktualizuj wszystkie ceny
+      </button>
+    </div>
+  </header>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Szukaj po nazwie</mat-label>
+      <input matInput [(ngModel)]="searchName" (keyup.enter)="onSearch()">
+      <button mat-icon-button matSuffix *ngIf="searchName" (click)="onClearSearch()">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-checkbox [(ngModel)]="activeOnly" (change)="onSearch()">
+      Tylko aktywne
+    </mat-checkbox>
+
+    <button mat-icon-button (click)="onSearch()" matTooltip="Szukaj">
+      <mat-icon>search</mat-icon>
+    </button>
+  </div>
+
+  <div class="table-container" [class.loading]="loading()">
+    <mat-spinner *ngIf="loading()" diameter="50" class="spinner"></mat-spinner>
+
+    <table mat-table [dataSource]="prices()" class="price-table">
+
+      <!-- ID Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <td mat-cell *matCellDef="let price">{{ price.id }}</td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Nazwa</th>
+        <td mat-cell *matCellDef="let price">
+          <span [matTooltip]="price.description || ''">
+            {{ price.name || '-' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <!-- Unit Column -->
+      <ng-container matColumnDef="unit">
+        <th mat-header-cell *matHeaderCellDef>Jednostka</th>
+        <td mat-cell *matCellDef="let price">{{ price.unit }}</td>
+      </ng-container>
+
+      <!-- Price Column -->
+      <ng-container matColumnDef="currentPrice">
+        <th mat-header-cell *matHeaderCellDef>Cena</th>
+        <td mat-cell *matCellDef="let price" class="price-cell">
+          {{ price.currentPrice | number:'1.2-2' }} {{ price.currency }}
+        </td>
+      </ng-container>
+
+      <!-- Source URL Column -->
+      <ng-container matColumnDef="sourceUrl">
+        <th mat-header-cell *matHeaderCellDef>Źródło</th>
+        <td mat-cell *matCellDef="let price">
+          <a *ngIf="price.sourceUrl" [href]="price.sourceUrl" target="_blank"
+             [matTooltip]="price.sourceUrl">
+            {{ formatUrl(price.sourceUrl) }}
+          </a>
+          <span *ngIf="!price.sourceUrl">-</span>
+        </td>
+      </ng-container>
+
+      <!-- Active Column -->
+      <ng-container matColumnDef="isActive">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let price">
+          <mat-chip-listbox>
+            <mat-chip [class.active]="price.isActive" [class.inactive]="!price.isActive">
+              {{ price.isActive ? 'Aktywna' : 'Nieaktywna' }}
+            </mat-chip>
+          </mat-chip-listbox>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Akcje</th>
+        <td mat-cell *matCellDef="let price" class="actions-cell">
+          <button mat-icon-button (click)="openEditDialog(price)" matTooltip="Edytuj">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button
+                  (click)="onScrapeSingle(price)"
+                  [disabled]="!price.sourceUrl || scrapingInProgress()"
+                  matTooltip="Pobierz cenę ze strony">
+            <mat-icon>refresh</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="onDelete(price)" matTooltip="Usuń">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <div *ngIf="prices().length === 0 && !loading()" class="empty-state">
+      <mat-icon>inbox</mat-icon>
+      <p>Brak cen do wyświetlenia</p>
+    </div>
+  </div>
+
+  <mat-paginator
+    [length]="totalElements()"
+    [pageSize]="pageSize()"
+    [pageIndex]="pageIndex()"
+    [pageSizeOptions]="[10, 20, 50, 100]"
+    (page)="onPageChange($event)"
+    showFirstLastButtons>
+  </mat-paginator>
+</div>
