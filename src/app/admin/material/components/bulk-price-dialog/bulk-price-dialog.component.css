@@ -1,0 +1,109 @@
+.bulk-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 450px;
+}
+
+.form-description {
+  margin: 0 0 16px;
+  color: #666;
+}
+
+.updates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.update-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.update-row mat-form-field {
+  flex: 1;
+}
+
+.add-row-btn {
+  align-self: flex-start;
+  margin: 8px 0 16px;
+}
+
+.warning-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background-color: #fff3e0;
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+  margin-top: 16px;
+}
+
+.warning-box mat-icon {
+  color: #ff9800;
+  flex-shrink: 0;
+}
+
+.warning-box span {
+  font-size: 14px;
+  color: #5d4037;
+}
+
+.result-container {
+  min-width: 400px;
+}
+
+.result-success,
+.result-partial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.result-success mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #4caf50;
+}
+
+.result-partial mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #ff9800;
+}
+
+.result-success h3,
+.result-partial h3 {
+  margin: 16px 0 8px;
+}
+
+.errors-list {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #ffebee;
+  border-radius: 8px;
+}
+
+.errors-list h4 {
+  margin: 0 0 8px;
+  color: #c62828;
+}
+
+mat-dialog-content {
+  padding-top: 16px;
+}
+
+mat-dialog-actions button mat-spinner {
+  display: inline-block;
+}
+
+mat-divider {
+  margin: 8px 0;
+}

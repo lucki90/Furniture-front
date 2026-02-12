@@ -1,0 +1,96 @@
+<h2 mat-dialog-title>Masowa aktualizacja cen</h2>
+
+<mat-dialog-content>
+  @if (!result()) {
+    <form [formGroup]="form" class="bulk-form">
+      <p class="form-description">
+        Wprowadź ID wpisów cennika i ich nowe ceny. Możesz dodać wiele wpisów jednocześnie.
+      </p>
+
+      <div formArrayName="updates" class="updates-list">
+        @for (update of updates.controls; track $index; let i = $index) {
+          <div class="update-row" [formGroupName]="i">
+            <mat-form-field appearance="outline">
+              <mat-label>ID wpisu cennika</mat-label>
+              <input matInput type="number" formControlName="priceEntryId">
+              @if (update.get('priceEntryId')?.hasError('required')) {
+                <mat-error>Wymagane</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Nowa cena (PLN)</mat-label>
+              <input matInput type="number" step="0.01" formControlName="newPrice">
+              @if (update.get('newPrice')?.hasError('required')) {
+                <mat-error>Wymagane</mat-error>
+              }
+            </mat-form-field>
+
+            <button mat-icon-button color="warn" (click)="removeRow(i)" [disabled]="updates.length === 1">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+
+      <button mat-stroked-button type="button" (click)="addRow()" class="add-row-btn">
+        <mat-icon>add</mat-icon>
+        Dodaj wiersz
+      </button>
+
+      <mat-divider></mat-divider>
+
+      <div class="warning-box">
+        <mat-icon>warning</mat-icon>
+        <span>Ta operacja zaktualizuje ceny wybranych wpisów cennika. Zmiana jest nieodwracalna.</span>
+      </div>
+    </form>
+  } @else {
+    <div class="result-container">
+      @if (result()!.failedUpdates === 0) {
+        <div class="result-success">
+          <mat-icon>check_circle</mat-icon>
+          <h3>Aktualizacja zakończona pomyślnie</h3>
+          <p>Zaktualizowano {{ result()!.successfulUpdates }} z {{ result()!.totalRequested }} wpisów</p>
+        </div>
+      } @else {
+        <div class="result-partial">
+          <mat-icon>warning</mat-icon>
+          <h3>Aktualizacja częściowo zakończona</h3>
+          <p>Zaktualizowano {{ result()!.successfulUpdates }} z {{ result()!.totalRequested }} wpisów</p>
+          <p>Nieudane aktualizacje: {{ result()!.failedUpdates }}</p>
+        </div>
+      }
+
+      @if (result()!.errors && result()!.errors!.length > 0) {
+        <div class="errors-list">
+          <h4>Błędy:</h4>
+          <mat-list>
+            @for (error of result()!.errors; track error.priceEntryId) {
+              <mat-list-item>
+                <mat-icon matListItemIcon color="warn">error_outline</mat-icon>
+                <span matListItemTitle>ID {{ error.priceEntryId }}: {{ error.message }}</span>
+              </mat-list-item>
+            }
+          </mat-list>
+        </div>
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (!result()) {
+    <button mat-button (click)="onClose()" [disabled]="saving()">Anuluj</button>
+    <button mat-raised-button color="warn" (click)="onSubmit()" [disabled]="saving()">
+      @if (saving()) {
+        <mat-spinner diameter="20"></mat-spinner>
+      } @else {
+        Zastosuj zmianę
+      }
+    </button>
+  } @else {
+    <button mat-stroked-button (click)="resetForm()">Kolejna aktualizacja</button>
+    <button mat-raised-button color="primary" (click)="onClose()">Zamknij</button>
+  }
+</mat-dialog-actions>

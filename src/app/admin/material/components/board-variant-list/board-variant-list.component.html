@@ -1,0 +1,109 @@
+<div class="variant-list-container">
+  <header class="header">
+    <h2>Warianty płyt</h2>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Dodaj wariant
+    </button>
+  </header>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Szukaj po kodzie materiału</mat-label>
+      <input matInput [(ngModel)]="searchMaterialCode" (keyup.enter)="onSearch()">
+      <button mat-icon-button matSuffix *ngIf="searchMaterialCode" (click)="onClearSearch()">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-checkbox [(ngModel)]="activeOnly" (change)="onSearch()">
+      Tylko aktywne
+    </mat-checkbox>
+
+    <button mat-icon-button (click)="onSearch()" matTooltip="Szukaj">
+      <mat-icon>search</mat-icon>
+    </button>
+  </div>
+
+  <div class="table-container" [class.loading]="loading()">
+    <mat-spinner *ngIf="loading()" diameter="50" class="spinner"></mat-spinner>
+
+    <table mat-table [dataSource]="variants()" class="variant-table">
+
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>ID</th>
+        <td mat-cell *matCellDef="let v">{{ v.id }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="materialCode">
+        <th mat-header-cell *matHeaderCellDef>Materiał</th>
+        <td mat-cell *matCellDef="let v">{{ v.materialCode }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="thicknessMm">
+        <th mat-header-cell *matHeaderCellDef>Grubość</th>
+        <td mat-cell *matCellDef="let v">{{ v.thicknessMm }} mm</td>
+      </ng-container>
+
+      <ng-container matColumnDef="colorCode">
+        <th mat-header-cell *matHeaderCellDef>Kolor</th>
+        <td mat-cell *matCellDef="let v">{{ v.colorCode }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="varnished">
+        <th mat-header-cell *matHeaderCellDef>Lakier</th>
+        <td mat-cell *matCellDef="let v">
+          <mat-icon *ngIf="v.varnished" color="primary">check</mat-icon>
+          <mat-icon *ngIf="!v.varnished" color="warn">close</mat-icon>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="currentPrice">
+        <th mat-header-cell *matHeaderCellDef>Cena</th>
+        <td mat-cell *matCellDef="let v" class="price-cell">
+          {{ v.currentPrice ? (v.currentPrice | number:'1.2-2') + ' PLN' : '-' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let v">
+          <mat-chip-listbox>
+            <mat-chip [class.active]="v.active" [class.inactive]="!v.active">
+              {{ v.active ? 'Aktywny' : 'Nieaktywny' }}
+            </mat-chip>
+          </mat-chip-listbox>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Akcje</th>
+        <td mat-cell *matCellDef="let v" class="actions-cell">
+          <button mat-icon-button (click)="openEditDialog(v)" matTooltip="Edytuj">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="onDelete(v)" matTooltip="Usuń">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <div *ngIf="variants().length === 0 && !loading()" class="empty-state">
+      <mat-icon>inventory_2</mat-icon>
+      <p>Brak wariantów płyt do wyświetlenia</p>
+    </div>
+  </div>
+
+  <mat-paginator
+    [length]="totalElements()"
+    [pageSize]="pageSize()"
+    [pageIndex]="pageIndex()"
+    [pageSizeOptions]="[10, 20, 50]"
+    (page)="onPageChange($event)"
+    showFirstLastButtons>
+  </mat-paginator>
+</div>

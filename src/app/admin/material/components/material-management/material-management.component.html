@@ -1,0 +1,35 @@
+<div class="material-management-container">
+  <div class="page-header">
+    <h1>Zarządzanie materiałami</h1>
+    <button mat-raised-button color="accent" (click)="openBulkPriceDialog()">
+      <mat-icon>price_change</mat-icon>
+      Masowa aktualizacja cen
+    </button>
+  </div>
+
+  <mat-tab-group animationDuration="200ms">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">layers</mat-icon>
+        Warianty płyt
+      </ng-template>
+      <app-board-variant-list></app-board-variant-list>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">inventory_2</mat-icon>
+        Warianty komponentów
+      </ng-template>
+      <app-component-variant-list></app-component-variant-list>
+    </mat-tab>
+
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="tab-icon">build</mat-icon>
+        Warianty prac
+      </ng-template>
+      <app-job-variant-list></app-job-variant-list>
+    </mat-tab>
+  </mat-tab-group>
+</div>

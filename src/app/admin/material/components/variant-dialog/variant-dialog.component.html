@@ -1,0 +1,208 @@
+<h2 mat-dialog-title>{{ getDialogTitle() }}</h2>
+
+<mat-dialog-content>
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="form" class="variant-form">
+
+      <!-- Board Variant Fields -->
+      @if (data.type === 'board') {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Materiał</mat-label>
+          <mat-select formControlName="materialId" [disabled]="data.mode === 'edit'">
+            @for (material of materials(); track material.id) {
+              <mat-option [value]="material.id">
+                {{ material.code }} ({{ material.translationKey || 'brak tłumaczenia' }})
+              </mat-option>
+            }
+          </mat-select>
+          @if (form.get('materialId')?.hasError('required')) {
+            <mat-error>Materiał jest wymagany</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Grubość (mm)</mat-label>
+            <input matInput type="number" formControlName="thicknessMm">
+            @if (form.get('thicknessMm')?.hasError('required')) {
+              <mat-error>Grubość jest wymagana</mat-error>
+            }
+            @if (form.get('thicknessMm')?.hasError('min')) {
+              <mat-error>Grubość musi być większa od 0</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Kod koloru</mat-label>
+            <input matInput formControlName="colorCode">
+            @if (form.get('colorCode')?.hasError('required')) {
+              <mat-error>Kod koloru jest wymagany</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Gęstość (kg/dm³)</mat-label>
+            <input matInput type="number" step="0.01" formControlName="densityKgDm3">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>ID wpisu cennika</mat-label>
+            <input matInput type="number" formControlName="priceEntryId">
+            @if (form.get('priceEntryId')?.hasError('required')) {
+              <mat-error>ID wpisu cennika jest wymagane</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Klucz tłumaczenia</mat-label>
+          <input matInput formControlName="translationKey">
+        </mat-form-field>
+
+        <div class="checkbox-row">
+          <mat-checkbox formControlName="varnished">Lakierowana</mat-checkbox>
+          @if (data.mode === 'edit') {
+            <mat-checkbox formControlName="active">Aktywny</mat-checkbox>
+          }
+        </div>
+      }
+
+      <!-- Component Variant Fields -->
+      @if (data.type === 'component') {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Komponent</mat-label>
+          <mat-select formControlName="componentId" [disabled]="data.mode === 'edit'">
+            @for (component of components(); track component.id) {
+              <mat-option [value]="component.id">
+                {{ component.code }} ({{ component.category }})
+              </mat-option>
+            }
+          </mat-select>
+          @if (form.get('componentId')?.hasError('required')) {
+            <mat-error>Komponent jest wymagany</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Kod modelu</mat-label>
+            <input matInput formControlName="modelCode">
+            @if (form.get('modelCode')?.hasError('required')) {
+              <mat-error>Kod modelu jest wymagany</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>ID wpisu cennika</mat-label>
+            <input matInput type="number" formControlName="priceEntryId">
+            @if (form.get('priceEntryId')?.hasError('required')) {
+              <mat-error>ID wpisu cennika jest wymagane</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Dodatkowe informacje</mat-label>
+          <input matInput formControlName="additionalInfo">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Klucz tłumaczenia</mat-label>
+          <input matInput formControlName="translationKey">
+        </mat-form-field>
+
+        @if (data.mode === 'edit') {
+          <div class="checkbox-row">
+            <mat-checkbox formControlName="active">Aktywny</mat-checkbox>
+          </div>
+        }
+      }
+
+      <!-- Job Variant Fields -->
+      @if (data.type === 'job') {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Praca</mat-label>
+          <mat-select formControlName="jobId" [disabled]="data.mode === 'edit'">
+            @for (job of jobs(); track job.id) {
+              <mat-option [value]="job.id">
+                {{ job.code }} ({{ job.category }})
+              </mat-option>
+            }
+          </mat-select>
+          @if (form.get('jobId')?.hasError('required')) {
+            <mat-error>Praca jest wymagana</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Kod wariantu</mat-label>
+            <input matInput formControlName="variantCode">
+            @if (form.get('variantCode')?.hasError('required')) {
+              <mat-error>Kod wariantu jest wymagany</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Jednostka</mat-label>
+            <input matInput formControlName="unit">
+            @if (form.get('unit')?.hasError('required')) {
+              <mat-error>Jednostka jest wymagana</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>ID materiału (opcjonalnie)</mat-label>
+            <input matInput type="number" formControlName="materialId">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Próg grubości (mm)</mat-label>
+            <input matInput type="number" formControlName="thicknessThresholdMm">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>ID wpisu cennika</mat-label>
+            <input matInput type="number" formControlName="priceEntryId">
+            @if (form.get('priceEntryId')?.hasError('required')) {
+              <mat-error>ID wpisu cennika jest wymagane</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Klucz tłumaczenia</mat-label>
+            <input matInput formControlName="translationKey">
+          </mat-form-field>
+        </div>
+
+        @if (data.mode === 'edit') {
+          <div class="checkbox-row">
+            <mat-checkbox formControlName="active">Aktywny</mat-checkbox>
+          </div>
+        }
+      }
+
+    </form>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()" [disabled]="saving()">Anuluj</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="saving() || loading()">
+    @if (saving()) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      {{ data.mode === 'create' ? 'Dodaj' : 'Zapisz' }}
+    }
+  </button>
+</mat-dialog-actions>

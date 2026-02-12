@@ -1,0 +1,109 @@
+<div class="variant-list-container">
+  <div class="header">
+    <h2>Warianty komponentów</h2>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Dodaj wariant
+    </button>
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Szukaj</mat-label>
+      <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Kod komponentu lub modelu...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select [(ngModel)]="activeOnly" (selectionChange)="onActiveFilterChange()">
+        <mat-option [value]="false">Wszystkie</mat-option>
+        <mat-option [value]="true">Tylko aktywne</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-stroked-button (click)="onSearch()">
+      <mat-icon>refresh</mat-icon>
+      Odśwież
+    </button>
+  </div>
+
+  <div class="table-container" [class.loading]="loading()">
+    @if (loading()) {
+      <mat-spinner class="spinner" diameter="40"></mat-spinner>
+    }
+
+    @if (variants().length > 0) {
+      <table mat-table [dataSource]="variants()" class="variant-table">
+
+        <ng-container matColumnDef="componentCode">
+          <th mat-header-cell *matHeaderCellDef>Kod komponentu</th>
+          <td mat-cell *matCellDef="let v">{{ v.componentCode }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="componentCategory">
+          <th mat-header-cell *matHeaderCellDef>Kategoria</th>
+          <td mat-cell *matCellDef="let v">{{ v.componentCategory }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="modelCode">
+          <th mat-header-cell *matHeaderCellDef>Kod modelu</th>
+          <td mat-cell *matCellDef="let v">{{ v.modelCode }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="additionalInfo">
+          <th mat-header-cell *matHeaderCellDef>Dodatkowe info</th>
+          <td mat-cell *matCellDef="let v">{{ v.additionalInfo || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="currentPrice">
+          <th mat-header-cell *matHeaderCellDef>Cena</th>
+          <td mat-cell *matCellDef="let v" class="price-cell">
+            {{ v.currentPrice ? (v.currentPrice | number:'1.2-2') + ' PLN' : '-' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="active">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let v">
+            <mat-chip [class.active]="v.active" [class.inactive]="!v.active">
+              {{ v.active ? 'Aktywny' : 'Nieaktywny' }}
+            </mat-chip>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Akcje</th>
+          <td mat-cell *matCellDef="let v" class="actions-cell">
+            <button mat-icon-button color="primary" (click)="openEditDialog(v)" matTooltip="Edytuj">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="onDelete(v)" matTooltip="Usuń">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize()"
+        [pageIndex]="pageIndex()"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    } @else if (!loading()) {
+      <div class="empty-state">
+        <mat-icon>inventory_2</mat-icon>
+        <p>Brak wariantów komponentów</p>
+        <button mat-stroked-button color="primary" (click)="openCreateDialog()">
+          Dodaj pierwszy wariant
+        </button>
+      </div>
+    }
+  </div>
+</div>
