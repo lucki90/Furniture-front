@@ -1,0 +1,37 @@
+<div class="wall-tabs-container">
+  <mat-tab-group
+    [selectedIndex]="selectedIndex"
+    (selectedIndexChange)="onTabChange($event)"
+    class="wall-tabs">
+
+    @for (wall of walls(); track wall.id) {
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <div class="tab-label">
+            <span>{{ getWallLabel(wall.type) }}</span>
+            <span class="cabinet-count">({{ wall.cabinets.length }})</span>
+            @if (canRemoveWall()) {
+              <button
+                mat-icon-button
+                class="remove-btn"
+                matTooltip="Usuń ścianę"
+                (click)="onRemoveWall(wall.id, $event)">
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </div>
+        </ng-template>
+      </mat-tab>
+    }
+
+  </mat-tab-group>
+
+  <button
+    mat-icon-button
+    color="primary"
+    class="add-wall-btn"
+    matTooltip="Dodaj ścianę"
+    (click)="onAddWall()">
+    <mat-icon>add</mat-icon>
+  </button>
+</div>

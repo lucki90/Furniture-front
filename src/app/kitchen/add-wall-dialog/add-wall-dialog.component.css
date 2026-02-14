@@ -1,0 +1,20 @@
+.wall-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 350px;
+  padding-top: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.dimensions-row {
+  display: flex;
+  gap: 16px;
+}
+
+.dimensions-row mat-form-field {
+  flex: 1;
+}

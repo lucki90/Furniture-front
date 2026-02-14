@@ -1,0 +1,49 @@
+<h2 mat-dialog-title>Dodaj nową ścianę</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="wall-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Typ ściany</mat-label>
+      <mat-select formControlName="type">
+        @for (type of availableTypes(); track type.value) {
+          <mat-option [value]="type.value">{{ type.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div class="dimensions-row">
+      <mat-form-field appearance="outline">
+        <mat-label>Długość (mm)</mat-label>
+        <input matInput type="number" formControlName="widthMm">
+        @if (form.get('widthMm')?.hasError('required')) {
+          <mat-error>Wymagane</mat-error>
+        }
+        @if (form.get('widthMm')?.hasError('min')) {
+          <mat-error>Min. 500mm</mat-error>
+        }
+        @if (form.get('widthMm')?.hasError('max')) {
+          <mat-error>Max. 10000mm</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Wysokość (mm)</mat-label>
+        <input matInput type="number" formControlName="heightMm">
+        @if (form.get('heightMm')?.hasError('required')) {
+          <mat-error>Wymagane</mat-error>
+        }
+        @if (form.get('heightMm')?.hasError('min')) {
+          <mat-error>Min. 500mm</mat-error>
+        }
+        @if (form.get('heightMm')?.hasError('max')) {
+          <mat-error>Max. 4000mm</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Anuluj</button>
+  <button mat-raised-button color="primary" (click)="onSubmit()">Dodaj</button>
+</mat-dialog-actions>

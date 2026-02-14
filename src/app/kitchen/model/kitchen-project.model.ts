@@ -218,3 +218,51 @@ export interface CabinetPlacementResponse {
 
   displayOrder: number;
 }
+
+// ============ MULTI-WALL CALCULATE ============
+
+/**
+ * Request do kalkulacji projektu z wieloma ścianami (bez zapisu do bazy)
+ */
+export interface MultiWallCalculateRequest {
+  walls: ProjectWallRequest[];
+}
+
+/**
+ * Response z kalkulacji wielu ścian
+ */
+export interface MultiWallCalculateResponse {
+  walls: WallCalculationSummary[];
+
+  wallCount: number;
+  totalCabinetCount: number;
+  allFit: boolean;
+
+  totalBoardCost: number;
+  totalComponentCost: number;
+  totalJobCost: number;
+  totalProjectCost: number;
+}
+
+/**
+ * Podsumowanie kalkulacji pojedynczej ściany
+ */
+export interface WallCalculationSummary {
+  wallType: WallType;
+  widthMm: number;
+  heightMm: number;
+
+  cabinets: CabinetSummary[];
+
+  cabinetCount: number;
+  usedWidthBottom: number;
+  remainingWidthBottom: number;
+  usedWidthTop: number;
+  remainingWidthTop: number;
+  fits: boolean;
+
+  boardCost: number;
+  componentCost: number;
+  jobCost: number;
+  wallTotalCost: number;
+}

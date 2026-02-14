@@ -17,6 +17,13 @@ input, select {
   margin-top: 4px;
 }
 
+.hint {
+  display: block;
+  color: #666;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
 .form-actions {
   display: flex;
   gap: 10px;

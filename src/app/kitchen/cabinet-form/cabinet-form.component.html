@@ -1,6 +1,11 @@
 <form [formGroup]="form">
 
   <label>
+    Nazwa szafki (opcjonalnie)
+    <input type="text" formControlName="name" placeholder="np. Szafka zlewozmywakowa">
+  </label>
+
+  <label>
     Typ szafki
     <select formControlName="kitchenCabinetType">
       <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
@@ -54,6 +59,12 @@
       <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['min']">Min: {{ form.get('shelfQuantity')?.errors?.['min'].min }}</ng-container>
       <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['max']">Max: {{ form.get('shelfQuantity')?.errors?.['max'].max }}</ng-container>
     </span>
+  </label>
+
+  <label>
+    Wysokość od podłogi (mm)
+    <input type="number" formControlName="positionY" placeholder="0 = dolna, 1400 = wisząca">
+    <span class="hint">0 dla szafek dolnych, np. 1400 dla wiszących</span>
   </label>
 
   <div class="form-actions">

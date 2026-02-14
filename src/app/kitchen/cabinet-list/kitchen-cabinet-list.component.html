@@ -9,11 +9,10 @@
     <thead>
       <tr>
         <th>#</th>
+        <th>Nazwa</th>
         <th>Typ</th>
-        <th>Szerokosc</th>
-        <th>Wysokosc</th>
-        <th>Glebokosc</th>
-        <th>Polki</th>
+        <th>Wymiary</th>
+        <th>Poz. Y</th>
         <th>Koszt</th>
         <th>Akcje</th>
       </tr>
@@ -22,12 +21,11 @@
       <tr *ngFor="let cabinet of cabinets; let i = index"
           [class.editing]="isEditing(cabinet.id)">
         <td>{{ i + 1 }}</td>
+        <td>{{ cabinet.name || '-' }}</td>
         <td>{{ getCabinetTypeName(cabinet.type) }}</td>
-        <td>{{ cabinet.width }} mm</td>
-        <td>{{ cabinet.height }} mm</td>
-        <td>{{ cabinet.depth }} mm</td>
-        <td>{{ cabinet.shelfQuantity }}</td>
-        <td>{{ cabinet.calculatedResult?.totalCost?.toFixed(2) ?? '-' }} zl</td>
+        <td>{{ cabinet.width }}x{{ cabinet.height }}x{{ cabinet.depth }}</td>
+        <td>{{ cabinet.positionY || 0 }} mm</td>
+        <td>{{ cabinet.calculatedResult?.totalCost?.toFixed(2) ?? '-' }} zł</td>
         <td class="actions">
           <button
             class="btn-edit"

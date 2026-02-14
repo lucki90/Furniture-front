@@ -1,142 +1,321 @@
 <h2>Kalkulator kuchni</h2>
 
-<!-- 1. Wymiary sciany -->
-<section class="wall-config">
-  <h3>Wymiary sciany</h3>
-  <div class="wall-inputs">
-    <label>
-      Dlugosc (mm)
-      <input type="number" [(ngModel)]="wallLength" (change)="onWallChange()">
-    </label>
-    <label>
-      Wysokosc (mm)
-      <input type="number" [(ngModel)]="wallHeight" (change)="onWallChange()">
-    </label>
-  </div>
-</section>
+<!-- ============ GŁÓWNY GRID: WIZUALIZACJA + FORMULARZ ============ -->
+<div class="main-workspace">
 
-<hr>
+  <!-- LEWA KOLUMNA: Wizualizacje + Wymiary -->
+  <div class="visualization-column">
 
-<!-- 2. Formularz szafki -->
-<section class="cabinet-form-section">
-  <h3>{{ formTitle }}</h3>
-  <app-cabinet-form
-    [editingCabinet]="editingCabinet"
-    (calculated)="onCabinetCalculated($event)"
-    (cancelEdit)="onCancelEdit()">
-  </app-cabinet-form>
-</section>
+    <!-- Widok z góry (floor plan) + Wymiary ściany -->
+    <div class="floor-plan-section">
+      <app-kitchen-floor-plan
+        (addWallRequested)="onAddWallRequested()"
+        (wallRemoved)="onWallRemoved($event)">
+      </app-kitchen-floor-plan>
 
-<hr>
-
-<!-- 3. Wynik ostatniej kalkulacji -->
-<app-cabinet-result
-  *ngIf="result"
-  [result]="result">
-</app-cabinet-result>
-
-<hr>
-
-<!-- 4. Lista szafek -->
-<app-kitchen-cabinet-list
-  [cabinets]="cabinets()"
-  [editingCabinetId]="editingCabinetId"
-  (edit)="onEditCabinet($event)"
-  (remove)="onRemoveCabinet($event)">
-</app-kitchen-cabinet-list>
-
-<hr>
-
-<!-- 5. Podsumowanie -->
-<section class="summary" *ngIf="cabinets().length > 0">
-  <h3>Podsumowanie</h3>
-  <div class="summary-grid">
-    <div class="summary-item">
-      <span class="label">Calkowity koszt:</span>
-      <span class="value">{{ totalCost().toFixed(2) }} zl</span>
+      <!-- Wymiary wybranej ściany - pod floor plan -->
+      <div class="wall-dimensions-inline">
+        <span class="wall-name">{{ selectedWallLabel }}:</span>
+        <label>
+          <span>Dł.</span>
+          <input type="number" [(ngModel)]="wallLength" (change)="onWallChange()" class="dim-input">
+          <span class="unit">mm</span>
+        </label>
+        <label>
+          <span>Wys.</span>
+          <input type="number" [(ngModel)]="wallHeight" (change)="onWallChange()" class="dim-input">
+          <span class="unit">mm</span>
+        </label>
+      </div>
     </div>
-    <div class="summary-item">
-      <span class="label">Zajeta szerokosc:</span>
-      <span class="value">{{ totalWidth() }} mm / {{ wall().length }} mm</span>
-    </div>
-    <div class="summary-item">
-      <span class="label">Pozostalo:</span>
-      <span class="value">{{ remainingWidth() }} mm</span>
-    </div>
-    <div class="summary-item status">
-      <span *ngIf="fitsOnWall()" class="fits">Szafki mieszcza sie na scianie</span>
-      <span *ngIf="!fitsOnWall()" class="overflow">Szafki NIE mieszcza sie na scianie!</span>
-    </div>
+
+    <!-- Widok od frontu -->
+    <app-kitchen-layout></app-kitchen-layout>
   </div>
 
-  <div class="action-buttons">
+  <!-- PRAWA KOLUMNA: Formularz szafki -->
+  <div class="form-column">
+    <div class="cabinet-form-card">
+      <h3>{{ formTitle }}</h3>
+      <app-cabinet-form
+        [editingCabinet]="editingCabinet"
+        (calculated)="onCabinetCalculated($event)"
+        (cancelEdit)="onCancelEdit()">
+      </app-cabinet-form>
+    </div>
+
+    <!-- Wynik ostatniej kalkulacji (kompaktowy) -->
+    <app-cabinet-result
+      *ngIf="result"
+      [result]="result">
+    </app-cabinet-result>
+  </div>
+</div>
+
+<!-- ============ LISTA SZAFEK ============ -->
+<section class="cabinet-list-section">
+  <div class="section-header">
+    <h3>Szafki na ścianie: {{ selectedWallLabel }} ({{ cabinets().length }})</h3>
     <button
-      class="btn-calculate-project"
-      (click)="calculateProject()"
-      [disabled]="editingCabinetId !== null || isCalculatingProject">
-      {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
-    </button>
-    <button class="btn-clear" (click)="clearAll()" [disabled]="editingCabinetId !== null">
-      Wyczysc wszystkie
+      *ngIf="cabinets().length > 0"
+      class="btn-clear-wall"
+      (click)="clearSelectedWallCabinets()"
+      [disabled]="editingCabinetId !== null">
+      Wyczyść szafki
     </button>
   </div>
+
+  <app-kitchen-cabinet-list
+    [cabinets]="cabinets()"
+    [editingCabinetId]="editingCabinetId"
+    (edit)="onEditCabinet($event)"
+    (remove)="onRemoveCabinet($event)">
+  </app-kitchen-cabinet-list>
 </section>
 
-<!-- 5a. Wynik kalkulacji projektu -->
-<section class="project-result" *ngIf="projectResult">
-  <h3>Wynik kalkulacji projektu</h3>
+<!-- ============ PODSUMOWANIE (ULEPSZONY WYGLĄD) ============ -->
+<div class="summary-cards" *ngIf="totalCabinetCount() > 0">
 
-  <div class="project-summary-grid">
-    <div class="project-summary-item">
-      <span class="label">Koszt desek:</span>
-      <span class="value">{{ projectResult.totalBoardCost.toFixed(2) }} zl</span>
+  <!-- Karta: Wybrana ściana -->
+  <div class="summary-card wall-summary" *ngIf="cabinets().length > 0">
+    <div class="card-header">
+      <span class="card-icon">🧱</span>
+      <h4>{{ selectedWallLabel }}</h4>
     </div>
-    <div class="project-summary-item">
-      <span class="label">Koszt komponentow:</span>
-      <span class="value">{{ projectResult.totalComponentCost.toFixed(2) }} zl</span>
+    <div class="card-stats">
+      <div class="stat">
+        <span class="stat-value">{{ cabinets().length }}</span>
+        <span class="stat-label">szafek</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ totalWidth() }}</span>
+        <span class="stat-label">mm zajęte</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ selectedWallTotalCost().toFixed(0) }}</span>
+        <span class="stat-label">zł</span>
+      </div>
     </div>
-    <div class="project-summary-item">
-      <span class="label">Koszt pracy:</span>
-      <span class="value">{{ projectResult.totalJobCost.toFixed(2) }} zl</span>
+    <div class="card-status" [class.fits]="fitsOnWall()" [class.overflow]="!fitsOnWall()">
+      {{ fitsOnWall() ? '✓ Mieści się' : '✗ Nie mieści się!' }}
+      <span class="remaining">({{ remainingWidth() }} mm wolne)</span>
     </div>
-    <div class="project-summary-item total">
-      <span class="label">RAZEM:</span>
-      <span class="value">{{ projectResult.totalProjectCost.toFixed(2) }} zl</span>
+  </div>
+
+  <!-- Karta: Cały projekt -->
+  <div class="summary-card project-summary-card">
+    <div class="card-header">
+      <span class="card-icon">📐</span>
+      <h4>Cały projekt</h4>
+    </div>
+    <div class="card-stats">
+      <div class="stat">
+        <span class="stat-value">{{ walls().length }}</span>
+        <span class="stat-label">ścian</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ totalCabinetCount() }}</span>
+        <span class="stat-label">szafek</span>
+      </div>
+      <div class="stat highlight">
+        <span class="stat-value">{{ totalCost().toFixed(0) }}</span>
+        <span class="stat-label">zł razem</span>
+      </div>
+    </div>
+    <div class="card-actions">
+      <button
+        class="btn-calculate"
+        (click)="calculateProject()"
+        [disabled]="editingCabinetId !== null || isCalculatingProject">
+        {{ isCalculatingProject ? '⏳ Obliczam...' : '🧮 Wylicz projekt' }}
+      </button>
+      <button class="btn-clear-all" (click)="clearAll()" [disabled]="editingCabinetId !== null">
+        🗑️ Wyczyść
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WYNIKI KALKULACJI PROJEKTU ============ -->
+<section class="project-result" *ngIf="projectResult">
+  <h3>📊 Wynik kalkulacji projektu</h3>
+
+  <!-- Globalne podsumowanie kosztów -->
+  <div class="project-costs-grid">
+    <div class="cost-item">
+      <span class="cost-label">Koszt płyt:</span>
+      <span class="cost-value">{{ projectResult.totalBoardCost.toFixed(2) }} zł</span>
+    </div>
+    <div class="cost-item">
+      <span class="cost-label">Koszt komponentów:</span>
+      <span class="cost-value">{{ projectResult.totalComponentCost.toFixed(2) }} zł</span>
+    </div>
+    <div class="cost-item">
+      <span class="cost-label">Koszt pracy:</span>
+      <span class="cost-value">{{ projectResult.totalJobCost.toFixed(2) }} zł</span>
+    </div>
+    <div class="cost-item total">
+      <span class="cost-label">RAZEM:</span>
+      <span class="cost-value">{{ projectResult.totalProjectCost.toFixed(2) }} zł</span>
     </div>
   </div>
 
   <div class="layout-info">
-    <p>Szafki dolne: {{ projectResult.usedWidthBottom }} mm / {{ projectResult.wall.length }} mm
-      (pozostalo: {{ projectResult.remainingWidthBottom }} mm)</p>
-    <p *ngIf="projectResult.usedWidthTop > 0">
-      Szafki gorne: {{ projectResult.usedWidthTop }} mm / {{ projectResult.wall.length }} mm
-      (pozostalo: {{ projectResult.remainingWidthTop }} mm)
-    </p>
-    <p class="fits-status" [class.fits]="projectResult.fits" [class.overflow]="!projectResult.fits">
-      {{ projectResult.fits ? 'Wszystkie szafki mieszcza sie na scianie' : 'UWAGA: Szafki nie mieszcza sie!' }}
+    <p>Ściany: {{ projectResult.wallCount }} | Szafki: {{ projectResult.totalCabinetCount }}</p>
+    <p class="fits-status" [class.fits]="projectResult.allFit" [class.overflow]="!projectResult.allFit">
+      {{ projectResult.allFit ? '✓ Wszystkie szafki mieszczą się na ścianach' : '⚠️ Niektóre szafki nie mieszczą się!' }}
     </p>
   </div>
 
-  <!-- Szczegoly per szafka -->
-  <details class="cabinet-details">
-    <summary>Szczegoly szafek ({{ projectResult.cabinets.length }})</summary>
-    <div class="cabinet-detail" *ngFor="let cab of projectResult.cabinets">
-      <h4>{{ cab.cabinetId }} ({{ cab.kitchenCabinetType }})</h4>
-      <p>Pozycja: X={{ cab.positionX }}mm, Y={{ cab.positionY }}mm</p>
-      <p>Wymiary: {{ cab.width }} x {{ cab.height }} x {{ cab.depth }} mm</p>
-      <p>Koszt: {{ cab.totalCost.toFixed(2) }} zl
-        (deski: {{ cab.boardCost.toFixed(2) }}, komponenty: {{ cab.componentCost.toFixed(2) }}, praca: {{ cab.jobCost.toFixed(2) }})</p>
+  <!-- Szczegóły projektu - zakładki -->
+  <div class="project-details-tabs">
+    <div class="tabs-header">
+      <button
+        class="tab-btn"
+        [class.active]="activeDetailsTab === 'walls'"
+        (click)="activeDetailsTab = 'walls'">
+        🧱 Ściany ({{ projectResult.walls.length }})
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeDetailsTab === 'boards'"
+        (click)="activeDetailsTab = 'boards'">
+        🪵 Płyty
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeDetailsTab === 'components'"
+        (click)="activeDetailsTab = 'components'">
+        🔩 Komponenty
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeDetailsTab === 'jobs'"
+        (click)="activeDetailsTab = 'jobs'">
+        🔧 Prace
+      </button>
     </div>
-  </details>
+
+    <div class="tabs-content">
+      <!-- Tab: Ściany -->
+      <div class="tab-panel" *ngIf="activeDetailsTab === 'walls'">
+        <div class="wall-detail" *ngFor="let wall of projectResult.walls">
+          <div class="wall-detail-header">
+            <h4>{{ wall.wallType }}</h4>
+            <span class="wall-dimensions">{{ wall.widthMm }} × {{ wall.heightMm }} mm</span>
+            <span class="wall-cost">{{ wall.wallTotalCost.toFixed(2) }} zł</span>
+          </div>
+          <div class="wall-detail-body">
+            <p>
+              Szafki: {{ wall.cabinetCount }} |
+              Dolne: {{ wall.usedWidthBottom }}/{{ wall.widthMm }} mm |
+              Górne: {{ wall.usedWidthTop }}/{{ wall.widthMm }} mm
+            </p>
+            <p class="fits-status" [class.fits]="wall.fits" [class.overflow]="!wall.fits">
+              {{ wall.fits ? '✓ Mieści się' : '✗ Nie mieści się!' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Płyty -->
+      <div class="tab-panel" *ngIf="activeDetailsTab === 'boards'">
+        <table class="details-table" *ngIf="aggregatedBoards.length > 0">
+          <thead>
+            <tr>
+              <th>Materiał</th>
+              <th>Wymiary (mm)</th>
+              <th>Ilość</th>
+              <th>Koszt jedn.</th>
+              <th>Koszt całk.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let board of aggregatedBoards">
+              <td>{{ board.material }} ({{ board.thickness }}mm)</td>
+              <td>{{ board.width }} × {{ board.height }}</td>
+              <td>{{ board.quantity }}</td>
+              <td>{{ board.unitCost.toFixed(2) }} zł</td>
+              <td>{{ board.totalCost.toFixed(2) }} zł</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4"><strong>Suma płyt:</strong></td>
+              <td><strong>{{ projectResult.totalBoardCost.toFixed(2) }} zł</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        <p *ngIf="aggregatedBoards.length === 0" class="empty-message">Brak płyt do wyświetlenia</p>
+      </div>
+
+      <!-- Tab: Komponenty -->
+      <div class="tab-panel" *ngIf="activeDetailsTab === 'components'">
+        <table class="details-table" *ngIf="aggregatedComponents.length > 0">
+          <thead>
+            <tr>
+              <th>Nazwa</th>
+              <th>Typ</th>
+              <th>Ilość</th>
+              <th>Koszt jedn.</th>
+              <th>Koszt całk.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let comp of aggregatedComponents">
+              <td>{{ comp.name }}</td>
+              <td>{{ comp.type }}</td>
+              <td>{{ comp.quantity }}</td>
+              <td>{{ comp.unitCost.toFixed(2) }} zł</td>
+              <td>{{ comp.totalCost.toFixed(2) }} zł</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4"><strong>Suma komponentów:</strong></td>
+              <td><strong>{{ projectResult.totalComponentCost.toFixed(2) }} zł</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        <p *ngIf="aggregatedComponents.length === 0" class="empty-message">Brak komponentów do wyświetlenia</p>
+      </div>
+
+      <!-- Tab: Prace -->
+      <div class="tab-panel" *ngIf="activeDetailsTab === 'jobs'">
+        <table class="details-table" *ngIf="aggregatedJobs.length > 0">
+          <thead>
+            <tr>
+              <th>Nazwa</th>
+              <th>Typ</th>
+              <th>Ilość</th>
+              <th>Koszt jedn.</th>
+              <th>Koszt całk.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let job of aggregatedJobs">
+              <td>{{ job.name }}</td>
+              <td>{{ job.type }}</td>
+              <td>{{ job.quantity }}</td>
+              <td>{{ job.unitCost.toFixed(2) }} zł</td>
+              <td>{{ job.totalCost.toFixed(2) }} zł</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4"><strong>Suma prac:</strong></td>
+              <td><strong>{{ projectResult.totalJobCost.toFixed(2) }} zł</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        <p *ngIf="aggregatedJobs.length === 0" class="empty-message">Brak prac do wyświetlenia</p>
+      </div>
+    </div>
+  </div>
 </section>
 
-<!-- 5b. Blad kalkulacji projektu -->
+<!-- Błąd kalkulacji projektu -->
 <section class="project-error" *ngIf="projectError">
-  <h3>Blad kalkulacji</h3>
+  <h3>❌ Błąd kalkulacji</h3>
   <p class="error-message">{{ projectError }}</p>
 </section>
-
-<hr>
-
-<!-- 6. Wizualizacja layoutu -->
-<app-kitchen-layout></app-kitchen-layout>

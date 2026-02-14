@@ -1,15 +1,53 @@
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
+import { WallType } from './kitchen-project.model';
+
+/**
+ * Strefa pozycjonowania szafki:
+ * - BOTTOM: szafka dolna (zajmuje tylko dolny rząd)
+ * - TOP: szafka górna/wisząca (zajmuje tylko górny rząd)
+ * - FULL: słupek/lodówka (zajmuje oba rzędy - dolny i górny)
+ */
+export type CabinetZone = 'BOTTOM' | 'TOP' | 'FULL';
+
+/**
+ * Progi wysokości dla automatycznego określenia strefy:
+ * - positionY < HANGING_THRESHOLD → BOTTOM
+ * - positionY >= HANGING_THRESHOLD → TOP
+ * - height > TALL_CABINET_MIN_HEIGHT → FULL (nadpisuje powyższe)
+ */
+export const ZONE_THRESHOLDS = {
+  HANGING_THRESHOLD: 800,     // mm - od tej wysokości szafka jest uznawana za górną
+  TALL_CABINET_MIN_HEIGHT: 1800  // mm - minimalna wysokość słupka/lodówki
+} as const;
 
 export interface KitchenCabinet {
   id: string;
+  name?: string; // opcjonalna nazwa szafki
   type: KitchenCabinetType;
   openingType: OpeningType;
   width: number;
   height: number;
   depth: number;
+  positionY: number; // wysokość od podłogi (0 = dolna, np. 1400 = wisząca)
   shelfQuantity: number;
   calculatedResult?: CabinetCalculationResult;
+}
+
+/**
+ * Określa strefę szafki na podstawie jej parametrów.
+ */
+export function getCabinetZone(cabinet: KitchenCabinet): CabinetZone {
+  // Słupek/lodówka - bardzo wysoka szafka
+  if (cabinet.height >= ZONE_THRESHOLDS.TALL_CABINET_MIN_HEIGHT) {
+    return 'FULL';
+  }
+  // Szafka górna - pozycja Y powyżej progu
+  if (cabinet.positionY >= ZONE_THRESHOLDS.HANGING_THRESHOLD) {
+    return 'TOP';
+  }
+  // Domyślnie szafka dolna
+  return 'BOTTOM';
 }
 
 export interface CabinetCalculationResult {
@@ -24,19 +62,35 @@ export interface KitchenWallConfig {
   height: number;
 }
 
+/**
+ * Reprezentacja ściany z szafkami w stanie aplikacji.
+ * Używana do zarządzania wieloma ścianami w projekcie kuchni.
+ */
+export interface WallWithCabinets {
+  id: string;
+  type: WallType;
+  widthMm: number;
+  heightMm: number;
+  cabinets: KitchenCabinet[];
+}
+
 export interface CabinetPosition {
   cabinetId: string;
+  name?: string;
   x: number;
+  y: number; // pozycja Y (wysokość od podłogi)
   width: number;
   height: number;
 }
 
 export interface CabinetFormData {
+  name?: string;
   kitchenCabinetType: KitchenCabinetType;
   openingType: OpeningType;
   width: number;
   height: number;
   depth: number;
+  positionY: number;
   shelfQuantity: number;
   drawerQuantity?: number;
   drawerModel?: string | null;

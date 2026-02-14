@@ -1,52 +1,136 @@
-<h3>Wizualizacja kuchni</h3>
+<div class="layout-container">
+  <h4>Widok od frontu: {{ wallLabel() }}</h4>
 
-<div *ngIf="cabinetPositions().length === 0" class="empty-state">
-  Dodaj szafki, aby zobaczyc wizualizacje
-</div>
-
-<div *ngIf="cabinetPositions().length > 0">
-  <p>
-    Sciana: {{ wall().length }} mm |
-    Zajete: {{ totalWidth() }} mm |
-    Pozostalo: {{ remainingWidth() }} mm
-  </p>
-
-  <p *ngIf="!fitsOnWall()" class="warning">
-    Szafki nie mieszcza sie na scianie!
-  </p>
-
-  <p *ngIf="fitsOnWall()" class="success">
-    Szafki mieszcza sie
-  </p>
-
-  <!-- 2D VIEW -->
-  <div class="wall" [style.width.px]="wallDisplayWidth()" [class.overflow]="!fitsOnWall()">
-    <div
-      class="cabinet"
-      *ngFor="let c of cabinetPositions(); let i = index"
-      [style.left.px]="getScaledX(c.x)"
-      [style.width.px]="getScaledWidth(c.width)"
-      [class.overflow]="getScaledX(c.x) + getScaledWidth(c.width) > wallDisplayWidth()"
-    >
-      {{ i + 1 }}
-    </div>
-
-    <!-- Remaining space indicator -->
-    <div
-      *ngIf="remainingWidth() > 0"
-      class="remaining-space"
-      [style.left.px]="getRemainingSpaceX()"
-      [style.width.px]="getRemainingSpaceWidth()"
-    >
-    </div>
+  <div *ngIf="cabinetPositions().length === 0" class="empty-state">
+    Dodaj szafki, aby zobaczyć wizualizację
   </div>
 
-  <div class="legend">
-    <span class="legend-item">
-      <span class="legend-box cabinet-legend"></span> Szafka
-    </span>
-    <span class="legend-item">
-      <span class="legend-box remaining-legend"></span> Wolne miejsce
-    </span>
+  <div *ngIf="cabinetPositions().length > 0" class="visualization-wrapper">
+    <p class="wall-info">
+      {{ wallLabel() }}: {{ wall().length }} mm |
+      Dolne: {{ usedWidthBottom() }}/{{ wall().length }} mm |
+      Górne: {{ usedWidthTop() }}/{{ wall().length }} mm
+      <span *ngIf="!fitsOnWall()" class="warning-inline">⚠️ Nie mieści się!</span>
+      <span *ngIf="fitsOnWall()" class="success-inline">✓</span>
+    </p>
+
+    <!-- Wall visualization -->
+    <div class="wall-view-wrapper">
+      <!-- Zone labels (po lewej) -->
+      <div class="zone-labels" [style.height.px]="totalHeight">
+        <span class="zone-label" [style.top.px]="topZoneY" [style.height.px]="topZoneHeight">Górne</span>
+        <span class="zone-label gap-label" [style.top.px]="gapZoneY" [style.height.px]="gapZoneHeight"></span>
+        <span class="zone-label counter-label" [style.top.px]="counterZoneY" [style.height.px]="counterZoneHeight">Blat</span>
+        <span class="zone-label" [style.top.px]="bottomZoneY" [style.height.px]="bottomZoneHeight">Dolne</span>
+      </div>
+
+      <div class="wall-view"
+           [style.width.px]="wallDisplayWidth()"
+           [style.height.px]="totalHeight"
+           [class.overflow]="!fitsOnWall()">
+
+        <!-- Słupki (FULL) - renderowane jako osobna warstwa, rozciągają się przez wszystkie strefy -->
+        <ng-container *ngFor="let pos of visualPositions(); let i = index">
+          <div *ngIf="pos.zone === 'FULL'"
+               class="cabinet full-height"
+               [class.overflow]="pos.isOverflow"
+               [style.left.px]="pos.displayX"
+               [style.top.px]="pos.displayY"
+               [style.width.px]="pos.displayWidth"
+               [style.height.px]="pos.displayHeight"
+               [title]="(pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm (słupek)'">
+            <span class="cabinet-label">{{ getCabinetLabel(pos, i) }}</span>
+          </div>
+        </ng-container>
+
+        <!-- Strefa górna (szafki wiszące) -->
+        <div class="zone upper-zone"
+             [style.top.px]="topZoneY"
+             [style.height.px]="topZoneHeight">
+
+          <!-- Szafki górne (TOP) -->
+          <ng-container *ngFor="let pos of visualPositions(); let i = index">
+            <div *ngIf="pos.zone === 'TOP'"
+                 class="cabinet hanging"
+                 [class.overflow]="pos.isOverflow"
+                 [style.left.px]="pos.displayX"
+                 [style.top.px]="pos.displayY"
+                 [style.width.px]="pos.displayWidth"
+                 [style.height.px]="pos.displayHeight"
+                 [title]="(pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm'">
+              <span class="cabinet-label">{{ getCabinetLabel(pos, i) }}</span>
+            </div>
+          </ng-container>
+
+          <!-- Wolne miejsce górne -->
+          <div *ngIf="hasHangingCabinets() && remainingTopSpaceWidth() > 0"
+               class="remaining-space"
+               [style.left.px]="remainingTopSpaceX()"
+               [style.width.px]="remainingTopSpaceWidth()"
+               [style.top.px]="0"
+               [style.height.px]="topZoneHeight">
+          </div>
+        </div>
+
+        <!-- Przerwa (ściana między górnymi a blatem) -->
+        <div class="zone gap-zone"
+             [style.top.px]="gapZoneY"
+             [style.height.px]="gapZoneHeight">
+        </div>
+
+        <!-- Strefa blatu -->
+        <div class="zone counter-zone"
+             [style.top.px]="counterZoneY"
+             [style.height.px]="counterZoneHeight">
+        </div>
+
+        <!-- Strefa dolna (szafki dolne) -->
+        <div class="zone lower-zone"
+             [style.top.px]="bottomZoneY"
+             [style.height.px]="bottomZoneHeight">
+
+          <!-- Szafki dolne (BOTTOM) -->
+          <ng-container *ngFor="let pos of visualPositions(); let i = index">
+            <div *ngIf="pos.zone === 'BOTTOM'"
+                 class="cabinet bottom"
+                 [class.overflow]="pos.isOverflow"
+                 [style.left.px]="pos.displayX"
+                 [style.top.px]="pos.displayY - bottomZoneY"
+                 [style.width.px]="pos.displayWidth"
+                 [style.height.px]="pos.displayHeight"
+                 [title]="(pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm'">
+              <span class="cabinet-label">{{ getCabinetLabel(pos, i) }}</span>
+            </div>
+          </ng-container>
+
+          <!-- Wolne miejsce dolne -->
+          <div *ngIf="hasBottomCabinets() && remainingBottomSpaceWidth() > 0"
+               class="remaining-space"
+               [style.left.px]="remainingBottomSpaceX()"
+               [style.width.px]="remainingBottomSpaceWidth()"
+               [style.top.px]="0"
+               [style.height.px]="bottomZoneHeight">
+          </div>
+        </div>
+
+        <!-- Podłoga -->
+        <div class="floor" [style.top.px]="totalHeight - 2"></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="legend-item">
+        <span class="legend-box cabinet-bottom-legend"></span> Dolna
+      </span>
+      <span class="legend-item">
+        <span class="legend-box cabinet-hanging-legend"></span> Górna
+      </span>
+      <span class="legend-item">
+        <span class="legend-box cabinet-full-legend"></span> Słupek
+      </span>
+      <span class="legend-item">
+        <span class="legend-box counter-legend"></span> Blat (38mm)
+      </span>
+    </div>
   </div>
 </div>

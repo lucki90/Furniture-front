@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { KitchenService } from '../service/kitchen.service';
+import { DictionaryService, DictionaryItem } from '../service/dictionary.service';
 import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
@@ -15,7 +16,7 @@ import { CabinetCalculatedEvent, KitchenCabinet } from '../model/kitchen-state.m
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule]
 })
-export class CabinetFormComponent implements OnChanges {
+export class CabinetFormComponent implements OnChanges, OnInit {
 
   @Input()
   editingCabinet: KitchenCabinet | null = null;
@@ -26,11 +27,15 @@ export class CabinetFormComponent implements OnChanges {
   @Output()
   cancelEdit = new EventEmitter<void>();
 
+  private readonly dictionaryService = inject(DictionaryService);
+
   form: FormGroup;
   visibility: any = {};
   loading = false;
+  loadingDictionaries = false;
 
-  readonly openingTypes = OPENING_TYPES;
+  // Fallback na stałe wartości, nadpisywane przez dane z backendu
+  openingTypes: { value: string; label: string }[] = [...OPENING_TYPES];
 
   get isEditMode(): boolean {
     return this.editingCabinet !== null;
@@ -49,6 +54,29 @@ export class CabinetFormComponent implements OnChanges {
       .subscribe(type => this.onTypeChange(type as KitchenCabinetType));
   }
 
+  ngOnInit(): void {
+    this.loadDictionaries();
+  }
+
+  private loadDictionaries(): void {
+    this.loadingDictionaries = true;
+
+    this.dictionaryService.getOpeningTypes().subscribe({
+      next: (items: DictionaryItem[]) => {
+        this.openingTypes = items.map(item => ({
+          value: item.code,
+          label: item.label
+        }));
+        this.loadingDictionaries = false;
+      },
+      error: (err) => {
+        console.warn('Failed to load opening types from backend, using fallback', err);
+        // Zachowaj fallback wartości
+        this.loadingDictionaries = false;
+      }
+    });
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['editingCabinet'] && this.editingCabinet) {
       this.fillFormWithCabinet(this.editingCabinet);
@@ -57,11 +85,13 @@ export class CabinetFormComponent implements OnChanges {
 
   private fillFormWithCabinet(cabinet: KitchenCabinet): void {
     this.form.patchValue({
+      name: cabinet.name || '',
       kitchenCabinetType: cabinet.type,
       openingType: cabinet.openingType,
       width: cabinet.width,
       height: cabinet.height,
       depth: cabinet.depth,
+      positionY: cabinet.positionY ?? 0,
       shelfQuantity: cabinet.shelfQuantity
     });
 
@@ -76,10 +106,12 @@ export class CabinetFormComponent implements OnChanges {
     // Jeśli edytujemy, przywróć wartości po przygotowaniu
     if (this.editingCabinet && this.editingCabinet.type === type) {
       this.form.patchValue({
+        name: this.editingCabinet.name || '',
         openingType: this.editingCabinet.openingType,
         width: this.editingCabinet.width,
         height: this.editingCabinet.height,
         depth: this.editingCabinet.depth,
+        positionY: this.editingCabinet.positionY ?? 0,
         shelfQuantity: this.editingCabinet.shelfQuantity
       });
     }

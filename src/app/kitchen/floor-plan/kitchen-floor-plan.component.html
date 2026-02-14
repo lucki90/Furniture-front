@@ -1,0 +1,122 @@
+<div class="floor-plan-container">
+  <div class="floor-plan-header">
+    <h4>Widok z góry</h4>
+    <button class="btn-add-wall" (click)="onAddWall()" title="Dodaj ścianę">
+      + Ściana
+    </button>
+  </div>
+
+  <svg class="floor-plan-svg" [attr.viewBox]="'0 0 320 240'">
+    <!-- Grid background -->
+    <defs>
+      <pattern id="grid" width="16" height="16" patternUnits="userSpaceOnUse">
+        <path d="M 16 0 L 0 0 0 16" fill="none" stroke="#e8e8e8" stroke-width="0.5"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#grid)"/>
+
+    <!-- Walls and cabinets -->
+    @for (pos of wallPositions(); track pos.wall.id) {
+      <g class="wall-group"
+         [class.selected]="isSelected(pos.wall.id)"
+         (click)="onWallClick(pos.wall.id)">
+
+        <!-- Szafki na ścianie (renderowane w kolejności: dolne -> słupki -> górne) -->
+        @for (cab of getCabinetsForWall(pos); track cab.cabinetId) {
+          <rect
+            [attr.x]="cab.x"
+            [attr.y]="cab.y"
+            [attr.width]="cab.width"
+            [attr.height]="cab.depth"
+            [attr.fill]="getCabinetFill(cab.zone)"
+            [attr.stroke]="getCabinetStroke(cab.zone)"
+            stroke-width="0.5"
+            class="cabinet-rect"
+            rx="1">
+            <title>{{ cab.name || cab.cabinetId }} ({{ cab.zone === 'FULL' ? 'słupek' : cab.zone === 'TOP' ? 'górna' : 'dolna' }})</title>
+          </rect>
+        }
+
+        <!-- Wall rectangle -->
+        <rect
+          [attr.x]="pos.x"
+          [attr.y]="pos.y"
+          [attr.width]="pos.width"
+          [attr.height]="pos.height"
+          [attr.fill]="getWallColor(pos.wall, isSelected(pos.wall.id))"
+          class="wall-rect"
+          rx="1">
+          <title>{{ getWallTooltip(pos.wall) }}</title>
+        </rect>
+
+        <!-- Wall label (short) -->
+        <text
+          [attr.x]="pos.labelX"
+          [attr.y]="pos.labelY"
+          class="wall-label"
+          text-anchor="middle"
+          dominant-baseline="middle">
+          {{ getWallShortLabel(pos.wall.type) }}
+        </text>
+
+        <!-- Cabinet count badge -->
+        @if (pos.wall.cabinets.length > 0) {
+          <circle
+            [attr.cx]="pos.x + pos.width - 4"
+            [attr.cy]="pos.y - 4"
+            r="6"
+            class="cabinet-badge"/>
+          <text
+            [attr.x]="pos.x + pos.width - 4"
+            [attr.y]="pos.y - 4"
+            class="cabinet-count"
+            text-anchor="middle"
+            dominant-baseline="middle">
+            {{ pos.wall.cabinets.length }}
+          </text>
+        }
+
+        <!-- Remove button (only when selected and can remove) -->
+        @if (isSelected(pos.wall.id) && canRemoveWall()) {
+          <g class="remove-btn" (click)="onRemoveWall(pos.wall.id, $event)">
+            <circle
+              [attr.cx]="pos.x + pos.width + 6"
+              [attr.cy]="pos.y + pos.height / 2"
+              r="6"
+              fill="#f44336"/>
+            <text
+              [attr.x]="pos.x + pos.width + 6"
+              [attr.y]="pos.y + pos.height / 2"
+              fill="white"
+              font-size="8"
+              text-anchor="middle"
+              dominant-baseline="middle">
+              ×
+            </text>
+          </g>
+        }
+      </g>
+    }
+
+    <!-- Legend (compact) -->
+    <g class="legend" transform="translate(5, 5)">
+      <text x="0" y="8" class="legend-item">G-główna L-lewa P-prawa</text>
+    </g>
+  </svg>
+
+  <!-- Wall info panel -->
+  <div class="selected-wall-info">
+    @for (pos of wallPositions(); track pos.wall.id) {
+      @if (isSelected(pos.wall.id)) {
+        <span class="wall-info-selected">
+          <strong>{{ getWallLabel(pos.wall.type) }}</strong>
+          {{ pos.wall.widthMm }}×{{ pos.wall.heightMm }}mm
+          · {{ pos.wall.cabinets.length }} szafek
+        </span>
+      }
+    }
+    @if (wallPositions().length === 0) {
+      <span class="empty-hint">Kliknij "+ Ściana"</span>
+    }
+  </div>
+</div>

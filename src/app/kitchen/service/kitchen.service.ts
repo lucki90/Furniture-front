@@ -7,6 +7,8 @@ import {
   KitchenProjectListResponse,
   KitchenProjectRequest,
   KitchenProjectResponse,
+  MultiWallCalculateRequest,
+  MultiWallCalculateResponse,
   UpdateKitchenProjectRequest
 } from '../model/kitchen-project.model';
 
@@ -19,6 +21,7 @@ export class KitchenService {
   private readonly addKitchenCabinet = `${this.baseUrl}/add`;
   private readonly kitchenLayout = `${this.baseUrl}/layout`;
   private readonly projectCalculate = `${this.baseUrl}/project/calculate`;
+  private readonly projectCalculateAll = `${this.baseUrl}/project/calculate-all`;
   private readonly projectsUrl = `${this.baseUrl}/projects`;
 
   constructor(private readonly http: HttpClient) {
@@ -33,11 +36,19 @@ export class KitchenService {
   }
 
   /**
-   * Kalkuluje cały projekt kuchni - wszystkie szafki na ścianie.
+   * Kalkuluje cały projekt kuchni - wszystkie szafki na ścianie (legacy - single wall).
    * Waliduje placement i zwraca zagregowane koszty.
    */
   calculateProject(request: KitchenProjectRequest): Observable<KitchenProjectResponse> {
     return this.http.post<KitchenProjectResponse>(this.projectCalculate, request);
+  }
+
+  /**
+   * Kalkuluje projekt kuchni z wieloma ścianami (bez zapisu do bazy).
+   * Waliduje placement na każdej ścianie i zwraca zagregowane koszty.
+   */
+  calculateMultiWall(request: MultiWallCalculateRequest): Observable<MultiWallCalculateResponse> {
+    return this.http.post<MultiWallCalculateResponse>(this.projectCalculateAll, request);
   }
 
   // ============ PROJECT MANAGEMENT CRUD ============
