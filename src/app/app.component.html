@@ -1,32 +1,80 @@
-<mat-sidenav-container class="main-container">
-  <!-- Boczne menu -->
-  <mat-sidenav mode="side" opened class="sidenav">
-    <h3>Funkcjonalności</h3>
-    <mat-nav-list>
-      <a mat-list-item routerLink="/alone-cabinet" routerLinkActive="active-link">
-        <span>Tworzenie pojedynczej szafki</span>
-      </a>
-      <a mat-list-item routerLink="/secret-locker" routerLinkActive="active-link">
-        <span>Sekretna szafka</span>
-      </a>
-      <a mat-list-item routerLink="/kitchen" routerLinkActive="active-link">
-        <span>Kuchnia</span>
-      </a>
-    </mat-nav-list>
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <!-- Header -->
+    <div class="sidebar-header">
+      <div class="sidebar-logo">🪑</div>
+      <span class="sidebar-title">FurniturePro</span>
+    </div>
 
-    <h3>Panel administracyjny</h3>
-    <mat-nav-list>
-      <a mat-list-item routerLink="/admin/prices" routerLinkActive="active-link">
-        <span>Zarządzanie cenami</span>
-      </a>
-      <a mat-list-item routerLink="/admin/materials" routerLinkActive="active-link">
-        <span>Zarządzanie materiałami</span>
-      </a>
-    </mat-nav-list>
-  </mat-sidenav>
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <!-- Dashboard -->
+      <div class="nav-section">
+        <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">
+          <span class="nav-item-icon">📊</span>
+          <span class="nav-item-text">Dashboard</span>
+        </a>
+      </div>
 
-  <!-- Główna zawartość -->
-  <mat-sidenav-content>
+      <!-- Szafki -->
+      <div class="nav-section">
+        <div class="nav-section-title">Szafki</div>
+        <a class="nav-item" routerLink="/alone-cabinet" routerLinkActive="active">
+          <span class="nav-item-icon">📦</span>
+          <span class="nav-item-text">Pojedyncza szafka</span>
+        </a>
+        <a class="nav-item" routerLink="/secret-locker" routerLinkActive="active">
+          <span class="nav-item-icon">🔐</span>
+          <span class="nav-item-text">Sekretna szafka</span>
+        </a>
+      </div>
+
+      <!-- Kuchnia -->
+      <div class="nav-section">
+        <div class="nav-section-title">Kuchnia</div>
+        <a class="nav-item" routerLink="/kitchen/projects" routerLinkActive="active">
+          <span class="nav-item-icon">📁</span>
+          <span class="nav-item-text">Projekty</span>
+        </a>
+        <a class="nav-item" routerLink="/kitchen" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <span class="nav-item-icon">🍳</span>
+          <span class="nav-item-text">Nowy projekt</span>
+        </a>
+      </div>
+
+      <!-- Panel Administracyjny -->
+      <div class="nav-section">
+        <div class="nav-section-title">Administracja</div>
+        <a class="nav-item" routerLink="/admin/prices" routerLinkActive="active">
+          <span class="nav-item-icon">💰</span>
+          <span class="nav-item-text">Zarządzanie cenami</span>
+        </a>
+        <a class="nav-item" routerLink="/admin/materials" routerLinkActive="active">
+          <span class="nav-item-icon">🪵</span>
+          <span class="nav-item-text">Zarządzanie materiałami</span>
+        </a>
+      </div>
+
+      <!-- Ustawienia -->
+      <div class="nav-section">
+        <a class="nav-item" routerLink="/settings" routerLinkActive="active">
+          <span class="nav-item-icon">⚙️</span>
+          <span class="nav-item-text">Ustawienia</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Toggle Button -->
+    <div class="sidebar-toggle">
+      <button class="toggle-btn" (click)="toggleSidebar()" [title]="sidebarCollapsed ? 'Rozwiń menu' : 'Zwiń menu'">
+        {{ sidebarCollapsed ? '→' : '←' }}
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content" [class.sidebar-collapsed]="sidebarCollapsed">
     <router-outlet></router-outlet>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  </main>
+</div>

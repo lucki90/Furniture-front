@@ -1,4 +1,4 @@
-import { Component, inject, computed, output } from '@angular/core';
+import { Component, inject, computed, output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { WallType } from '../model/kitchen-project.model';
@@ -37,6 +37,9 @@ interface CabinetOnFloorPlan {
 })
 export class KitchenFloorPlanComponent {
   private stateService = inject(KitchenStateService);
+
+  /** ID aktualnie edytowanej szafki - do podświetlenia */
+  @Input() editingCabinetId: string | null = null;
 
   readonly walls = this.stateService.walls;
   readonly selectedWallId = this.stateService.selectedWallId;
@@ -383,9 +386,19 @@ export class KitchenFloorPlanComponent {
   }
 
   /**
-   * Zwraca kolor szafki na podstawie strefy
+   * Sprawdza czy szafka jest aktualnie edytowana
    */
-  getCabinetFill(zone: CabinetZone): string {
+  isEditing(cabinetId: string): boolean {
+    return this.editingCabinetId === cabinetId;
+  }
+
+  /**
+   * Zwraca kolor szafki na podstawie strefy i czy jest edytowana
+   */
+  getCabinetFill(zone: CabinetZone, cabinetId: string): string {
+    if (this.isEditing(cabinetId)) {
+      return '#fbbf24'; // żółty dla edytowanej
+    }
     switch (zone) {
       case 'TOP': return '#90caf9';
       case 'FULL': return '#ce93d8';
@@ -395,9 +408,12 @@ export class KitchenFloorPlanComponent {
   }
 
   /**
-   * Zwraca kolor obramowania szafki na podstawie strefy
+   * Zwraca kolor obramowania szafki na podstawie strefy i czy jest edytowana
    */
-  getCabinetStroke(zone: CabinetZone): string {
+  getCabinetStroke(zone: CabinetZone, cabinetId: string): string {
+    if (this.isEditing(cabinetId)) {
+      return '#f59e0b'; // ciemniejszy żółty dla edytowanej
+    }
     switch (zone) {
       case 'TOP': return '#1565c0';
       case 'FULL': return '#7b1fa2';

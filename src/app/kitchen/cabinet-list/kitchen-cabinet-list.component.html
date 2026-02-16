@@ -1,8 +1,6 @@
 <div class="cabinet-list">
-  <h3>Lista szafek</h3>
-
   <div *ngIf="cabinets.length === 0" class="empty-state">
-    Brak dodanych szafek. Uzyj formularza powyzej, aby dodac szafke.
+    Brak dodanych szafek. Użyj formularza powyżej, aby dodać szafkę.
   </div>
 
   <table *ngIf="cabinets.length > 0">
@@ -13,7 +11,10 @@
         <th>Typ</th>
         <th>Wymiary</th>
         <th>Poz. Y</th>
-        <th>Koszt</th>
+        <th class="cost-col">Płyty</th>
+        <th class="cost-col">Komponenty</th>
+        <th class="cost-col">Prace</th>
+        <th class="cost-col total-col">Razem</th>
         <th>Akcje</th>
       </tr>
     </thead>
@@ -23,23 +24,26 @@
         <td>{{ i + 1 }}</td>
         <td>{{ cabinet.name || '-' }}</td>
         <td>{{ getCabinetTypeName(cabinet.type) }}</td>
-        <td>{{ cabinet.width }}x{{ cabinet.height }}x{{ cabinet.depth }}</td>
-        <td>{{ cabinet.positionY || 0 }} mm</td>
-        <td>{{ cabinet.calculatedResult?.totalCost?.toFixed(2) ?? '-' }} zł</td>
+        <td class="dims-col">{{ cabinet.width }}×{{ cabinet.height }}×{{ cabinet.depth }}</td>
+        <td>{{ cabinet.positionY || 0 }}</td>
+        <td class="cost-col">{{ cabinet.calculatedResult?.boardCosts?.toFixed(0) ?? '-' }}</td>
+        <td class="cost-col">{{ cabinet.calculatedResult?.componentCosts?.toFixed(0) ?? '-' }}</td>
+        <td class="cost-col">{{ cabinet.calculatedResult?.jobCosts?.toFixed(0) ?? '-' }}</td>
+        <td class="cost-col total-col">{{ cabinet.calculatedResult?.totalCost?.toFixed(0) ?? '-' }} zł</td>
         <td class="actions">
           <button
             class="btn-edit"
             (click)="onEdit(cabinet.id)"
             [disabled]="editingCabinetId !== null"
-            title="Edytuj szafke">
-            Edytuj
+            title="Edytuj szafkę">
+            ✏️
           </button>
           <button
             class="btn-remove"
             (click)="onRemove(cabinet.id)"
             [disabled]="editingCabinetId !== null"
-            title="Usun szafke">
-            X
+            title="Usuń szafkę">
+            ×
           </button>
         </td>
       </tr>

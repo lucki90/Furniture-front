@@ -164,6 +164,26 @@
   color: #b71c1c !important;
 }
 
+/* Edytowana szafka - podświetlenie */
+.cabinet.editing {
+  background: linear-gradient(to bottom, #fcd34d, #fbbf24) !important;
+  border-color: #f59e0b !important;
+  border-width: 2px !important;
+  color: #92400e !important;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+  z-index: 20 !important;
+  animation: pulse-editing 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-editing {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.9);
+  }
+}
+
 .cabinet-label {
   text-shadow: 0 0 2px rgba(255,255,255,0.9);
   white-space: nowrap;

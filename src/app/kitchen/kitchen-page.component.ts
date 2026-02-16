@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { KitchenLayoutComponent } from "./kitchen-layout/kitchen-layout.component";
-import { CabinetResultComponent } from "./cabinet-result/cabinet-result.component";
 import { CabinetFormComponent } from "./cabinet-form/cabinet-form.component";
 import { KitchenCabinetListComponent } from './cabinet-list/kitchen-cabinet-list.component';
 import { KitchenFloorPlanComponent } from './floor-plan/kitchen-floor-plan.component';
@@ -51,7 +50,6 @@ export interface AggregatedJob {
     CommonModule,
     FormsModule,
     CabinetFormComponent,
-    CabinetResultComponent,
     KitchenLayoutComponent,
     KitchenCabinetListComponent,
     KitchenFloorPlanComponent

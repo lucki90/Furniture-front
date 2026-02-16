@@ -1,11 +1,4 @@
 <div class="floor-plan-container">
-  <div class="floor-plan-header">
-    <h4>Widok z góry</h4>
-    <button class="btn-add-wall" (click)="onAddWall()" title="Dodaj ścianę">
-      + Ściana
-    </button>
-  </div>
-
   <svg class="floor-plan-svg" [attr.viewBox]="'0 0 320 240'">
     <!-- Grid background -->
     <defs>
@@ -28,10 +21,11 @@
             [attr.y]="cab.y"
             [attr.width]="cab.width"
             [attr.height]="cab.depth"
-            [attr.fill]="getCabinetFill(cab.zone)"
-            [attr.stroke]="getCabinetStroke(cab.zone)"
-            stroke-width="0.5"
+            [attr.fill]="getCabinetFill(cab.zone, cab.cabinetId)"
+            [attr.stroke]="getCabinetStroke(cab.zone, cab.cabinetId)"
+            [attr.stroke-width]="isEditing(cab.cabinetId) ? 2 : 0.5"
             class="cabinet-rect"
+            [class.editing]="isEditing(cab.cabinetId)"
             rx="1">
             <title>{{ cab.name || cab.cabinetId }} ({{ cab.zone === 'FULL' ? 'słupek' : cab.zone === 'TOP' ? 'górna' : 'dolna' }})</title>
           </rect>

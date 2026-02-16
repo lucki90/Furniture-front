@@ -1,88 +1,99 @@
-<form [formGroup]="form">
+<form [formGroup]="form" class="cabinet-form">
+  <!-- Wiersz 1: Nazwa i Typ szafki -->
+  <div class="form-row">
+    <div class="form-group flex-2">
+      <label class="form-label">Nazwa (opcjonalnie)</label>
+      <input type="text" class="form-control" formControlName="name" placeholder="np. Zlewozmywakowa">
+    </div>
+    <div class="form-group flex-2">
+      <label class="form-label">Typ szafki</label>
+      <select class="form-control" formControlName="kitchenCabinetType">
+        <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
+        <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
+      </select>
+    </div>
+  </div>
 
-  <label>
-    Nazwa szafki (opcjonalnie)
-    <input type="text" formControlName="name" placeholder="np. Szafka zlewozmywakowa">
-  </label>
+  <!-- Wiersz 2: Wymiary -->
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Szerokość</label>
+      <div class="input-with-unit">
+        <input type="number" class="form-control" formControlName="width">
+        <span class="unit">mm</span>
+      </div>
+      <span class="form-error" *ngIf="form.get('width')?.touched && form.get('width')?.errors">
+        <ng-container *ngIf="form.get('width')?.errors?.['required']">Wymagane</ng-container>
+        <ng-container *ngIf="form.get('width')?.errors?.['min']">Min: {{ form.get('width')?.errors?.['min'].min }}</ng-container>
+        <ng-container *ngIf="form.get('width')?.errors?.['max']">Max: {{ form.get('width')?.errors?.['max'].max }}</ng-container>
+        <ng-container *ngIf="form.get('width')?.errors?.['widthStep']">{{ form.get('width')?.errors?.['widthStep'].message }}</ng-container>
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Wysokość</label>
+      <div class="input-with-unit">
+        <input type="number" class="form-control" formControlName="height">
+        <span class="unit">mm</span>
+      </div>
+      <span class="form-error" *ngIf="form.get('height')?.touched && form.get('height')?.errors">
+        <ng-container *ngIf="form.get('height')?.errors?.['required']">Wymagane</ng-container>
+        <ng-container *ngIf="form.get('height')?.errors?.['min']">Min: {{ form.get('height')?.errors?.['min'].min }}</ng-container>
+        <ng-container *ngIf="form.get('height')?.errors?.['max']">Max: {{ form.get('height')?.errors?.['max'].max }}</ng-container>
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Głębokość</label>
+      <div class="input-with-unit">
+        <input type="number" class="form-control" formControlName="depth">
+        <span class="unit">mm</span>
+      </div>
+      <span class="form-error" *ngIf="form.get('depth')?.touched && form.get('depth')?.errors">
+        <ng-container *ngIf="form.get('depth')?.errors?.['required']">Wymagane</ng-container>
+        <ng-container *ngIf="form.get('depth')?.errors?.['min']">Min: {{ form.get('depth')?.errors?.['min'].min }}</ng-container>
+        <ng-container *ngIf="form.get('depth')?.errors?.['max']">Max: {{ form.get('depth')?.errors?.['max'].max }}</ng-container>
+      </span>
+    </div>
+  </div>
 
-  <label>
-    Typ szafki
-    <select formControlName="kitchenCabinetType">
-      <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
-      <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
-    </select>
-  </label>
+  <!-- Wiersz 3: Opcje dodatkowe -->
+  <div class="form-row">
+    <div class="form-group">
+      <label class="form-label">Typ otwarcia</label>
+      <select class="form-control" formControlName="openingType">
+        <option *ngFor="let opt of openingTypes" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+    </div>
+    <div class="form-group" *ngIf="visibility.shelfQuantity">
+      <label class="form-label">Półki</label>
+      <input type="number" class="form-control" formControlName="shelfQuantity">
+      <span class="form-error" *ngIf="form.get('shelfQuantity')?.touched && form.get('shelfQuantity')?.errors">
+        <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['min']">Min: {{ form.get('shelfQuantity')?.errors?.['min'].min }}</ng-container>
+        <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['max']">Max: {{ form.get('shelfQuantity')?.errors?.['max'].max }}</ng-container>
+      </span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pozycja Y</label>
+      <div class="input-with-unit">
+        <input type="number" class="form-control" formControlName="positionY" placeholder="0">
+        <span class="unit">mm</span>
+      </div>
+      <span class="form-hint">0=dolna, 1400=wisząca</span>
+    </div>
+  </div>
 
-  <label>
-    Typ otwarcia
-    <select formControlName="openingType">
-      <option *ngFor="let opt of openingTypes" [value]="opt.value">{{ opt.label }}</option>
-    </select>
-  </label>
-
-  <label>
-    Szerokość (mm)
-    <input type="number" formControlName="width">
-    <span class="error" *ngIf="form.get('width')?.touched && form.get('width')?.errors">
-      <ng-container *ngIf="form.get('width')?.errors?.['required']">Pole wymagane</ng-container>
-      <ng-container *ngIf="form.get('width')?.errors?.['min']">Min: {{ form.get('width')?.errors?.['min'].min }}mm</ng-container>
-      <ng-container *ngIf="form.get('width')?.errors?.['max']">Max: {{ form.get('width')?.errors?.['max'].max }}mm</ng-container>
-      <ng-container *ngIf="form.get('width')?.errors?.['widthStep']">{{ form.get('width')?.errors?.['widthStep'].message }}</ng-container>
-    </span>
-  </label>
-
-  <label>
-    Wysokość (mm)
-    <input type="number" formControlName="height">
-    <span class="error" *ngIf="form.get('height')?.touched && form.get('height')?.errors">
-      <ng-container *ngIf="form.get('height')?.errors?.['required']">Pole wymagane</ng-container>
-      <ng-container *ngIf="form.get('height')?.errors?.['min']">Min: {{ form.get('height')?.errors?.['min'].min }}mm</ng-container>
-      <ng-container *ngIf="form.get('height')?.errors?.['max']">Max: {{ form.get('height')?.errors?.['max'].max }}mm</ng-container>
-    </span>
-  </label>
-
-  <label>
-    Głębokość (mm)
-    <input type="number" formControlName="depth">
-    <span class="error" *ngIf="form.get('depth')?.touched && form.get('depth')?.errors">
-      <ng-container *ngIf="form.get('depth')?.errors?.['required']">Pole wymagane</ng-container>
-      <ng-container *ngIf="form.get('depth')?.errors?.['min']">Min: {{ form.get('depth')?.errors?.['min'].min }}mm</ng-container>
-      <ng-container *ngIf="form.get('depth')?.errors?.['max']">Max: {{ form.get('depth')?.errors?.['max'].max }}mm</ng-container>
-    </span>
-  </label>
-
-  <label *ngIf="visibility.shelfQuantity">
-    Liczba półek
-    <input type="number" formControlName="shelfQuantity">
-    <span class="error" *ngIf="form.get('shelfQuantity')?.touched && form.get('shelfQuantity')?.errors">
-      <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['required']">Pole wymagane</ng-container>
-      <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['min']">Min: {{ form.get('shelfQuantity')?.errors?.['min'].min }}</ng-container>
-      <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['max']">Max: {{ form.get('shelfQuantity')?.errors?.['max'].max }}</ng-container>
-    </span>
-  </label>
-
-  <label>
-    Wysokość od podłogi (mm)
-    <input type="number" formControlName="positionY" placeholder="0 = dolna, 1400 = wisząca">
-    <span class="hint">0 dla szafek dolnych, np. 1400 dla wiszących</span>
-  </label>
-
+  <!-- Przyciski -->
   <div class="form-actions">
-    <button type="button" (click)="calculate()" [disabled]="loading || form.invalid">
-      {{ isEditMode ? 'Zapisz zmiany' : 'Dodaj szafke' }}
+    <button type="button" class="btn btn-primary" (click)="calculate()" [disabled]="loading || form.invalid">
+      <span *ngIf="loading" class="spinner"></span>
+      {{ isEditMode ? '💾 Zapisz' : '➕ Dodaj szafkę' }}
     </button>
     <button
       *ngIf="isEditMode"
       type="button"
-      class="btn-cancel"
+      class="btn btn-secondary"
       (click)="onCancel()"
       [disabled]="loading">
       Anuluj
     </button>
   </div>
-
 </form>
-
-<div *ngIf="loading">
-  Liczenie...
-</div>

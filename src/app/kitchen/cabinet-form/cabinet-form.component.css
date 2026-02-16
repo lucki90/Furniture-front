@@ -1,62 +1,177 @@
-label {
-  display: block;
-  margin-bottom: 15px;
+/* ============================================
+   CABINET FORM - KOMPAKTOWY STYL
+   ============================================ */
+
+.cabinet-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-input, select {
-  display: block;
-  margin-top: 5px;
-  padding: 8px;
-  width: 200px;
+/* Wiersze formularza */
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.error {
-  display: block;
-  color: #d32f2f;
-  font-size: 12px;
-  margin-top: 4px;
+/* Grupy formularza */
+.form-group {
+  flex: 1;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.hint {
-  display: block;
-  color: #666;
+.form-group.flex-2 {
+  flex: 2;
+  min-width: 120px;
+}
+
+/* Etykiety */
+.form-label {
   font-size: 11px;
-  margin-top: 4px;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0;
 }
 
+/* Inputy i selecty */
+.cabinet-form .form-control {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 6px;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1e293b);
+  transition: all 0.2s ease;
+}
+
+.cabinet-form .form-control:focus {
+  outline: none;
+  border-color: var(--accent-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.cabinet-form select.form-control {
+  cursor: pointer;
+  padding-right: 28px;
+}
+
+/* Input z jednostką */
+.input-with-unit {
+  display: flex;
+  align-items: stretch;
+}
+
+.input-with-unit .form-control {
+  border-radius: 6px 0 0 6px;
+  border-right: none;
+  width: 100%;
+}
+
+.input-with-unit .unit {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  background: var(--bg-hover, #f1f5f9);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  white-space: nowrap;
+}
+
+/* Błędy i podpowiedzi */
+.form-error {
+  font-size: 10px;
+  color: var(--error-color, #ef4444);
+  margin-top: 2px;
+}
+
+.form-hint {
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 2px;
+}
+
+/* Przyciski */
 .form-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
 }
 
-button {
-  padding: 10px 20px;
-  cursor: pointer;
+.form-actions .btn {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
   border: none;
-  border-radius: 4px;
-  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
-button:not(.btn-cancel) {
-  background: #1976d2;
+.form-actions .btn-primary {
+  background: var(--accent-color, #3b82f6);
   color: white;
 }
 
-button:not(.btn-cancel):hover:not(:disabled) {
-  background: #1565c0;
+.form-actions .btn-primary:hover:not(:disabled) {
+  background: var(--accent-light, #60a5fa);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
-.btn-cancel {
-  background: #757575;
-  color: white;
+.form-actions .btn-secondary {
+  background: var(--bg-hover, #f1f5f9);
+  color: var(--text-primary, #1e293b);
+  border: 1px solid var(--border-color, #e2e8f0);
 }
 
-.btn-cancel:hover:not(:disabled) {
-  background: #616161;
+.form-actions .btn-secondary:hover:not(:disabled) {
+  background: var(--border-color, #e2e8f0);
 }
 
-button:disabled {
-  opacity: 0.6;
+.form-actions .btn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Spinner */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsywność */
+@media (max-width: 500px) {
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-group,
+  .form-group.flex-2 {
+    min-width: 100%;
+  }
 }

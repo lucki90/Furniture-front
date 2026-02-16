@@ -1,4 +1,4 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, Input } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { CabinetPosition, CabinetZone, getCabinetZone, ZONE_THRESHOLDS } from '../model/kitchen-state.model';
@@ -31,6 +31,9 @@ interface VisualCabinetPosition {
 export class KitchenLayoutComponent {
 
   private stateService = inject(KitchenStateService);
+
+  /** ID aktualnie edytowanej szafki - do podświetlenia */
+  @Input() editingCabinetId: string | null = null;
 
   readonly wall = this.stateService.wall;
   readonly selectedWall = this.stateService.selectedWall;
@@ -185,5 +188,12 @@ export class KitchenLayoutComponent {
       return pos.name;
     }
     return `${index + 1}`;
+  }
+
+  /**
+   * Sprawdza czy szafka jest aktualnie edytowana
+   */
+  isEditing(cabinetId: string): boolean {
+    return this.editingCabinetId === cabinetId;
   }
 }
