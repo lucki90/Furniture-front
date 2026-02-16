@@ -78,6 +78,11 @@ export class KitchenPageComponent {
   aggregatedComponents: AggregatedComponent[] = [];
   aggregatedJobs: AggregatedJob[] = [];
 
+  // Koszt odpadu (SHEET_WASTE) - opcjonalnie wliczany
+  includeWasteCost = false;
+  totalWasteCost = 0;
+  wasteDetails: AggregatedComponent[] = [];
+
   // Multi-wall signals
   readonly walls = this.stateService.walls;
   readonly selectedWall = this.stateService.selectedWall;
@@ -269,6 +274,8 @@ export class KitchenPageComponent {
     this.aggregatedBoards = [];
     this.aggregatedComponents = [];
     this.aggregatedJobs = [];
+    this.totalWasteCost = 0;
+    this.wasteDetails = [];
   }
 
   /**
@@ -277,6 +284,7 @@ export class KitchenPageComponent {
   private aggregateProjectDetails(response: MultiWallCalculateResponse): void {
     const boardsMap = new Map<string, AggregatedBoard>();
     const componentsMap = new Map<string, AggregatedComponent>();
+    const wasteMap = new Map<string, AggregatedComponent>(); // Osobna mapa dla SHEET_WASTE
     const jobsMap = new Map<string, AggregatedJob>();
 
     for (const wall of response.walls) {
@@ -303,16 +311,19 @@ export class KitchenPageComponent {
           }
         }
 
-        // Agreguj komponenty
+        // Agreguj komponenty (z wydzieleniem SHEET_WASTE)
         if (cabinet.components) {
           for (const comp of cabinet.components) {
+            const isWaste = comp.category === 'SHEET_WASTE';
+            const targetMap = isWaste ? wasteMap : componentsMap;
+
             const key = `${comp.category}_${comp.model}`;
-            const existing = componentsMap.get(key);
+            const existing = targetMap.get(key);
             if (existing) {
               existing.quantity += comp.quantity;
               existing.totalCost += comp.totalPrice;
             } else {
-              componentsMap.set(key, {
+              targetMap.set(key, {
                 name: comp.model,
                 type: comp.category,
                 quantity: comp.quantity,
@@ -348,5 +359,27 @@ export class KitchenPageComponent {
     this.aggregatedBoards = Array.from(boardsMap.values());
     this.aggregatedComponents = Array.from(componentsMap.values());
     this.aggregatedJobs = Array.from(jobsMap.values());
+
+    // Wydziel koszt odpadu
+    this.wasteDetails = Array.from(wasteMap.values());
+    this.totalWasteCost = this.wasteDetails.reduce((sum, w) => sum + w.totalCost, 0);
+  }
+
+  /**
+   * Oblicza całkowity koszt projektu z opcjonalnym kosztem odpadu
+   */
+  get adjustedTotalCost(): number {
+    if (!this.projectResult) return 0;
+    const baseCost = this.projectResult.totalProjectCost - this.totalWasteCost;
+    return this.includeWasteCost ? this.projectResult.totalProjectCost : baseCost;
+  }
+
+  /**
+   * Oblicza koszt komponentów z opcjonalnym kosztem odpadu
+   */
+  get adjustedComponentCost(): number {
+    if (!this.projectResult) return 0;
+    const baseCost = this.projectResult.totalComponentCost - this.totalWasteCost;
+    return this.includeWasteCost ? this.projectResult.totalComponentCost : baseCost;
   }
 }

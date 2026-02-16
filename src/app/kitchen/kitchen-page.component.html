@@ -200,7 +200,7 @@
             <div class="cost-card">
               <span class="cost-icon">🔩</span>
               <span class="cost-label">Komponenty</span>
-              <span class="cost-value">{{ projectResult.totalComponentCost.toFixed(2) }} zł</span>
+              <span class="cost-value">{{ adjustedComponentCost.toFixed(2) }} zł</span>
             </div>
             <div class="cost-card">
               <span class="cost-icon">🔧</span>
@@ -210,9 +210,28 @@
             <div class="cost-card total">
               <span class="cost-icon">📊</span>
               <span class="cost-label">RAZEM</span>
-              <span class="cost-value">{{ projectResult.totalProjectCost.toFixed(2) }} zł</span>
+              <span class="cost-value">{{ adjustedTotalCost.toFixed(2) }} zł</span>
             </div>
           </div>
+
+          <!-- Koszt odpadu - osobna sekcja -->
+          <div class="waste-cost-section" *ngIf="totalWasteCost > 0">
+            <div class="waste-toggle">
+              <label class="toggle-label">
+                <input type="checkbox" [(ngModel)]="includeWasteCost">
+                <span class="toggle-text">Wlicz koszt odpadu z cięcia</span>
+              </label>
+              <span class="waste-value" [class.included]="includeWasteCost">
+                {{ includeWasteCost ? '+' : '' }}{{ totalWasteCost.toFixed(2) }} zł
+              </span>
+            </div>
+            <small class="waste-hint">
+              Odpad: {{ wasteDetails[0]?.quantity?.toFixed(2) || 0 }} m²
+              (cena {{ wasteDetails[0]?.unitCost?.toFixed(2) || 0 }} zł/m²)
+              — niektóre hurtownie nie doliczają kosztu odpadu
+            </small>
+          </div>
+
           <div class="project-info">
             <span>Ściany: {{ projectResult.wallCount }}</span>
             <span>•</span>
@@ -392,21 +411,47 @@
     </div>
   </section>
 
-  <!-- ============ PRZYCISKI AKCJI ============ -->
-  <footer class="page-footer" *ngIf="projectResult">
+  <!-- ============ STICKY FOOTER - ZAWSZE WIDOCZNY ============ -->
+  <footer class="page-footer" *ngIf="totalCabinetCount() > 0">
     <div class="footer-info">
-      <span>Projekt: {{ projectResult.wallCount }} ścian, {{ projectResult.totalCabinetCount }} szafek</span>
+      <span *ngIf="projectResult">
+        💰 <strong>{{ adjustedTotalCost.toFixed(0) }} zł</strong>
+        <span class="footer-details">({{ projectResult.wallCount }} ścian, {{ projectResult.totalCabinetCount }} szafek)</span>
+      </span>
+      <span *ngIf="!projectResult">
+        📐 <strong>{{ totalCabinetCount() }}</strong> szafek
+        <span class="footer-details">({{ walls().length }} ścian)</span>
+      </span>
     </div>
     <div class="footer-actions">
-      <button class="btn btn-outline">
-        <span>📊</span> Generuj Excel
+      <!-- Przyciski główne -->
+      <button
+        class="btn btn-primary"
+        (click)="calculateProject()"
+        [disabled]="totalCabinetCount() === 0 || isCalculatingProject || editingCabinetId !== null">
+        <span>🧮</span>
+        {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
       </button>
-      <button class="btn btn-outline">
-        <span>📄</span> Generuj PDF
+      <button
+        class="btn btn-secondary"
+        (click)="clearAll()"
+        [disabled]="editingCabinetId !== null">
+        <span>🗑️</span> Wyczyść
       </button>
-      <button class="btn btn-primary">
-        <span>📋</span> Generuj instrukcję składania
-      </button>
+
+      <!-- Przyciski eksportu (gdy jest kalkulacja) -->
+      <ng-container *ngIf="projectResult">
+        <div class="footer-divider"></div>
+        <button class="btn btn-outline">
+          <span>📊</span> Excel
+        </button>
+        <button class="btn btn-outline">
+          <span>📄</span> PDF
+        </button>
+        <button class="btn btn-outline">
+          <span>📋</span> Instrukcja
+        </button>
+      </ng-container>
     </div>
   </footer>
 </div>

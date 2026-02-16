@@ -52,9 +52,6 @@ export class KitchenFloorPlanComponent {
   private readonly SVG_HEIGHT = 240;
   private readonly WALL_THICKNESS = 10;
   private readonly PADDING = 30;
-  private readonly CABINET_DEPTH_BOTTOM = 600; // głębokość szafek dolnych (mm)
-  private readonly CABINET_DEPTH_HANGING = 350; // głębokość szafek górnych (mm)
-  private readonly CABINET_DEPTH_FULL = 600; // głębokość słupków (mm)
 
   // Obliczona skala (potrzebna też dla szafek)
   private currentScale = 0.1;
@@ -260,6 +257,7 @@ export class KitchenFloorPlanComponent {
    * Oblicza pozycje szafek dla danej ściany na widoku z góry.
    * Szafki są zwracane w kolejności: najpierw dolne (BOTTOM), potem słupki (FULL), potem górne (TOP).
    * Dzięki temu górne są renderowane na wierzchu i częściowo zasłaniają dolne.
+   * Używa rzeczywistej głębokości szafki (cabinet.depth).
    */
   getCabinetsForWall(pos: WallPosition): CabinetOnFloorPlan[] {
     const wall = pos.wall;
@@ -277,26 +275,24 @@ export class KitchenFloorPlanComponent {
     for (const cabinet of wall.cabinets) {
       const zone = getCabinetZone(cabinet);
       const cabinetWidth = cabinet.width * scale;
+      // Użyj rzeczywistej głębokości szafki
+      const cabinetDepth = cabinet.depth * scale;
 
-      let cabinetDepth: number;
       let posX: number;
 
       switch (zone) {
         case 'FULL':
-          cabinetDepth = this.CABINET_DEPTH_FULL * scale;
           // Słupki zajmują max z obu liczników, potem przesuwają oba
           posX = Math.max(currentXBottom, currentXTop);
           currentXBottom = posX + cabinet.width;
           currentXTop = posX + cabinet.width;
           break;
         case 'TOP':
-          cabinetDepth = this.CABINET_DEPTH_HANGING * scale;
           posX = currentXTop;
           currentXTop += cabinet.width;
           break;
         case 'BOTTOM':
         default:
-          cabinetDepth = this.CABINET_DEPTH_BOTTOM * scale;
           posX = currentXBottom;
           currentXBottom += cabinet.width;
           break;
