@@ -10,6 +10,7 @@
       <select class="form-control" formControlName="kitchenCabinetType">
         <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
         <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
+        <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
       </select>
     </div>
   </div>
@@ -70,6 +71,22 @@
         <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['min']">Min: {{ form.get('shelfQuantity')?.errors?.['min'].min }}</ng-container>
         <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['max']">Max: {{ form.get('shelfQuantity')?.errors?.['max'].max }}</ng-container>
       </span>
+    </div>
+    <div class="form-group" *ngIf="visibility.drawerQuantity">
+      <label class="form-label">Ilość szuflad</label>
+      <input type="number" class="form-control" formControlName="drawerQuantity">
+      <span class="form-error" *ngIf="form.get('drawerQuantity')?.touched && form.get('drawerQuantity')?.errors">
+        <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['required']">Wymagane</ng-container>
+        <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['min']">Min: {{ form.get('drawerQuantity')?.errors?.['min'].min }}</ng-container>
+        <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['max']">Max: {{ form.get('drawerQuantity')?.errors?.['max'].max }}</ng-container>
+      </span>
+    </div>
+    <div class="form-group" *ngIf="visibility.drawerModel">
+      <label class="form-label">System szuflad</label>
+      <select class="form-control" formControlName="drawerModel">
+        <option value="ANTARO_TANDEMBOX">Blum Antaro Tandembox</option>
+        <option value="SEVROLL_BALL">Sevroll Ball</option>
+      </select>
     </div>
     <div class="form-group">
       <label class="form-label">Pozycja Y</label>

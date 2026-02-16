@@ -92,7 +92,9 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       height: cabinet.height,
       depth: cabinet.depth,
       positionY: cabinet.positionY ?? 0,
-      shelfQuantity: cabinet.shelfQuantity
+      shelfQuantity: cabinet.shelfQuantity,
+      drawerQuantity: cabinet.drawerQuantity,
+      drawerModel: cabinet.drawerModel
     });
 
     this.onTypeChange(cabinet.type);
@@ -112,7 +114,9 @@ export class CabinetFormComponent implements OnChanges, OnInit {
         height: this.editingCabinet.height,
         depth: this.editingCabinet.depth,
         positionY: this.editingCabinet.positionY ?? 0,
-        shelfQuantity: this.editingCabinet.shelfQuantity
+        shelfQuantity: this.editingCabinet.shelfQuantity,
+        drawerQuantity: this.editingCabinet.drawerQuantity,
+        drawerModel: this.editingCabinet.drawerModel
       });
     }
   }

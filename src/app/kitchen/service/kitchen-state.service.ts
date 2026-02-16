@@ -16,8 +16,10 @@ import {
   WALL_TYPES,
   CreateKitchenProjectRequest,
   ProjectWallRequest,
-  MultiWallCalculateRequest
+  MultiWallCalculateRequest,
+  DrawerRequest
 } from '../model/kitchen-project.model';
+import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 
 @Injectable({
   providedIn: 'root'
@@ -298,6 +300,8 @@ export class KitchenStateService {
       depth: formData.depth,
       positionY: formData.positionY ?? 0,
       shelfQuantity: formData.shelfQuantity,
+      drawerQuantity: formData.drawerQuantity,
+      drawerModel: formData.drawerModel ?? undefined,
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
 
@@ -348,6 +352,8 @@ export class KitchenStateService {
             depth: formData.depth,
             positionY: formData.positionY ?? 0,
             shelfQuantity: formData.shelfQuantity,
+            drawerQuantity: formData.drawerQuantity,
+            drawerModel: formData.drawerModel ?? undefined,
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
         })
@@ -473,6 +479,17 @@ export class KitchenStateService {
       let currentX = 0;
 
       const cabinets: ProjectCabinetRequest[] = wall.cabinets.map(cab => {
+        // Przygotuj drawerRequest dla szafek z szufladami
+        let drawerRequest: DrawerRequest | undefined;
+        if (cab.type === KitchenCabinetType.BASE_WITH_DRAWERS && cab.drawerQuantity && cab.drawerModel) {
+          drawerRequest = {
+            drawerQuantity: cab.drawerQuantity,
+            drawerModel: cab.drawerModel,
+            drawerBaseHdf: false,
+            drawerFrontDetails: null
+          };
+        }
+
         const request: ProjectCabinetRequest = {
           cabinetId: cab.name || cab.id, // użyj nazwy jeśli jest, inaczej ID
           kitchenCabinetType: cab.type,
@@ -493,7 +510,8 @@ export class KitchenStateService {
             frontBoardThickness: 18,
             frontColor: 'WHITE',
             frontVeneerColor: 'WHITE'
-          }
+          },
+          drawerRequest
         };
         currentX += cab.width;
         return request;

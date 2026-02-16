@@ -55,6 +55,14 @@ export interface ProjectCabinetRequest {
   shelfQuantity: number;
   varnishedFront: boolean;
   materialRequest: MaterialRequest;
+  drawerRequest?: DrawerRequest;
+}
+
+export interface DrawerRequest {
+  drawerQuantity: number;
+  drawerModel: string;
+  drawerBaseHdf: boolean;
+  drawerFrontDetails: any | null;
 }
 
 export interface MaterialRequest {

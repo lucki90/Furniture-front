@@ -24,7 +24,7 @@ export class CabinetConstants {
   ];
 
   static readonly DRAWER_MODELS = [
-    {value: 'ANTARO', label: 'UI.drawerModelBlumAntaroTandembox'},
+    {value: 'ANTARO_TANDEMBOX', label: 'UI.drawerModelBlumAntaroTandembox'},
     {value: 'SEVROLL_BALL', label: 'UI.drawerModelSevrollBall'}
   ];
 

@@ -130,7 +130,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
         this.form.get('drawerQuantity')?.enable();
         this.form.get('isFrontExtended')?.disable()
         this.form.get('shelfQuantity')?.disable()
-        this.form.patchValue({drawerModel: 'ANTARO'});
+        this.form.patchValue({drawerModel: 'ANTARO_TANDEMBOX'});
         this.form.get('drawerModel')?.enable();
         this.form.patchValue({drawerBaseHdf: false});
         this.form.get('drawerBaseHdf')?.enable();

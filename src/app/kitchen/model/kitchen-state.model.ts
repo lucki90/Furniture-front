@@ -31,6 +31,8 @@ export interface KitchenCabinet {
   depth: number;
   positionY: number; // wysokość od podłogi (0 = dolna, np. 1400 = wisząca)
   shelfQuantity: number;
+  drawerQuantity?: number; // ilość szuflad (dla typu BASE_WITH_DRAWERS)
+  drawerModel?: string; // system szuflad (ANTARO_TANDEMBOX, SEVROLL_BALL)
   calculatedResult?: CabinetCalculationResult;
 }
 

@@ -21,7 +21,8 @@ export class KitchenCabinetListComponent {
   getCabinetTypeName(type: KitchenCabinetType): string {
     const typeNames: Record<KitchenCabinetType, string> = {
       [KitchenCabinetType.BASE_ONE_DOOR]: 'Dolna 1-drzwiowa',
-      [KitchenCabinetType.BASE_TWO_DOOR]: 'Dolna 2-drzwiowa'
+      [KitchenCabinetType.BASE_TWO_DOOR]: 'Dolna 2-drzwiowa',
+      [KitchenCabinetType.BASE_WITH_DRAWERS]: 'Dolna z szufladami'
     };
     return typeNames[type] ?? type;
   }
