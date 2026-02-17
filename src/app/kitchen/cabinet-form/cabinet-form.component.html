@@ -11,6 +11,7 @@
         <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
         <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
         <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
+        <option value="TALL_CABINET">Słupek</option>
       </select>
     </div>
   </div>
@@ -95,6 +96,50 @@
         <span class="unit">mm</span>
       </div>
       <span class="form-hint">0=dolna, 1400=wisząca</span>
+    </div>
+  </div>
+
+  <!-- Sekcja segmentów (dla TALL_CABINET) -->
+  <div *ngIf="visibility.segments" class="segments-section">
+    <h4 class="section-title">Konfiguracja segmentów</h4>
+
+    <div class="segments-layout">
+      <!-- Lewa strona: wizualizer -->
+      <div class="segments-visualizer-column">
+        <app-segment-visualizer
+          [segmentsArray]="segmentsArray"
+          [netHeight]="netCabinetHeight"
+          [selectedIndex]="selectedSegmentIndex"
+          (segmentSelected)="selectSegment($event)"
+          (orderChanged)="onSegmentsReordered()">
+        </app-segment-visualizer>
+      </div>
+
+      <!-- Prawa strona: formularz wybranego segmentu -->
+      <div class="segments-form-column">
+        <ng-container *ngIf="selectedSegmentForm; else noSegmentSelected">
+          <app-segment-form
+            [segmentForm]="selectedSegmentForm"
+            [segmentIndex]="selectedSegmentIndex"
+            (remove)="removeSegment(selectedSegmentIndex)">
+          </app-segment-form>
+        </ng-container>
+
+        <ng-template #noSegmentSelected>
+          <div class="no-segment-hint">
+            <p>Kliknij segment na wizualizacji, aby go edytować.</p>
+          </div>
+        </ng-template>
+
+        <button type="button" class="btn btn-secondary btn-add-segment" (click)="addSegment()">
+          + Dodaj segment
+        </button>
+      </div>
+    </div>
+
+    <!-- Błąd walidacji wysokości segmentów -->
+    <div *ngIf="segmentHeightError" class="segments-error">
+      {{ segmentHeightError }}
     </div>
   </div>
 

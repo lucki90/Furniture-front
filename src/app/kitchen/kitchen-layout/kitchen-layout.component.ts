@@ -104,9 +104,11 @@ export class KitchenLayoutComponent {
 
       switch (zone) {
         case 'FULL':
-          // Słupek - rozciąga się od góry do dołu
-          displayHeight = this.TOP_ZONE_HEIGHT + this.GAP_HEIGHT + this.COUNTER_HEIGHT + this.BOTTOM_ZONE_HEIGHT;
-          displayY = 0;
+          // Słupek - używamy faktycznej wysokości szafki, przeskalowanej
+          // Szafka stoi na podłodze (dolna krawędź = dół wizualizacji)
+          displayHeight = Math.round(cab.height * this.SCALE_VERTICAL);
+          // Pozycja Y = od dołu wizualizacji w górę
+          displayY = this.WALL_DISPLAY_HEIGHT - displayHeight;
           break;
 
         case 'TOP':

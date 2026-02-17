@@ -1,6 +1,7 @@
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { WallType } from './kitchen-project.model';
+import { SegmentFormData } from '../cabinet-form/model/segment.model';
 
 /**
  * Strefa pozycjonowania szafki:
@@ -33,6 +34,7 @@ export interface KitchenCabinet {
   shelfQuantity: number;
   drawerQuantity?: number; // ilość szuflad (dla typu BASE_WITH_DRAWERS)
   drawerModel?: string; // system szuflad (ANTARO_TANDEMBOX, SEVROLL_BALL)
+  segments?: SegmentFormData[]; // segmenty (dla typu TALL_CABINET)
   calculatedResult?: CabinetCalculationResult;
 }
 
@@ -96,6 +98,7 @@ export interface CabinetFormData {
   shelfQuantity: number;
   drawerQuantity?: number;
   drawerModel?: string | null;
+  segments?: SegmentFormData[];  // dla TALL_CABINET
 }
 
 export interface CabinetCalculatedEvent {

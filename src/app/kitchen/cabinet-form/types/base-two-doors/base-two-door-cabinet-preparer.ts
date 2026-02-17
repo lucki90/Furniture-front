@@ -11,6 +11,7 @@ export class BaseTwoDoorCabinetPreparer
     v.shelfQuantity = true;
     v.drawerQuantity = false;
     v.drawerModel = false;
+    v.segments = false;
 
     // wartości domyślne
     // kitchenCabinetType: [KitchenCabinetType.BASE_TWO_DOOR], -- ta wartosc ustawiana jest przy wyborze typu szafki

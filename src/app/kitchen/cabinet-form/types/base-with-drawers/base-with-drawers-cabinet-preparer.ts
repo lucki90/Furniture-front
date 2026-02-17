@@ -9,6 +9,7 @@ export class BaseWithDrawersCabinetPreparer implements KitchenCabinetPreparer {
     v.shelfQuantity = false;
     v.drawerQuantity = true;
     v.drawerModel = true;
+    v.segments = false;
 
     // wartości domyślne dla szafki z szufladami
     form.patchValue({

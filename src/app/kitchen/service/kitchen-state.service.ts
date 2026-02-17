@@ -20,6 +20,7 @@ import {
   DrawerRequest
 } from '../model/kitchen-project.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { mapSegmentToRequest, SegmentRequest, SegmentFormData } from '../cabinet-form/model/segment.model';
 
 @Injectable({
   providedIn: 'root'
@@ -302,6 +303,7 @@ export class KitchenStateService {
       shelfQuantity: formData.shelfQuantity,
       drawerQuantity: formData.drawerQuantity,
       drawerModel: formData.drawerModel ?? undefined,
+      segments: formData.segments,  // dla TALL_CABINET
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
 
@@ -354,6 +356,7 @@ export class KitchenStateService {
             shelfQuantity: formData.shelfQuantity,
             drawerQuantity: formData.drawerQuantity,
             drawerModel: formData.drawerModel ?? undefined,
+            segments: formData.segments,  // dla TALL_CABINET
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
         })
@@ -490,6 +493,18 @@ export class KitchenStateService {
           };
         }
 
+        // Przygotuj segmenty dla TALL_CABINET
+        let segments: SegmentRequest[] | undefined;
+        if (cab.type === KitchenCabinetType.TALL_CABINET && cab.segments && cab.segments.length > 0) {
+          segments = cab.segments.map((segment, index) => {
+            const segmentWithIndex: SegmentFormData = {
+              ...segment,
+              orderIndex: index
+            };
+            return mapSegmentToRequest(segmentWithIndex);
+          });
+        }
+
         const request: ProjectCabinetRequest = {
           cabinetId: cab.name || cab.id, // użyj nazwy jeśli jest, inaczej ID
           kitchenCabinetType: cab.type,
@@ -511,7 +526,8 @@ export class KitchenStateService {
             frontColor: 'WHITE',
             frontVeneerColor: 'WHITE'
           },
-          drawerRequest
+          drawerRequest,
+          segments
         };
         currentX += cab.width;
         return request;

@@ -1,6 +1,7 @@
 import { Board, Component, Job } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
+import { SegmentRequest } from '../cabinet-form/model/segment.model';
 
 // ============ WALL TYPES ============
 
@@ -56,6 +57,7 @@ export interface ProjectCabinetRequest {
   varnishedFront: boolean;
   materialRequest: MaterialRequest;
   drawerRequest?: DrawerRequest;
+  segments?: SegmentRequest[];  // dla TALL_CABINET
 }
 
 export interface DrawerRequest {

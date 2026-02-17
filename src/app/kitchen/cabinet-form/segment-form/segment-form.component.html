@@ -1,0 +1,88 @@
+<div class="segment-form" [formGroup]="segmentForm">
+  <div class="segment-header">
+    <span class="segment-number">Segment {{ segmentIndex + 1 }}</span>
+    <button type="button" class="btn-remove" (click)="onRemove()" title="Usuń segment">
+      &times;
+    </button>
+  </div>
+
+  <div class="segment-fields">
+    <!-- Typ segmentu -->
+    <div class="form-group">
+      <label class="form-label">Typ</label>
+      <select class="form-control" formControlName="segmentType">
+        <option *ngFor="let opt of segmentTypeOptions" [value]="opt.value">
+          {{ opt.icon }} {{ opt.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Wysokość segmentu -->
+    <div class="form-group">
+      <label class="form-label">Wysokość</label>
+      <div class="input-with-unit">
+        <input type="number" class="form-control" formControlName="height"
+               [min]="constraints.SEGMENT_MIN_HEIGHT">
+        <span class="unit">mm</span>
+      </div>
+      <span class="form-error" *ngIf="segmentForm.get('height')?.touched && segmentForm.get('height')?.errors">
+        <ng-container *ngIf="segmentForm.get('height')?.errors?.['min']">
+          Min: {{ constraints.SEGMENT_MIN_HEIGHT }}mm
+        </ng-container>
+      </span>
+    </div>
+
+    <!-- Opcje dla szuflad (DRAWER) -->
+    <ng-container *ngIf="showDrawerOptions">
+      <div class="form-group">
+        <label class="form-label">Ilość szuflad</label>
+        <input type="number" class="form-control" formControlName="drawerQuantity"
+               [min]="constraints.SEGMENT_DRAWER_MIN"
+               [max]="constraints.SEGMENT_DRAWER_MAX">
+        <span class="form-error" *ngIf="segmentForm.get('drawerQuantity')?.touched && segmentForm.get('drawerQuantity')?.errors">
+          <ng-container *ngIf="segmentForm.get('drawerQuantity')?.errors?.['min']">
+            Min: {{ constraints.SEGMENT_DRAWER_MIN }}
+          </ng-container>
+          <ng-container *ngIf="segmentForm.get('drawerQuantity')?.errors?.['max']">
+            Max: {{ constraints.SEGMENT_DRAWER_MAX }}
+          </ng-container>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">System szuflad</label>
+        <select class="form-control" formControlName="drawerModel">
+          <option *ngFor="let model of drawerModels" [value]="model.value">
+            {{ model.label }}
+          </option>
+        </select>
+      </div>
+    </ng-container>
+
+    <!-- Opcje dla drzwi (DOOR) -->
+    <ng-container *ngIf="showFrontTypeOptions">
+      <div class="form-group">
+        <label class="form-label">Typ drzwi</label>
+        <select class="form-control" formControlName="frontType">
+          <option *ngFor="let opt of doorFrontTypeOptions" [value]="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
+      </div>
+    </ng-container>
+
+    <!-- Półki dla DOOR i OPEN_SHELF -->
+    <ng-container *ngIf="showShelfQuantity">
+      <div class="form-group">
+        <label class="form-label">Półki wewnątrz</label>
+        <input type="number" class="form-control" formControlName="shelfQuantity"
+               min="0" [max]="constraints.SEGMENT_SHELF_MAX">
+        <span class="form-error" *ngIf="segmentForm.get('shelfQuantity')?.touched && segmentForm.get('shelfQuantity')?.errors">
+          <ng-container *ngIf="segmentForm.get('shelfQuantity')?.errors?.['max']">
+            Max: {{ constraints.SEGMENT_SHELF_MAX }}
+          </ng-container>
+        </span>
+      </div>
+    </ng-container>
+  </div>
+</div>

@@ -1,0 +1,83 @@
+<div class="segment-visualizer">
+  <h4 class="visualizer-title">Podgląd segmentów</h4>
+
+  <div class="visualizer-container"
+       [style.height.px]="visualizerHeight"
+       cdkDropList
+       (cdkDropListDropped)="onDrop($event)">
+
+    <!-- Lista segmentów -->
+    <div
+      *ngFor="let segment of segmentsArray.controls; let i = index"
+      class="segment-block"
+      [class.selected]="i === selectedIndex"
+      [style.height.px]="getSegmentHeightPx(segment)"
+      [style.background-color]="getSegmentColor(segment)"
+      (click)="onSegmentClick(i)"
+      cdkDrag>
+
+      <!-- Drag handle -->
+      <div class="drag-handle" cdkDragHandle>
+        <span class="drag-icon">&#9776;</span>
+      </div>
+
+      <!-- Zawartość segmentu -->
+      <div class="segment-content">
+        <span class="segment-icon">{{ getSegmentIcon(segment) }}</span>
+        <span class="segment-info">
+          <span class="segment-type">{{ getSegmentTypeName(segment) }}</span>
+          <span class="segment-height">{{ getSegmentHeight(segment) }}mm</span>
+        </span>
+      </div>
+
+      <!-- Wizualizacja zawartości -->
+      <div class="segment-visualization">
+        <ng-container [ngSwitch]="$any(segment).get('segmentType')?.value">
+          <!-- Szuflady -->
+          <ng-container *ngSwitchCase="'DRAWER'">
+            <div class="drawer-lines"
+                 *ngFor="let _ of [].constructor($any(segment).get('drawerQuantity')?.value || 3)">
+              <div class="drawer-line"></div>
+            </div>
+          </ng-container>
+
+          <!-- Drzwi -->
+          <ng-container *ngSwitchCase="'DOOR'">
+            <div class="door-frame"
+                 [class.two-doors]="$any(segment).get('frontType')?.value === 'TWO_DOORS'">
+              <div class="door-panel"></div>
+              <div class="door-panel" *ngIf="$any(segment).get('frontType')?.value === 'TWO_DOORS'"></div>
+            </div>
+          </ng-container>
+
+          <!-- Otwarte półki -->
+          <ng-container *ngSwitchCase="'OPEN_SHELF'">
+            <div class="open-shelf-lines"
+                 *ngFor="let _ of [].constructor($any(segment).get('shelfQuantity')?.value || 1)">
+              <div class="shelf-line"></div>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Komunikat gdy brak segmentów -->
+    <div *ngIf="segmentsArray.length === 0" class="empty-message">
+      Dodaj segmenty
+    </div>
+  </div>
+
+  <!-- Podsumowanie wysokości -->
+  <div class="height-summary" [class.invalid]="!isHeightValid">
+    <span class="sum-label">Suma:</span>
+    <span class="sum-value">{{ totalSegmentsHeight }}mm</span>
+    <span class="separator">/</span>
+    <span class="net-value">{{ netHeight }}mm</span>
+
+    <span class="difference" *ngIf="heightDifference !== 0">
+      (<span [class.over]="heightDifference > 0" [class.under]="heightDifference < 0">
+        {{ heightDifference > 0 ? '+' : '' }}{{ heightDifference }}mm
+      </span>)
+    </span>
+  </div>
+</div>

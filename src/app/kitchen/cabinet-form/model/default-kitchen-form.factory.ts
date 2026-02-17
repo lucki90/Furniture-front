@@ -1,4 +1,4 @@
-import {FormBuilder, FormGroup} from '@angular/forms';
+import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
 import {KitchenCabinetType} from './kitchen-cabinet-type';
 
 export class DefaultKitchenFormFactory {
@@ -13,7 +13,8 @@ export class DefaultKitchenFormFactory {
       positionY: [0],  // wysokość od podłogi (0 = dolna, np. 1400 = wisząca)
       shelfQuantity: null,
       drawerQuantity: null,
-      drawerModel: null
+      drawerModel: null,
+      segments: fb.array([])  // FormArray dla segmentów (TALL_CABINET)
     });
   }
 }

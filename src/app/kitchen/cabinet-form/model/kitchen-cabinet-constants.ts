@@ -31,6 +31,19 @@ export const KitchenCabinetConstraints = {
     DEPTH_MAX: 560,
     DRAWER_MIN: 2,
     DRAWER_MAX: 6
+  },
+  TALL_CABINET: {
+    WIDTH_MIN: 300,
+    WIDTH_MAX: 600,
+    WIDTH_STEP: 50,
+    HEIGHT_MIN: 1800,
+    HEIGHT_MAX: 2600,
+    DEPTH_MIN: 500,
+    DEPTH_MAX: 600,
+    SEGMENT_MIN_HEIGHT: 100,
+    SEGMENT_DRAWER_MIN: 1,
+    SEGMENT_DRAWER_MAX: 6,
+    SEGMENT_SHELF_MAX: 6
   }
 } as const;
 
