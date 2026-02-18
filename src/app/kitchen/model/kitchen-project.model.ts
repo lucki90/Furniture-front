@@ -2,6 +2,7 @@ import { Board, Component, Job } from '../cabinet-form/model/kitchen-cabinet-for
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { SegmentRequest } from '../cabinet-form/model/segment.model';
+import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 
 // ============ WALL TYPES ============
 
@@ -58,6 +59,18 @@ export interface ProjectCabinetRequest {
   materialRequest: MaterialRequest;
   drawerRequest?: DrawerRequest;
   segments?: SegmentRequest[];  // dla TALL_CABINET
+  cornerRequest?: CornerCabinetRequest;  // dla CORNER_CABINET
+}
+
+/**
+ * Request dla szafki narożnej (CORNER_CABINET)
+ */
+export interface CornerCabinetRequest {
+  widthA: number;
+  widthB: number;
+  mechanism: CornerMechanismType;
+  shelfQuantity?: number;
+  upperCabinet: boolean;
 }
 
 export interface DrawerRequest {

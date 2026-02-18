@@ -1,5 +1,6 @@
 import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
 import {KitchenCabinetType} from './kitchen-cabinet-type';
+import {CornerMechanismType} from './corner-cabinet.model';
 
 export class DefaultKitchenFormFactory {
   static create(fb: FormBuilder): FormGroup {
@@ -14,7 +15,14 @@ export class DefaultKitchenFormFactory {
       shelfQuantity: null,
       drawerQuantity: null,
       drawerModel: null,
-      segments: fb.array([])  // FormArray dla segmentów (TALL_CABINET)
+      segments: fb.array([]),  // FormArray dla segmentów (TALL_CABINET)
+
+      // Pola dla szafki narożnej (CORNER_CABINET)
+      cornerWidthA: [900],       // Szerokość na ścianie A (mm)
+      cornerWidthB: [900],       // Szerokość na ścianie B (mm)
+      cornerMechanism: [CornerMechanismType.FIXED_SHELVES],  // Typ mechanizmu
+      cornerShelfQuantity: [2],  // Liczba półek (dla FIXED_SHELVES)
+      isUpperCorner: [false]     // true = górna wisząca, false = dolna
     });
   }
 }

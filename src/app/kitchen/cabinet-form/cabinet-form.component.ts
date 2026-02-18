@@ -12,6 +12,15 @@ import { SegmentFormComponent } from './segment-form/segment-form.component';
 import { SegmentVisualizerComponent } from './segment-visualizer/segment-visualizer.component';
 import { SegmentType } from './model/segment.model';
 import { TallCabinetValidator } from './types/tall-cabinet/tall-cabinet-validator';
+import {
+  CornerMechanismType,
+  CORNER_MECHANISM_LABELS,
+  BASE_CORNER_MECHANISMS,
+  UPPER_CORNER_MECHANISMS,
+  BASE_CORNER_CONSTRAINTS,
+  UPPER_CORNER_CONSTRAINTS,
+  mechanismRequiresShelves
+} from './model/corner-cabinet.model';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -44,6 +53,25 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   // Dla segmentów
   selectedSegmentIndex = -1;
   private tallCabinetValidator = new TallCabinetValidator();
+
+  // Dla szafki narożnej
+  cornerMechanismLabels = CORNER_MECHANISM_LABELS;
+  availableCornerMechanisms: { value: CornerMechanismType; label: string }[] = [];
+  cornerConstraints = BASE_CORNER_CONSTRAINTS;
+
+  /**
+   * Zwraca aktualnie wybrany mechanizm narożnika.
+   */
+  get currentCornerMechanism(): CornerMechanismType {
+    return this.form.get('cornerMechanism')?.value ?? CornerMechanismType.FIXED_SHELVES;
+  }
+
+  /**
+   * Zwraca etykietę aktualnego mechanizmu narożnika.
+   */
+  get currentCornerMechanismLabel(): string {
+    return this.cornerMechanismLabels[this.currentCornerMechanism] ?? '';
+  }
 
   get isEditMode(): boolean {
     return this.editingCabinet !== null;
@@ -80,6 +108,15 @@ export class CabinetFormComponent implements OnChanges, OnInit {
     this.form.get('kitchenCabinetType')!
       .valueChanges
       .subscribe(type => this.onTypeChange(type as KitchenCabinetType));
+
+    // Nasłuchiwanie zmian pól narożnika
+    this.form.get('isUpperCorner')!
+      .valueChanges
+      .subscribe(isUpper => this.onCornerTypeChange(isUpper));
+
+    this.form.get('cornerMechanism')!
+      .valueChanges
+      .subscribe(mechanism => this.onCornerMechanismChange(mechanism));
   }
 
   ngOnInit(): void {
@@ -133,6 +170,11 @@ export class CabinetFormComponent implements OnChanges, OnInit {
     config.preparer.prepare(this.form, this.visibility);
     config.validator.validate(this.form);
 
+    // Inicjalizuj opcje narożnika, jeśli to CORNER_CABINET
+    if (type === KitchenCabinetType.CORNER_CABINET) {
+      this.initCornerOptions();
+    }
+
     // Jeśli edytujemy, przywróć wartości po przygotowaniu
     if (this.editingCabinet && this.editingCabinet.type === type) {
       this.form.patchValue({
@@ -146,6 +188,17 @@ export class CabinetFormComponent implements OnChanges, OnInit {
         drawerQuantity: this.editingCabinet.drawerQuantity,
         drawerModel: this.editingCabinet.drawerModel
       });
+
+      // Przywróć wartości narożnika przy edycji
+      if (type === KitchenCabinetType.CORNER_CABINET) {
+        this.form.patchValue({
+          cornerWidthA: this.editingCabinet.cornerWidthA,
+          cornerWidthB: this.editingCabinet.cornerWidthB,
+          cornerMechanism: this.editingCabinet.cornerMechanism,
+          cornerShelfQuantity: this.editingCabinet.cornerShelfQuantity,
+          isUpperCorner: this.editingCabinet.isUpperCorner
+        });
+      }
     }
   }
 
@@ -175,6 +228,84 @@ export class CabinetFormComponent implements OnChanges, OnInit {
 
   onCancel(): void {
     this.cancelEdit.emit();
+  }
+
+  // ====== Metody dla szafki narożnej ======
+
+  /**
+   * Reaguje na zmianę typu narożnika (dolna/górna).
+   */
+  private onCornerTypeChange(isUpper: boolean): void {
+    if (isUpper) {
+      this.cornerConstraints = UPPER_CORNER_CONSTRAINTS;
+      this.availableCornerMechanisms = UPPER_CORNER_MECHANISMS.map(m => ({
+        value: m,
+        label: CORNER_MECHANISM_LABELS[m]
+      }));
+
+      // Jeśli aktualny mechanizm nie jest dozwolony dla górnej, zmień na FIXED_SHELVES
+      const currentMechanism = this.form.get('cornerMechanism')?.value;
+      if (!UPPER_CORNER_MECHANISMS.includes(currentMechanism)) {
+        this.form.patchValue({ cornerMechanism: CornerMechanismType.FIXED_SHELVES });
+      }
+
+      // Ustaw domyślne wartości dla górnej
+      this.form.patchValue({
+        cornerWidthA: Math.max(UPPER_CORNER_CONSTRAINTS.widthMin,
+          Math.min(this.form.get('cornerWidthA')?.value || 700, UPPER_CORNER_CONSTRAINTS.widthMax)),
+        cornerWidthB: Math.max(UPPER_CORNER_CONSTRAINTS.widthMin,
+          Math.min(this.form.get('cornerWidthB')?.value || 700, UPPER_CORNER_CONSTRAINTS.widthMax)),
+        height: 720,
+        depth: 320
+      });
+    } else {
+      this.cornerConstraints = BASE_CORNER_CONSTRAINTS;
+      this.availableCornerMechanisms = BASE_CORNER_MECHANISMS.map(m => ({
+        value: m,
+        label: CORNER_MECHANISM_LABELS[m]
+      }));
+
+      // Ustaw domyślne wartości dla dolnej
+      this.form.patchValue({
+        cornerWidthA: Math.max(BASE_CORNER_CONSTRAINTS.widthMin,
+          Math.min(this.form.get('cornerWidthA')?.value || 900, BASE_CORNER_CONSTRAINTS.widthMax)),
+        cornerWidthB: Math.max(BASE_CORNER_CONSTRAINTS.widthMin,
+          Math.min(this.form.get('cornerWidthB')?.value || 900, BASE_CORNER_CONSTRAINTS.widthMax)),
+        height: 820,
+        depth: BASE_CORNER_CONSTRAINTS.depth
+      });
+    }
+
+    // Rewaliduj formularz
+    const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;
+    if (type === KitchenCabinetType.CORNER_CABINET) {
+      const config = KitchenCabinetTypeConfig[type];
+      config.validator.validate(this.form);
+    }
+  }
+
+  /**
+   * Reaguje na zmianę mechanizmu narożnika.
+   */
+  private onCornerMechanismChange(mechanism: CornerMechanismType): void {
+    // Pokaż/ukryj pole półek w zależności od mechanizmu
+    this.visibility.cornerShelfQuantity = mechanismRequiresShelves(mechanism);
+
+    // Rewaliduj formularz
+    const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;
+    if (type === KitchenCabinetType.CORNER_CABINET) {
+      const config = KitchenCabinetTypeConfig[type];
+      config.validator.validate(this.form);
+    }
+  }
+
+  /**
+   * Inicjalizuje opcje narożnika przy wyborze typu CORNER_CABINET.
+   */
+  private initCornerOptions(): void {
+    const isUpper = this.form.get('isUpperCorner')?.value ?? false;
+    this.onCornerTypeChange(isUpper);
+    this.onCornerMechanismChange(this.form.get('cornerMechanism')?.value);
   }
 
   // ====== Metody dla segmentów ======

@@ -17,10 +17,12 @@ import {
   CreateKitchenProjectRequest,
   ProjectWallRequest,
   MultiWallCalculateRequest,
-  DrawerRequest
+  DrawerRequest,
+  CornerCabinetRequest
 } from '../model/kitchen-project.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { mapSegmentToRequest, SegmentRequest, SegmentFormData } from '../cabinet-form/model/segment.model';
+import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 
 @Injectable({
   providedIn: 'root'
@@ -291,12 +293,16 @@ export class KitchenStateService {
   }
 
   addCabinet(formData: CabinetFormData, calculatedResult: any): void {
+    // Dla szafki narożnej: width = cornerWidthA (główna szerokość)
+    const isCorner = formData.kitchenCabinetType === KitchenCabinetType.CORNER_CABINET;
+    const effectiveWidth = isCorner ? (formData.cornerWidthA ?? formData.width) : formData.width;
+
     const newCabinet: KitchenCabinet = {
       id: this.generateCabinetId(),
       name: formData.name,
       type: formData.kitchenCabinetType,
       openingType: formData.openingType,
-      width: formData.width,
+      width: effectiveWidth,
       height: formData.height,
       depth: formData.depth,
       positionY: formData.positionY ?? 0,
@@ -304,6 +310,14 @@ export class KitchenStateService {
       drawerQuantity: formData.drawerQuantity,
       drawerModel: formData.drawerModel ?? undefined,
       segments: formData.segments,  // dla TALL_CABINET
+
+      // Pola dla szafki narożnej (CORNER_CABINET)
+      cornerWidthA: isCorner ? formData.cornerWidthA : undefined,
+      cornerWidthB: isCorner ? formData.cornerWidthB : undefined,
+      cornerMechanism: isCorner ? formData.cornerMechanism : undefined,
+      cornerShelfQuantity: isCorner ? formData.cornerShelfQuantity : undefined,
+      isUpperCorner: isCorner ? formData.isUpperCorner : undefined,
+
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
 
@@ -344,12 +358,16 @@ export class KitchenStateService {
         cabinets: wall.cabinets.map(cab => {
           if (cab.id !== cabinetId) return cab;
 
+          // Dla szafki narożnej: width = cornerWidthA (główna szerokość)
+          const isCorner = formData.kitchenCabinetType === KitchenCabinetType.CORNER_CABINET;
+          const effectiveWidth = isCorner ? (formData.cornerWidthA ?? formData.width) : formData.width;
+
           return {
             ...cab,
             name: formData.name,
             type: formData.kitchenCabinetType,
             openingType: formData.openingType,
-            width: formData.width,
+            width: effectiveWidth,
             height: formData.height,
             depth: formData.depth,
             positionY: formData.positionY ?? 0,
@@ -357,6 +375,14 @@ export class KitchenStateService {
             drawerQuantity: formData.drawerQuantity,
             drawerModel: formData.drawerModel ?? undefined,
             segments: formData.segments,  // dla TALL_CABINET
+
+            // Pola dla szafki narożnej (CORNER_CABINET)
+            cornerWidthA: isCorner ? formData.cornerWidthA : undefined,
+            cornerWidthB: isCorner ? formData.cornerWidthB : undefined,
+            cornerMechanism: isCorner ? formData.cornerMechanism : undefined,
+            cornerShelfQuantity: isCorner ? formData.cornerShelfQuantity : undefined,
+            isUpperCorner: isCorner ? formData.isUpperCorner : undefined,
+
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
         })
@@ -505,6 +531,18 @@ export class KitchenStateService {
           });
         }
 
+        // Przygotuj cornerRequest dla CORNER_CABINET
+        let cornerRequest: CornerCabinetRequest | undefined;
+        if (cab.type === KitchenCabinetType.CORNER_CABINET && cab.cornerWidthA && cab.cornerWidthB && cab.cornerMechanism) {
+          cornerRequest = {
+            widthA: cab.cornerWidthA,
+            widthB: cab.cornerWidthB,
+            mechanism: cab.cornerMechanism,
+            shelfQuantity: cab.cornerShelfQuantity,
+            upperCabinet: cab.isUpperCorner ?? false
+          };
+        }
+
         const request: ProjectCabinetRequest = {
           cabinetId: cab.name || cab.id, // użyj nazwy jeśli jest, inaczej ID
           kitchenCabinetType: cab.type,
@@ -527,7 +565,8 @@ export class KitchenStateService {
             frontVeneerColor: 'WHITE'
           },
           drawerRequest,
-          segments
+          segments,
+          cornerRequest
         };
         currentX += cab.width;
         return request;

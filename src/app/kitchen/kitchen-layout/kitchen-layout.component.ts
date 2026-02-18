@@ -2,6 +2,7 @@ import { Component, inject, computed, Input } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { CabinetPosition, CabinetZone, getCabinetZone, ZONE_THRESHOLDS } from '../model/kitchen-state.model';
+import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 
 interface VisualCabinetPosition {
   cabinetId: string;
@@ -19,6 +20,9 @@ interface VisualCabinetPosition {
   // Typ szafki (dolna/górna/słupek)
   zone: CabinetZone;
   isOverflow: boolean;
+  // Czy to szafka narożna
+  isCorner: boolean;
+  cornerWidthB?: number;  // Druga szerokość narożnika (B)
 }
 
 @Component({
@@ -96,6 +100,10 @@ export class KitchenLayoutComponent {
       const originalCabinet = allCabinets.find(c => c.id === cab.cabinetId);
       const zone: CabinetZone = originalCabinet ? getCabinetZone(originalCabinet) : 'BOTTOM';
 
+      // Sprawdź czy to szafka narożna
+      const isCorner = originalCabinet?.type === KitchenCabinetType.CORNER_CABINET;
+      const cornerWidthB = isCorner ? originalCabinet?.cornerWidthB : undefined;
+
       const displayX = cab.x * scale;
       const displayWidth = cab.width * scale;
 
@@ -140,7 +148,9 @@ export class KitchenLayoutComponent {
         displayWidth,
         displayHeight,
         zone,
-        isOverflow
+        isOverflow,
+        isCorner,
+        cornerWidthB
       };
     });
   });

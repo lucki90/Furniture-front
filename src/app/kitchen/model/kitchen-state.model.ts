@@ -2,6 +2,7 @@ import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { WallType } from './kitchen-project.model';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
+import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 
 /**
  * Strefa pozycjonowania szafki:
@@ -35,6 +36,14 @@ export interface KitchenCabinet {
   drawerQuantity?: number; // ilość szuflad (dla typu BASE_WITH_DRAWERS)
   drawerModel?: string; // system szuflad (ANTARO_TANDEMBOX, SEVROLL_BALL)
   segments?: SegmentFormData[]; // segmenty (dla typu TALL_CABINET)
+
+  // Pola dla szafki narożnej (CORNER_CABINET)
+  cornerWidthA?: number;  // Szerokość na ścianie A (głównej)
+  cornerWidthB?: number;  // Szerokość na ścianie B (bocznej)
+  cornerMechanism?: CornerMechanismType;  // Typ mechanizmu (Magic Corner, karuzela, itp.)
+  cornerShelfQuantity?: number;  // Liczba półek (dla FIXED_SHELVES)
+  isUpperCorner?: boolean;  // true = górna wisząca, false = dolna
+
   calculatedResult?: CabinetCalculationResult;
 }
 
@@ -99,6 +108,13 @@ export interface CabinetFormData {
   drawerQuantity?: number;
   drawerModel?: string | null;
   segments?: SegmentFormData[];  // dla TALL_CABINET
+
+  // Pola dla szafki narożnej (CORNER_CABINET)
+  cornerWidthA?: number;
+  cornerWidthB?: number;
+  cornerMechanism?: CornerMechanismType;
+  cornerShelfQuantity?: number;
+  isUpperCorner?: boolean;
 }
 
 export interface CabinetCalculatedEvent {

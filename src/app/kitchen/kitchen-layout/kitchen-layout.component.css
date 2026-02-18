@@ -158,6 +158,24 @@
   z-index: 5; /* Słupki na wierzchu innych stref */
 }
 
+/* Szafka narożna - specjalny styl z diagonalnym wzorem */
+.cabinet.corner {
+  background: linear-gradient(135deg, #ffcc80 0%, #ffb74d 50%, #ffa726 100%);
+  border-color: #ef6c00;
+  color: #e65100;
+  position: relative;
+}
+
+/* Ikona narożnika */
+.corner-icon {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  font-size: 8px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
 .cabinet.overflow {
   background: linear-gradient(to bottom, #ef9a9a, #e57373) !important;
   border-color: #c62828 !important;
@@ -253,6 +271,11 @@
 .cabinet-full-legend {
   background: linear-gradient(to bottom, #ce93d8, #ba68c8);
   border-color: #7b1fa2;
+}
+
+.cabinet-corner-legend {
+  background: linear-gradient(135deg, #ffcc80, #ffa726);
+  border-color: #ef6c00;
 }
 
 .counter-legend {

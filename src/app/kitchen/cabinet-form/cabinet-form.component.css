@@ -238,6 +238,31 @@
   font-size: 12px;
 }
 
+/* ============================================
+   SEKCJA SZAFKI NAROŻNEJ (CORNER_CABINET)
+   ============================================ */
+
+.corner-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.corner-preview {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.corner-svg {
+  width: 200px;
+  height: 160px;
+  background: var(--bg-hover, #f8fafc);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
 /* Responsywność */
 @media (max-width: 700px) {
   .segments-layout {

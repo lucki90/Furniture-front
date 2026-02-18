@@ -55,12 +55,16 @@
                  class="cabinet hanging"
                  [class.overflow]="pos.isOverflow"
                  [class.editing]="isEditing(pos.cabinetId)"
+                 [class.corner]="pos.isCorner"
                  [style.left.px]="pos.displayX"
                  [style.top.px]="pos.displayY"
                  [style.width.px]="pos.displayWidth"
                  [style.height.px]="pos.displayHeight"
-                 [title]="(pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm'">
+                 [title]="pos.isCorner
+                   ? (pos.name ? pos.name + ': ' : '') + 'Narożna ' + pos.width + '×' + pos.cornerWidthB + '×' + pos.height + 'mm'
+                   : (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm'">
               <span class="cabinet-label">{{ getCabinetLabel(pos, i) }}</span>
+              <span *ngIf="pos.isCorner" class="corner-icon">⌐</span>
             </div>
           </ng-container>
 
@@ -97,12 +101,16 @@
                  class="cabinet bottom"
                  [class.overflow]="pos.isOverflow"
                  [class.editing]="isEditing(pos.cabinetId)"
+                 [class.corner]="pos.isCorner"
                  [style.left.px]="pos.displayX"
                  [style.top.px]="pos.displayY - bottomZoneY"
                  [style.width.px]="pos.displayWidth"
                  [style.height.px]="pos.displayHeight"
-                 [title]="(pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm'">
+                 [title]="pos.isCorner
+                   ? (pos.name ? pos.name + ': ' : '') + 'Narożna ' + pos.width + '×' + pos.cornerWidthB + '×' + pos.height + 'mm'
+                   : (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm'">
               <span class="cabinet-label">{{ getCabinetLabel(pos, i) }}</span>
+              <span *ngIf="pos.isCorner" class="corner-icon">⌐</span>
             </div>
           </ng-container>
 
@@ -130,6 +138,9 @@
       </span>
       <span class="legend-item">
         <span class="legend-box cabinet-full-legend"></span> Słupek
+      </span>
+      <span class="legend-item">
+        <span class="legend-box cabinet-corner-legend"></span> Narożna
       </span>
       <span class="legend-item">
         <span class="legend-box counter-legend"></span> Blat (38mm)
