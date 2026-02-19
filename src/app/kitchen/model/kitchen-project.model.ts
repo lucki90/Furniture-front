@@ -3,6 +3,9 @@ import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { SegmentRequest } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
+import { CountertopRequest, CountertopResponse } from './countertop.model';
+import { PlinthRequest, PlinthResponse } from './plinth.model';
+import { FillerPanelRequest, FillerPanelResponse } from './filler-panel.model';
 
 // ============ WALL TYPES ============
 
@@ -150,6 +153,9 @@ export interface ProjectWallRequest {
   widthMm: number;
   heightMm: number;
   cabinets: ProjectCabinetRequest[];
+  countertop?: CountertopRequest;
+  plinth?: PlinthRequest;
+  fillerPanels?: FillerPanelRequest[];
 }
 
 /**
@@ -207,6 +213,10 @@ export interface WallDetailResponse {
   wallCost: number;
 
   cabinets: CabinetPlacementResponse[];
+
+  // Odpowiedzi kalkulacji blatu i cokołu (zawierają też konfigurację)
+  countertop?: CountertopResponse;
+  plinth?: PlinthResponse;
 
   cabinetCount: number;
   usedWidthMm: number;
@@ -292,6 +302,11 @@ export interface WallCalculationSummary {
 
   cabinets: CabinetSummary[];
 
+  // Blat, cokół i blendy
+  countertop?: CountertopResponse;
+  plinth?: PlinthResponse;
+  fillerPanels?: FillerPanelResponse[];
+
   cabinetCount: number;
   usedWidthBottom: number;
   remainingWidthBottom: number;
@@ -302,5 +317,9 @@ export interface WallCalculationSummary {
   boardCost: number;
   componentCost: number;
   jobCost: number;
+  cabinetsCost?: number;
+  countertopCost?: number;
+  plinthCost?: number;
+  fillerPanelsCost?: number;
   wallTotalCost: number;
 }

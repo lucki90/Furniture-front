@@ -12,9 +12,24 @@ import { AddWallDialogComponent, AddWallDialogData, AddWallDialogResult } from '
 import { SaveProjectDialogComponent, SaveProjectDialogData, SaveProjectDialogResult } from './save-project-dialog/save-project-dialog.component';
 import { KitchenStateService } from './service/kitchen-state.service';
 import { KitchenService } from './service/kitchen.service';
-import { CabinetCalculatedEvent, KitchenCabinet } from './model/kitchen-state.model';
+import { CabinetCalculatedEvent, KitchenCabinet, CountertopConfig, PlinthConfig } from './model/kitchen-state.model';
 import { MultiWallCalculateResponse } from './model/kitchen-project.model';
 import { Board, Component as CabinetComponent, Job } from './cabinet-form/model/kitchen-cabinet-form.model';
+import {
+  CountertopMaterialType,
+  COUNTERTOP_MATERIAL_OPTIONS,
+  CountertopJointType,
+  COUNTERTOP_JOINT_OPTIONS,
+  CountertopEdgeType,
+  COUNTERTOP_EDGE_OPTIONS,
+  COUNTERTOP_THICKNESS_OPTIONS
+} from './model/countertop.model';
+import {
+  FeetType,
+  FEET_TYPE_OPTIONS,
+  PlinthMaterialType,
+  PLINTH_MATERIAL_OPTIONS
+} from './model/plinth.model';
 
 // Aggregated types for details tabs
 export interface AggregatedBoard {
@@ -144,6 +159,136 @@ export class KitchenPageComponent {
   get selectedWallLabel(): string {
     const wall = this.selectedWall();
     return wall ? this.stateService.getWallLabel(wall.type) : '';
+  }
+
+  // ============ COUNTERTOP & PLINTH CONFIG ============
+
+  // Opcje dla dropdownów
+  readonly countertopMaterialOptions = COUNTERTOP_MATERIAL_OPTIONS;
+  readonly countertopThicknessOptions = COUNTERTOP_THICKNESS_OPTIONS;
+  readonly countertopJointOptions = COUNTERTOP_JOINT_OPTIONS;
+  readonly countertopEdgeOptions = COUNTERTOP_EDGE_OPTIONS;
+  readonly feetTypeOptions = FEET_TYPE_OPTIONS;
+  readonly plinthMaterialOptions = PLINTH_MATERIAL_OPTIONS;
+
+  // Helper - pobiera konfigurację blatu dla aktualnej ściany
+  private getSelectedWallCountertopConfig(): CountertopConfig | undefined {
+    const wallId = this.selectedWallId();
+    if (!wallId) return undefined;
+    return this.stateService.getCountertopConfig(wallId);
+  }
+
+  // Helper - pobiera konfigurację cokołu dla aktualnej ściany
+  private getSelectedWallPlinthConfig(): PlinthConfig | undefined {
+    const wallId = this.selectedWallId();
+    if (!wallId) return undefined;
+    return this.stateService.getPlinthConfig(wallId);
+  }
+
+  // Gettery dla konfiguracji blatu
+  get countertopEnabled(): boolean {
+    return this.getSelectedWallCountertopConfig()?.enabled ?? true;
+  }
+
+  set countertopEnabled(value: boolean) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    this.stateService.updateCountertopConfig(wallId, { ...current, enabled: value });
+    this.resetProjectResult();
+  }
+
+  get countertopMaterial(): CountertopMaterialType {
+    return this.getSelectedWallCountertopConfig()?.materialType ?? 'LAMINATE';
+  }
+
+  set countertopMaterial(value: CountertopMaterialType) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    this.stateService.updateCountertopConfig(wallId, { ...current, materialType: value });
+    this.resetProjectResult();
+  }
+
+  get countertopThickness(): number {
+    return this.getSelectedWallCountertopConfig()?.thicknessMm ?? 38;
+  }
+
+  set countertopThickness(value: number) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    this.stateService.updateCountertopConfig(wallId, { ...current, thicknessMm: value });
+    this.resetProjectResult();
+  }
+
+  get countertopJoint(): CountertopJointType {
+    return this.getSelectedWallCountertopConfig()?.jointType ?? 'ALUMINUM_STRIP';
+  }
+
+  set countertopJoint(value: CountertopJointType) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    this.stateService.updateCountertopConfig(wallId, { ...current, jointType: value });
+    this.resetProjectResult();
+  }
+
+  get countertopEdge(): CountertopEdgeType {
+    return this.getSelectedWallCountertopConfig()?.edgeType ?? 'ABS_EDGE';
+  }
+
+  set countertopEdge(value: CountertopEdgeType) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    this.stateService.updateCountertopConfig(wallId, { ...current, edgeType: value });
+    this.resetProjectResult();
+  }
+
+  // Gettery dla konfiguracji cokołu
+  get plinthEnabled(): boolean {
+    return this.getSelectedWallPlinthConfig()?.enabled ?? true;
+  }
+
+  set plinthEnabled(value: boolean) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
+    this.stateService.updatePlinthConfig(wallId, { ...current, enabled: value });
+    this.resetProjectResult();
+  }
+
+  get feetType(): FeetType {
+    return this.getSelectedWallPlinthConfig()?.feetType ?? 'FEET_100';
+  }
+
+  set feetType(value: FeetType) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
+    this.stateService.updatePlinthConfig(wallId, { ...current, feetType: value });
+    this.resetProjectResult();
+  }
+
+  get plinthMaterial(): PlinthMaterialType {
+    return this.getSelectedWallPlinthConfig()?.materialType ?? 'PVC';
+  }
+
+  set plinthMaterial(value: PlinthMaterialType) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
+    this.stateService.updatePlinthConfig(wallId, { ...current, materialType: value });
+    this.resetProjectResult();
+  }
+
+  /**
+   * Zwraca wysokość cokołu na podstawie wybranego typu nóżek
+   */
+  get plinthHeight(): number {
+    const feetOption = this.feetTypeOptions.find(o => o.value === this.feetType);
+    return feetOption?.plinthHeightMm ?? 97;
   }
 
   // ============ WALL MANAGEMENT ============

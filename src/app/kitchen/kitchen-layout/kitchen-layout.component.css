@@ -116,6 +116,21 @@
   stroke-width: 0.5;
 }
 
+/* Etykieta wymiarów blatu */
+.countertop-dimension-label {
+  font-size: 8px;
+  font-weight: 600;
+  fill: #5d4037;
+  pointer-events: none;
+}
+
+/* Cokół (plinth) - półprzezroczysty prostokąt */
+.plinth-rect {
+  fill: rgba(55, 65, 81, 0.35);
+  stroke: #374151;
+  stroke-width: 0.5;
+}
+
 /* Cabinet body */
 .cabinet-body {
   stroke-width: 1;
@@ -314,6 +329,11 @@
 .counter-legend {
   background: linear-gradient(to bottom, #8d6e63, #6d4c41);
   border-color: #5d4037;
+}
+
+.plinth-legend {
+  background: rgba(55, 65, 81, 0.35);
+  border-color: #374151;
 }
 
 .indicator-legend {

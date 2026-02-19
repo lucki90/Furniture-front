@@ -63,7 +63,17 @@
         <!-- Blat -->
         <rect [attr.x]="0" [attr.y]="counterZoneY"
               [attr.width]="wallDisplayWidth()" [attr.height]="counterZoneHeight"
-              fill="url(#countertopGradient)" class="countertop-rect"/>
+              fill="url(#countertopGradient)" class="countertop-rect">
+          <title *ngIf="countertopDimensions()">Blat: {{ countertopDimensions()!.lengthMm }}×{{ countertopDimensions()!.depthMm }}mm</title>
+        </rect>
+        <!-- Etykieta wymiarów blatu (nad blatem) -->
+        <text *ngIf="countertopDimensions() && hasBottomCabinets()"
+              [attr.x]="wallDisplayWidth() / 2"
+              [attr.y]="counterZoneY - 2"
+              class="countertop-dimension-label"
+              text-anchor="middle">
+          {{ countertopDimensions()!.lengthMm }}×{{ countertopDimensions()!.depthMm }}mm
+        </text>
 
         <!-- Strefa dolna -->
         <rect [attr.x]="0" [attr.y]="bottomZoneY"
@@ -206,6 +216,16 @@
               [attr.height]="bottomZoneHeight"
               class="remaining-space-rect"/>
 
+        <!-- Cokół (pod szafkami dolnymi) -->
+        <rect *ngIf="plinthPosition() as plinth"
+              [attr.x]="plinth.x"
+              [attr.y]="plinth.y"
+              [attr.width]="plinth.width"
+              [attr.height]="plinth.height"
+              class="plinth-rect">
+          <title>Cokół</title>
+        </rect>
+
         <!-- Podłoga -->
         <line [attr.x1]="0" [attr.y1]="totalHeight - 1"
               [attr.x2]="wallDisplayWidth()" [attr.y2]="totalHeight - 1"
@@ -229,6 +249,9 @@
       </span>
       <span class="legend-item">
         <span class="legend-box counter-legend"></span> Blat
+      </span>
+      <span class="legend-item">
+        <span class="legend-box plinth-legend"></span> Cokół
       </span>
       <span class="legend-item legend-indicator">
         <span class="legend-box indicator-legend"></span> h/d = różnica wys./głęb.

@@ -7,7 +7,9 @@ import {
   CabinetCalculationResult,
   WallWithCabinets,
   CabinetZone,
-  getCabinetZone
+  getCabinetZone,
+  CountertopConfig,
+  PlinthConfig
 } from '../model/kitchen-state.model';
 import {
   KitchenProjectRequest,
@@ -22,6 +24,8 @@ import {
   KitchenProjectDetailResponse,
   UpdateKitchenProjectRequest
 } from '../model/kitchen-project.model';
+import { CountertopRequest, DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
+import { PlinthRequest, DEFAULT_PLINTH_REQUEST } from '../model/plinth.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { mapSegmentToRequest, SegmentRequest, SegmentFormData, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
@@ -296,6 +300,48 @@ export class KitchenStateService {
     return WALL_TYPES.filter(wt => !this.isWallTypeUsed(wt.value));
   }
 
+  // ============ COUNTERTOP & PLINTH CONFIG ============
+
+  /**
+   * Aktualizuje konfigurację blatu dla wybranej ściany.
+   */
+  updateCountertopConfig(wallId: string, config: CountertopConfig): void {
+    this._walls.update(walls =>
+      walls.map(wall => {
+        if (wall.id !== wallId) return wall;
+        return { ...wall, countertopConfig: config };
+      })
+    );
+  }
+
+  /**
+   * Aktualizuje konfigurację cokołu dla wybranej ściany.
+   */
+  updatePlinthConfig(wallId: string, config: PlinthConfig): void {
+    this._walls.update(walls =>
+      walls.map(wall => {
+        if (wall.id !== wallId) return wall;
+        return { ...wall, plinthConfig: config };
+      })
+    );
+  }
+
+  /**
+   * Pobiera konfigurację blatu dla wybranej ściany.
+   */
+  getCountertopConfig(wallId: string): CountertopConfig | undefined {
+    const wall = this._walls().find(w => w.id === wallId);
+    return wall?.countertopConfig;
+  }
+
+  /**
+   * Pobiera konfigurację cokołu dla wybranej ściany.
+   */
+  getPlinthConfig(wallId: string): PlinthConfig | undefined {
+    const wall = this._walls().find(w => w.id === wallId);
+    return wall?.plinthConfig;
+  }
+
   // ============ CABINET MANAGEMENT ============
 
   private generateCabinetId(): string {
@@ -497,12 +543,35 @@ export class KitchenStateService {
         };
       });
 
+      // Wczytaj konfigurację blatu z response (CountertopResponse)
+      let countertopConfig: CountertopConfig | undefined;
+      if (wallResp.countertop && wallResp.countertop.enabled) {
+        countertopConfig = {
+          enabled: true,
+          materialType: wallResp.countertop.materialType,
+          thicknessMm: wallResp.countertop.thicknessMm
+          // jointType i edgeType można by też odczytać z segmentów jeśli potrzebne
+        };
+      }
+
+      // Wczytaj konfigurację cokołu z response (PlinthResponse)
+      let plinthConfig: PlinthConfig | undefined;
+      if (wallResp.plinth && wallResp.plinth.enabled) {
+        plinthConfig = {
+          enabled: true,
+          feetType: wallResp.plinth.feetType,
+          materialType: wallResp.plinth.materialType
+        };
+      }
+
       return {
         id: wallId,
         type: wallResp.wallType,
         widthMm: wallResp.widthMm,
         heightMm: wallResp.heightMm,
-        cabinets
+        cabinets,
+        countertopConfig,
+        plinthConfig
       };
     });
 
@@ -705,13 +774,73 @@ export class KitchenStateService {
         return request;
       });
 
+      // Buduj konfigurację blatu
+      const countertop: CountertopRequest = this.buildCountertopRequest(wall);
+
+      // Buduj konfigurację cokołu
+      const plinth: PlinthRequest = this.buildPlinthRequest(wall);
+
       return {
         wallType: wall.type,
         widthMm: wall.widthMm,
         heightMm: wall.heightMm,
-        cabinets
+        cabinets,
+        countertop,
+        plinth
       };
     });
+  }
+
+  /**
+   * Buduje CountertopRequest na podstawie konfiguracji ściany.
+   */
+  private buildCountertopRequest(wall: WallWithCabinets): CountertopRequest {
+    const config = wall.countertopConfig;
+
+    if (!config || !config.enabled) {
+      return { ...DEFAULT_COUNTERTOP_REQUEST, enabled: false };
+    }
+
+    // Użyj jointType i edgeType z konfiguracji lub domyślne
+    const jointType = (config.jointType as any) ?? DEFAULT_COUNTERTOP_REQUEST.jointType;
+    const edgeType = (config.edgeType as any) ?? DEFAULT_COUNTERTOP_REQUEST.frontEdgeType;
+
+    return {
+      enabled: true,
+      materialType: (config.materialType as any) ?? DEFAULT_COUNTERTOP_REQUEST.materialType,
+      colorCode: config.colorCode,
+      thicknessMm: config.thicknessMm ?? DEFAULT_COUNTERTOP_REQUEST.thicknessMm,
+      manualLengthMm: config.manualLengthMm,
+      manualDepthMm: config.manualDepthMm,
+      frontOverhangMm: config.frontOverhangMm ?? DEFAULT_COUNTERTOP_REQUEST.frontOverhangMm,
+      backOverhangMm: DEFAULT_COUNTERTOP_REQUEST.backOverhangMm,
+      leftOverhangMm: DEFAULT_COUNTERTOP_REQUEST.leftOverhangMm,
+      rightOverhangMm: DEFAULT_COUNTERTOP_REQUEST.rightOverhangMm,
+      jointType,
+      frontEdgeType: edgeType,
+      leftEdgeType: DEFAULT_COUNTERTOP_REQUEST.leftEdgeType,
+      rightEdgeType: DEFAULT_COUNTERTOP_REQUEST.rightEdgeType,
+      backEdgeType: DEFAULT_COUNTERTOP_REQUEST.backEdgeType
+    };
+  }
+
+  /**
+   * Buduje PlinthRequest na podstawie konfiguracji ściany.
+   */
+  private buildPlinthRequest(wall: WallWithCabinets): PlinthRequest {
+    const config = wall.plinthConfig;
+
+    if (!config || !config.enabled) {
+      return { ...DEFAULT_PLINTH_REQUEST, enabled: false };
+    }
+
+    return {
+      enabled: true,
+      feetType: (config.feetType as any) ?? DEFAULT_PLINTH_REQUEST.feetType,
+      materialType: (config.materialType as any) ?? DEFAULT_PLINTH_REQUEST.materialType,
+      colorCode: config.colorCode,
+      setbackMm: config.setbackMm ?? DEFAULT_PLINTH_REQUEST.setbackMm
+    };
   }
 
   // ============ PRIVATE HELPERS ============

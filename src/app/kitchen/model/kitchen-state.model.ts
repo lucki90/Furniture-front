@@ -4,6 +4,8 @@ import { WallType } from './kitchen-project.model';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 import { CabinetVisualConfig } from '../cabinet-form/model/cabinet-visual-elements.model';
+import { CountertopMaterialType, CountertopJointType, CountertopEdgeType } from './countertop.model';
+import { FeetType, PlinthMaterialType } from './plinth.model';
 
 /**
  * Strefa pozycjonowania szafki:
@@ -89,6 +91,38 @@ export interface WallWithCabinets {
   widthMm: number;
   heightMm: number;
   cabinets: KitchenCabinet[];
+
+  // Konfiguracja blatu dla tej ściany
+  countertopConfig?: CountertopConfig;
+
+  // Konfiguracja cokołu dla tej ściany
+  plinthConfig?: PlinthConfig;
+}
+
+/**
+ * Konfiguracja blatu dla ściany (uproszczona wersja w stanie aplikacji).
+ */
+export interface CountertopConfig {
+  enabled: boolean;
+  materialType?: CountertopMaterialType;
+  thicknessMm?: number;
+  colorCode?: string;
+  manualLengthMm?: number;
+  manualDepthMm?: number;
+  frontOverhangMm?: number;
+  jointType?: CountertopJointType;
+  edgeType?: CountertopEdgeType;
+}
+
+/**
+ * Konfiguracja cokołu dla ściany (uproszczona wersja w stanie aplikacji).
+ */
+export interface PlinthConfig {
+  enabled: boolean;
+  feetType?: FeetType;
+  materialType?: PlinthMaterialType;
+  colorCode?: string;
+  setbackMm?: number;
 }
 
 export interface CabinetPosition {

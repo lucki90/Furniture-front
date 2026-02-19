@@ -123,6 +123,10 @@ export class KitchenLayoutComponent {
   readonly remainingWidthBottom = this.stateService.remainingWidthBottom;
   readonly remainingWidthTop = this.stateService.remainingWidthTop;
 
+  // Stałe blatu
+  private readonly COUNTERTOP_OVERHANG = 20;  // Nawis blatu z przodu (mm)
+  private readonly COUNTERTOP_DEPTH_DEFAULT = 600;  // Domyślna głębokość blatu (mm)
+
   readonly scaleFactor = computed(() => {
     const wallLength = this.wall().length;
     if (wallLength <= 0) return 1;
@@ -572,6 +576,59 @@ export class KitchenLayoutComponent {
   // Czy są szafki dolne (BOTTOM lub FULL)
   readonly hasBottomCabinets = computed(() => {
     return this.visualPositions().some(p => p.zone === 'BOTTOM' || p.zone === 'FULL');
+  });
+
+  /**
+   * Oblicza wymiary blatu na podstawie szafek dolnych.
+   * Zwraca długość i głębokość w mm.
+   */
+  readonly countertopDimensions = computed(() => {
+    const cabinets = this.stateService.cabinets();
+    const bottomCabinets = cabinets.filter(cab => {
+      const zone = getCabinetZone(cab);
+      return zone === 'BOTTOM' || zone === 'FULL';
+    });
+
+    if (bottomCabinets.length === 0) {
+      return null;
+    }
+
+    // Całkowita szerokość szafek dolnych
+    const totalWidth = bottomCabinets.reduce((sum, cab) => sum + cab.width, 0);
+
+    // Blat ma standardową głębokość 600mm i nawis z przodu
+    const lengthMm = totalWidth + this.COUNTERTOP_OVERHANG;
+    const depthMm = this.COUNTERTOP_DEPTH_DEFAULT;
+
+    return { lengthMm, depthMm };
+  });
+
+  /**
+   * Oblicza pozycję i wymiary cokołu pod szafkami dolnymi.
+   */
+  readonly plinthPosition = computed(() => {
+    const positions = this.visualPositions();
+    // Znajdź szafki dolne i słupki które mają cokół
+    const bottomPositions = positions.filter(p => p.zone === 'BOTTOM' || p.zone === 'FULL');
+
+    if (bottomPositions.length === 0) {
+      return null;
+    }
+
+    // Cokół ciągnie się od pierwszej do ostatniej szafki dolnej
+    const minX = Math.min(...bottomPositions.map(p => p.displayX));
+    const maxX = Math.max(...bottomPositions.map(p => p.displayX + p.displayWidth));
+    const maxY = Math.max(...bottomPositions.map(p => p.displayY + p.displayHeight));
+
+    // Wysokość cokołu w px (wszystkie szafki mają tę samą wysokość nóżek)
+    const feetHeight = bottomPositions[0]?.feetHeight ?? 0;
+
+    return {
+      x: minX,
+      y: maxY - feetHeight,
+      width: maxX - minX,
+      height: feetHeight
+    };
   });
 
   // Pozostałe miejsce - dolne szafki

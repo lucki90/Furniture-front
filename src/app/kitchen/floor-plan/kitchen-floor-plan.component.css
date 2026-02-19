@@ -48,6 +48,22 @@
   pointer-events: none;  /* nie blokuje kliknięć na szafki */
 }
 
+.countertop-group {
+  pointer-events: none;
+}
+
+/* Wymiary blatu */
+.countertop-dimension {
+  font-size: 8px;
+  font-weight: 700;
+  fill: #4e342e;
+  pointer-events: none;
+  text-shadow: 0 0 2px white, 0 0 2px white, 0 0 2px white;
+  paint-order: stroke fill;
+  stroke: white;
+  stroke-width: 2px;
+}
+
 /* Edytowana szafka - podświetlenie */
 .cabinet-rect.editing {
   opacity: 1;

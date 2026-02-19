@@ -34,15 +34,36 @@
 
         <!-- Blat (countertop) - przezroczysta warstwa nad szafkami dolnymi -->
         @if (getCountertopForWall(pos); as countertop) {
-          <rect
-            [attr.x]="countertop.x"
-            [attr.y]="countertop.y"
-            [attr.width]="countertop.width"
-            [attr.height]="countertop.depth"
-            class="countertop-rect"
-            rx="1">
-            <title>Blat</title>
-          </rect>
+          <g class="countertop-group">
+            <rect
+              [attr.x]="countertop.x"
+              [attr.y]="countertop.y"
+              [attr.width]="countertop.width"
+              [attr.height]="countertop.depth"
+              class="countertop-rect"
+              rx="1">
+              <title>Blat: {{ countertop.lengthMm }}×{{ countertop.depthMm }}mm</title>
+            </rect>
+            <!-- Etykieta długości blatu -->
+            @if (countertop.isHorizontal) {
+              <text
+                [attr.x]="countertop.lengthLabelX"
+                [attr.y]="countertop.lengthLabelY"
+                class="countertop-dimension"
+                text-anchor="middle">
+                {{ countertop.lengthMm }}
+              </text>
+            } @else {
+              <text
+                [attr.x]="countertop.lengthLabelX"
+                [attr.y]="countertop.lengthLabelY"
+                class="countertop-dimension countertop-dimension-vertical"
+                text-anchor="middle"
+                [attr.transform]="'rotate(-90,' + countertop.lengthLabelX + ',' + countertop.lengthLabelY + ')'">
+                {{ countertop.lengthMm }}
+              </text>
+            }
+          </g>
         }
 
         <!-- Wall rectangle -->

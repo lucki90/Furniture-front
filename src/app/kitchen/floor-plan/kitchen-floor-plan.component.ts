@@ -35,6 +35,16 @@ interface CountertopOnFloorPlan {
   y: number;
   width: number;
   depth: number;
+  // Wymiary w mm do wyświetlenia
+  lengthMm: number;
+  depthMm: number;
+  // Pozycje etykiet wymiarów
+  lengthLabelX: number;
+  lengthLabelY: number;
+  depthLabelX: number;
+  depthLabelY: number;
+  // Kierunek etykiet
+  isHorizontal: boolean;
 }
 
 @Component({
@@ -63,8 +73,8 @@ export class KitchenFloorPlanComponent {
   private readonly PADDING = 30;
 
   // Blat - wymiary w mm
-  private readonly COUNTERTOP_OVERHANG = 20;  // Nawis blatu (mm) - ile wystaje poza szafkę
-  private readonly COUNTERTOP_DEPTH = 600;    // Standardowa głębokość blatu (mm)
+  private readonly COUNTERTOP_OVERHANG = 30;  // Nawis blatu z przodu (mm)
+  private readonly COUNTERTOP_STANDARD_DEPTH = 600;    // Standardowa głębokość blatu (mm)
 
   // Obliczona skala (potrzebna też dla szafek)
   private currentScale = 0.1;
@@ -369,11 +379,8 @@ export class KitchenFloorPlanComponent {
       totalWidth += cab.width;
     }
 
-    // Znajdź maksymalną głębokość
-    const maxDepth = Math.max(...bottomCabinets.map(cab => cab.depth));
-
-    // Blat ma nawis (overhang) z przodu
-    const countertopDepthMm = maxDepth + this.COUNTERTOP_OVERHANG;
+    // Blat ma standardową głębokość 600mm (niezależnie od głębokości szafek)
+    const countertopDepthMm = this.COUNTERTOP_STANDARD_DEPTH;
     const countertopWidthMm = totalWidth + this.COUNTERTOP_OVERHANG;
 
     // Przeskaluj do SVG
@@ -383,27 +390,54 @@ export class KitchenFloorPlanComponent {
 
     if (pos.isHorizontal) {
       // Ściana pozioma - blat idzie od lewej do prawej
+      const x = pos.x - overhang;
+      const y = pos.y - countertopDepth;
       return {
-        x: pos.x - overhang,
-        y: pos.y - countertopDepth,
+        x,
+        y,
         width: countertopWidth,
-        depth: countertopDepth
+        depth: countertopDepth,
+        lengthMm: countertopWidthMm,
+        depthMm: countertopDepthMm,
+        lengthLabelX: x + countertopWidth / 2,
+        lengthLabelY: y + countertopDepth + 8,
+        depthLabelX: x - 3,
+        depthLabelY: y + countertopDepth / 2,
+        isHorizontal: true
       };
     } else {
       // Ściana pionowa
       if (wall.type === 'LEFT') {
+        const x = pos.x + this.WALL_THICKNESS - overhang;
+        const y = pos.y - overhang;
         return {
-          x: pos.x + this.WALL_THICKNESS - overhang,
-          y: pos.y - overhang,
+          x,
+          y,
           width: countertopDepth,
-          depth: countertopWidth
+          depth: countertopWidth,
+          lengthMm: countertopWidthMm,
+          depthMm: countertopDepthMm,
+          lengthLabelX: x - 3,
+          lengthLabelY: y + countertopWidth / 2,
+          depthLabelX: x + countertopDepth / 2,
+          depthLabelY: y - 3,
+          isHorizontal: false
         };
       } else {
+        const x = pos.x - countertopDepth + overhang;
+        const y = pos.y - overhang;
         return {
-          x: pos.x - countertopDepth + overhang,
-          y: pos.y - overhang,
+          x,
+          y,
           width: countertopDepth,
-          depth: countertopWidth
+          depth: countertopWidth,
+          lengthMm: countertopWidthMm,
+          depthMm: countertopDepthMm,
+          lengthLabelX: x + countertopDepth + 3,
+          lengthLabelY: y + countertopWidth / 2,
+          depthLabelX: x + countertopDepth / 2,
+          depthLabelY: y - 3,
+          isHorizontal: false
         };
       }
     }

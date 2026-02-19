@@ -58,6 +58,70 @@
             <span class="dim-unit">mm</span>
           </div>
         </div>
+
+        <!-- Konfiguracja blatu i cokołu -->
+        <div class="wall-config-section" *ngIf="selectedWall()">
+          <!-- Blat -->
+          <div class="config-group">
+            <div class="config-header">
+              <label class="toggle-label">
+                <input type="checkbox" [(ngModel)]="countertopEnabled">
+                <span class="toggle-text">🍳 Blat</span>
+              </label>
+            </div>
+            <div class="config-fields" *ngIf="countertopEnabled">
+              <div class="config-field">
+                <label>Materiał</label>
+                <select [(ngModel)]="countertopMaterial">
+                  <option *ngFor="let opt of countertopMaterialOptions" [value]="opt.value">{{ opt.label }}</option>
+                </select>
+              </div>
+              <div class="config-field">
+                <label>Grubość</label>
+                <select [(ngModel)]="countertopThickness">
+                  <option *ngFor="let opt of countertopThicknessOptions" [value]="opt.value">{{ opt.label }}</option>
+                </select>
+              </div>
+              <div class="config-field">
+                <label>Łączenie</label>
+                <select [(ngModel)]="countertopJoint">
+                  <option *ngFor="let opt of countertopJointOptions" [value]="opt.value">{{ opt.label }}</option>
+                </select>
+              </div>
+              <div class="config-field">
+                <label>Krawędź</label>
+                <select [(ngModel)]="countertopEdge">
+                  <option *ngFor="let opt of countertopEdgeOptions" [value]="opt.value">{{ opt.label }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cokół -->
+          <div class="config-group">
+            <div class="config-header">
+              <label class="toggle-label">
+                <input type="checkbox" [(ngModel)]="plinthEnabled">
+                <span class="toggle-text">🦶 Cokół</span>
+              </label>
+              <span class="config-info" *ngIf="plinthEnabled">({{ plinthHeight }}mm)</span>
+            </div>
+            <div class="config-fields" *ngIf="plinthEnabled">
+              <div class="config-field">
+                <label>Nóżki</label>
+                <select [(ngModel)]="feetType">
+                  <option *ngFor="let opt of feetTypeOptions" [value]="opt.value">{{ opt.label }}</option>
+                </select>
+              </div>
+              <div class="config-field">
+                <label>Materiał</label>
+                <select [(ngModel)]="plinthMaterial">
+                  <option *ngFor="let opt of plinthMaterialOptions" [value]="opt.value">{{ opt.label }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -406,6 +470,17 @@
                   <span>Szafki: {{ wall.cabinetCount }}</span>
                   <span>Dolne: {{ wall.usedWidthBottom }}/{{ wall.widthMm }} mm</span>
                   <span>Górne: {{ wall.usedWidthTop }}/{{ wall.widthMm }} mm</span>
+                </div>
+                <!-- Szczegóły blatów i cokołów -->
+                <div class="wall-item-extras" *ngIf="wall.countertop?.enabled || wall.plinth?.enabled">
+                  <span *ngIf="wall.countertop?.enabled" class="extra-item">
+                    🍳 Blat: {{ wall.countertop!.totalLengthMm }}×{{ wall.countertop!.depthMm }}mm
+                    <em>({{ wall.countertopCost?.toFixed(0) || 0 }} zł)</em>
+                  </span>
+                  <span *ngIf="wall.plinth?.enabled" class="extra-item">
+                    🦶 Cokół: {{ wall.plinth!.segmentCount }} szt.
+                    <em>({{ wall.plinthCost?.toFixed(0) || 0 }} zł)</em>
+                  </span>
                 </div>
               </div>
             </div>
