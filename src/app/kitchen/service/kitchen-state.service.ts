@@ -18,10 +18,12 @@ import {
   ProjectWallRequest,
   MultiWallCalculateRequest,
   DrawerRequest,
-  CornerCabinetRequest
+  CornerCabinetRequest,
+  KitchenProjectDetailResponse,
+  UpdateKitchenProjectRequest
 } from '../model/kitchen-project.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
-import { mapSegmentToRequest, SegmentRequest, SegmentFormData } from '../cabinet-form/model/segment.model';
+import { mapSegmentToRequest, SegmentRequest, SegmentFormData, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 
 @Injectable({
@@ -45,10 +47,19 @@ export class KitchenStateService {
   private _wallIdCounter = 1;
   private _cabinetIdCounter = 0;
 
+  // ============ PROJECT STATE ============
+
+  private _currentProjectId = signal<number | null>(null);
+  private _currentProjectName = signal<string | null>(null);
+  private _currentProjectVersion = signal<number>(0);
+
   // ============ PUBLIC SIGNALS ============
 
   readonly walls = this._walls.asReadonly();
   readonly selectedWallId = this._selectedWallId.asReadonly();
+  readonly currentProjectId = this._currentProjectId.asReadonly();
+  readonly currentProjectName = this._currentProjectName.asReadonly();
+  readonly currentProjectVersion = this._currentProjectVersion.asReadonly();
 
   readonly selectedWall = computed(() => {
     const wallId = this._selectedWallId();
@@ -418,6 +429,128 @@ export class KitchenStateService {
     this._selectedWallId.set('wall-1');
     this._wallIdCounter = 1;
     this._cabinetIdCounter = 0;
+    this._currentProjectId.set(null);
+    this._currentProjectName.set(null);
+    this._currentProjectVersion.set(0);
+  }
+
+  // ============ PROJECT LOAD/SAVE ============
+
+  /**
+   * Wczytuje projekt z backendu do stanu aplikacji.
+   */
+  loadProject(project: KitchenProjectDetailResponse): void {
+    // Reset stanu
+    this._wallIdCounter = 0;
+    this._cabinetIdCounter = 0;
+
+    // Konwertuj ściany z response na WallWithCabinets
+    const walls: WallWithCabinets[] = project.walls.map(wallResp => {
+      this._wallIdCounter++;
+      const wallId = `wall-${this._wallIdCounter}`;
+
+      // Konwertuj szafki
+      const cabinets: KitchenCabinet[] = wallResp.cabinets.map(cabResp => {
+        this._cabinetIdCounter++;
+
+        // Dla szafki narożnej: width = cornerWidthA (główna szerokość)
+        const isCorner = cabResp.cabinetType === KitchenCabinetType.CORNER_CABINET;
+        const effectiveWidth = isCorner && cabResp.cornerWidthA
+          ? cabResp.cornerWidthA
+          : cabResp.widthMm;
+
+        // Mapuj segmenty (dla TALL_CABINET)
+        let segments: SegmentFormData[] | undefined;
+        if (cabResp.segments && cabResp.segments.length > 0) {
+          segments = cabResp.segments.map(seg => this.mapSegmentResponseToFormData(seg));
+        }
+
+        return {
+          id: cabResp.cabinetId || `cabinet-${this._cabinetIdCounter}`,
+          name: cabResp.cabinetId,
+          type: cabResp.cabinetType,
+          openingType: cabResp.openingType as any ?? 'LEFT',
+          width: effectiveWidth,
+          height: cabResp.heightMm,
+          depth: cabResp.depthMm,
+          positionY: cabResp.positionY ?? 0,
+          shelfQuantity: cabResp.shelfQuantity ?? 1,
+          drawerQuantity: cabResp.drawerQuantity,
+          drawerModel: cabResp.drawerModel,
+
+          // Segmenty (dla TALL_CABINET)
+          segments,
+
+          // Pola dla szafki narożnej (CORNER_CABINET)
+          cornerWidthA: cabResp.cornerWidthA,
+          cornerWidthB: cabResp.cornerWidthB,
+          cornerMechanism: cabResp.cornerMechanism as CornerMechanismType | undefined,
+          cornerShelfQuantity: cabResp.cornerShelfQuantity,
+          isUpperCorner: cabResp.isUpperCorner,
+
+          calculatedResult: {
+            totalCost: cabResp.totalCost,
+            boardCosts: cabResp.boardsCost,
+            componentCosts: cabResp.componentsCost,
+            jobCosts: cabResp.jobsCost
+          }
+        };
+      });
+
+      return {
+        id: wallId,
+        type: wallResp.wallType,
+        widthMm: wallResp.widthMm,
+        heightMm: wallResp.heightMm,
+        cabinets
+      };
+    });
+
+    // Jeśli brak ścian, dodaj domyślną
+    if (walls.length === 0) {
+      this._wallIdCounter++;
+      walls.push({
+        id: `wall-${this._wallIdCounter}`,
+        type: 'MAIN',
+        widthMm: 3600,
+        heightMm: 2600,
+        cabinets: []
+      });
+    }
+
+    // Ustaw stan
+    this._walls.set(walls);
+    this._selectedWallId.set(walls[0].id);
+    this._currentProjectId.set(project.id);
+    this._currentProjectName.set(project.name);
+    this._currentProjectVersion.set(project.version);
+  }
+
+  /**
+   * Buduje request do aktualizacji istniejącego projektu.
+   */
+  buildUpdateProjectRequest(name?: string, description?: string): UpdateKitchenProjectRequest {
+    return {
+      name: name ?? this._currentProjectName() ?? 'Bez nazwy',
+      description,
+      walls: this.buildProjectWalls()
+    };
+  }
+
+  /**
+   * Ustawia ID aktualnego projektu po zapisie.
+   */
+  setProjectInfo(projectId: number, projectName: string, version: number): void {
+    this._currentProjectId.set(projectId);
+    this._currentProjectName.set(projectName);
+    this._currentProjectVersion.set(version);
+  }
+
+  /**
+   * Sprawdza czy aktualnie pracujemy nad zapisanym projektem.
+   */
+  hasUnsavedProject(): boolean {
+    return this._currentProjectId() === null && this.totalCabinetCount() > 0;
   }
 
   clearSelectedWallCabinets(): void {
@@ -592,5 +725,32 @@ export class KitchenStateService {
       componentCosts: result.componentCosts ?? 0,
       jobCosts: result.jobCosts ?? 0
     };
+  }
+
+  /**
+   * Mapuje SegmentRequest (z API) na SegmentFormData (dla stanu aplikacji).
+   */
+  private mapSegmentResponseToFormData(seg: any): SegmentFormData {
+    const formData: SegmentFormData = {
+      segmentType: seg.segmentType as SegmentType,
+      height: seg.height,
+      orderIndex: seg.orderIndex
+    };
+
+    // Mapuj dane szuflad
+    if (seg.drawerRequest) {
+      formData.drawerQuantity = seg.drawerRequest.drawerQuantity;
+      formData.drawerModel = seg.drawerRequest.drawerModel;
+    }
+
+    // Mapuj półki i typ frontu
+    if (seg.shelfQuantity !== null && seg.shelfQuantity !== undefined) {
+      formData.shelfQuantity = seg.shelfQuantity;
+    }
+    if (seg.frontType) {
+      formData.frontType = seg.frontType as SegmentFrontType;
+    }
+
+    return formData;
   }
 }

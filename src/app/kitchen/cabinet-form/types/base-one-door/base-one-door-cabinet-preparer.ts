@@ -8,10 +8,18 @@ export class BaseOneDoorCabinetPreparer
   prepare(form: FormGroup, v: CabinetFormVisibility): void {
 
     // widoczność
+    v.width = true;  // Standardowa szerokość widoczna
     v.shelfQuantity = true;
     v.drawerQuantity = false;
     v.drawerModel = false;
     v.segments = false;
+
+    // Ukryj pola narożnika (resetowanie po CORNER_CABINET)
+    v.cornerWidthA = false;
+    v.cornerWidthB = false;
+    v.cornerMechanism = false;
+    v.cornerShelfQuantity = false;
+    v.isUpperCorner = false;
 
     // wartości domyślne
     // kitchenCabinetType: [KitchenCabinetType.BASE_ONE_DOOR], -- ta wartosc ustawiana jest przy wyborze typu szafki

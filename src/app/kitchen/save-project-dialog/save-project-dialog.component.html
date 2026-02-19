@@ -1,0 +1,35 @@
+<div class="dialog-container">
+  <h2 class="dialog-title">{{ dialogTitle }}</h2>
+
+  <div class="dialog-content">
+    <div class="form-group">
+      <label class="form-label" for="projectName">Nazwa projektu *</label>
+      <input
+        type="text"
+        id="projectName"
+        class="form-control"
+        [(ngModel)]="projectName"
+        placeholder="np. Kuchnia Kowalskich"
+        autofocus>
+      <span class="form-hint" *ngIf="!projectName.trim()">Nazwa jest wymagana</span>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="projectDescription">Opis (opcjonalnie)</label>
+      <textarea
+        id="projectDescription"
+        class="form-control"
+        [(ngModel)]="projectDescription"
+        placeholder="np. Biała kuchnia w kształcie L, fronty lakierowane"
+        rows="3">
+      </textarea>
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    <button class="btn btn-secondary" (click)="onCancel()">Anuluj</button>
+    <button class="btn btn-primary" (click)="onSave()" [disabled]="!isValid">
+      {{ submitLabel }}
+    </button>
+  </div>
+</div>

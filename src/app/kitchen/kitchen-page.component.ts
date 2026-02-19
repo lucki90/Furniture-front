@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { KitchenLayoutComponent } from "./kitchen-layout/kitchen-layout.component";
@@ -8,6 +9,7 @@ import { CabinetFormComponent } from "./cabinet-form/cabinet-form.component";
 import { KitchenCabinetListComponent } from './cabinet-list/kitchen-cabinet-list.component';
 import { KitchenFloorPlanComponent } from './floor-plan/kitchen-floor-plan.component';
 import { AddWallDialogComponent, AddWallDialogData, AddWallDialogResult } from './add-wall-dialog/add-wall-dialog.component';
+import { SaveProjectDialogComponent, SaveProjectDialogData, SaveProjectDialogResult } from './save-project-dialog/save-project-dialog.component';
 import { KitchenStateService } from './service/kitchen-state.service';
 import { KitchenService } from './service/kitchen.service';
 import { CabinetCalculatedEvent, KitchenCabinet } from './model/kitchen-state.model';
@@ -49,6 +51,7 @@ export interface AggregatedJob {
   imports: [
     CommonModule,
     FormsModule,
+    RouterModule,
     CabinetFormComponent,
     KitchenLayoutComponent,
     KitchenCabinetListComponent,
@@ -83,10 +86,18 @@ export class KitchenPageComponent {
   totalWasteCost = 0;
   wasteDetails: AggregatedComponent[] = [];
 
+  // Stan zapisywania projektu
+  isSavingProject = false;
+
   // Multi-wall signals
   readonly walls = this.stateService.walls;
   readonly selectedWall = this.stateService.selectedWall;
   readonly selectedWallId = this.stateService.selectedWallId;
+
+  // Project signals
+  readonly currentProjectId = this.stateService.currentProjectId;
+  readonly currentProjectName = this.stateService.currentProjectName;
+  readonly currentProjectVersion = this.stateService.currentProjectVersion;
 
   // Legacy compatibility
   readonly wall = this.stateService.wall;
@@ -234,6 +245,64 @@ export class KitchenPageComponent {
 
     this.stateService.clearSelectedWallCabinets();
     this.resetProjectResult();
+  }
+
+  // ============ PROJECT SAVE ============
+
+  /**
+   * Otwiera dialog zapisywania projektu i zapisuje go w bazie.
+   */
+  onSaveProject(): void {
+    const isUpdate = this.currentProjectId() !== null;
+
+    const dialogRef = this.dialog.open(SaveProjectDialogComponent, {
+      data: {
+        projectName: this.currentProjectName() || '',
+        projectDescription: '',
+        isUpdate
+      } as SaveProjectDialogData,
+      width: '450px'
+    });
+
+    dialogRef.afterClosed().subscribe((result: SaveProjectDialogResult | undefined) => {
+      if (!result) return;
+
+      this.isSavingProject = true;
+
+      if (isUpdate && this.currentProjectId()) {
+        // Aktualizacja istniejącego projektu
+        const request = this.stateService.buildUpdateProjectRequest(result.name, result.description);
+
+        this.kitchenService.updateProject(this.currentProjectId()!, request).subscribe({
+          next: (response) => {
+            this.stateService.setProjectInfo(response.id, response.name, response.version);
+            this.isSavingProject = false;
+            this.snackBar.open('Projekt został zaktualizowany', 'OK', { duration: 3000 });
+          },
+          error: (err) => {
+            console.error('Error updating project:', err);
+            this.isSavingProject = false;
+            this.snackBar.open('Błąd podczas aktualizacji projektu', 'OK', { duration: 5000 });
+          }
+        });
+      } else {
+        // Tworzenie nowego projektu
+        const request = this.stateService.buildMultiWallProjectRequest(result.name, result.description);
+
+        this.kitchenService.createProject(request).subscribe({
+          next: (response) => {
+            this.stateService.setProjectInfo(response.id, response.name, response.version);
+            this.isSavingProject = false;
+            this.snackBar.open('Projekt został zapisany', 'OK', { duration: 3000 });
+          },
+          error: (err) => {
+            console.error('Error creating project:', err);
+            this.isSavingProject = false;
+            this.snackBar.open('Błąd podczas zapisywania projektu', 'OK', { duration: 5000 });
+          }
+        });
+      }
+    });
   }
 
   // ============ PROJECT CALCULATION ============

@@ -14,7 +14,7 @@
       <span *ngIf="fitsOnWall()" class="success-inline">✓</span>
     </p>
 
-    <!-- Wall visualization -->
+    <!-- Wall visualization - SVG -->
     <div class="wall-view-wrapper">
       <!-- Zone labels (po lewej) -->
       <div class="zone-labels" [style.height.px]="totalHeight">
@@ -24,109 +24,194 @@
         <span class="zone-label" [style.top.px]="bottomZoneY" [style.height.px]="bottomZoneHeight">Dolne</span>
       </div>
 
-      <div class="wall-view"
-           [style.width.px]="wallDisplayWidth()"
-           [style.height.px]="totalHeight"
+      <!-- SVG visualization -->
+      <svg class="wall-svg"
+           [attr.width]="wallDisplayWidth()"
+           [attr.height]="totalHeight"
            [class.overflow]="!fitsOnWall()">
 
-        <!-- Słupki (FULL) - renderowane jako osobna warstwa, rozciągają się przez wszystkie strefy -->
-        <ng-container *ngFor="let pos of visualPositions(); let i = index">
-          <div *ngIf="pos.zone === 'FULL'"
-               class="cabinet full-height"
-               [class.overflow]="pos.isOverflow"
-               [class.editing]="isEditing(pos.cabinetId)"
-               [style.left.px]="pos.displayX"
-               [style.top.px]="pos.displayY"
-               [style.width.px]="pos.displayWidth"
-               [style.height.px]="pos.displayHeight"
-               [title]="(pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm (słupek)'">
-            <span class="cabinet-label">{{ getCabinetLabel(pos, i) }}</span>
-          </div>
-        </ng-container>
+        <!-- Definicje gradientów -->
+        <defs>
+          <!-- Gradient dla frontu -->
+          <linearGradient id="frontGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#e8e8e8;stop-opacity:1" />
+          </linearGradient>
+          <!-- Gradient dla frontu otwartego -->
+          <linearGradient id="openFrontGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#f5f5f5;stop-opacity:0.3" />
+            <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:0.3" />
+          </linearGradient>
+          <!-- Gradient dla blatu -->
+          <linearGradient id="countertopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#8d6e63;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#6d4c41;stop-opacity:1" />
+          </linearGradient>
+        </defs>
 
-        <!-- Strefa górna (szafki wiszące) -->
-        <div class="zone upper-zone"
-             [style.top.px]="topZoneY"
-             [style.height.px]="topZoneHeight">
+        <!-- Tło stref -->
+        <!-- Strefa górna -->
+        <rect [attr.x]="0" [attr.y]="topZoneY"
+              [attr.width]="wallDisplayWidth()" [attr.height]="topZoneHeight"
+              class="zone-bg upper-zone-bg"/>
 
-          <!-- Szafki górne (TOP) -->
-          <ng-container *ngFor="let pos of visualPositions(); let i = index">
-            <div *ngIf="pos.zone === 'TOP'"
-                 class="cabinet hanging"
-                 [class.overflow]="pos.isOverflow"
-                 [class.editing]="isEditing(pos.cabinetId)"
-                 [class.corner]="pos.isCorner"
-                 [style.left.px]="pos.displayX"
-                 [style.top.px]="pos.displayY"
-                 [style.width.px]="pos.displayWidth"
-                 [style.height.px]="pos.displayHeight"
-                 [title]="pos.isCorner
-                   ? (pos.name ? pos.name + ': ' : '') + 'Narożna ' + pos.width + '×' + pos.cornerWidthB + '×' + pos.height + 'mm'
-                   : (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm'">
-              <span class="cabinet-label">{{ getCabinetLabel(pos, i) }}</span>
-              <span *ngIf="pos.isCorner" class="corner-icon">⌐</span>
-            </div>
-          </ng-container>
+        <!-- Przerwa (ściana) -->
+        <rect [attr.x]="0" [attr.y]="gapZoneY"
+              [attr.width]="wallDisplayWidth()" [attr.height]="gapZoneHeight"
+              class="zone-bg gap-zone-bg"/>
 
-          <!-- Wolne miejsce górne -->
-          <div *ngIf="hasHangingCabinets() && remainingTopSpaceWidth() > 0"
-               class="remaining-space"
-               [style.left.px]="remainingTopSpaceX()"
-               [style.width.px]="remainingTopSpaceWidth()"
-               [style.top.px]="0"
-               [style.height.px]="topZoneHeight">
-          </div>
-        </div>
+        <!-- Blat -->
+        <rect [attr.x]="0" [attr.y]="counterZoneY"
+              [attr.width]="wallDisplayWidth()" [attr.height]="counterZoneHeight"
+              fill="url(#countertopGradient)" class="countertop-rect"/>
 
-        <!-- Przerwa (ściana między górnymi a blatem) -->
-        <div class="zone gap-zone"
-             [style.top.px]="gapZoneY"
-             [style.height.px]="gapZoneHeight">
-        </div>
+        <!-- Strefa dolna -->
+        <rect [attr.x]="0" [attr.y]="bottomZoneY"
+              [attr.width]="wallDisplayWidth()" [attr.height]="bottomZoneHeight"
+              class="zone-bg lower-zone-bg"/>
 
-        <!-- Strefa blatu -->
-        <div class="zone counter-zone"
-             [style.top.px]="counterZoneY"
-             [style.height.px]="counterZoneHeight">
-        </div>
+        <!-- Szafki -->
+        <g *ngFor="let pos of visualPositions(); let i = index" class="cabinet-group"
+           [class.editing]="isEditing(pos.cabinetId)">
 
-        <!-- Strefa dolna (szafki dolne) -->
-        <div class="zone lower-zone"
-             [style.top.px]="bottomZoneY"
-             [style.height.px]="bottomZoneHeight">
+          <!-- Korpus szafki (tło) -->
+          <rect [attr.x]="pos.displayX"
+                [attr.y]="pos.displayY"
+                [attr.width]="pos.displayWidth"
+                [attr.height]="pos.displayHeight - pos.feetHeight"
+                [class.cabinet-body]="true"
+                [class.cabinet-bottom]="pos.zone === 'BOTTOM'"
+                [class.cabinet-top]="pos.zone === 'TOP'"
+                [class.cabinet-full]="pos.zone === 'FULL'"
+                [class.cabinet-corner]="pos.isCorner"
+                [class.overflow]="pos.isOverflow"
+                rx="1">
+            <title>{{ (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + '×' + pos.depth + 'mm' }}</title>
+          </rect>
 
-          <!-- Szafki dolne (BOTTOM) -->
-          <ng-container *ngFor="let pos of visualPositions(); let i = index">
-            <div *ngIf="pos.zone === 'BOTTOM'"
-                 class="cabinet bottom"
-                 [class.overflow]="pos.isOverflow"
-                 [class.editing]="isEditing(pos.cabinetId)"
-                 [class.corner]="pos.isCorner"
-                 [style.left.px]="pos.displayX"
-                 [style.top.px]="pos.displayY - bottomZoneY"
-                 [style.width.px]="pos.displayWidth"
-                 [style.height.px]="pos.displayHeight"
-                 [title]="pos.isCorner
-                   ? (pos.name ? pos.name + ': ' : '') + 'Narożna ' + pos.width + '×' + pos.cornerWidthB + '×' + pos.height + 'mm'
-                   : (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + 'mm'">
-              <span class="cabinet-label">{{ getCabinetLabel(pos, i) }}</span>
-              <span *ngIf="pos.isCorner" class="corner-icon">⌐</span>
-            </div>
-          </ng-container>
+          <!-- Fronty -->
+          <g class="fronts-group">
+            <ng-container *ngFor="let front of pos.fronts">
+              <!-- Front normalny (drzwi/szuflada) -->
+              <rect *ngIf="front.type !== 'OPEN'"
+                    [attr.x]="front.x"
+                    [attr.y]="front.y"
+                    [attr.width]="front.width"
+                    [attr.height]="front.height"
+                    fill="url(#frontGradient)"
+                    class="front-rect"
+                    [class.drawer-front]="front.type === 'DRAWER'"
+                    rx="0.5">
+              </rect>
+              <!-- Front otwarty (półki) -->
+              <rect *ngIf="front.type === 'OPEN'"
+                    [attr.x]="front.x"
+                    [attr.y]="front.y"
+                    [attr.width]="front.width"
+                    [attr.height]="front.height"
+                    fill="url(#openFrontGradient)"
+                    class="front-rect open-front"
+                    stroke="#bdbdbd"
+                    stroke-dasharray="2 2"
+                    rx="0.5">
+              </rect>
+            </ng-container>
+          </g>
 
-          <!-- Wolne miejsce dolne -->
-          <div *ngIf="hasBottomCabinets() && remainingBottomSpaceWidth() > 0"
-               class="remaining-space"
-               [style.left.px]="remainingBottomSpaceX()"
-               [style.width.px]="remainingBottomSpaceWidth()"
-               [style.top.px]="0"
-               [style.height.px]="bottomZoneHeight">
-          </div>
-        </div>
+          <!-- Uchwyty -->
+          <g class="handles-group">
+            <line *ngFor="let handle of pos.handles"
+                  [attr.x1]="handle.x1"
+                  [attr.y1]="handle.y1"
+                  [attr.x2]="handle.x2"
+                  [attr.y2]="handle.y2"
+                  class="handle-line"
+                  stroke-linecap="round"/>
+          </g>
+
+          <!-- Nóżki (zamiast cokołu) -->
+          <g *ngIf="pos.feetHeight > 0" class="feet-group">
+            <circle *ngFor="let foot of pos.feet"
+                    [attr.cx]="foot.x"
+                    [attr.cy]="foot.y"
+                    r="2"
+                    class="foot-circle">
+            </circle>
+          </g>
+
+          <!-- Etykieta szafki -->
+          <text [attr.x]="pos.displayX + pos.displayWidth / 2"
+                [attr.y]="pos.displayY + (pos.displayHeight - pos.feetHeight) / 2"
+                class="cabinet-label-text"
+                text-anchor="middle"
+                dominant-baseline="middle">
+            {{ getCabinetLabel(pos, i) }}
+          </text>
+
+          <!-- Ikona narożnika -->
+          <text *ngIf="pos.isCorner"
+                [attr.x]="pos.displayX + pos.displayWidth - 6"
+                [attr.y]="pos.displayY + 8"
+                class="corner-icon-text"
+                text-anchor="middle">⌐</text>
+
+          <!-- Wskaźnik różnicy wysokości -->
+          <g *ngIf="pos.heightDiff" class="dimension-indicator">
+            <rect [attr.x]="pos.displayX + pos.displayWidth - 18"
+                  [attr.y]="pos.displayY + 2"
+                  width="16" height="10"
+                  [class.indicator-bg]="true"
+                  [class.indicator-warning]="isSignificantDiff(pos.heightDiff)"
+                  rx="2"/>
+            <text [attr.x]="pos.displayX + pos.displayWidth - 10"
+                  [attr.y]="pos.displayY + 9"
+                  class="indicator-text"
+                  text-anchor="middle"
+                  [class.indicator-warning-text]="isSignificantDiff(pos.heightDiff)">
+              h{{ formatDimensionDiff(pos.heightDiff) }}
+            </text>
+          </g>
+
+          <!-- Wskaźnik różnicy głębokości -->
+          <g *ngIf="pos.depthDiff" class="dimension-indicator">
+            <rect [attr.x]="pos.displayX + 2"
+                  [attr.y]="pos.displayY + 2"
+                  width="16" height="10"
+                  [class.indicator-bg]="true"
+                  [class.indicator-warning]="isSignificantDiff(pos.depthDiff)"
+                  rx="2"/>
+            <text [attr.x]="pos.displayX + 10"
+                  [attr.y]="pos.displayY + 9"
+                  class="indicator-text"
+                  text-anchor="middle"
+                  [class.indicator-warning-text]="isSignificantDiff(pos.depthDiff)">
+              d{{ formatDimensionDiff(pos.depthDiff) }}
+            </text>
+          </g>
+        </g>
+
+        <!-- Wolne miejsce - górne -->
+        <rect *ngIf="hasHangingCabinets() && remainingTopSpaceWidth() > 0"
+              [attr.x]="remainingTopSpaceX()"
+              [attr.y]="topZoneY"
+              [attr.width]="remainingTopSpaceWidth()"
+              [attr.height]="topZoneHeight"
+              class="remaining-space-rect"/>
+
+        <!-- Wolne miejsce - dolne -->
+        <rect *ngIf="hasBottomCabinets() && remainingBottomSpaceWidth() > 0"
+              [attr.x]="remainingBottomSpaceX()"
+              [attr.y]="bottomZoneY"
+              [attr.width]="remainingBottomSpaceWidth()"
+              [attr.height]="bottomZoneHeight"
+              class="remaining-space-rect"/>
 
         <!-- Podłoga -->
-        <div class="floor" [style.top.px]="totalHeight - 2"></div>
-      </div>
+        <line [attr.x1]="0" [attr.y1]="totalHeight - 1"
+              [attr.x2]="wallDisplayWidth()" [attr.y2]="totalHeight - 1"
+              class="floor-line"/>
+
+      </svg>
     </div>
 
     <div class="legend">
@@ -143,7 +228,10 @@
         <span class="legend-box cabinet-corner-legend"></span> Narożna
       </span>
       <span class="legend-item">
-        <span class="legend-box counter-legend"></span> Blat (38mm)
+        <span class="legend-box counter-legend"></span> Blat
+      </span>
+      <span class="legend-item legend-indicator">
+        <span class="legend-box indicator-legend"></span> h/d = różnica wys./głęb.
       </span>
     </div>
   </div>

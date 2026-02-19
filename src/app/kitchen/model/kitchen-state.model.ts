@@ -3,6 +3,7 @@ import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { WallType } from './kitchen-project.model';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
+import { CabinetVisualConfig } from '../cabinet-form/model/cabinet-visual-elements.model';
 
 /**
  * Strefa pozycjonowania szafki:
@@ -43,6 +44,9 @@ export interface KitchenCabinet {
   cornerMechanism?: CornerMechanismType;  // Typ mechanizmu (Magic Corner, karuzela, itp.)
   cornerShelfQuantity?: number;  // Liczba półek (dla FIXED_SHELVES)
   isUpperCorner?: boolean;  // true = górna wisząca, false = dolna
+
+  // Konfiguracja wizualna (cokoły, nóżki, uchwyty, fronty)
+  visualConfig?: CabinetVisualConfig;
 
   calculatedResult?: CabinetCalculationResult;
 }
@@ -115,6 +119,9 @@ export interface CabinetFormData {
   cornerMechanism?: CornerMechanismType;
   cornerShelfQuantity?: number;
   isUpperCorner?: boolean;
+
+  // Konfiguracja wizualna (cokoły, nóżki, uchwyty, fronty)
+  visualConfig?: CabinetVisualConfig;
 }
 
 export interface CabinetCalculatedEvent {

@@ -7,7 +7,7 @@ import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
 import { OPENING_TYPES, KitchenCabinetConstraints } from './model/kitchen-cabinet-constants';
 import { CommonModule } from "@angular/common";
-import { CabinetCalculatedEvent, KitchenCabinet } from '../model/kitchen-state.model';
+import { CabinetCalculatedEvent, KitchenCabinet, CabinetZone } from '../model/kitchen-state.model';
 import { SegmentFormComponent } from './segment-form/segment-form.component';
 import { SegmentVisualizerComponent } from './segment-visualizer/segment-visualizer.component';
 import { SegmentType } from './model/segment.model';

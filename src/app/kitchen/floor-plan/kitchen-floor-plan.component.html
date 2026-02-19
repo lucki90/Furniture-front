@@ -21,13 +21,27 @@
             [attr.y]="cab.y"
             [attr.width]="cab.width"
             [attr.height]="cab.depth"
-            [attr.fill]="getCabinetFill(cab.zone, cab.cabinetId)"
-            [attr.stroke]="getCabinetStroke(cab.zone, cab.cabinetId)"
+            [attr.fill]="getCabinetFill(cab)"
+            [attr.stroke]="getCabinetStroke(cab)"
             [attr.stroke-width]="isEditing(cab.cabinetId) ? 2 : 0.5"
             class="cabinet-rect"
             [class.editing]="isEditing(cab.cabinetId)"
+            [class.corner]="cab.isCorner"
             rx="1">
-            <title>{{ cab.name || cab.cabinetId }} ({{ cab.zone === 'FULL' ? 'słupek' : cab.zone === 'TOP' ? 'górna' : 'dolna' }})</title>
+            <title>{{ cab.name || cab.cabinetId }} ({{ cab.isCorner ? 'narożna' : cab.zone === 'FULL' ? 'słupek' : cab.zone === 'TOP' ? 'górna' : 'dolna' }})</title>
+          </rect>
+        }
+
+        <!-- Blat (countertop) - przezroczysta warstwa nad szafkami dolnymi -->
+        @if (getCountertopForWall(pos); as countertop) {
+          <rect
+            [attr.x]="countertop.x"
+            [attr.y]="countertop.y"
+            [attr.width]="countertop.width"
+            [attr.height]="countertop.depth"
+            class="countertop-rect"
+            rx="1">
+            <title>Blat</title>
           </rect>
         }
 

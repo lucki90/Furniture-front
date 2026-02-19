@@ -1,0 +1,75 @@
+.cabinet-detail-svg {
+  display: block;
+  background: linear-gradient(to bottom, #fafafa, #f5f5f5);
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.empty-state {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  font-size: 0.85rem;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+/* Fronty */
+.front-group {
+  cursor: pointer;
+}
+
+.front-rect {
+  transition: filter 0.2s, stroke-width 0.2s;
+}
+
+.front-group:hover .front-rect {
+  filter: brightness(1.05);
+  stroke-width: 1;
+}
+
+/* Uchwyty */
+.handle-bar {
+  transition: stroke-width 0.2s;
+}
+
+.handle-bar:hover {
+  stroke-width: 4;
+}
+
+.handle-knob {
+  transition: r 0.2s;
+}
+
+.handle-knob:hover {
+  r: 5;
+}
+
+/* Zawiasy */
+.hinge {
+  opacity: 0.8;
+}
+
+/* Cokół */
+.plinth {
+  /* cokół statyczny */
+}
+
+/* Nóżki */
+.foot {
+  opacity: 0.9;
+}
+
+.foot-base {
+  opacity: 0.7;
+}
+
+/* Linia podłogi */
+.floor-line {
+  opacity: 0.8;
+}
+
+/* Szuflada - linia separująca */
+.drawer-line {
+  opacity: 0.6;
+}

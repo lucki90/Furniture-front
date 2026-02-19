@@ -11,10 +11,18 @@ export class TallCabinetPreparer implements KitchenCabinetPreparer {
 
   prepare(form: FormGroup, v: CabinetFormVisibility): void {
     // Widoczność - ukryj standardowe pola, pokaż segmenty
+    v.width = true;  // Standardowa szerokość widoczna
     v.shelfQuantity = false;
     v.drawerQuantity = false;
     v.drawerModel = false;
     v.segments = true;
+
+    // Ukryj pola narożnika (resetowanie po CORNER_CABINET)
+    v.cornerWidthA = false;
+    v.cornerWidthB = false;
+    v.cornerMechanism = false;
+    v.cornerShelfQuantity = false;
+    v.isUpperCorner = false;
 
     // Wartości domyślne dla słupka
     form.patchValue({

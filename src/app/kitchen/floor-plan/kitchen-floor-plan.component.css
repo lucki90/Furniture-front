@@ -39,6 +39,15 @@
   opacity: 1;
 }
 
+/* Countertop (blat) - przezroczysta warstwa */
+.countertop-rect {
+  fill: rgba(141, 110, 99, 0.25);  /* brązowy, przezroczysty */
+  stroke: #6d4c41;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;  /* linia przerywana */
+  pointer-events: none;  /* nie blokuje kliknięć na szafki */
+}
+
 /* Edytowana szafka - podświetlenie */
 .cabinet-rect.editing {
   opacity: 1;

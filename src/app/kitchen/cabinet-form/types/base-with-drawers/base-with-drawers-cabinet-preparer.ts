@@ -6,10 +6,18 @@ export class BaseWithDrawersCabinetPreparer implements KitchenCabinetPreparer {
 
   prepare(form: FormGroup, v: CabinetFormVisibility): void {
     // widoczność - szuflady widoczne, półki ukryte
+    v.width = true;  // Standardowa szerokość widoczna
     v.shelfQuantity = false;
     v.drawerQuantity = true;
     v.drawerModel = true;
     v.segments = false;
+
+    // Ukryj pola narożnika (resetowanie po CORNER_CABINET)
+    v.cornerWidthA = false;
+    v.cornerWidthB = false;
+    v.cornerMechanism = false;
+    v.cornerShelfQuantity = false;
+    v.isUpperCorner = false;
 
     // wartości domyślne dla szafki z szufladami
     form.patchValue({

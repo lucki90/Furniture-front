@@ -78,167 +78,195 @@
   color: #5d4037;
 }
 
-/* Wall view container */
-.wall-view {
-  position: relative;
+/* ============================================
+   SVG VISUALIZATION
+   ============================================ */
+
+.wall-svg {
   border: 2px solid #333;
-  background: #f8f8f8;
-  transition: border-color 0.3s;
   border-radius: 3px;
-  overflow: hidden;
+  background: #f8f8f8;
   flex-grow: 1;
 }
 
-.wall-view.overflow {
+.wall-svg.overflow {
   border-color: #d32f2f;
 }
 
-/* Zones */
-.zone {
-  position: absolute;
-  left: 0;
-  right: 0;
+/* Zone backgrounds */
+.zone-bg {
+  fill: #f5f5f5;
 }
 
-.upper-zone {
-  background: linear-gradient(to bottom, #e3f2fd, #f5f5f5);
+.upper-zone-bg {
+  fill: #e8f5fd;
 }
 
-.gap-zone {
-  background: linear-gradient(to bottom, #f5f5f5, #efebe9);
+.gap-zone-bg {
+  fill: #f0f0f0;
 }
 
-.counter-zone {
-  background: linear-gradient(to bottom, #8d6e63, #6d4c41);
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+.lower-zone-bg {
+  fill: #e8f5e9;
 }
 
-.lower-zone {
-  background: linear-gradient(to top, #e8f5e9, #f5f5f5);
+/* Countertop */
+.countertop-rect {
+  stroke: #5d4037;
+  stroke-width: 0.5;
 }
 
-/* Cabinets */
-.cabinet {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid;
-  font-size: 10px;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: default;
-  box-sizing: border-box;
-  border-radius: 2px;
-  overflow: hidden;
+/* Cabinet body */
+.cabinet-body {
+  stroke-width: 1;
+  transition: filter 0.2s;
 }
 
-.cabinet:hover {
-  transform: scale(1.03);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  z-index: 10;
+.cabinet-body.cabinet-bottom {
+  fill: #a5d6a7;
+  stroke: #388e3c;
 }
 
-.cabinet.bottom {
-  background: linear-gradient(to bottom, #a5d6a7, #81c784);
-  border-color: #388e3c;
-  color: #1b5e20;
+.cabinet-body.cabinet-top {
+  fill: #90caf9;
+  stroke: #1565c0;
 }
 
-.cabinet.hanging {
-  background: linear-gradient(to bottom, #90caf9, #64b5f6);
-  border-color: #1565c0;
-  color: #0d47a1;
+.cabinet-body.cabinet-full {
+  fill: #ce93d8;
+  stroke: #7b1fa2;
 }
 
-.cabinet.full-height {
-  background: linear-gradient(to bottom, #ce93d8, #ba68c8);
-  border-color: #7b1fa2;
-  color: #4a148c;
-  z-index: 5; /* Słupki na wierzchu innych stref */
+.cabinet-body.cabinet-corner {
+  fill: #ffb74d;
+  stroke: #ef6c00;
 }
 
-/* Szafka narożna - specjalny styl z diagonalnym wzorem */
-.cabinet.corner {
-  background: linear-gradient(135deg, #ffcc80 0%, #ffb74d 50%, #ffa726 100%);
-  border-color: #ef6c00;
-  color: #e65100;
-  position: relative;
+.cabinet-body.overflow {
+  fill: #ef9a9a !important;
+  stroke: #c62828 !important;
 }
 
-/* Ikona narożnika */
-.corner-icon {
-  position: absolute;
-  top: 1px;
-  right: 2px;
-  font-size: 8px;
-  line-height: 1;
-  opacity: 0.8;
+/* Cabinet group hover */
+.cabinet-group {
+  cursor: pointer;
 }
 
-.cabinet.overflow {
-  background: linear-gradient(to bottom, #ef9a9a, #e57373) !important;
-  border-color: #c62828 !important;
-  color: #b71c1c !important;
+.cabinet-group:hover .cabinet-body {
+  filter: brightness(1.08);
 }
 
-/* Edytowana szafka - podświetlenie */
-.cabinet.editing {
-  background: linear-gradient(to bottom, #fcd34d, #fbbf24) !important;
-  border-color: #f59e0b !important;
-  border-width: 2px !important;
-  color: #92400e !important;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
-  z-index: 20 !important;
-  animation: pulse-editing 1.5s ease-in-out infinite;
+.cabinet-group:hover .front-rect {
+  filter: brightness(1.05);
 }
 
-@keyframes pulse-editing {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
-  }
-  50% {
-    box-shadow: 0 0 14px rgba(245, 158, 11, 0.9);
-  }
+/* Editing cabinet */
+.cabinet-group.editing .cabinet-body {
+  fill: #fcd34d !important;
+  stroke: #f59e0b !important;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6));
 }
 
-.cabinet-label {
-  text-shadow: 0 0 2px rgba(255,255,255,0.9);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 3px;
-  max-width: 100%;
+/* Front rectangles */
+.front-rect {
+  stroke: #bdbdbd;
+  stroke-width: 0.5;
+  transition: filter 0.2s;
+}
+
+.front-rect.drawer-front {
+  /* Szuflady */
+}
+
+.front-rect.open-front {
+  fill: rgba(200, 200, 200, 0.2);
+}
+
+/* Handles */
+.handle-line {
+  stroke: #607d8b;
+  stroke-width: 2;
+  filter: drop-shadow(0 0.5px 0.5px rgba(0,0,0,0.3));
+}
+
+/* Feet (nóżki) */
+.foot-circle {
+  fill: #424242;
+  stroke: #212121;
+  stroke-width: 0.5;
+}
+
+.feet-group {
+  opacity: 0.9;
+}
+
+/* Cabinet label text */
+.cabinet-label-text {
   font-size: 9px;
+  font-weight: 600;
+  fill: #333;
+  pointer-events: none;
+  text-shadow: 0 0 2px white, 0 0 2px white;
+}
+
+/* Corner icon */
+.corner-icon-text {
+  font-size: 7px;
+  fill: #e65100;
+  pointer-events: none;
+}
+
+/* ============================================
+   DIMENSION INDICATORS (wskaźniki wymiarów)
+   ============================================ */
+
+.dimension-indicator {
+  pointer-events: none;
+}
+
+.indicator-bg {
+  fill: rgba(33, 150, 243, 0.15);
+  stroke: #2196f3;
+  stroke-width: 0.5;
+}
+
+.indicator-bg.indicator-warning {
+  fill: rgba(255, 152, 0, 0.25);
+  stroke: #ff9800;
+}
+
+.indicator-text {
+  font-size: 6px;
+  font-weight: 600;
+  fill: #1565c0;
+}
+
+.indicator-text.indicator-warning-text {
+  fill: #e65100;
 }
 
 /* Remaining space */
-.remaining-space {
-  position: absolute;
-  background: repeating-linear-gradient(
-    45deg,
-    rgba(224, 224, 224, 0.5),
-    rgba(224, 224, 224, 0.5) 6px,
-    rgba(245, 245, 245, 0.5) 6px,
-    rgba(245, 245, 245, 0.5) 12px
-  );
-  border: 1px dashed #bdbdbd;
-  box-sizing: border-box;
+.remaining-space-rect {
+  fill: rgba(200, 200, 200, 0.2);
+  stroke: #bdbdbd;
+  stroke-width: 1;
+  stroke-dasharray: 4 2;
 }
 
-/* Floor */
-.floor {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: #5d4037;
+/* Floor line */
+.floor-line {
+  stroke: #5d4037;
+  stroke-width: 2;
 }
 
-/* Legend */
+/* ============================================
+   LEGEND
+   ============================================ */
+
 .legend {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   margin-top: 8px;
   flex-wrap: wrap;
 }
@@ -246,9 +274,14 @@
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-size: 10px;
   color: #666;
+}
+
+.legend-indicator {
+  font-size: 9px;
+  color: #888;
 }
 
 .legend-box {
@@ -259,22 +292,22 @@
 }
 
 .cabinet-bottom-legend {
-  background: linear-gradient(to bottom, #a5d6a7, #81c784);
+  background: #a5d6a7;
   border-color: #388e3c;
 }
 
 .cabinet-hanging-legend {
-  background: linear-gradient(to bottom, #90caf9, #64b5f6);
+  background: #90caf9;
   border-color: #1565c0;
 }
 
 .cabinet-full-legend {
-  background: linear-gradient(to bottom, #ce93d8, #ba68c8);
+  background: #ce93d8;
   border-color: #7b1fa2;
 }
 
 .cabinet-corner-legend {
-  background: linear-gradient(135deg, #ffcc80, #ffa726);
+  background: #ffb74d;
   border-color: #ef6c00;
 }
 
@@ -283,9 +316,24 @@
   border-color: #5d4037;
 }
 
+.indicator-legend {
+  background: rgba(33, 150, 243, 0.15);
+  border-color: #2196f3;
+  width: 18px;
+  font-size: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1565c0;
+}
+
 /* Responsive */
 @media (max-width: 500px) {
   .zone-labels {
+    display: none;
+  }
+
+  .legend-indicator {
     display: none;
   }
 }

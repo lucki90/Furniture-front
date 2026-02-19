@@ -234,6 +234,21 @@ export interface CabinetPlacementResponse {
 
   openingType?: string;
 
+  // Additional configuration - drawers
+  drawerQuantity?: number;
+  drawerModel?: string;
+  shelfQuantity?: number;
+
+  // Additional configuration - corner cabinet
+  cornerWidthA?: number;
+  cornerWidthB?: number;
+  cornerMechanism?: string;
+  cornerShelfQuantity?: number;
+  isUpperCorner?: boolean;
+
+  // Additional configuration - tall cabinet segments
+  segments?: SegmentRequest[];
+
   boardsCost: number;
   componentsCost: number;
   jobsCost: number;

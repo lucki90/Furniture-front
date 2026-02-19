@@ -2,10 +2,25 @@
   <!-- PAGE HEADER -->
   <header class="page-header">
     <div class="page-title">
-      <h1>🍳 Nowy projekt kuchni</h1>
-      <span class="page-subtitle">Projektuj i wyceniaj zabudowę kuchenną</span>
+      <h1>🍳 {{ currentProjectName() || 'Nowy projekt kuchni' }}</h1>
+      <span class="page-subtitle">
+        <ng-container *ngIf="currentProjectId()">
+          Projekt #{{ currentProjectId() }} • wersja {{ currentProjectVersion() }}
+        </ng-container>
+        <ng-container *ngIf="!currentProjectId()">
+          Projektuj i wyceniaj zabudowę kuchenną
+        </ng-container>
+      </span>
     </div>
     <div class="page-actions">
+      <a routerLink="/kitchen/projects" class="btn btn-outline">
+        <span class="btn-icon-text">📁</span>
+        Moje projekty
+      </a>
+      <button class="btn btn-success" (click)="onSaveProject()" [disabled]="totalCabinetCount() === 0 || isSavingProject">
+        <span class="btn-icon-text">💾</span>
+        {{ isSavingProject ? 'Zapisuję...' : (currentProjectId() ? 'Zapisz zmiany' : 'Zapisz projekt') }}
+      </button>
       <button class="btn btn-secondary" (click)="calculateProject()" [disabled]="totalCabinetCount() === 0 || isCalculatingProject">
         <span class="btn-icon-text">🧮</span>
         {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
@@ -425,6 +440,13 @@
     </div>
     <div class="footer-actions">
       <!-- Przyciski główne -->
+      <button
+        class="btn btn-success"
+        (click)="onSaveProject()"
+        [disabled]="totalCabinetCount() === 0 || isSavingProject || editingCabinetId !== null">
+        <span>💾</span>
+        {{ isSavingProject ? 'Zapisuję...' : (currentProjectId() ? 'Zapisz' : 'Zapisz projekt') }}
+      </button>
       <button
         class="btn btn-primary"
         (click)="calculateProject()"

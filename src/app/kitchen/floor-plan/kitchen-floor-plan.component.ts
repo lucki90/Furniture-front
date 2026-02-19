@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { WallType } from '../model/kitchen-project.model';
 import { WallWithCabinets, CabinetZone, getCabinetZone } from '../model/kitchen-state.model';
+import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 
 interface WallPosition {
   wall: WallWithCabinets;
@@ -26,6 +27,14 @@ interface CabinetOnFloorPlan {
   width: number;
   depth: number;
   zone: CabinetZone;
+  isCorner: boolean;  // Czy to szafka narożna
+}
+
+interface CountertopOnFloorPlan {
+  x: number;
+  y: number;
+  width: number;
+  depth: number;
 }
 
 @Component({
@@ -52,6 +61,10 @@ export class KitchenFloorPlanComponent {
   private readonly SVG_HEIGHT = 240;
   private readonly WALL_THICKNESS = 10;
   private readonly PADDING = 30;
+
+  // Blat - wymiary w mm
+  private readonly COUNTERTOP_OVERHANG = 20;  // Nawis blatu (mm) - ile wystaje poza szafkę
+  private readonly COUNTERTOP_DEPTH = 600;    // Standardowa głębokość blatu (mm)
 
   // Obliczona skala (potrzebna też dla szafek)
   private currentScale = 0.1;
@@ -277,6 +290,8 @@ export class KitchenFloorPlanComponent {
       const cabinetWidth = cabinet.width * scale;
       // Użyj rzeczywistej głębokości szafki
       const cabinetDepth = cabinet.depth * scale;
+      // Sprawdź czy to narożnik
+      const isCorner = cabinet.type === KitchenCabinetType.CORNER_CABINET;
 
       let posX: number;
 
@@ -306,7 +321,8 @@ export class KitchenFloorPlanComponent {
         posX * scale,
         cabinetWidth,
         cabinetDepth,
-        zone
+        zone,
+        isCorner
       );
 
       // Grupuj według strefy
@@ -329,6 +345,71 @@ export class KitchenFloorPlanComponent {
   }
 
   /**
+   * Oblicza pozycję i wymiary blatu dla danej ściany.
+   * Blat pokrywa wszystkie szafki dolne (BOTTOM) i słupki (FULL) z nawisem.
+   * Zwraca null jeśli brak szafek dolnych.
+   */
+  getCountertopForWall(pos: WallPosition): CountertopOnFloorPlan | null {
+    const wall = pos.wall;
+    const scale = pos.scale;
+
+    // Znajdź szafki dolne i słupki (które potrzebują blatu)
+    const bottomCabinets = wall.cabinets.filter(cab => {
+      const zone = getCabinetZone(cab);
+      return zone === 'BOTTOM' || zone === 'FULL';
+    });
+
+    if (bottomCabinets.length === 0) {
+      return null;
+    }
+
+    // Oblicz całkowitą szerokość szafek dolnych
+    let totalWidth = 0;
+    for (const cab of bottomCabinets) {
+      totalWidth += cab.width;
+    }
+
+    // Znajdź maksymalną głębokość
+    const maxDepth = Math.max(...bottomCabinets.map(cab => cab.depth));
+
+    // Blat ma nawis (overhang) z przodu
+    const countertopDepthMm = maxDepth + this.COUNTERTOP_OVERHANG;
+    const countertopWidthMm = totalWidth + this.COUNTERTOP_OVERHANG;
+
+    // Przeskaluj do SVG
+    const countertopWidth = countertopWidthMm * scale;
+    const countertopDepth = countertopDepthMm * scale;
+    const overhang = this.COUNTERTOP_OVERHANG * scale / 2;
+
+    if (pos.isHorizontal) {
+      // Ściana pozioma - blat idzie od lewej do prawej
+      return {
+        x: pos.x - overhang,
+        y: pos.y - countertopDepth,
+        width: countertopWidth,
+        depth: countertopDepth
+      };
+    } else {
+      // Ściana pionowa
+      if (wall.type === 'LEFT') {
+        return {
+          x: pos.x + this.WALL_THICKNESS - overhang,
+          y: pos.y - overhang,
+          width: countertopDepth,
+          depth: countertopWidth
+        };
+      } else {
+        return {
+          x: pos.x - countertopDepth + overhang,
+          y: pos.y - overhang,
+          width: countertopDepth,
+          depth: countertopWidth
+        };
+      }
+    }
+  }
+
+  /**
    * Tworzy obiekt CabinetOnFloorPlan z odpowiednimi współrzędnymi
    */
   private createCabinetOnFloorPlan(
@@ -339,7 +420,8 @@ export class KitchenFloorPlanComponent {
     posX: number,
     cabinetWidth: number,
     cabinetDepth: number,
-    zone: CabinetZone
+    zone: CabinetZone,
+    isCorner: boolean
   ): CabinetOnFloorPlan {
     if (pos.isHorizontal) {
       // Ściana pozioma (MAIN, CORNER_LEFT, CORNER_RIGHT, ISLAND)
@@ -351,7 +433,8 @@ export class KitchenFloorPlanComponent {
         y: pos.y - cabinetDepth,
         width: cabinetWidth,
         depth: cabinetDepth,
-        zone
+        zone,
+        isCorner
       };
     } else {
       // Ściana pionowa (LEFT, RIGHT)
@@ -364,7 +447,8 @@ export class KitchenFloorPlanComponent {
           y: pos.y + posX,
           width: cabinetDepth,
           depth: cabinetWidth,
-          zone
+          zone,
+          isCorner
         };
       } else {
         // RIGHT
@@ -375,7 +459,8 @@ export class KitchenFloorPlanComponent {
           y: pos.y + posX,
           width: cabinetDepth,
           depth: cabinetWidth,
-          zone
+          zone,
+          isCorner
         };
       }
     }
@@ -389,13 +474,17 @@ export class KitchenFloorPlanComponent {
   }
 
   /**
-   * Zwraca kolor szafki na podstawie strefy i czy jest edytowana
+   * Zwraca kolor szafki na podstawie strefy, typu i czy jest edytowana
    */
-  getCabinetFill(zone: CabinetZone, cabinetId: string): string {
-    if (this.isEditing(cabinetId)) {
+  getCabinetFill(cab: CabinetOnFloorPlan): string {
+    if (this.isEditing(cab.cabinetId)) {
       return '#fbbf24'; // żółty dla edytowanej
     }
-    switch (zone) {
+    // Narożnik ma osobny kolor (pomarańczowy - zgodny z widokiem frontalnym)
+    if (cab.isCorner) {
+      return '#ffb74d';
+    }
+    switch (cab.zone) {
       case 'TOP': return '#90caf9';
       case 'FULL': return '#ce93d8';
       case 'BOTTOM':
@@ -404,13 +493,17 @@ export class KitchenFloorPlanComponent {
   }
 
   /**
-   * Zwraca kolor obramowania szafki na podstawie strefy i czy jest edytowana
+   * Zwraca kolor obramowania szafki na podstawie strefy, typu i czy jest edytowana
    */
-  getCabinetStroke(zone: CabinetZone, cabinetId: string): string {
-    if (this.isEditing(cabinetId)) {
+  getCabinetStroke(cab: CabinetOnFloorPlan): string {
+    if (this.isEditing(cab.cabinetId)) {
       return '#f59e0b'; // ciemniejszy żółty dla edytowanej
     }
-    switch (zone) {
+    // Narożnik ma osobny kolor obramowania
+    if (cab.isCorner) {
+      return '#ef6c00';
+    }
+    switch (cab.zone) {
       case 'TOP': return '#1565c0';
       case 'FULL': return '#7b1fa2';
       case 'BOTTOM':

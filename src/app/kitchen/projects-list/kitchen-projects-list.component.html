@@ -1,0 +1,88 @@
+<div class="projects-container">
+  <header class="projects-header">
+    <h1>Moje projekty kuchni</h1>
+    <button class="btn btn-primary" (click)="createNewProject()">
+      + Nowy projekt
+    </button>
+  </header>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Wczytywanie projektów...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="error-state">
+    <p>{{ error }}</p>
+    <button class="btn btn-secondary" (click)="loadProjects()">Spróbuj ponownie</button>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && !error && projects.length === 0" class="empty-state">
+    <div class="empty-icon">📁</div>
+    <h2>Brak projektów</h2>
+    <p>Nie masz jeszcze żadnych zapisanych projektów kuchni.</p>
+    <button class="btn btn-primary" (click)="createNewProject()">
+      Utwórz pierwszy projekt
+    </button>
+  </div>
+
+  <!-- Projects list -->
+  <div *ngIf="!loading && projects.length > 0" class="projects-grid">
+    <div *ngFor="let project of projects" class="project-card" [class.deleting]="deletingProjectId === project.id">
+
+      <!-- Delete confirmation overlay -->
+      <div *ngIf="deletingProjectId === project.id" class="delete-overlay">
+        <p>Czy na pewno chcesz usunąć projekt "{{ project.name }}"?</p>
+        <div class="delete-actions">
+          <button class="btn btn-danger" (click)="deleteProject(project.id)">Usuń</button>
+          <button class="btn btn-secondary" (click)="cancelDelete()">Anuluj</button>
+        </div>
+      </div>
+
+      <!-- Card content -->
+      <div class="card-header">
+        <h3 class="project-name">{{ project.name }}</h3>
+        <span class="status-badge" [ngClass]="getStatusClass(project.status)">
+          {{ getStatusLabel(project.status) }}
+        </span>
+      </div>
+
+      <p *ngIf="project.description" class="project-description">{{ project.description }}</p>
+
+      <div class="project-stats">
+        <div class="stat">
+          <span class="stat-value">{{ project.wallCount }}</span>
+          <span class="stat-label">{{ project.wallCount === 1 ? 'ściana' : 'ściany' }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ project.cabinetCount }}</span>
+          <span class="stat-label">{{ project.cabinetCount === 1 ? 'szafka' : 'szafek' }}</span>
+        </div>
+        <div class="stat cost">
+          <span class="stat-value">{{ formatCost(project.totalCost) }}</span>
+          <span class="stat-label">koszt</span>
+        </div>
+      </div>
+
+      <div class="project-dates">
+        <span class="date-info">
+          Utworzono: {{ formatDate(project.createdAt) }}
+        </span>
+        <span class="date-info" *ngIf="project.updatedAt !== project.createdAt">
+          Zmieniono: {{ formatDate(project.updatedAt) }}
+        </span>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn btn-primary btn-sm" (click)="openProject(project.id)">
+          Otwórz
+        </button>
+        <button class="btn btn-danger btn-sm btn-icon" (click)="confirmDelete(project.id)" title="Usuń projekt">
+          🗑️
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

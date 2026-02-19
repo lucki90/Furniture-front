@@ -1,21 +1,23 @@
 <form [formGroup]="form" class="cabinet-form">
-  <!-- Wiersz 1: Nazwa i Typ szafki -->
-  <div class="form-row">
-    <div class="form-group flex-2">
-      <label class="form-label">Nazwa (opcjonalnie)</label>
-      <input type="text" class="form-control" formControlName="name" placeholder="np. Zlewozmywakowa">
-    </div>
-    <div class="form-group flex-2">
-      <label class="form-label">Typ szafki</label>
-      <select class="form-control" formControlName="kitchenCabinetType">
-        <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
-        <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
-        <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
-        <option value="TALL_CABINET">Słupek</option>
-        <option value="CORNER_CABINET">Narożna</option>
-      </select>
-    </div>
-  </div>
+    <!-- Formularz -->
+
+      <!-- Wiersz 1: Nazwa i Typ szafki -->
+      <div class="form-row">
+        <div class="form-group flex-2">
+          <label class="form-label">Nazwa (opcjonalnie)</label>
+          <input type="text" class="form-control" formControlName="name" placeholder="np. Zlewozmywakowa">
+        </div>
+        <div class="form-group flex-2">
+          <label class="form-label">Typ szafki</label>
+          <select class="form-control" formControlName="kitchenCabinetType">
+            <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
+            <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
+            <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
+            <option value="TALL_CABINET">Słupek</option>
+            <option value="CORNER_CABINET">Narożna</option>
+          </select>
+        </div>
+      </div>
 
   <!-- Wiersz 2: Wymiary (standardowe) -->
   <div class="form-row" *ngIf="visibility.width !== false">
@@ -254,19 +256,20 @@
     </div>
   </div>
 
-  <!-- Przyciski -->
-  <div class="form-actions">
-    <button type="button" class="btn btn-primary" (click)="calculate()" [disabled]="loading || form.invalid">
-      <span *ngIf="loading" class="spinner"></span>
-      {{ isEditMode ? '💾 Zapisz' : '➕ Dodaj szafkę' }}
-    </button>
-    <button
-      *ngIf="isEditMode"
-      type="button"
-      class="btn btn-secondary"
-      (click)="onCancel()"
-      [disabled]="loading">
-      Anuluj
-    </button>
-  </div>
+      <!-- Przyciski -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-primary" (click)="calculate()" [disabled]="loading || form.invalid">
+          <span *ngIf="loading" class="spinner"></span>
+          {{ isEditMode ? '💾 Zapisz' : '➕ Dodaj szafkę' }}
+        </button>
+        <button
+          *ngIf="isEditMode"
+          type="button"
+          class="btn btn-secondary"
+          (click)="onCancel()"
+          [disabled]="loading">
+          Anuluj
+        </button>
+      </div>
+
 </form>
