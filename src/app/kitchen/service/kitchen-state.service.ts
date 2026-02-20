@@ -68,6 +68,7 @@ export class KitchenStateService {
 
   private _currentProjectId = signal<number | null>(null);
   private _currentProjectName = signal<string | null>(null);
+  private _currentProjectDescription = signal<string | null>(null);
   private _currentProjectVersion = signal<number>(0);
 
   // ============ PUBLIC SIGNALS ============
@@ -76,6 +77,7 @@ export class KitchenStateService {
   readonly selectedWallId = this._selectedWallId.asReadonly();
   readonly currentProjectId = this._currentProjectId.asReadonly();
   readonly currentProjectName = this._currentProjectName.asReadonly();
+  readonly currentProjectDescription = this._currentProjectDescription.asReadonly();
   readonly currentProjectVersion = this._currentProjectVersion.asReadonly();
 
   readonly selectedWall = computed(() => {
@@ -515,6 +517,7 @@ export class KitchenStateService {
     this._cabinetIdCounter = 0;
     this._currentProjectId.set(null);
     this._currentProjectName.set(null);
+    this._currentProjectDescription.set(null);
     this._currentProjectVersion.set(0);
   }
 
@@ -630,6 +633,7 @@ export class KitchenStateService {
     this._selectedWallId.set(walls[0].id);
     this._currentProjectId.set(project.id);
     this._currentProjectName.set(project.name);
+    this._currentProjectDescription.set(project.description ?? null);
     this._currentProjectVersion.set(project.version);
   }
 
@@ -647,9 +651,10 @@ export class KitchenStateService {
   /**
    * Ustawia ID aktualnego projektu po zapisie.
    */
-  setProjectInfo(projectId: number, projectName: string, version: number): void {
+  setProjectInfo(projectId: number, projectName: string, version: number, description?: string): void {
     this._currentProjectId.set(projectId);
     this._currentProjectName.set(projectName);
+    this._currentProjectDescription.set(description ?? null);
     this._currentProjectVersion.set(version);
   }
 

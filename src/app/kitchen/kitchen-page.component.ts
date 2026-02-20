@@ -114,6 +114,7 @@ export class KitchenPageComponent {
   // Project signals
   readonly currentProjectId = this.stateService.currentProjectId;
   readonly currentProjectName = this.stateService.currentProjectName;
+  readonly currentProjectDescription = this.stateService.currentProjectDescription;
   readonly currentProjectVersion = this.stateService.currentProjectVersion;
 
   // Legacy compatibility
@@ -405,7 +406,7 @@ export class KitchenPageComponent {
     const dialogRef = this.dialog.open(SaveProjectDialogComponent, {
       data: {
         projectName: this.currentProjectName() || '',
-        projectDescription: '',
+        projectDescription: this.currentProjectDescription() || '',
         isUpdate
       } as SaveProjectDialogData,
       width: '450px'
@@ -422,7 +423,7 @@ export class KitchenPageComponent {
 
         this.kitchenService.updateProject(this.currentProjectId()!, request).subscribe({
           next: (response) => {
-            this.stateService.setProjectInfo(response.id, response.name, response.version);
+            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description);
             this.isSavingProject = false;
             this.snackBar.open('Projekt został zaktualizowany', 'OK', { duration: 3000 });
           },
@@ -438,7 +439,7 @@ export class KitchenPageComponent {
 
         this.kitchenService.createProject(request).subscribe({
           next: (response) => {
-            this.stateService.setProjectInfo(response.id, response.name, response.version);
+            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description);
             this.isSavingProject = false;
             this.snackBar.open('Projekt został zapisany', 'OK', { duration: 3000 });
           },
