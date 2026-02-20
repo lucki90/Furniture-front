@@ -30,6 +30,7 @@ import {
   PlinthMaterialType,
   PLINTH_MATERIAL_OPTIONS
 } from './model/plinth.model';
+import { ToastService } from '../core/error/toast.service';
 
 // Aggregated types for details tabs
 export interface AggregatedBoard {
@@ -79,6 +80,7 @@ export class KitchenPageComponent {
   private kitchenService = inject(KitchenService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private toast = inject(ToastService);
 
   result: any | null = null;
   editingCabinet: KitchenCabinet | null = null;
@@ -427,7 +429,7 @@ export class KitchenPageComponent {
           error: (err) => {
             console.error('Error updating project:', err);
             this.isSavingProject = false;
-            this.snackBar.open('Błąd podczas aktualizacji projektu', 'OK', { duration: 5000 });
+            this.toast.showHttpError(err);
           }
         });
       } else {
@@ -443,7 +445,7 @@ export class KitchenPageComponent {
           error: (err) => {
             console.error('Error creating project:', err);
             this.isSavingProject = false;
-            this.snackBar.open('Błąd podczas zapisywania projektu', 'OK', { duration: 5000 });
+            this.toast.showHttpError(err);
           }
         });
       }
@@ -476,7 +478,8 @@ export class KitchenPageComponent {
       },
       error: (err) => {
         console.error('Multi-wall calculation error:', err);
-        this.projectError = err.error?.message || err.message || 'Wystąpił błąd podczas kalkulacji projektu';
+        this.toast.showHttpError(err);
+        this.projectError = 'Wystąpił błąd podczas kalkulacji - sprawdź szczegóły w powiadomieniu';
         this.isCalculatingProject = false;
       }
     });

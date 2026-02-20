@@ -19,6 +19,7 @@ import { NumericInputComponent } from './utils/numeric-input/numeric-input.compo
 import { MaxLengthForNumberDirective } from "./utils/directives/maxLengthForNumberDirective";
 import { CabinetResultComponent } from "./kitchen/cabinet-result/cabinet-result.component";
 import { KitchenPageComponent } from "./kitchen/kitchen-page.component";
+import { ToastContainerComponent } from "./core/error/toast-container.component";
 
 @NgModule({
   declarations: [
@@ -42,7 +43,8 @@ import { KitchenPageComponent } from "./kitchen/kitchen-page.component";
     ReactiveFormsModule,
     CabinetFormComponent,
     CabinetResultComponent,
-    KitchenPageComponent
+    KitchenPageComponent,
+    ToastContainerComponent
   ],
   providers: [provideHttpClient(withInterceptorsFromDi())],
   bootstrap: [AppComponent]
