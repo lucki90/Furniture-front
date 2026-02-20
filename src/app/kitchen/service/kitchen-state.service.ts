@@ -43,7 +43,20 @@ export class KitchenStateService {
       type: 'MAIN',
       widthMm: 3600,
       heightMm: 2600,
-      cabinets: []
+      cabinets: [],
+      // Domyślnie włączamy blat i cokół
+      countertopConfig: {
+        enabled: true,
+        materialType: 'LAMINATE',
+        thicknessMm: 38,
+        jointType: 'NONE',
+        edgeType: 'ABS_EDGE'
+      },
+      plinthConfig: {
+        enabled: true,
+        feetType: 'FEET_100',
+        materialType: 'PVC'
+      }
     }
   ]);
 
@@ -240,7 +253,20 @@ export class KitchenStateService {
       type,
       widthMm,
       heightMm,
-      cabinets: []
+      cabinets: [],
+      // Domyślnie włączamy blat i cokół
+      countertopConfig: {
+        enabled: true,
+        materialType: 'LAMINATE',
+        thicknessMm: 38,
+        jointType: 'NONE',
+        edgeType: 'ABS_EDGE'
+      },
+      plinthConfig: {
+        enabled: true,
+        feetType: 'FEET_100',
+        materialType: 'PVC'
+      }
     };
 
     this._walls.update(walls => [...walls, newWall]);
@@ -469,7 +495,19 @@ export class KitchenStateService {
         type: 'MAIN',
         widthMm: 3600,
         heightMm: 2600,
-        cabinets: []
+        cabinets: [],
+        countertopConfig: {
+          enabled: true,
+          materialType: 'LAMINATE',
+          thicknessMm: 38,
+          jointType: 'NONE',
+          edgeType: 'ABS_EDGE'
+        },
+        plinthConfig: {
+          enabled: true,
+          feetType: 'FEET_100',
+          materialType: 'PVC'
+        }
       }
     ]);
     this._selectedWallId.set('wall-1');

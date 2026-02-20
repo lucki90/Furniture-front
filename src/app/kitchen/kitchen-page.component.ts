@@ -496,7 +496,8 @@ export class KitchenPageComponent {
   }
 
   /**
-   * Agreguje płyty, komponenty i prace z wszystkich szafek w projekcie
+   * Agreguje płyty, komponenty i prace z wszystkich szafek w projekcie.
+   * Uwzględnia również blaty, cokoły i blendy jako płyty.
    */
   private aggregateProjectDetails(response: MultiWallCalculateResponse): void {
     const boardsMap = new Map<string, AggregatedBoard>();
@@ -505,26 +506,19 @@ export class KitchenPageComponent {
     const jobsMap = new Map<string, AggregatedJob>();
 
     for (const wall of response.walls) {
+      // 1. Agreguj płyty z szafek
       for (const cabinet of wall.cabinets) {
-        // Agreguj płyty
         if (cabinet.boards) {
           for (const board of cabinet.boards) {
-            const key = `${board.boardName}_${board.boardThickness}_${board.sideX}_${board.sideY}`;
-            const existing = boardsMap.get(key);
-            if (existing) {
-              existing.quantity += board.quantity;
-              existing.totalCost += board.totalPrice;
-            } else {
-              boardsMap.set(key, {
-                material: board.boardName,
-                thickness: board.boardThickness,
-                width: board.sideX,
-                height: board.sideY,
-                quantity: board.quantity,
-                unitCost: board.priceEntry?.price ?? 0,
-                totalCost: board.totalPrice
-              });
-            }
+            this.addBoardToMap(boardsMap, {
+              material: board.boardName,
+              thickness: board.boardThickness,
+              width: board.sideX,
+              height: board.sideY,
+              quantity: board.quantity,
+              unitCost: board.priceEntry?.price ?? 0,
+              totalCost: board.totalPrice
+            });
           }
         }
 
@@ -571,6 +565,102 @@ export class KitchenPageComponent {
           }
         }
       }
+
+      // 2. Agreguj blat jako płytę
+      if (wall.countertop?.enabled && wall.countertop.segments) {
+        for (const segment of wall.countertop.segments) {
+          this.addBoardToMap(boardsMap, {
+            material: `BLAT_${wall.countertop.materialType}`,
+            thickness: segment.thicknessMm,
+            width: segment.lengthMm,
+            height: segment.depthMm,
+            quantity: 1,
+            unitCost: segment.materialCost,
+            totalCost: segment.materialCost
+          });
+
+          // Dodaj cięcie blatu jako pracę
+          if (segment.cuttingCost > 0) {
+            this.addJobToMap(jobsMap, {
+              name: 'COUNTERTOP_CUTTING',
+              type: 'COUNTERTOP',
+              quantity: 1,
+              unitCost: segment.cuttingCost,
+              totalCost: segment.cuttingCost
+            });
+          }
+
+          // Dodaj oklejinę blatu jako pracę
+          if (segment.edgingCost > 0) {
+            this.addJobToMap(jobsMap, {
+              name: 'COUNTERTOP_EDGING',
+              type: 'COUNTERTOP',
+              quantity: 1,
+              unitCost: segment.edgingCost,
+              totalCost: segment.edgingCost
+            });
+          }
+        }
+
+        // Komponenty blatu (śruby łączące, listewki)
+        if (wall.countertop.components) {
+          for (const comp of wall.countertop.components) {
+            this.addComponentToMap(componentsMap, {
+              name: comp.model,
+              type: comp.category,
+              quantity: comp.quantity,
+              unitCost: comp.priceEntry?.price ?? 0,
+              totalCost: comp.totalPrice ?? 0
+            });
+          }
+        }
+      }
+
+      // 3. Agreguj cokół jako płytę
+      if (wall.plinth?.enabled && wall.plinth.segments) {
+        for (const segment of wall.plinth.segments) {
+          this.addBoardToMap(boardsMap, {
+            material: `COKOL_${wall.plinth.materialType}`,
+            thickness: 16, // standardowa grubość cokołu
+            width: segment.lengthMm,
+            height: segment.heightMm,
+            quantity: 1,
+            unitCost: segment.materialCost,
+            totalCost: segment.materialCost
+          });
+
+          // Dodaj cięcie cokołu jako pracę (jeśli jest)
+          if (segment.cuttingCost > 0) {
+            this.addJobToMap(jobsMap, {
+              name: 'PLINTH_CUTTING',
+              type: 'PLINTH',
+              quantity: 1,
+              unitCost: segment.cuttingCost,
+              totalCost: segment.cuttingCost
+            });
+          }
+        }
+
+        // Komponenty cokołu (nóżki, klipsy)
+        if (wall.plinth.components) {
+          for (const comp of wall.plinth.components) {
+            this.addComponentToMap(componentsMap, {
+              name: comp.model,
+              type: comp.category,
+              quantity: comp.quantity,
+              unitCost: comp.priceEntry?.price ?? 0,
+              totalCost: comp.totalPrice ?? 0
+            });
+          }
+        }
+      }
+
+      // 4. Agreguj blendy jako płyty (TODO: gdy blendy będą zaimplementowane)
+      if (wall.fillerPanels) {
+        for (const filler of wall.fillerPanels) {
+          // Blendy będą dodane analogicznie
+        }
+      }
     }
 
     this.aggregatedBoards = Array.from(boardsMap.values());
@@ -580,6 +670,48 @@ export class KitchenPageComponent {
     // Wydziel koszt odpadu
     this.wasteDetails = Array.from(wasteMap.values());
     this.totalWasteCost = this.wasteDetails.reduce((sum, w) => sum + w.totalCost, 0);
+  }
+
+  /**
+   * Dodaje płytę do mapy agregacji (lub sumuje jeśli istnieje).
+   */
+  private addBoardToMap(map: Map<string, AggregatedBoard>, board: AggregatedBoard): void {
+    const key = `${board.material}_${board.thickness}_${board.width}_${board.height}`;
+    const existing = map.get(key);
+    if (existing) {
+      existing.quantity += board.quantity;
+      existing.totalCost += board.totalCost;
+    } else {
+      map.set(key, { ...board });
+    }
+  }
+
+  /**
+   * Dodaje komponent do mapy agregacji.
+   */
+  private addComponentToMap(map: Map<string, AggregatedComponent>, comp: AggregatedComponent): void {
+    const key = `${comp.type}_${comp.name}`;
+    const existing = map.get(key);
+    if (existing) {
+      existing.quantity += comp.quantity;
+      existing.totalCost += comp.totalCost;
+    } else {
+      map.set(key, { ...comp });
+    }
+  }
+
+  /**
+   * Dodaje pracę do mapy agregacji.
+   */
+  private addJobToMap(map: Map<string, AggregatedJob>, job: AggregatedJob): void {
+    const key = `${job.type}_${job.name}`;
+    const existing = map.get(key);
+    if (existing) {
+      existing.quantity += job.quantity;
+      existing.totalCost += job.totalCost;
+    } else {
+      map.set(key, { ...job });
+    }
   }
 
   /**
@@ -598,5 +730,26 @@ export class KitchenPageComponent {
     if (!this.projectResult) return 0;
     const baseCost = this.projectResult.totalComponentCost - this.totalWasteCost;
     return this.includeWasteCost ? this.projectResult.totalComponentCost : baseCost;
+  }
+
+  /**
+   * Oblicza sumę kosztów wszystkich zagregowanych płyt (szafki + blat + cokół + blendy)
+   */
+  get totalAggregatedBoardsCost(): number {
+    return this.aggregatedBoards.reduce((sum, board) => sum + board.totalCost, 0);
+  }
+
+  /**
+   * Oblicza sumę kosztów wszystkich zagregowanych komponentów
+   */
+  get totalAggregatedComponentsCost(): number {
+    return this.aggregatedComponents.reduce((sum, comp) => sum + comp.totalCost, 0);
+  }
+
+  /**
+   * Oblicza sumę kosztów wszystkich zagregowanych prac
+   */
+  get totalAggregatedJobsCost(): number {
+    return this.aggregatedJobs.reduce((sum, job) => sum + job.totalCost, 0);
   }
 }

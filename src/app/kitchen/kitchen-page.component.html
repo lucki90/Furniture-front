@@ -373,8 +373,8 @@
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colspan="4"><strong>Suma płyt:</strong></td>
-                    <td class="text-right"><strong>{{ projectResult.totalBoardCost.toFixed(2) }} zł</strong></td>
+                    <td colspan="4"><strong>Suma płyt (szafki + blat + cokół):</strong></td>
+                    <td class="text-right"><strong>{{ totalAggregatedBoardsCost.toFixed(2) }} zł</strong></td>
                   </tr>
                 </tfoot>
               </table>
@@ -409,7 +409,7 @@
                 <tfoot>
                   <tr>
                     <td colspan="4"><strong>Suma komponentów:</strong></td>
-                    <td class="text-right"><strong>{{ projectResult.totalComponentCost.toFixed(2) }} zł</strong></td>
+                    <td class="text-right"><strong>{{ totalAggregatedComponentsCost.toFixed(2) }} zł</strong></td>
                   </tr>
                 </tfoot>
               </table>
@@ -444,7 +444,7 @@
                 <tfoot>
                   <tr>
                     <td colspan="4"><strong>Suma prac:</strong></td>
-                    <td class="text-right"><strong>{{ projectResult.totalJobCost.toFixed(2) }} zł</strong></td>
+                    <td class="text-right"><strong>{{ totalAggregatedJobsCost.toFixed(2) }} zł</strong></td>
                   </tr>
                 </tfoot>
               </table>
