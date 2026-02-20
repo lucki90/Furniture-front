@@ -9,6 +9,7 @@ import {
   KitchenProjectResponse,
   MultiWallCalculateRequest,
   MultiWallCalculateResponse,
+  ProjectStatus,
   UpdateKitchenProjectRequest
 } from '../model/kitchen-project.model';
 
@@ -102,6 +103,17 @@ export class KitchenService {
   deleteProject(projectId: number, userId: number = 1): Observable<void> {
     return this.http.delete<void>(
       `${this.projectsUrl}/${projectId}`,
+      { headers: this.getUserHeaders(userId) }
+    );
+  }
+
+  /**
+   * Changes the status of a kitchen project.
+   */
+  changeProjectStatus(projectId: number, status: ProjectStatus, userId: number = 1): Observable<KitchenProjectDetailResponse> {
+    return this.http.patch<KitchenProjectDetailResponse>(
+      `${this.projectsUrl}/${projectId}/status`,
+      { status },
       { headers: this.getUserHeaders(userId) }
     );
   }

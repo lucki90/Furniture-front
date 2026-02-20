@@ -3,7 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { KitchenService } from '../service/kitchen.service';
 import { KitchenStateService } from '../service/kitchen-state.service';
-import { KitchenProjectListResponse, KitchenProjectDetailResponse, PROJECT_STATUSES, ProjectStatus } from '../model/kitchen-project.model';
+import {
+  KitchenProjectListResponse,
+  ProjectStatus,
+  getStatusLabel as getLabel,
+  getStatusColor
+} from '../model/kitchen-project.model';
 
 @Component({
   selector: 'app-kitchen-projects-list',
@@ -94,19 +99,11 @@ export class KitchenProjectsListComponent implements OnInit {
   }
 
   getStatusLabel(status: ProjectStatus): string {
-    return PROJECT_STATUSES.find(s => s.value === status)?.label ?? status;
+    return getLabel(status);
   }
 
-  getStatusClass(status: ProjectStatus): string {
-    switch (status) {
-      case 'DRAFT': return 'status-draft';
-      case 'CALCULATED': return 'status-calculated';
-      case 'CONFIRMED': return 'status-confirmed';
-      case 'IN_PRODUCTION': return 'status-production';
-      case 'COMPLETED': return 'status-completed';
-      case 'CANCELLED': return 'status-cancelled';
-      default: return '';
-    }
+  getStatusColor(status: ProjectStatus): string {
+    return getStatusColor(status);
   }
 
   formatDate(dateString: string): string {

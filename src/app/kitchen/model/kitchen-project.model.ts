@@ -22,16 +22,25 @@ export const WALL_TYPES: { value: WallType; label: string }[] = [
 
 // ============ PROJECT STATUS ============
 
-export type ProjectStatus = 'DRAFT' | 'CALCULATED' | 'CONFIRMED' | 'IN_PRODUCTION' | 'COMPLETED' | 'CANCELLED';
+export type ProjectStatus = 'DRAFT' | 'OFFER_SENT' | 'ACCEPTED' | 'IN_PRODUCTION' | 'IN_INSTALLATION' | 'COMPLETED' | 'CANCELLED';
 
-export const PROJECT_STATUSES: { value: ProjectStatus; label: string }[] = [
-  { value: 'DRAFT', label: 'Szkic' },
-  { value: 'CALCULATED', label: 'Obliczony' },
-  { value: 'CONFIRMED', label: 'Potwierdzony' },
-  { value: 'IN_PRODUCTION', label: 'W produkcji' },
-  { value: 'COMPLETED', label: 'Zakończony' },
-  { value: 'CANCELLED', label: 'Anulowany' }
+export const PROJECT_STATUSES: { value: ProjectStatus; label: string; color: string }[] = [
+  { value: 'DRAFT', label: 'Szkic', color: '#6b7280' },
+  { value: 'OFFER_SENT', label: 'Oferta wysłana', color: '#2563eb' },
+  { value: 'ACCEPTED', label: 'Zaakceptowany', color: '#16a34a' },
+  { value: 'IN_PRODUCTION', label: 'W produkcji', color: '#ea580c' },
+  { value: 'IN_INSTALLATION', label: 'W montażu', color: '#7c3aed' },
+  { value: 'COMPLETED', label: 'Zakończony', color: '#065f46' },
+  { value: 'CANCELLED', label: 'Anulowany', color: '#dc2626' }
 ];
+
+export function getStatusLabel(status: ProjectStatus): string {
+  return PROJECT_STATUSES.find(s => s.value === status)?.label ?? status;
+}
+
+export function getStatusColor(status: ProjectStatus): string {
+  return PROJECT_STATUSES.find(s => s.value === status)?.color ?? '#6b7280';
+}
 
 // ============ LEGACY - SIMPLE CALCULATE ============
 
@@ -194,12 +203,23 @@ export interface KitchenProjectDetailResponse {
   status: ProjectStatus;
   version: number;
 
+  // Dozwolone przejścia statusu
+  allowedTransitions?: ProjectStatus[];
+
   totalCost: number;
   totalBoardsCost: number;
   totalComponentsCost: number;
   totalJobsCost: number;
 
   walls: WallDetailResponse[];
+
+  // Workflow timestamps
+  offerSentAt?: string;
+  acceptedAt?: string;
+  productionStartedAt?: string;
+  installationStartedAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
 
   createdAt: string;
   updatedAt: string;

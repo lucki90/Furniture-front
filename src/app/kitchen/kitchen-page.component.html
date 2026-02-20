@@ -3,14 +3,36 @@
   <header class="page-header">
     <div class="page-title">
       <h1>🍳 {{ currentProjectName() || 'Nowy projekt kuchni' }}</h1>
-      <span class="page-subtitle">
-        <ng-container *ngIf="currentProjectId()">
-          Projekt #{{ currentProjectId() }} • wersja {{ currentProjectVersion() }}
-        </ng-container>
-        <ng-container *ngIf="!currentProjectId()">
-          Projektuj i wyceniaj zabudowę kuchenną
-        </ng-container>
-      </span>
+      <div class="page-subtitle-row">
+        <span class="page-subtitle">
+          <ng-container *ngIf="currentProjectId()">
+            Projekt #{{ currentProjectId() }} • wersja {{ currentProjectVersion() }}
+          </ng-container>
+          <ng-container *ngIf="!currentProjectId()">
+            Projektuj i wyceniaj zabudowę kuchenną
+          </ng-container>
+        </span>
+        <!-- Status badge + dropdown -->
+        <div class="project-status-control" *ngIf="currentProjectId()">
+          <span class="status-badge-inline"
+                [style.background-color]="getStatusColor(currentProjectStatus()) + '18'"
+                [style.color]="getStatusColor(currentProjectStatus())"
+                [style.border-color]="getStatusColor(currentProjectStatus()) + '40'">
+            {{ getStatusLabel(currentProjectStatus()) }}
+          </span>
+          <select
+            *ngIf="currentProjectAllowedTransitions().length > 0"
+            class="status-select"
+            [disabled]="isChangingStatus"
+            (change)="onStatusChange($any($event.target).value); $any($event.target).value = ''"
+            [style.border-color]="getStatusColor(currentProjectStatus()) + '60'">
+            <option value="" disabled selected>{{ isChangingStatus ? 'Zmieniam...' : 'Zmień status...' }}</option>
+            <option *ngFor="let status of currentProjectAllowedTransitions()" [value]="status">
+              {{ getStatusLabel(status) }}
+            </option>
+          </select>
+        </div>
+      </div>
     </div>
     <div class="page-actions">
       <a routerLink="/kitchen/projects" class="btn btn-outline">

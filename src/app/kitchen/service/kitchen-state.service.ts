@@ -22,7 +22,8 @@ import {
   DrawerRequest,
   CornerCabinetRequest,
   KitchenProjectDetailResponse,
-  UpdateKitchenProjectRequest
+  UpdateKitchenProjectRequest,
+  ProjectStatus
 } from '../model/kitchen-project.model';
 import { CountertopRequest, DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
 import { PlinthRequest, DEFAULT_PLINTH_REQUEST } from '../model/plinth.model';
@@ -70,6 +71,8 @@ export class KitchenStateService {
   private _currentProjectName = signal<string | null>(null);
   private _currentProjectDescription = signal<string | null>(null);
   private _currentProjectVersion = signal<number>(0);
+  private _currentProjectStatus = signal<ProjectStatus>('DRAFT');
+  private _currentProjectAllowedTransitions = signal<ProjectStatus[]>([]);
 
   // ============ PUBLIC SIGNALS ============
 
@@ -79,6 +82,8 @@ export class KitchenStateService {
   readonly currentProjectName = this._currentProjectName.asReadonly();
   readonly currentProjectDescription = this._currentProjectDescription.asReadonly();
   readonly currentProjectVersion = this._currentProjectVersion.asReadonly();
+  readonly currentProjectStatus = this._currentProjectStatus.asReadonly();
+  readonly currentProjectAllowedTransitions = this._currentProjectAllowedTransitions.asReadonly();
 
   readonly selectedWall = computed(() => {
     const wallId = this._selectedWallId();
@@ -519,6 +524,8 @@ export class KitchenStateService {
     this._currentProjectName.set(null);
     this._currentProjectDescription.set(null);
     this._currentProjectVersion.set(0);
+    this._currentProjectStatus.set('DRAFT');
+    this._currentProjectAllowedTransitions.set([]);
   }
 
   // ============ PROJECT LOAD/SAVE ============
@@ -635,6 +642,8 @@ export class KitchenStateService {
     this._currentProjectName.set(project.name);
     this._currentProjectDescription.set(project.description ?? null);
     this._currentProjectVersion.set(project.version);
+    this._currentProjectStatus.set(project.status);
+    this._currentProjectAllowedTransitions.set(project.allowedTransitions ?? []);
   }
 
   /**
@@ -651,11 +660,17 @@ export class KitchenStateService {
   /**
    * Ustawia ID aktualnego projektu po zapisie.
    */
-  setProjectInfo(projectId: number, projectName: string, version: number, description?: string): void {
+  setProjectInfo(projectId: number, projectName: string, version: number, description?: string, status?: ProjectStatus, allowedTransitions?: ProjectStatus[]): void {
     this._currentProjectId.set(projectId);
     this._currentProjectName.set(projectName);
     this._currentProjectDescription.set(description ?? null);
     this._currentProjectVersion.set(version);
+    if (status) {
+      this._currentProjectStatus.set(status);
+    }
+    if (allowedTransitions) {
+      this._currentProjectAllowedTransitions.set(allowedTransitions);
+    }
   }
 
   /**

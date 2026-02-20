@@ -44,7 +44,10 @@
       <!-- Card content -->
       <div class="card-header">
         <h3 class="project-name">{{ project.name }}</h3>
-        <span class="status-badge" [ngClass]="getStatusClass(project.status)">
+        <span class="status-badge"
+              [style.background-color]="getStatusColor(project.status) + '1a'"
+              [style.color]="getStatusColor(project.status)"
+              [style.border]="'1px solid ' + getStatusColor(project.status) + '40'">
           {{ getStatusLabel(project.status) }}
         </span>
       </div>

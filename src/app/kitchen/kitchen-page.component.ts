@@ -13,7 +13,7 @@ import { SaveProjectDialogComponent, SaveProjectDialogData, SaveProjectDialogRes
 import { KitchenStateService } from './service/kitchen-state.service';
 import { KitchenService } from './service/kitchen.service';
 import { CabinetCalculatedEvent, KitchenCabinet, CountertopConfig, PlinthConfig } from './model/kitchen-state.model';
-import { MultiWallCalculateResponse } from './model/kitchen-project.model';
+import { MultiWallCalculateResponse, ProjectStatus, getStatusLabel, getStatusColor, PROJECT_STATUSES } from './model/kitchen-project.model';
 import { Board, Component as CabinetComponent, Job } from './cabinet-form/model/kitchen-cabinet-form.model';
 import {
   CountertopMaterialType,
@@ -105,6 +105,7 @@ export class KitchenPageComponent {
 
   // Stan zapisywania projektu
   isSavingProject = false;
+  isChangingStatus = false;
 
   // Multi-wall signals
   readonly walls = this.stateService.walls;
@@ -116,6 +117,8 @@ export class KitchenPageComponent {
   readonly currentProjectName = this.stateService.currentProjectName;
   readonly currentProjectDescription = this.stateService.currentProjectDescription;
   readonly currentProjectVersion = this.stateService.currentProjectVersion;
+  readonly currentProjectStatus = this.stateService.currentProjectStatus;
+  readonly currentProjectAllowedTransitions = this.stateService.currentProjectAllowedTransitions;
 
   // Legacy compatibility
   readonly wall = this.stateService.wall;
@@ -294,6 +297,39 @@ export class KitchenPageComponent {
     return feetOption?.plinthHeightMm ?? 97;
   }
 
+  // ============ STATUS MANAGEMENT ============
+
+  getStatusLabel(status: ProjectStatus): string {
+    return getStatusLabel(status);
+  }
+
+  getStatusColor(status: ProjectStatus): string {
+    return getStatusColor(status);
+  }
+
+  onStatusChange(newStatus: ProjectStatus): void {
+    const projectId = this.currentProjectId();
+    if (!projectId || this.isChangingStatus) return;
+
+    this.isChangingStatus = true;
+
+    this.kitchenService.changeProjectStatus(projectId, newStatus).subscribe({
+      next: (response) => {
+        this.stateService.setProjectInfo(
+          response.id, response.name, response.version,
+          response.description, response.status, response.allowedTransitions
+        );
+        this.isChangingStatus = false;
+        this.snackBar.open(`Status zmieniony na: ${getStatusLabel(response.status)}`, 'OK', { duration: 3000 });
+      },
+      error: (err) => {
+        console.error('Error changing project status:', err);
+        this.isChangingStatus = false;
+        this.toast.showHttpError(err);
+      }
+    });
+  }
+
   // ============ WALL MANAGEMENT ============
 
   onAddWallRequested(): void {
@@ -423,7 +459,7 @@ export class KitchenPageComponent {
 
         this.kitchenService.updateProject(this.currentProjectId()!, request).subscribe({
           next: (response) => {
-            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description);
+            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description, response.status, response.allowedTransitions);
             this.isSavingProject = false;
             this.snackBar.open('Projekt został zaktualizowany', 'OK', { duration: 3000 });
           },
@@ -439,7 +475,7 @@ export class KitchenPageComponent {
 
         this.kitchenService.createProject(request).subscribe({
           next: (response) => {
-            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description);
+            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description, response.status, response.allowedTransitions);
             this.isSavingProject = false;
             this.snackBar.open('Projekt został zapisany', 'OK', { duration: 3000 });
           },
