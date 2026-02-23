@@ -16,7 +16,7 @@ import {
 })
 export class PriceAdminService {
 
-  private readonly baseUrl = 'http://localhost:8080/api/furniture/api/admin/prices';
+  private readonly baseUrl = 'http://localhost:8080/api/furniture/admin/prices';
 
   constructor(private readonly http: HttpClient) {}
 

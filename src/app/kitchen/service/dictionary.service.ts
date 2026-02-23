@@ -21,7 +21,7 @@ export interface DictionaryItem {
 export class DictionaryService {
 
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:8080/api/furniture/api/dictionaries' //TODO poprawic sciezki do api
+  private readonly baseUrl = 'http://localhost:8080/api/furniture/dictionaries' //TODO poprawic sciezki do api
 
   // Cache dla słowników
   private openingTypesCache$?: Observable<DictionaryItem[]>;

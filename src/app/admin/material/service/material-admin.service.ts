@@ -24,7 +24,7 @@ import {
 })
 export class MaterialAdminService {
 
-  private readonly baseUrl = 'http://localhost:8080/api/furniture/api/admin/materials';
+  private readonly baseUrl = 'http://localhost:8080/api/furniture/admin/materials';
 
   constructor(private readonly http: HttpClient) {}
 
