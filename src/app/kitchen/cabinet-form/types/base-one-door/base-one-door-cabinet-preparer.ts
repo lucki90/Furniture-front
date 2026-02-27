@@ -25,7 +25,7 @@ export class BaseOneDoorCabinetPreparer
     // kitchenCabinetType: [KitchenCabinetType.BASE_ONE_DOOR], -- ta wartosc ustawiana jest przy wyborze typu szafki
     form.patchValue({
       width: 400,
-      height: 825,
+      height: 720, // Wysokość korpusu (bez cokołu i blatu)
       depth: 500,
       drawerModel: [null],
       drawerQuantity: 0,

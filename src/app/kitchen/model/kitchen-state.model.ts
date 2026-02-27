@@ -1,6 +1,6 @@
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
-import { WallType } from './kitchen-project.model';
+import { WallType, PositioningMode } from './kitchen-project.model';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 import { CabinetVisualConfig } from '../cabinet-form/model/cabinet-visual-elements.model';
@@ -16,15 +16,27 @@ import { FeetType, PlinthMaterialType } from './plinth.model';
 export type CabinetZone = 'BOTTOM' | 'TOP' | 'FULL';
 
 /**
- * Progi wysokości dla automatycznego określenia strefy:
- * - positionY < HANGING_THRESHOLD → BOTTOM
- * - positionY >= HANGING_THRESHOLD → TOP
- * - height > TALL_CABINET_MIN_HEIGHT → FULL (nadpisuje powyższe)
+ * Helpery do klasyfikacji typu szafki (analogicznie do backendu KitchenCabinetTypeEnum).
  */
-export const ZONE_THRESHOLDS = {
-  HANGING_THRESHOLD: 800,     // mm - od tej wysokości szafka jest uznawana za górną
-  TALL_CABINET_MIN_HEIGHT: 1800  // mm - minimalna wysokość słupka/lodówki
-} as const;
+export function isUpperCabinetType(type: KitchenCabinetType): boolean {
+  return type.toString().startsWith('UPPER_');
+}
+
+export function isBaseCabinetType(type: KitchenCabinetType): boolean {
+  return type.toString().startsWith('BASE_') || type === KitchenCabinetType.CORNER_CABINET;
+}
+
+export function isTallCabinetType(type: KitchenCabinetType): boolean {
+  return type === KitchenCabinetType.TALL_CABINET;
+}
+
+export function requiresPlinth(type: KitchenCabinetType): boolean {
+  return isBaseCabinetType(type) || isTallCabinetType(type);
+}
+
+export function requiresCountertop(type: KitchenCabinetType): boolean {
+  return isBaseCabinetType(type);
+}
 
 export interface KitchenCabinet {
   id: string;
@@ -40,12 +52,22 @@ export interface KitchenCabinet {
   drawerModel?: string; // system szuflad (ANTARO_TANDEMBOX, SEVROLL_BALL)
   segments?: SegmentFormData[]; // segmenty (dla typu TALL_CABINET)
 
+  // Pola kaskadowe (dla UPPER_CASCADE)
+  cascadeLowerHeight?: number;
+  cascadeLowerDepth?: number;
+  cascadeUpperHeight?: number;
+  cascadeUpperDepth?: number;
+
   // Pola dla szafki narożnej (CORNER_CABINET)
   cornerWidthA?: number;  // Szerokość na ścianie A (głównej)
   cornerWidthB?: number;  // Szerokość na ścianie B (bocznej)
   cornerMechanism?: CornerMechanismType;  // Typ mechanizmu (Magic Corner, karuzela, itp.)
   cornerShelfQuantity?: number;  // Liczba półek (dla FIXED_SHELVES)
   isUpperCorner?: boolean;  // true = górna wisząca, false = dolna
+
+  // Pozycjonowanie szafek wiszących
+  positioningMode?: PositioningMode;  // tryb pozycjonowania (dla UPPER_*)
+  gapFromCountertopMm?: number;       // odstęp od blatu (dla RELATIVE_TO_COUNTERTOP)
 
   // Konfiguracja wizualna (cokoły, nóżki, uchwyty, fronty)
   visualConfig?: CabinetVisualConfig;
@@ -54,18 +76,26 @@ export interface KitchenCabinet {
 }
 
 /**
- * Określa strefę szafki na podstawie jej parametrów.
+ * Określa strefę szafki na podstawie typu (zamiast positionY/height).
+ * - TALL_CABINET → FULL (zajmuje oba rzędy)
+ * - UPPER_* → TOP (szafka wisząca)
+ * - CORNER_CABINET z isUpperCorner → TOP
+ * - BASE_* / CORNER_CABINET dolna → BOTTOM
  */
 export function getCabinetZone(cabinet: KitchenCabinet): CabinetZone {
-  // Słupek/lodówka - bardzo wysoka szafka
-  if (cabinet.height >= ZONE_THRESHOLDS.TALL_CABINET_MIN_HEIGHT) {
+  // Słupek → FULL
+  if (isTallCabinetType(cabinet.type)) {
     return 'FULL';
   }
-  // Szafka górna - pozycja Y powyżej progu
-  if (cabinet.positionY >= ZONE_THRESHOLDS.HANGING_THRESHOLD) {
+  // Szafki wiszące (UPPER_*) → TOP
+  if (isUpperCabinetType(cabinet.type)) {
     return 'TOP';
   }
-  // Domyślnie szafka dolna
+  // Narożna górna → TOP
+  if (cabinet.type === KitchenCabinetType.CORNER_CABINET && cabinet.isUpperCorner) {
+    return 'TOP';
+  }
+  // Domyślnie szafka dolna → BOTTOM
   return 'BOTTOM';
 }
 
@@ -147,12 +177,22 @@ export interface CabinetFormData {
   drawerModel?: string | null;
   segments?: SegmentFormData[];  // dla TALL_CABINET
 
+  // Pola kaskadowe (dla UPPER_CASCADE)
+  cascadeLowerHeight?: number;
+  cascadeLowerDepth?: number;
+  cascadeUpperHeight?: number;
+  cascadeUpperDepth?: number;
+
   // Pola dla szafki narożnej (CORNER_CABINET)
   cornerWidthA?: number;
   cornerWidthB?: number;
   cornerMechanism?: CornerMechanismType;
   cornerShelfQuantity?: number;
   isUpperCorner?: boolean;
+
+  // Pozycjonowanie szafek wiszących
+  positioningMode?: PositioningMode;
+  gapFromCountertopMm?: number;
 
   // Konfiguracja wizualna (cokoły, nóżki, uchwyty, fronty)
   visualConfig?: CabinetVisualConfig;

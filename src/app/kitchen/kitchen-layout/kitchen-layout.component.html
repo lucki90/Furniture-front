@@ -24,9 +24,9 @@
         <span class="zone-label" [style.top.px]="bottomZoneY" [style.height.px]="bottomZoneHeight">Dolne</span>
       </div>
 
-      <!-- SVG visualization -->
+      <!-- SVG visualization (extra width for gap dimension line) -->
       <svg class="wall-svg"
-           [attr.width]="wallDisplayWidth()"
+           [attr.width]="wallDisplayWidth() + (gapDimensionLine() ? 40 : 0)"
            [attr.height]="totalHeight"
            [class.overflow]="!fitsOnWall()">
 
@@ -103,7 +103,7 @@
           <g class="fronts-group">
             <ng-container *ngFor="let front of pos.fronts">
               <!-- Front normalny (drzwi/szuflada) -->
-              <rect *ngIf="front.type !== 'OPEN'"
+              <rect *ngIf="front.type !== 'OPEN' && front.type !== 'SHELF_LINE'"
                     [attr.x]="front.x"
                     [attr.y]="front.y"
                     [attr.width]="front.width"
@@ -125,6 +125,13 @@
                     stroke-dasharray="2 2"
                     rx="0.5">
               </rect>
+              <!-- Linia półki wewnętrznej -->
+              <line *ngIf="front.type === 'SHELF_LINE'"
+                    [attr.x1]="front.x"
+                    [attr.y1]="front.y"
+                    [attr.x2]="front.x + front.width"
+                    [attr.y2]="front.y"
+                    class="shelf-line"/>
             </ng-container>
           </g>
 
@@ -216,6 +223,16 @@
               [attr.height]="bottomZoneHeight"
               class="remaining-space-rect"/>
 
+        <!-- Blenda górna (filler) nad szafkami wiszącymi -->
+        <rect *ngIf="fillerPosition() as filler"
+              [attr.x]="filler.x"
+              [attr.y]="filler.y"
+              [attr.width]="filler.width"
+              [attr.height]="filler.height"
+              class="filler-rect">
+          <title>Blenda górna</title>
+        </rect>
+
         <!-- Cokół (pod szafkami dolnymi) -->
         <rect *ngIf="plinthPosition() as plinth"
               [attr.x]="plinth.x"
@@ -226,12 +243,62 @@
           <title>Cokół</title>
         </rect>
 
+        <!-- Linia wymiarowa gap (przestrzeń robocza) -->
+        <g *ngIf="gapDimensionLine() as dim" class="gap-dimension-group">
+          <!-- Linia pionowa -->
+          <line [attr.x1]="dim.x + 8" [attr.y1]="dim.y1"
+                [attr.x2]="dim.x + 8" [attr.y2]="dim.y2"
+                class="gap-dimension-line"
+                [class.gap-dimension-warning]="dim.isWarning"/>
+          <!-- Strzałka górna -->
+          <line [attr.x1]="dim.x + 5" [attr.y1]="dim.y1 + 3"
+                [attr.x2]="dim.x + 8" [attr.y2]="dim.y1"
+                class="gap-dimension-line"
+                [class.gap-dimension-warning]="dim.isWarning"/>
+          <line [attr.x1]="dim.x + 11" [attr.y1]="dim.y1 + 3"
+                [attr.x2]="dim.x + 8" [attr.y2]="dim.y1"
+                class="gap-dimension-line"
+                [class.gap-dimension-warning]="dim.isWarning"/>
+          <!-- Strzałka dolna -->
+          <line [attr.x1]="dim.x + 5" [attr.y1]="dim.y2 - 3"
+                [attr.x2]="dim.x + 8" [attr.y2]="dim.y2"
+                class="gap-dimension-line"
+                [class.gap-dimension-warning]="dim.isWarning"/>
+          <line [attr.x1]="dim.x + 11" [attr.y1]="dim.y2 - 3"
+                [attr.x2]="dim.x + 8" [attr.y2]="dim.y2"
+                class="gap-dimension-line"
+                [class.gap-dimension-warning]="dim.isWarning"/>
+          <!-- Etykieta -->
+          <text [attr.x]="dim.x + 8"
+                [attr.y]="(dim.y1 + dim.y2) / 2 + 3"
+                class="gap-dimension-text"
+                [class.gap-dimension-warning]="dim.isWarning"
+                text-anchor="middle"
+                [attr.transform]="'rotate(-90, ' + (dim.x + 8) + ', ' + ((dim.y1 + dim.y2) / 2) + ')'">
+            {{ dim.label }}
+          </text>
+        </g>
+
         <!-- Podłoga -->
         <line [attr.x1]="0" [attr.y1]="totalHeight - 1"
               [attr.x2]="wallDisplayWidth()" [attr.y2]="totalHeight - 1"
               class="floor-line"/>
 
       </svg>
+    </div>
+
+    <!-- Panel ostrzeżeń real-time -->
+    <div class="warnings-panel" *ngIf="isWorkspaceGapViolation() || !fitsOnWall()">
+      <div class="warning-item" *ngIf="isWorkspaceGapViolation()">
+        <span class="warning-icon">⚠</span>
+        Przestrzeń robocza zbyt mała: <strong>{{ gapMm() }} mm</strong>
+        (wymagane min. 450 mm). Zmniejsz wysokość szafek wiszących lub podnieś ich pozycję.
+      </div>
+      <div class="warning-item" *ngIf="!fitsOnWall()">
+        <span class="warning-icon">⚠</span>
+        Szafki nie mieszczą się na ścianie ({{ wall().length }} mm).
+        Sprawdź szerokości w strefie dolnej i górnej.
+      </div>
     </div>
 
     <div class="legend">
@@ -252,6 +319,9 @@
       </span>
       <span class="legend-item">
         <span class="legend-box plinth-legend"></span> Cokół
+      </span>
+      <span class="legend-item">
+        <span class="legend-box filler-legend"></span> Blenda
       </span>
       <span class="legend-item legend-indicator">
         <span class="legend-box indicator-legend"></span> h/d = różnica wys./głęb.

@@ -27,7 +27,7 @@ export class TallCabinetPreparer implements KitchenCabinetPreparer {
     // Wartości domyślne dla słupka
     form.patchValue({
       width: 450,
-      height: 2100,  // 2100mm = typowa wysokość słupka
+      height: 2000,  // 2000mm = typowa wysokość korpusu słupka (bez cokołu)
       depth: 560,
       shelfQuantity: 0,
       drawerQuantity: 0,

@@ -22,7 +22,7 @@ export class BaseWithDrawersCabinetPreparer implements KitchenCabinetPreparer {
     // wartości domyślne dla szafki z szufladami
     form.patchValue({
       width: 450,
-      height: 825,
+      height: 720, // Wysokość korpusu (bez cokołu i blatu)
       depth: 500,
       shelfQuantity: 0,
       drawerQuantity: 3,

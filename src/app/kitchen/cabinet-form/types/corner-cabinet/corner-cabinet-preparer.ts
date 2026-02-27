@@ -35,7 +35,7 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
       // Wymiary domyślne
       cornerWidthA: 900,
       cornerWidthB: 900,
-      height: isUpper ? 720 : 870,
+      height: isUpper ? 720 : 720,
       depth: isUpper ? 320 : BASE_CORNER_CONSTRAINTS.depth,
       // Mechanizm domyślny
       cornerMechanism: CornerMechanismType.FIXED_SHELVES,
@@ -71,7 +71,7 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
 
       // Aktualizuj wymiary do domyślnych dla typu
       form.patchValue({
-        height: isUpper ? 720 : 870,
+        height: isUpper ? 720 : 720,
         depth: isUpper ? 320 : BASE_CORNER_CONSTRAINTS.depth,
         cornerWidthA: isUpper ? 700 : 900,
         cornerWidthB: isUpper ? 700 : 900

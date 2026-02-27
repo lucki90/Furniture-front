@@ -21,6 +21,7 @@ import {
   MultiWallCalculateRequest,
   DrawerRequest,
   CornerCabinetRequest,
+  CascadeSegmentRequest,
   KitchenProjectDetailResponse,
   UpdateKitchenProjectRequest,
   ProjectStatus
@@ -74,6 +75,12 @@ export class KitchenStateService {
   private _currentProjectStatus = signal<ProjectStatus>('DRAFT');
   private _currentProjectAllowedTransitions = signal<ProjectStatus[]>([]);
 
+  // ============ PROJECT SETTINGS (globalne ustawienia) ============
+
+  private _plinthHeightMm = signal<number>(100);           // Domyślna wysokość cokołu
+  private _countertopThicknessMm = signal<number>(38);     // Domyślna grubość blatu
+  private _upperFillerHeightMm = signal<number>(100);      // Domyślna wysokość blendy górnej
+
   // ============ PUBLIC SIGNALS ============
 
   readonly walls = this._walls.asReadonly();
@@ -84,6 +91,20 @@ export class KitchenStateService {
   readonly currentProjectVersion = this._currentProjectVersion.asReadonly();
   readonly currentProjectStatus = this._currentProjectStatus.asReadonly();
   readonly currentProjectAllowedTransitions = this._currentProjectAllowedTransitions.asReadonly();
+
+  // Ustawienia projektu (publiczne)
+  readonly plinthHeightMm = this._plinthHeightMm.asReadonly();
+  readonly countertopThicknessMm = this._countertopThicknessMm.asReadonly();
+  readonly upperFillerHeightMm = this._upperFillerHeightMm.asReadonly();
+
+  /**
+   * Obliczona wysokość blatu od podłogi:
+   * plinthHeight + corpusHeight (typowy 720mm) + countertopThickness
+   * Uwaga: corpusHeight zależy od konkretnej szafki, tu podajemy bez niego.
+   */
+  readonly countertopSurfaceHeightMm = computed(() => {
+    return this._plinthHeightMm() + this._countertopThicknessMm();
+  });
 
   readonly selectedWall = computed(() => {
     const wallId = this._selectedWallId();
@@ -199,36 +220,59 @@ export class KitchenStateService {
    * - Szafki dolne (BOTTOM) mają własny licznik currentXBottom
    * - Szafki górne (TOP) mają własny licznik currentXTop
    * - Słupki (FULL) zajmują miejsce w OBU strefach
+   * Pozycja Y jest obliczana dynamicznie na podstawie trybu pozycjonowania.
    */
   readonly cabinetPositions = computed((): CabinetPosition[] => {
     const positions: CabinetPosition[] = [];
     let currentXBottom = 0;
     let currentXTop = 0;
 
+    const wall = this.selectedWall();
+    const wallHeight = wall?.heightMm ?? 2600;
+    const plinth = this._plinthHeightMm();
+    const countertopThickness = this._countertopThicknessMm();
+    const upperFiller = this._upperFillerHeightMm();
+
+    // Oblicz maksymalną wysokość korpusu dolnych szafek (typowo 720mm)
+    const baseCabinets = this.cabinets().filter(c => getCabinetZone(c) === 'BOTTOM' || getCabinetZone(c) === 'FULL');
+    const maxBaseCorpusHeight = baseCabinets.length > 0
+      ? Math.max(...baseCabinets.map(c => c.height))
+      : 720;
+
+    // Wysokość blatu od podłogi
+    const countertopHeight = plinth + maxBaseCorpusHeight + countertopThickness;
+
     for (const cabinet of this.cabinets()) {
       const zone = getCabinetZone(cabinet);
       let x: number;
+      let y: number;
 
       switch (zone) {
         case 'FULL':
-          // Słupek zajmuje miejsce w obu strefach
-          // Pozycja X = maksimum z obu liczników (aby nie nakładał się na nic)
           x = Math.max(currentXBottom, currentXTop);
           currentXBottom = x + cabinet.width;
           currentXTop = x + cabinet.width;
+          y = plinth;
           break;
 
         case 'TOP':
-          // Szafka górna - używa licznika górnego
           x = currentXTop;
           currentXTop += cabinet.width;
+          // Oblicz Y na podstawie trybu pozycjonowania
+          if (cabinet.positioningMode === 'RELATIVE_TO_COUNTERTOP') {
+            const gap = cabinet.gapFromCountertopMm ?? 500;
+            y = countertopHeight + gap;
+          } else {
+            // RELATIVE_TO_CEILING (domyślne)
+            y = wallHeight - upperFiller - cabinet.height;
+          }
           break;
 
         case 'BOTTOM':
         default:
-          // Szafka dolna - używa licznika dolnego
           x = currentXBottom;
           currentXBottom += cabinet.width;
+          y = plinth;
           break;
       }
 
@@ -236,7 +280,7 @@ export class KitchenStateService {
         cabinetId: cabinet.id,
         name: cabinet.name,
         x,
-        y: cabinet.positionY ?? 0,
+        y,
         width: cabinet.width,
         height: cabinet.height
       });
@@ -333,6 +377,20 @@ export class KitchenStateService {
     return WALL_TYPES.filter(wt => !this.isWallTypeUsed(wt.value));
   }
 
+  // ============ PROJECT SETTINGS MANAGEMENT ============
+
+  updateProjectSettings(settings: { plinthHeightMm?: number; countertopThicknessMm?: number; upperFillerHeightMm?: number }): void {
+    if (settings.plinthHeightMm !== undefined) {
+      this._plinthHeightMm.set(settings.plinthHeightMm);
+    }
+    if (settings.countertopThicknessMm !== undefined) {
+      this._countertopThicknessMm.set(settings.countertopThicknessMm);
+    }
+    if (settings.upperFillerHeightMm !== undefined) {
+      this._upperFillerHeightMm.set(settings.upperFillerHeightMm);
+    }
+  }
+
   // ============ COUNTERTOP & PLINTH CONFIG ============
 
   /**
@@ -401,12 +459,22 @@ export class KitchenStateService {
       drawerModel: formData.drawerModel ?? undefined,
       segments: formData.segments,  // dla TALL_CABINET
 
+      // Pola kaskadowe (dla UPPER_CASCADE)
+      cascadeLowerHeight: formData.cascadeLowerHeight,
+      cascadeLowerDepth: formData.cascadeLowerDepth,
+      cascadeUpperHeight: formData.cascadeUpperHeight,
+      cascadeUpperDepth: formData.cascadeUpperDepth,
+
       // Pola dla szafki narożnej (CORNER_CABINET)
       cornerWidthA: isCorner ? formData.cornerWidthA : undefined,
       cornerWidthB: isCorner ? formData.cornerWidthB : undefined,
       cornerMechanism: isCorner ? formData.cornerMechanism : undefined,
       cornerShelfQuantity: isCorner ? formData.cornerShelfQuantity : undefined,
       isUpperCorner: isCorner ? formData.isUpperCorner : undefined,
+
+      // Pozycjonowanie szafek wiszących
+      positioningMode: formData.positioningMode,
+      gapFromCountertopMm: formData.gapFromCountertopMm,
 
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
@@ -466,12 +534,22 @@ export class KitchenStateService {
             drawerModel: formData.drawerModel ?? undefined,
             segments: formData.segments,  // dla TALL_CABINET
 
+            // Pola kaskadowe (dla UPPER_CASCADE)
+            cascadeLowerHeight: formData.cascadeLowerHeight,
+            cascadeLowerDepth: formData.cascadeLowerDepth,
+            cascadeUpperHeight: formData.cascadeUpperHeight,
+            cascadeUpperDepth: formData.cascadeUpperDepth,
+
             // Pola dla szafki narożnej (CORNER_CABINET)
             cornerWidthA: isCorner ? formData.cornerWidthA : undefined,
             cornerWidthB: isCorner ? formData.cornerWidthB : undefined,
             cornerMechanism: isCorner ? formData.cornerMechanism : undefined,
             cornerShelfQuantity: isCorner ? formData.cornerShelfQuantity : undefined,
             isUpperCorner: isCorner ? formData.isUpperCorner : undefined,
+
+            // Pozycjonowanie szafek wiszących
+            positioningMode: formData.positioningMode,
+            gapFromCountertopMm: formData.gapFromCountertopMm,
 
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
@@ -526,6 +604,11 @@ export class KitchenStateService {
     this._currentProjectVersion.set(0);
     this._currentProjectStatus.set('DRAFT');
     this._currentProjectAllowedTransitions.set([]);
+
+    // Reset ustawień projektu do domyślnych
+    this._plinthHeightMm.set(100);
+    this._countertopThicknessMm.set(38);
+    this._upperFillerHeightMm.set(100);
   }
 
   // ============ PROJECT LOAD/SAVE ============
@@ -581,6 +664,10 @@ export class KitchenStateService {
           cornerMechanism: cabResp.cornerMechanism as CornerMechanismType | undefined,
           cornerShelfQuantity: cabResp.cornerShelfQuantity,
           isUpperCorner: cabResp.isUpperCorner,
+
+          // Pozycjonowanie szafek wiszących
+          positioningMode: cabResp.positioningMode,
+          gapFromCountertopMm: cabResp.gapFromCountertopMm,
 
           calculatedResult: {
             totalCost: cabResp.totalCost,
@@ -644,6 +731,11 @@ export class KitchenStateService {
     this._currentProjectVersion.set(project.version);
     this._currentProjectStatus.set(project.status);
     this._currentProjectAllowedTransitions.set(project.allowedTransitions ?? []);
+
+    // Wczytaj ustawienia projektu (z wartościami domyślnymi jako fallback)
+    this._plinthHeightMm.set(project.plinthHeightMm ?? 100);
+    this._countertopThicknessMm.set(project.countertopThicknessMm ?? 38);
+    this._upperFillerHeightMm.set(project.upperFillerHeightMm ?? 100);
   }
 
   /**
@@ -653,7 +745,10 @@ export class KitchenStateService {
     return {
       name: name ?? this._currentProjectName() ?? 'Bez nazwy',
       description,
-      walls: this.buildProjectWalls()
+      walls: this.buildProjectWalls(),
+      plinthHeightMm: this._plinthHeightMm(),
+      countertopThicknessMm: this._countertopThicknessMm(),
+      upperFillerHeightMm: this._upperFillerHeightMm()
     };
   }
 
@@ -754,7 +849,10 @@ export class KitchenStateService {
     return {
       name,
       description,
-      walls: this.buildProjectWalls()
+      walls: this.buildProjectWalls(),
+      plinthHeightMm: this._plinthHeightMm(),
+      countertopThicknessMm: this._countertopThicknessMm(),
+      upperFillerHeightMm: this._upperFillerHeightMm()
     };
   }
 
@@ -789,6 +887,17 @@ export class KitchenStateService {
             };
             return mapSegmentToRequest(segmentWithIndex);
           });
+        }
+
+        // Przygotuj cascadeSegments dla UPPER_CASCADE
+        let cascadeSegments: CascadeSegmentRequest[] | undefined;
+        if (cab.type === KitchenCabinetType.UPPER_CASCADE &&
+            cab.cascadeLowerHeight && cab.cascadeLowerDepth &&
+            cab.cascadeUpperHeight && cab.cascadeUpperDepth) {
+          cascadeSegments = [
+            { orderIndex: 0, height: cab.cascadeLowerHeight, depth: cab.cascadeLowerDepth, frontType: 'ONE_DOOR', shelfQuantity: 0 },
+            { orderIndex: 1, height: cab.cascadeUpperHeight, depth: cab.cascadeUpperDepth, frontType: 'ONE_DOOR', shelfQuantity: 0 }
+          ];
         }
 
         // Przygotuj cornerRequest dla CORNER_CABINET
@@ -826,7 +935,10 @@ export class KitchenStateService {
           },
           drawerRequest,
           segments,
-          cornerRequest
+          cascadeSegments,
+          cornerRequest,
+          positioningMode: cab.positioningMode,
+          gapFromCountertopMm: cab.gapFromCountertopMm
         };
         currentX += cab.width;
         return request;

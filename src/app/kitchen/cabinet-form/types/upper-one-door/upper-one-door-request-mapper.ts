@@ -1,0 +1,45 @@
+import { KitchenCabinetRequestMapper } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+
+/**
+ * Request mapper dla szafki wiszącej z jednymi drzwiami (UPPER_ONE_DOOR).
+ */
+export class UpperOneDoorRequestMapper implements KitchenCabinetRequestMapper {
+
+  map(form: any): any {
+    return {
+      lang: 'pl',
+      kitchenCabinetType: 'UPPER_ONE_DOOR',
+      width: form.width,
+      height: form.height,
+      depth: form.depth,
+
+      shelfQuantity: form.shelfQuantity ?? 1,
+
+      needBacks: true,
+      isHanging: true,
+      isHangingOnRail: true,
+      isStandingOnFeet: false,
+      isBackInGroove: false,
+      isFrontExtended: false,
+      isCoveredWithCounterTop: false,
+      varnishedFront: false,
+
+      frontType: 'ONE_DOOR',
+      cabinetType: 'STANDARD',
+      openingType: form.openingType ?? 'HANDLE',
+
+      drawerRequest: null,
+
+      materialRequest: {
+        boxMaterial: 'CHIPBOARD',
+        boxBoardThickness: 18,
+        boxColor: 'WHITE',
+        frontMaterial: 'CHIPBOARD',
+        frontBoardThickness: 18,
+        frontColor: 'WHITE',
+        frontVeneerColor: 'WHITE',
+        boxVeneerColor: 'WHITE'
+      }
+    };
+  }
+}

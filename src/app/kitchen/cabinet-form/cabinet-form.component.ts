@@ -7,11 +7,14 @@ import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
 import { OPENING_TYPES, KitchenCabinetConstraints } from './model/kitchen-cabinet-constants';
 import { CommonModule } from "@angular/common";
-import { CabinetCalculatedEvent, KitchenCabinet, CabinetZone } from '../model/kitchen-state.model';
+import { CabinetCalculatedEvent, KitchenCabinet, CabinetZone, isBaseCabinetType, isUpperCabinetType } from '../model/kitchen-state.model';
+import { KitchenStateService } from '../service/kitchen-state.service';
 import { SegmentFormComponent } from './segment-form/segment-form.component';
 import { SegmentVisualizerComponent } from './segment-visualizer/segment-visualizer.component';
 import { SegmentType } from './model/segment.model';
 import { TallCabinetValidator } from './types/tall-cabinet/tall-cabinet-validator';
+import { UpperCascadeCabinetPreparer } from './types/upper-cascade/upper-cascade-cabinet-preparer';
+import { UpperCascadeCabinetValidator } from './types/upper-cascade/upper-cascade-cabinet-validator';
 import {
   CornerMechanismType,
   CORNER_MECHANISM_LABELS,
@@ -41,6 +44,7 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   cancelEdit = new EventEmitter<void>();
 
   private readonly dictionaryService = inject(DictionaryService);
+  readonly stateService = inject(KitchenStateService);
 
   form: FormGroup;
   visibility: any = {};
@@ -53,6 +57,8 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   // Dla segmentów
   selectedSegmentIndex = -1;
   private tallCabinetValidator = new TallCabinetValidator();
+  private cascadeValidator = new UpperCascadeCabinetValidator();
+  private cascadePreparer = new UpperCascadeCabinetPreparer();
 
   // Dla szafki narożnej
   cornerMechanismLabels = CORNER_MECHANISM_LABELS;
@@ -82,12 +88,45 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   }
 
   /**
-   * Oblicza wysokość netto szafki (bez cokołu).
-   * Dla TALL_CABINET cokół to 100mm.
+   * Wysokość korpusu netto (dla wizualizera segmentów TALL_CABINET).
+   * Użytkownik podaje wysokość korpusu bezpośrednio, więc netHeight = height.
    */
   get netCabinetHeight(): number {
-    const height = this.form.get('height')?.value ?? 0;
-    return height - 100; // cokół = 100mm
+    return this.form.get('height')?.value ?? 0;
+  }
+
+  /**
+   * Czy aktualny typ to szafka dolna (BASE_*) — wyświetlamy info o blacie.
+   */
+  get isBaseCabinet(): boolean {
+    const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
+    return isBaseCabinetType(type);
+  }
+
+  /**
+   * Czy aktualny typ to szafka wisząca (UPPER_*) — wyświetlamy info o montażu.
+   */
+  get isUpperCabinet(): boolean {
+    const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
+    return isUpperCabinetType(type);
+  }
+
+  /**
+   * Czy tryb pozycjonowania to WZGLĘDEM_BLATU — pokazujemy pole odstępu.
+   */
+  get isCountertopMode(): boolean {
+    return this.form.get('positioningMode')?.value === 'RELATIVE_TO_COUNTERTOP';
+  }
+
+  /**
+   * Obliczona wysokość blatu od podłogi:
+   * cokół + wysokość korpusu + grubość blatu
+   */
+  get computedCountertopHeight(): number {
+    const corpusHeight = this.form.get('height')?.value ?? 0;
+    const plinth = this.stateService.plinthHeightMm();
+    const countertop = this.stateService.countertopThicknessMm();
+    return plinth + corpusHeight + countertop;
   }
 
   /**
@@ -95,6 +134,39 @@ export class CabinetFormComponent implements OnChanges, OnInit {
    */
   get segmentHeightError(): string | null {
     return this.tallCabinetValidator.getSegmentsHeightError(this.form);
+  }
+
+  /**
+   * Czy aktualny typ to szafka kaskadowa (UPPER_CASCADE).
+   */
+  get isCascadeCabinet(): boolean {
+    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.UPPER_CASCADE;
+  }
+
+  /**
+   * Całkowita wysokość szafki kaskadowej (suma segmentów).
+   */
+  get cascadeTotalHeight(): number {
+    const lower = this.form.get('cascadeLowerHeight')?.value ?? 0;
+    const upper = this.form.get('cascadeUpperHeight')?.value ?? 0;
+    return lower + upper;
+  }
+
+  /**
+   * Błąd kolejności głębokości segmentów kaskadowych.
+   */
+  get cascadeDepthError(): string | null {
+    if (!this.isCascadeCabinet) return null;
+    return this.cascadeValidator.getDepthOrderError(this.form);
+  }
+
+  /**
+   * Reaguje na zmianę wymiarów segmentów kaskadowych — przelicza height i depth.
+   */
+  onCascadeSegmentChange(): void {
+    if (this.isCascadeCabinet) {
+      this.cascadePreparer.recalculateDimensions(this.form);
+    }
   }
 
   constructor(
@@ -159,13 +231,37 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       positionY: cabinet.positionY ?? 0,
       shelfQuantity: cabinet.shelfQuantity,
       drawerQuantity: cabinet.drawerQuantity,
-      drawerModel: cabinet.drawerModel
+      drawerModel: cabinet.drawerModel,
+      positioningMode: cabinet.positioningMode ?? 'RELATIVE_TO_CEILING',
+      gapFromCountertopMm: cabinet.gapFromCountertopMm ?? 500,
+      cascadeLowerHeight: cabinet.cascadeLowerHeight ?? 400,
+      cascadeLowerDepth: cabinet.cascadeLowerDepth ?? 400,
+      cascadeUpperHeight: cabinet.cascadeUpperHeight ?? 320,
+      cascadeUpperDepth: cabinet.cascadeUpperDepth ?? 300
     });
 
     this.onTypeChange(cabinet.type);
   }
 
   private onTypeChange(type: KitchenCabinetType): void {
+    // Resetuj WSZYSTKIE flagi widoczności przed wywołaniem preparera —
+    // dzięki temu zmiana typu zawsze czyści pola poprzedniego typu
+    this.visibility = {
+      width: false,
+      shelfQuantity: false,
+      drawerQuantity: false,
+      drawerModel: false,
+      segments: false,
+      cornerWidthA: false,
+      cornerWidthB: false,
+      cornerMechanism: false,
+      cornerShelfQuantity: false,
+      isUpperCorner: false,
+      positioningMode: false,
+      gapFromCountertopMm: false,
+      cascadeSegments: false
+    };
+
     const config = KitchenCabinetTypeConfig[type];
     config.preparer.prepare(this.form, this.visibility);
     config.validator.validate(this.form);
@@ -186,7 +282,9 @@ export class CabinetFormComponent implements OnChanges, OnInit {
         positionY: this.editingCabinet.positionY ?? 0,
         shelfQuantity: this.editingCabinet.shelfQuantity,
         drawerQuantity: this.editingCabinet.drawerQuantity,
-        drawerModel: this.editingCabinet.drawerModel
+        drawerModel: this.editingCabinet.drawerModel,
+        positioningMode: this.editingCabinet.positioningMode ?? 'RELATIVE_TO_CEILING',
+        gapFromCountertopMm: this.editingCabinet.gapFromCountertopMm ?? 500
       });
 
       // Przywróć wartości narożnika przy edycji
@@ -198,6 +296,17 @@ export class CabinetFormComponent implements OnChanges, OnInit {
           cornerShelfQuantity: this.editingCabinet.cornerShelfQuantity,
           isUpperCorner: this.editingCabinet.isUpperCorner
         });
+      }
+
+      // Przywróć wartości segmentów kaskadowych przy edycji
+      if (type === KitchenCabinetType.UPPER_CASCADE) {
+        this.form.patchValue({
+          cascadeLowerHeight: this.editingCabinet.cascadeLowerHeight ?? 400,
+          cascadeLowerDepth: this.editingCabinet.cascadeLowerDepth ?? 400,
+          cascadeUpperHeight: this.editingCabinet.cascadeUpperHeight ?? 320,
+          cascadeUpperDepth: this.editingCabinet.cascadeUpperDepth ?? 300
+        });
+        this.cascadePreparer.recalculateDimensions(this.form);
       }
     }
   }
@@ -265,13 +374,13 @@ export class CabinetFormComponent implements OnChanges, OnInit {
         label: CORNER_MECHANISM_LABELS[m]
       }));
 
-      // Ustaw domyślne wartości dla dolnej
+      // Ustaw domyślne wartości dla dolnej (wysokość = korpus, bez cokołu/blatu)
       this.form.patchValue({
         cornerWidthA: Math.max(BASE_CORNER_CONSTRAINTS.widthMin,
           Math.min(this.form.get('cornerWidthA')?.value || 900, BASE_CORNER_CONSTRAINTS.widthMax)),
         cornerWidthB: Math.max(BASE_CORNER_CONSTRAINTS.widthMin,
           Math.min(this.form.get('cornerWidthB')?.value || 900, BASE_CORNER_CONSTRAINTS.widthMax)),
-        height: 820,
+        height: 720,
         depth: BASE_CORNER_CONSTRAINTS.depth
       });
     }

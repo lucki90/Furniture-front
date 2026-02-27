@@ -143,6 +143,21 @@
               </div>
             </div>
           </div>
+
+          <!-- Blenda górna -->
+          <div class="config-group">
+            <div class="config-header">
+              <span class="toggle-text">Blenda górna</span>
+              <span class="config-info">({{ upperFillerHeight }}mm)</span>
+            </div>
+            <div class="config-fields">
+              <div class="config-field">
+                <label>Wysokość (mm)</label>
+                <input type="number" [(ngModel)]="upperFillerHeight"
+                       min="0" max="150" step="10" class="number-input">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

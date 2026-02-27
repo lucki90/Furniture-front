@@ -209,6 +209,33 @@
 }
 
 /* ============================================
+   INFO BAR - OBLICZONA WYSOKOŚĆ BLATU
+   ============================================ */
+
+.countertop-info-bar {
+  padding: 8px 12px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-primary, #1e293b);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.countertop-info-detail {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.upper-info-bar {
+  background: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+/* ============================================
    SEKCJA SEGMENTÓW (TALL_CABINET)
    ============================================ */
 
@@ -306,6 +333,105 @@
   background: var(--bg-hover, #f8fafc);
   border-radius: 8px;
   border: 1px solid var(--border-color, #e2e8f0);
+}
+
+/* ============================================
+   SEKCJA POZYCJONOWANIA (UPPER_*)
+   ============================================ */
+
+.positioning-section {
+  padding: 12px 14px;
+  background: var(--bg-hover, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+}
+
+.positioning-info {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(139, 92, 246, 0.06);
+  border-left: 3px solid rgba(139, 92, 246, 0.35);
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  color: var(--text-secondary, #64748b);
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.positioning-info-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+/* ============================================
+   SEKCJA KASKADOWA (UPPER_CASCADE)
+   ============================================ */
+
+.cascade-section {
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.cascade-info {
+  padding: 8px 12px;
+  background: rgba(139, 92, 246, 0.07);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-primary, #1e293b);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.cascade-segment-card {
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.cascade-segment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+}
+
+.cascade-segment-header.lower-header {
+  background: rgba(59, 130, 246, 0.07);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+.cascade-segment-header.upper-header {
+  background: rgba(16, 185, 129, 0.07);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.cascade-segment-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.cascade-segment-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+}
+
+.cascade-segment-badge {
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+  margin-left: auto;
+  text-align: right;
+}
+
+.cascade-segment-body {
+  padding: 10px 12px;
+  background: var(--bg-card, #fff);
 }
 
 /* Responsywność */

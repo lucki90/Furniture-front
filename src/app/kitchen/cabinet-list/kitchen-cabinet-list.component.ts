@@ -24,7 +24,11 @@ export class KitchenCabinetListComponent {
       [KitchenCabinetType.BASE_TWO_DOOR]: 'Dolna 2-drzwiowa',
       [KitchenCabinetType.BASE_WITH_DRAWERS]: 'Dolna z szufladami',
       [KitchenCabinetType.TALL_CABINET]: 'Słupek',
-      [KitchenCabinetType.CORNER_CABINET]: 'Narożna'
+      [KitchenCabinetType.CORNER_CABINET]: 'Narożna',
+      [KitchenCabinetType.UPPER_ONE_DOOR]: 'Wisząca 1-drzwiowa',
+      [KitchenCabinetType.UPPER_TWO_DOOR]: 'Wisząca 2-drzwiowa',
+      [KitchenCabinetType.UPPER_OPEN_SHELF]: 'Wisząca otwarta',
+      [KitchenCabinetType.UPPER_CASCADE]: 'Wisząca kaskadowa'
     };
     return typeNames[type] ?? type;
   }

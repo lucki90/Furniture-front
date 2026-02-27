@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, effect } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -106,6 +106,27 @@ export class KitchenPageComponent {
   // Stan zapisywania projektu
   isSavingProject = false;
   isChangingStatus = false;
+
+  // Synchronizacja wall-level config → global signals przy zmianie ściany
+  private syncEffect = effect(() => {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+
+    // Synchronizuj plinth z feetType
+    const plinthConfig = this.stateService.getPlinthConfig(wallId);
+    if (plinthConfig?.enabled) {
+      const feetOption = this.feetTypeOptions.find(o => o.value === plinthConfig.feetType);
+      if (feetOption) {
+        this.stateService.updateProjectSettings({ plinthHeightMm: feetOption.plinthHeightMm });
+      }
+    }
+
+    // Synchronizuj countertop thickness
+    const countertopConfig = this.stateService.getCountertopConfig(wallId);
+    if (countertopConfig?.enabled && countertopConfig.thicknessMm) {
+      this.stateService.updateProjectSettings({ countertopThicknessMm: countertopConfig.thicknessMm });
+    }
+  });
 
   // Multi-wall signals
   readonly walls = this.stateService.walls;
@@ -225,6 +246,8 @@ export class KitchenPageComponent {
     if (!wallId) return;
     const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
     this.stateService.updateCountertopConfig(wallId, { ...current, thicknessMm: value });
+    // Synchronizuj grubość blatu z globalnym sygnałem
+    this.stateService.updateProjectSettings({ countertopThicknessMm: value });
     this.resetProjectResult();
   }
 
@@ -274,6 +297,9 @@ export class KitchenPageComponent {
     if (!wallId) return;
     const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
     this.stateService.updatePlinthConfig(wallId, { ...current, feetType: value });
+    // Synchronizuj wysokość cokołu z globalnym sygnałem
+    const feetOption = this.feetTypeOptions.find(o => o.value === value);
+    this.stateService.updateProjectSettings({ plinthHeightMm: feetOption?.plinthHeightMm ?? 97 });
     this.resetProjectResult();
   }
 
@@ -295,6 +321,16 @@ export class KitchenPageComponent {
   get plinthHeight(): number {
     const feetOption = this.feetTypeOptions.find(o => o.value === this.feetType);
     return feetOption?.plinthHeightMm ?? 97;
+  }
+
+  // Gettery/settery dla blendy górnej
+  get upperFillerHeight(): number {
+    return this.stateService.upperFillerHeightMm();
+  }
+
+  set upperFillerHeight(value: number) {
+    this.stateService.updateProjectSettings({ upperFillerHeightMm: value });
+    this.resetProjectResult();
   }
 
   // ============ STATUS MANAGEMENT ============

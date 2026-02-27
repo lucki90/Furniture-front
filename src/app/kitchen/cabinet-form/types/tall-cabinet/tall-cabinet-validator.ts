@@ -10,7 +10,6 @@ import { widthStepValidator } from "../../validators/width-step.validator";
 export class TallCabinetValidator implements KitchenCabinetValidator {
 
   private readonly constraints = KitchenCabinetConstraints.TALL_CABINET;
-  private readonly PLINTH_HEIGHT = 100; // wysokość cokołu w mm
 
   validate(form: FormGroup): void {
     // Walidacja szerokości
@@ -128,11 +127,10 @@ export class TallCabinetValidator implements KitchenCabinetValidator {
   }
 
   /**
-   * Oblicza wysokość netto szafki (bez cokołu).
+   * Wysokość netto szafki (= wysokość korpusu, użytkownik podaje bezpośrednio).
    */
   getNetHeight(form: FormGroup): number {
-    const height = form.get('height')?.value ?? 0;
-    return height - this.PLINTH_HEIGHT;
+    return form.get('height')?.value ?? 0;
   }
 
   /**

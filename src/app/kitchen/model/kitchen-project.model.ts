@@ -7,6 +7,15 @@ import { CountertopRequest, CountertopResponse } from './countertop.model';
 import { PlinthRequest, PlinthResponse } from './plinth.model';
 import { FillerPanelRequest, FillerPanelResponse } from './filler-panel.model';
 
+// ============ POSITIONING MODE ============
+
+/**
+ * Tryb pozycjonowania szafki wiszącej:
+ * - RELATIVE_TO_CEILING: góra szafki = wallHeight - fillerHeight
+ * - RELATIVE_TO_COUNTERTOP: dół szafki = countertopHeight + gap
+ */
+export type PositioningMode = 'RELATIVE_TO_CEILING' | 'RELATIVE_TO_COUNTERTOP';
+
 // ============ WALL TYPES ============
 
 export type WallType = 'MAIN' | 'LEFT' | 'RIGHT' | 'CORNER_LEFT' | 'CORNER_RIGHT' | 'ISLAND';
@@ -72,6 +81,13 @@ export interface ProjectCabinetRequest {
   drawerRequest?: DrawerRequest;
   segments?: SegmentRequest[];  // dla TALL_CABINET
   cornerRequest?: CornerCabinetRequest;  // dla CORNER_CABINET
+
+  // Segmenty kaskadowe (dla UPPER_CASCADE)
+  cascadeSegments?: CascadeSegmentRequest[];
+
+  // Pozycjonowanie szafek wiszących
+  positioningMode?: PositioningMode;  // null dla szafek dolnych i słupków
+  gapFromCountertopMm?: number;       // odstęp od blatu (dla RELATIVE_TO_COUNTERTOP)
 }
 
 /**
@@ -90,6 +106,18 @@ export interface DrawerRequest {
   drawerModel: string;
   drawerBaseHdf: boolean;
   drawerFrontDetails: any | null;
+}
+
+/**
+ * Segment szafki kaskadowej (UPPER_CASCADE).
+ * orderIndex=0 = dolny (głębszy), orderIndex=1 = górny (płytszy).
+ */
+export interface CascadeSegmentRequest {
+  orderIndex: number;
+  height: number;
+  depth: number;
+  frontType: string;
+  shelfQuantity: number;
 }
 
 export interface MaterialRequest {
@@ -155,6 +183,11 @@ export interface CreateKitchenProjectRequest {
   name: string;
   description?: string;
   walls: ProjectWallRequest[];
+
+  // Ustawienia projektu (globalne)
+  plinthHeightMm?: number;           // Wysokość cokołu (domyślnie 100mm)
+  countertopThicknessMm?: number;    // Grubość blatu (domyślnie 38mm)
+  upperFillerHeightMm?: number;      // Wysokość blendy górnej (domyślnie 100mm, 0=brak)
 }
 
 export interface ProjectWallRequest {
@@ -175,6 +208,11 @@ export interface UpdateKitchenProjectRequest {
   description?: string;
   status?: ProjectStatus;
   walls: ProjectWallRequest[];
+
+  // Ustawienia projektu (globalne)
+  plinthHeightMm?: number;
+  countertopThicknessMm?: number;
+  upperFillerHeightMm?: number;
 }
 
 /**
@@ -205,6 +243,11 @@ export interface KitchenProjectDetailResponse {
 
   // Dozwolone przejścia statusu
   allowedTransitions?: ProjectStatus[];
+
+  // Ustawienia projektu (globalne)
+  plinthHeightMm?: number;
+  countertopThicknessMm?: number;
+  upperFillerHeightMm?: number;
 
   totalCost: number;
   totalBoardsCost: number;
@@ -278,6 +321,10 @@ export interface CabinetPlacementResponse {
 
   // Additional configuration - tall cabinet segments
   segments?: SegmentRequest[];
+
+  // Pozycjonowanie szafek wiszących
+  positioningMode?: PositioningMode;
+  gapFromCountertopMm?: number;
 
   boardsCost: number;
   componentsCost: number;
