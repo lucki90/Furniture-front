@@ -375,41 +375,26 @@
 
   <!-- Sekcja segmentów (dla TALL_CABINET) -->
   <div *ngIf="visibility.segments" class="segments-section">
-    <h4 class="section-title">Konfiguracja segmentów</h4>
+    <h4 class="section-title">
+      Konfiguracja segmentów
+      <span class="segment-count">({{ segmentsArray.length }})</span>
+    </h4>
 
-    <div class="segments-layout">
-      <!-- Lewa strona: wizualizer -->
-      <div class="segments-visualizer-column">
-        <app-segment-visualizer
-          [segmentsArray]="segmentsArray"
-          [netHeight]="netCabinetHeight"
-          [selectedIndex]="selectedSegmentIndex"
-          (segmentSelected)="selectSegment($event)"
-          (orderChanged)="onSegmentsReordered()">
-        </app-segment-visualizer>
-      </div>
-
-      <!-- Prawa strona: formularz wybranego segmentu -->
-      <div class="segments-form-column">
-        <ng-container *ngIf="selectedSegmentForm; else noSegmentSelected">
-          <app-segment-form
-            [segmentForm]="selectedSegmentForm"
-            [segmentIndex]="selectedSegmentIndex"
-            (remove)="removeSegment(selectedSegmentIndex)">
-          </app-segment-form>
-        </ng-container>
-
-        <ng-template #noSegmentSelected>
-          <div class="no-segment-hint">
-            <p>Kliknij segment na wizualizacji, aby go edytować.</p>
-          </div>
-        </ng-template>
-
-        <button type="button" class="btn btn-secondary btn-add-segment" (click)="addSegment()">
-          + Dodaj segment
-        </button>
-      </div>
+    <!-- Wizualizer — pełna szerokość, klik otwiera popup edycji -->
+    <div class="segments-visualizer-wrapper">
+      <app-segment-visualizer
+        [segmentsArray]="segmentsArray"
+        [netHeight]="netCabinetHeight"
+        [selectedIndex]="selectedSegmentIndex"
+        (segmentSelected)="selectSegment($event)"
+        (orderChanged)="onSegmentsReordered()">
+      </app-segment-visualizer>
+      <p class="visualizer-hint">👆 Kliknij segment, aby edytować</p>
     </div>
+
+    <button type="button" class="btn btn-secondary btn-add-segment" (click)="addSegment()">
+      + Dodaj segment
+    </button>
 
     <!-- Błąd walidacji wysokości segmentów -->
     <div *ngIf="segmentHeightError" class="segments-error">
@@ -417,9 +402,44 @@
     </div>
   </div>
 
+  <!-- Popup edycji segmentu (fixed overlay, TALL_CABINET) -->
+  <div *ngIf="selectedSegmentIndex >= 0 && visibility.segments"
+       class="segment-popup-backdrop"
+       (click)="closeSegmentPopup()">
+    <div class="segment-popup" (click)="$event.stopPropagation()">
+      <div class="segment-popup-header">
+        <h4 class="segment-popup-title">✏️ Edycja segmentu {{ selectedSegmentIndex + 1 }}</h4>
+        <button type="button" class="btn-close-popup" (click)="closeSegmentPopup()" title="Zamknij">✕</button>
+      </div>
+      <app-segment-form
+        *ngIf="selectedSegmentForm"
+        [segmentForm]="selectedSegmentForm!"
+        [segmentIndex]="selectedSegmentIndex"
+        (remove)="removeSegment(selectedSegmentIndex)">
+      </app-segment-form>
+      <div class="segment-popup-footer">
+        <button type="button" class="btn-popup-done" (click)="closeSegmentPopup()">
+          Gotowe
+        </button>
+      </div>
+    </div>
+  </div>
+
+      <!-- Podsumowanie błędów walidacji (pokazuje się bez wymogu "touched") -->
+      <div *ngIf="validationErrors.length > 0" class="validation-summary">
+        <span class="validation-summary-icon">⚠</span>
+        <div>
+          <strong>Uzupełnij przed dodaniem szafki:</strong>
+          <ul class="validation-error-list">
+            <li *ngFor="let err of validationErrors">{{ err }}</li>
+          </ul>
+        </div>
+      </div>
+
       <!-- Przyciski -->
       <div class="form-actions">
-        <button type="button" class="btn btn-primary" (click)="calculate()" [disabled]="loading || form.invalid">
+        <button type="button" class="btn btn-primary" (click)="calculate()"
+                [disabled]="loading || form.invalid || (visibility.segments && !!segmentHeightError)">
           <span *ngIf="loading" class="spinner"></span>
           {{ isEditMode ? '💾 Zapisz' : '➕ Dodaj szafkę' }}
         </button>

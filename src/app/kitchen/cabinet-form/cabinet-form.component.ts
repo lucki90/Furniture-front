@@ -137,6 +137,73 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   }
 
   /**
+   * Zwraca listę błędów walidacji dla podsumowania nad przyciskiem.
+   * Nie wymaga stanu "touched" — pokazuje błędy od razu.
+   */
+  get validationErrors(): string[] {
+    const errors: string[] = [];
+
+    // Wymiary (tylko gdy sekcja widoczna)
+    if (this.visibility.width !== false) {
+      const w = this.form.get('width');
+      const h = this.form.get('height');
+      const d = this.form.get('depth');
+
+      if (w?.invalid) {
+        if (w.errors?.['widthStep']) errors.push(w.errors['widthStep'].message);
+        else if (w.errors?.['min']) errors.push(`Szerokość: min ${w.errors['min'].min} mm`);
+        else if (w.errors?.['max']) errors.push(`Szerokość: max ${w.errors['max'].max} mm`);
+        else if (w.errors?.['required']) errors.push('Szerokość jest wymagana');
+      }
+      if (h?.invalid) {
+        if (h.errors?.['min']) errors.push(`Wysokość: min ${h.errors['min'].min} mm`);
+        else if (h.errors?.['max']) errors.push(`Wysokość: max ${h.errors['max'].max} mm`);
+        else errors.push('Wysokość: nieprawidłowa wartość');
+      }
+      if (d?.invalid) {
+        if (d.errors?.['min']) errors.push(`Głębokość: min ${d.errors['min'].min} mm`);
+        else if (d.errors?.['max']) errors.push(`Głębokość: max ${d.errors['max'].max} mm`);
+        else errors.push('Głębokość: nieprawidłowa wartość');
+      }
+    }
+
+    // Narożnik
+    if (this.visibility.cornerWidthA) {
+      const ca = this.form.get('cornerWidthA');
+      const cb = this.form.get('cornerWidthB');
+      if (ca?.invalid) {
+        if (ca.errors?.['min']) errors.push(`Szerokość A: min ${ca.errors['min'].min} mm`);
+        else if (ca.errors?.['max']) errors.push(`Szerokość A: max ${ca.errors['max'].max} mm`);
+      }
+      if (cb?.invalid) {
+        if (cb.errors?.['min']) errors.push(`Szerokość B: min ${cb.errors['min'].min} mm`);
+        else if (cb.errors?.['max']) errors.push(`Szerokość B: max ${cb.errors['max'].max} mm`);
+      }
+    }
+
+    // Segmenty (TALL_CABINET)
+    if (this.visibility.segments) {
+      const segErr = this.segmentHeightError;
+      if (segErr) errors.push(segErr);
+
+      if (this.segmentsArray) {
+        this.segmentsArray.controls.forEach((seg, i) => {
+          const fg = seg as import('@angular/forms').FormGroup;
+          if (fg.get('height')?.invalid) {
+            const minVal = fg.get('height')?.errors?.['min']?.min;
+            errors.push(`Segment ${i + 1}: wysokość poza zakresem` + (minVal ? ` (min ${minVal} mm)` : ''));
+          }
+          if (fg.get('drawerQuantity')?.invalid) {
+            errors.push(`Segment ${i + 1}: nieprawidłowa liczba szuflad`);
+          }
+        });
+      }
+    }
+
+    return errors;
+  }
+
+  /**
    * Czy aktualny typ to szafka kaskadowa (UPPER_CASCADE).
    */
   get isCascadeCabinet(): boolean {
@@ -308,10 +375,42 @@ export class CabinetFormComponent implements OnChanges, OnInit {
         });
         this.cascadePreparer.recalculateDimensions(this.form);
       }
+
+      // Przywróć segmenty TALL_CABINET przy edycji
+      // (preparer domyślnie ustawia 2 segmenty, trzeba je zastąpić zapisanymi)
+      if (type === KitchenCabinetType.TALL_CABINET && this.editingCabinet.segments?.length) {
+        const segmentsControl = this.form.get('segments') as FormArray;
+        // Wyczyść domyślne segmenty dodane przez preparer
+        while (segmentsControl.length > 0) {
+          segmentsControl.removeAt(0);
+        }
+        // Przywróć zapisane segmenty w tej samej kolejności
+        this.editingCabinet.segments.forEach((seg, i) => {
+          segmentsControl.push(this.fb.group({
+            segmentType: [seg.segmentType],
+            height: [seg.height],
+            orderIndex: [seg.orderIndex ?? i],
+            drawerQuantity: [seg.drawerQuantity ?? null],
+            drawerModel: [seg.drawerModel ?? null],
+            shelfQuantity: [seg.shelfQuantity ?? null],
+            frontType: [seg.frontType ?? null]
+          }));
+        });
+        // Rewaliduj po przywróceniu segmentów
+        this.tallCabinetValidator.validate(this.form);
+      }
     }
   }
 
+  /** Zamknij popup edycji segmentu. */
+  closeSegmentPopup(): void {
+    this.selectedSegmentIndex = -1;
+  }
+
   calculate(): void {
+    // Oznacz wszystkie kontrolki jako touched — pokazuje błędy inline
+    this.form.markAllAsTouched();
+
     this.loading = true;
 
     const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;

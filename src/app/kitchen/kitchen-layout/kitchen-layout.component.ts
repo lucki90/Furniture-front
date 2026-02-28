@@ -29,11 +29,12 @@ interface DisplayHandle {
 }
 
 /**
- * Nóżka do wyświetlania
+ * Nóżka do wyświetlania — pionowy bar od korpusu do podłogi
  */
 interface DisplayFoot {
   x: number;
-  y: number;
+  y1: number;  // górna krawędź nóżki (dół korpusu)
+  y2: number;  // dolna krawędź nóżki (podłoga)
 }
 
 interface VisualCabinetPosition {
@@ -51,6 +52,8 @@ interface VisualCabinetPosition {
   displayY: number;
   displayWidth: number;
   displayHeight: number;
+  /** Wysokość korpusu w px (bez strefy cokołu). Dla BOTTOM = displayHeight, dla FULL = displayHeight - feetHeight */
+  bodyHeight: number;
   // Typ szafki (dolna/górna/słupek)
   zone: CabinetZone;
   isOverflow: boolean;
@@ -163,6 +166,8 @@ export class KitchenLayoutComponent {
   // Stałe dla elementów wizualnych
   // Uwaga: FEET_HEIGHT_MM jest getter — używa rzeczywistej wysokości cokołu z ustawień projektu
   private get FEET_HEIGHT_MM(): number { return this.stateService.plinthHeightMm(); }
+  /** Szpara między górną krawędzią panelu cokołu a dolną krawędzią korpusu (nóżki są o tyle wyższe) */
+  private readonly PLINTH_PANEL_GAP_MM = 3;
   private readonly FRONT_GAP = 1;
 
   // Nowe sygnały ze state service
@@ -248,8 +253,14 @@ export class KitchenLayoutComponent {
       const hasFeet = zone === 'BOTTOM' || zone === 'FULL';
       const feetHeight = hasFeet ? Math.round(this.FEET_HEIGHT_MM * sv) : 0;
 
-      // Generuj nóżki
-      const feet = this.generateFeet(displayX, displayY + displayHeight, displayWidth, feetHeight);
+      // Wysokość korpusu (bez strefy cokołu/nóżek):
+      // - BOTTOM: displayHeight to już sam korpus (nóżki są poniżej, w osobnej strefie)
+      // - FULL:   displayHeight obejmuje całą wysokość łącznie z nóżkami — odejmujemy feetHeight
+      // - TOP:    feetHeight = 0, więc bodyHeight = displayHeight
+      const bodyHeight = zone === 'FULL' ? displayHeight - feetHeight : displayHeight;
+
+      // Generuj nóżki — pozycja: tuż pod korpusem (w szparze nad cokołem)
+      const feet = this.generateFeet(displayX, displayY + bodyHeight, displayWidth, feetHeight);
 
       // Generuj fronty i uchwyty
       const { fronts, handles } = this.generateVisualElements(
@@ -257,8 +268,7 @@ export class KitchenLayoutComponent {
         displayX,
         displayY,
         displayWidth,
-        displayHeight,
-        feetHeight,
+        bodyHeight,
         drawerQuantity,
         segments,
         shelfQuantity,
@@ -285,6 +295,7 @@ export class KitchenLayoutComponent {
         displayY,
         displayWidth,
         displayHeight,
+        bodyHeight,
         zone,
         isOverflow,
         isCorner,
@@ -302,42 +313,34 @@ export class KitchenLayoutComponent {
   });
 
   /**
-   * Generuje pozycje nóżek dla szafki
+   * Generuje pozycje nóżek dla szafki.
+   * Dwie nóżki (lewa i prawa) — pionowe bary od dołu korpusu do podłogi.
+   * Cokół (półprzezroczysty) zasłania większość ich długości,
+   * ale szpara nad cokołem (1px) pozostaje widoczna.
    */
   private generateFeet(displayX: number, bottomY: number, displayWidth: number, feetHeight: number): DisplayFoot[] {
     if (feetHeight <= 0) return [];
 
-    const feet: DisplayFoot[] = [];
-    const footY = bottomY - 2; // Trochę wyżej od samego dołu
-
-    // 4 nóżki - na rogach z lekkim marginesem
     const margin = Math.max(3, displayWidth * 0.1);
-    feet.push(
-      { x: displayX + margin, y: footY },
-      { x: displayX + displayWidth - margin, y: footY }
-    );
+    const floorY = this.WALL_DISPLAY_HEIGHT;
 
-    // Dodatkowe nóżki dla szerszych szafek
-    if (displayWidth > 40) {
-      feet.push(
-        { x: displayX + margin, y: footY - feetHeight + 4 },
-        { x: displayX + displayWidth - margin, y: footY - feetHeight + 4 }
-      );
-    }
-
-    return feet;
+    // Dwie nóżki: lewa i prawa — od dołu korpusu do podłogi
+    return [
+      { x: displayX + margin,               y1: bottomY, y2: floorY },
+      { x: displayX + displayWidth - margin, y1: bottomY, y2: floorY }
+    ];
   }
 
   /**
-   * Generuje elementy wizualne (fronty i uchwyty) dla szafki
+   * Generuje elementy wizualne (fronty i uchwyty) dla szafki.
+   * bodyHeight = wysokość korpusu w px (bez strefy nóżek, obliczona zewnętrznie).
    */
   private generateVisualElements(
     type: KitchenCabinetType,
     displayX: number,
     displayY: number,
     displayWidth: number,
-    displayHeight: number,
-    feetHeight: number,
+    bodyHeight: number,
     drawerQuantity?: number,
     segments?: SegmentFormData[],
     shelfQuantity?: number,
@@ -348,7 +351,6 @@ export class KitchenLayoutComponent {
     const handles: DisplayHandle[] = [];
 
     const gap = this.FRONT_GAP;
-    const bodyHeight = displayHeight - feetHeight;
     const bodyY = displayY;
 
     switch (type) {
@@ -777,7 +779,9 @@ export class KitchenLayoutComponent {
   });
 
   /**
-   * Oblicza pozycję i wymiary cokołu pod szafkami dolnymi.
+   * Oblicza pozycję i wymiary panelu cokołu pod szafkami dolnymi.
+   * Panel cokołu jest o PLINTH_PANEL_GAP_MM (3mm) niższy niż nóżki —
+   * przez tę szparę widoczne są końcówki nóżek tuż pod korpusem.
    */
   readonly plinthPosition = computed(() => {
     const positions = this.visualPositions();
@@ -792,18 +796,23 @@ export class KitchenLayoutComponent {
     const minX = Math.min(...bottomPositions.map(p => p.displayX));
     const maxX = Math.max(...bottomPositions.map(p => p.displayX + p.displayWidth));
 
-    // Wysokość cokołu w px
+    // Wysokość nóżek w px
     const feetHeight = bottomPositions[0]?.feetHeight ?? 0;
+    if (feetHeight <= 0) return null;
 
-    // Cokół zawsze przy podłodze: Y = WALL_DISPLAY_HEIGHT - feetHeight
-    // (niezależnie od wysokości konkretnych szafek — stały punkt odniesienia)
-    const plinthY = this.WALL_DISPLAY_HEIGHT - feetHeight;
+    // Panel cokołu jest o 3mm (min. 1px) niższy niż nóżki → szpara widoczna nad cokołem
+    const sv = this.SCALE_VERT();
+    const plinthGapPx = Math.max(Math.round(this.PLINTH_PANEL_GAP_MM * sv), 1);
+    const plinthPanelH = feetHeight - plinthGapPx;
+
+    // Panel cokołu przy podłodze: Y = WALL_DISPLAY_HEIGHT - plinthPanelH
+    const plinthY = this.WALL_DISPLAY_HEIGHT - plinthPanelH;
 
     return {
       x: minX,
       y: plinthY,
       width: maxX - minX,
-      height: feetHeight
+      height: plinthPanelH
     };
   });
 

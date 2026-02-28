@@ -49,6 +49,7 @@ export interface AggregatedComponent {
   quantity: number;
   unitCost: number;
   totalCost: number;
+  isWaste?: boolean; // true = odpad z cięcia płyt (SHEET_WASTE)
 }
 
 export interface AggregatedJob {
@@ -117,7 +118,7 @@ export class KitchenPageComponent {
     if (plinthConfig?.enabled) {
       const feetOption = this.feetTypeOptions.find(o => o.value === plinthConfig.feetType);
       if (feetOption) {
-        this.stateService.updateProjectSettings({ plinthHeightMm: feetOption.plinthHeightMm });
+        this.stateService.updateProjectSettings({ plinthHeightMm: feetOption.feetHeightMm });
       }
     }
 
@@ -297,9 +298,9 @@ export class KitchenPageComponent {
     if (!wallId) return;
     const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
     this.stateService.updatePlinthConfig(wallId, { ...current, feetType: value });
-    // Synchronizuj wysokość cokołu z globalnym sygnałem
+    // Synchronizuj wysokość nóżek z globalnym sygnałem (feetHeightMm = fizyczna wysokość nóżek)
     const feetOption = this.feetTypeOptions.find(o => o.value === value);
-    this.stateService.updateProjectSettings({ plinthHeightMm: feetOption?.plinthHeightMm ?? 97 });
+    this.stateService.updateProjectSettings({ plinthHeightMm: feetOption?.feetHeightMm ?? 100 });
     this.resetProjectResult();
   }
 
@@ -575,7 +576,6 @@ export class KitchenPageComponent {
   private aggregateProjectDetails(response: MultiWallCalculateResponse): void {
     const boardsMap = new Map<string, AggregatedBoard>();
     const componentsMap = new Map<string, AggregatedComponent>();
-    const wasteMap = new Map<string, AggregatedComponent>(); // Osobna mapa dla SHEET_WASTE
     const jobsMap = new Map<string, AggregatedJob>();
 
     for (const wall of response.walls) {
@@ -595,24 +595,23 @@ export class KitchenPageComponent {
           }
         }
 
-        // Agreguj komponenty (z wydzieleniem SHEET_WASTE)
+        // Agreguj komponenty — odpad (SHEET_WASTE) trafia razem z resztą, ale z flagą isWaste
         if (cabinet.components) {
           for (const comp of cabinet.components) {
             const isWaste = comp.category === 'SHEET_WASTE';
-            const targetMap = isWaste ? wasteMap : componentsMap;
-
             const key = `${comp.category}_${comp.model}`;
-            const existing = targetMap.get(key);
+            const existing = componentsMap.get(key);
             if (existing) {
               existing.quantity += comp.quantity;
               existing.totalCost += comp.totalPrice;
             } else {
-              targetMap.set(key, {
+              componentsMap.set(key, {
                 name: comp.model,
                 type: comp.category,
                 quantity: comp.quantity,
                 unitCost: comp.priceEntry?.price ?? 0,
-                totalCost: comp.totalPrice
+                totalCost: comp.totalPrice,
+                isWaste
               });
             }
           }
@@ -737,11 +736,13 @@ export class KitchenPageComponent {
     }
 
     this.aggregatedBoards = Array.from(boardsMap.values());
-    this.aggregatedComponents = Array.from(componentsMap.values());
+    // Sortuj: zwykłe komponenty najpierw, odpad na końcu
+    this.aggregatedComponents = Array.from(componentsMap.values())
+      .sort((a, b) => (a.isWaste ? 1 : 0) - (b.isWaste ? 1 : 0));
     this.aggregatedJobs = Array.from(jobsMap.values());
 
-    // Wydziel koszt odpadu
-    this.wasteDetails = Array.from(wasteMap.values());
+    // Wydziel odpad z aggregatedComponents (do sekcji checkboxa)
+    this.wasteDetails = this.aggregatedComponents.filter(c => c.isWaste);
     this.totalWasteCost = this.wasteDetails.reduce((sum, w) => sum + w.totalCost, 0);
   }
 
@@ -788,21 +789,31 @@ export class KitchenPageComponent {
   }
 
   /**
-   * Oblicza całkowity koszt projektu z opcjonalnym kosztem odpadu
+   * Całkowity koszt projektu z opcjonalnym kosztem odpadu.
+   * totalProjectCost = boardCost + componentCost + wasteCost + jobCost (z odpadem).
+   * checkbox ZAZNACZONY  → totalProjectCost (z odpadem)
+   * checkbox ODZNACZONY  → totalProjectCost - wasteCost
    */
   get adjustedTotalCost(): number {
     if (!this.projectResult) return 0;
-    const baseCost = this.projectResult.totalProjectCost - this.totalWasteCost;
-    return this.includeWasteCost ? this.projectResult.totalProjectCost : baseCost;
+    const waste = this.projectResult.totalWasteCost ?? this.totalWasteCost;
+    return this.includeWasteCost
+      ? this.projectResult.totalProjectCost
+      : this.projectResult.totalProjectCost - waste;
   }
 
   /**
-   * Oblicza koszt komponentów z opcjonalnym kosztem odpadu
+   * Koszt komponentów z opcjonalnym kosztem odpadu.
+   * totalComponentCost = bez odpadu (po wydzieleniu AloneStandingCabinetService).
+   * checkbox ZAZNACZONY  → totalComponentCost + wasteCost (dodajemy odpad)
+   * checkbox ODZNACZONY  → totalComponentCost (bez odpadu)
    */
   get adjustedComponentCost(): number {
     if (!this.projectResult) return 0;
-    const baseCost = this.projectResult.totalComponentCost - this.totalWasteCost;
-    return this.includeWasteCost ? this.projectResult.totalComponentCost : baseCost;
+    const waste = this.projectResult.totalWasteCost ?? this.totalWasteCost;
+    return this.includeWasteCost
+      ? this.projectResult.totalComponentCost + waste
+      : this.projectResult.totalComponentCost;
   }
 
   /**
@@ -813,10 +824,13 @@ export class KitchenPageComponent {
   }
 
   /**
-   * Oblicza sumę kosztów wszystkich zagregowanych komponentów
+   * Oblicza sumę kosztów komponentów w zakładce Komponenty.
+   * Gdy checkbox "wlicz odpad" jest odznaczony — wiersze odpadu są wyszarzone i NIE wliczane.
    */
   get totalAggregatedComponentsCost(): number {
-    return this.aggregatedComponents.reduce((sum, comp) => sum + comp.totalCost, 0);
+    return this.aggregatedComponents
+      .filter(comp => !comp.isWaste || this.includeWasteCost)
+      .reduce((sum, comp) => sum + comp.totalCost, 0);
   }
 
   /**

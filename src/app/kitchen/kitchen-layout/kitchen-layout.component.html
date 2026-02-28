@@ -88,7 +88,7 @@
           <rect [attr.x]="pos.displayX"
                 [attr.y]="pos.displayY"
                 [attr.width]="pos.displayWidth"
-                [attr.height]="pos.displayHeight - pos.feetHeight"
+                [attr.height]="pos.bodyHeight"
                 [class.cabinet-body]="true"
                 [class.cabinet-bottom]="pos.zone === 'BOTTOM'"
                 [class.cabinet-top]="pos.zone === 'TOP'"
@@ -146,19 +146,20 @@
                   stroke-linecap="round"/>
           </g>
 
-          <!-- Nóżki (zamiast cokołu) -->
+          <!-- Nóżki — pionowe bary od korpusu do podłogi -->
           <g *ngIf="pos.feetHeight > 0" class="feet-group">
-            <circle *ngFor="let foot of pos.feet"
-                    [attr.cx]="foot.x"
-                    [attr.cy]="foot.y"
-                    r="2"
-                    class="foot-circle">
-            </circle>
+            <line *ngFor="let foot of pos.feet"
+                  [attr.x1]="foot.x"
+                  [attr.y1]="foot.y1"
+                  [attr.x2]="foot.x"
+                  [attr.y2]="foot.y2"
+                  class="foot-line">
+            </line>
           </g>
 
           <!-- Etykieta szafki -->
           <text [attr.x]="pos.displayX + pos.displayWidth / 2"
-                [attr.y]="pos.displayY + (pos.displayHeight - pos.feetHeight) / 2"
+                [attr.y]="pos.displayY + pos.bodyHeight / 2"
                 class="cabinet-label-text"
                 text-anchor="middle"
                 dominant-baseline="middle">

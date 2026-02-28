@@ -272,15 +272,15 @@
   filter: drop-shadow(0 0.5px 0.5px rgba(0,0,0,0.3));
 }
 
-/* Feet (nóżki) */
-.foot-circle {
-  fill: #424242;
-  stroke: #212121;
-  stroke-width: 0.5;
+/* Feet (nóżki) — pionowe bary od korpusu do podłogi */
+.foot-line {
+  stroke: #37474f;
+  stroke-width: 2;
+  stroke-linecap: round;
 }
 
 .feet-group {
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 /* Cabinet label text */

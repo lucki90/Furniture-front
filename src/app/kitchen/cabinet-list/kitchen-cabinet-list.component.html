@@ -26,10 +26,14 @@
         <td>{{ getCabinetTypeName(cabinet.type) }}</td>
         <td class="dims-col">{{ cabinet.width }}×{{ cabinet.height }}×{{ cabinet.depth }}</td>
         <td>{{ cabinet.positionY || 0 }}</td>
-        <td class="cost-col">{{ cabinet.calculatedResult?.boardCosts?.toFixed(0) ?? '-' }}</td>
-        <td class="cost-col">{{ cabinet.calculatedResult?.componentCosts?.toFixed(0) ?? '-' }}</td>
-        <td class="cost-col">{{ cabinet.calculatedResult?.jobCosts?.toFixed(0) ?? '-' }}</td>
-        <td class="cost-col total-col">{{ cabinet.calculatedResult?.totalCost?.toFixed(0) ?? '-' }} zł</td>
+        <td class="cost-col">{{ cabinet.calculatedResult?.boardCosts?.toFixed(0) ?? '-' }}{{ cabinet.calculatedResult?.boardCosts != null ? ' zł' : '' }}</td>
+        <td class="cost-col">{{ cabinet.calculatedResult?.componentCosts?.toFixed(0) ?? '-' }}{{ cabinet.calculatedResult?.componentCosts != null ? ' zł' : '' }}</td>
+        <td class="cost-col">{{ cabinet.calculatedResult?.jobCosts?.toFixed(0) ?? '-' }}{{ cabinet.calculatedResult?.jobCosts != null ? ' zł' : '' }}</td>
+        <td class="cost-col total-col">
+          {{ cabinet.calculatedResult
+            ? (cabinet.calculatedResult.boardCosts + cabinet.calculatedResult.componentCosts + cabinet.calculatedResult.jobCosts).toFixed(0) + ' zł'
+            : '-' }}
+        </td>
         <td class="actions">
           <button
             class="btn-edit"

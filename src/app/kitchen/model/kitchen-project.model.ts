@@ -354,8 +354,12 @@ export interface MultiWallCalculateResponse {
   allFit: boolean;
 
   totalBoardCost: number;
+  /** Koszt komponentów bez odpadu. */
   totalComponentCost: number;
+  /** Koszt odpadu z cięcia płyt (wydzielony). Wliczony już w totalProjectCost. */
+  totalWasteCost: number;
   totalJobCost: number;
+  /** Koszt całkowity z odpadem: totalBoardCost + totalComponentCost + totalWasteCost + totalJobCost. */
   totalProjectCost: number;
 }
 
@@ -383,6 +387,8 @@ export interface WallCalculationSummary {
 
   boardCost: number;
   componentCost: number;
+  /** Koszt odpadu z cięcia płyt (wydzielony, wliczony w wallTotalCost). */
+  wasteCost?: number;
   jobCost: number;
   cabinetsCost?: number;
   countertopCost?: number;

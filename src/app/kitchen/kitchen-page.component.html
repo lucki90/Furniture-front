@@ -101,7 +101,7 @@
               <div class="config-field">
                 <label>Grubość</label>
                 <select [(ngModel)]="countertopThickness">
-                  <option *ngFor="let opt of countertopThicknessOptions" [value]="opt.value">{{ opt.label }}</option>
+                  <option *ngFor="let opt of countertopThicknessOptions" [ngValue]="opt.value">{{ opt.label }}</option>
                 </select>
               </div>
               <div class="config-field">
@@ -311,7 +311,7 @@
             <div class="cost-card">
               <span class="cost-icon">🪵</span>
               <span class="cost-label">Płyty</span>
-              <span class="cost-value">{{ projectResult.totalBoardCost.toFixed(2) }} zł</span>
+              <span class="cost-value">{{ totalAggregatedBoardsCost.toFixed(2) }} zł</span>
             </div>
             <div class="cost-card">
               <span class="cost-icon">🔩</span>
@@ -321,7 +321,7 @@
             <div class="cost-card">
               <span class="cost-icon">🔧</span>
               <span class="cost-label">Prace</span>
-              <span class="cost-value">{{ projectResult.totalJobCost.toFixed(2) }} zł</span>
+              <span class="cost-value">{{ totalAggregatedJobsCost.toFixed(2) }} zł</span>
             </div>
             <div class="cost-card total">
               <span class="cost-icon">📊</span>
@@ -369,7 +369,7 @@
             class="tab-btn"
             [class.active]="activeDetailsTab === 'components'"
             (click)="activeDetailsTab = 'components'">
-            🔩 Komponenty ({{ aggregatedComponents.length }})
+            🔩 Komponenty ({{ aggregatedComponents.length - wasteDetails.length }}<ng-container *ngIf="wasteDetails.length > 0"> +odpad</ng-container>)
           </button>
           <button
             class="tab-btn"
@@ -435,17 +435,22 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let comp of aggregatedComponents">
+                  <tr *ngFor="let comp of aggregatedComponents"
+                      [class.waste-row]="comp.isWaste"
+                      [class.waste-excluded]="comp.isWaste && !includeWasteCost">
                     <td>{{ comp.name }}</td>
                     <td>{{ comp.type }}</td>
                     <td>{{ comp.quantity }}</td>
-                    <td>{{ comp.unitCost.toFixed(2) }} zł</td>
-                    <td class="text-right font-bold">{{ comp.totalCost.toFixed(2) }} zł</td>
+                    <td>{{ comp.isWaste && !includeWasteCost ? '—' : (comp.unitCost.toFixed(2) + ' zł') }}</td>
+                    <td class="text-right font-bold">
+                      <span *ngIf="!comp.isWaste || includeWasteCost">{{ comp.totalCost.toFixed(2) }} zł</span>
+                      <span *ngIf="comp.isWaste && !includeWasteCost" class="waste-excluded-label">{{ comp.totalCost.toFixed(2) }} zł (nie wliczono)</span>
+                    </td>
                   </tr>
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colspan="4"><strong>Suma komponentów:</strong></td>
+                    <td colspan="4"><strong>Suma komponentów{{ wasteDetails.length > 0 && includeWasteCost ? ' (z odpadem)' : '' }}:</strong></td>
                     <td class="text-right"><strong>{{ totalAggregatedComponentsCost.toFixed(2) }} zł</strong></td>
                   </tr>
                 </tfoot>
@@ -501,7 +506,7 @@
                   <span class="wall-status" [class.success]="wall.fits" [class.error]="!wall.fits">
                     {{ wall.fits ? '✓' : '✗' }}
                   </span>
-                  <span class="wall-cost">{{ wall.wallTotalCost.toFixed(2) }} zł</span>
+                  <span class="wall-cost">{{ (wall.wallTotalCost - (includeWasteCost ? 0 : (wall.wasteCost ?? 0))).toFixed(2) }} zł</span>
                 </div>
                 <div class="wall-item-details">
                   <span>Szafki: {{ wall.cabinetCount }}</span>

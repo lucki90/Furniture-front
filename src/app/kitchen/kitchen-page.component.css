@@ -819,6 +819,24 @@
   color: #a16207;
 }
 
+/* ============ WASTE ROW IN COMPONENTS TABLE ============ */
+/* Wiersz odpadu — zawsze widoczny, wyszarzony gdy checkbox odznaczony */
+.waste-row {
+  background: #fffbeb;
+  border-left: 3px solid #fcd34d;
+}
+
+.waste-row.waste-excluded {
+  opacity: 0.5;
+  color: #9ca3af;
+}
+
+.waste-excluded-label {
+  color: #9ca3af;
+  font-style: italic;
+  font-weight: normal;
+}
+
 /* ============ PAGE FOOTER (STICKY) ============ */
 .page-footer {
   display: flex;
