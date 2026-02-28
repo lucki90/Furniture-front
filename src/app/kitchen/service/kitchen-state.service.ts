@@ -81,6 +81,12 @@ export class KitchenStateService {
   private _countertopThicknessMm = signal<number>(38);     // Domyślna grubość blatu
   private _upperFillerHeightMm = signal<number>(100);      // Domyślna wysokość blendy górnej
 
+  // Globalne defaults z user_settings DB — cache używany przez clearAll() i addWall()
+  // Ustawiane JEDNOKROTNIE przy starcie przez setGlobalDefaults() z app.component.ts
+  private _globalDefaultPlinthHeightMm = 100;
+  private _globalDefaultCountertopThicknessMm = 38;
+  private _globalDefaultUpperFillerHeightMm = 100;
+
   // ============ PUBLIC SIGNALS ============
 
   readonly walls = this._walls.asReadonly();
@@ -305,11 +311,11 @@ export class KitchenStateService {
       widthMm,
       heightMm,
       cabinets: [],
-      // Domyślnie włączamy blat i cokół
+      // Domyślnie włączamy blat i cokół — grubość blatu z globalnych defaults
       countertopConfig: {
         enabled: true,
         materialType: 'LAMINATE',
-        thicknessMm: 38,
+        thicknessMm: this._globalDefaultCountertopThicknessMm,
         jointType: 'NONE',
         edgeType: 'ABS_EDGE'
       },
@@ -389,6 +395,21 @@ export class KitchenStateService {
     if (settings.upperFillerHeightMm !== undefined) {
       this._upperFillerHeightMm.set(settings.upperFillerHeightMm);
     }
+  }
+
+  /**
+   * Zapisuje globalne defaults z user_settings DB i natychmiast je stosuje na sygnałach.
+   * Wywoływać TYLKO raz przy starcie aplikacji (app.component.ts ngOnInit).
+   * Dzięki temu clearAll() i addWall() mogą dziedziczyć wartości z bazy zamiast hardcoded stałych.
+   */
+  setGlobalDefaults(settings: { plinthHeightMm: number; countertopThicknessMm: number; upperFillerHeightMm: number }): void {
+    // Zapamiętaj jako globalne defaults (używane przez clearAll / addWall)
+    this._globalDefaultPlinthHeightMm = settings.plinthHeightMm;
+    this._globalDefaultCountertopThicknessMm = settings.countertopThicknessMm;
+    this._globalDefaultUpperFillerHeightMm = settings.upperFillerHeightMm;
+
+    // Zastosuj od razu do live signals (żeby bieżący stan też był spójny)
+    this.updateProjectSettings(settings);
   }
 
   // ============ COUNTERTOP & PLINTH CONFIG ============
@@ -574,6 +595,7 @@ export class KitchenStateService {
   }
 
   clearAll(): void {
+    // Nowy projekt dziedziczy globalne defaults (z user_settings DB), nie hardcoded wartości
     this._walls.set([
       {
         id: 'wall-1',
@@ -584,7 +606,7 @@ export class KitchenStateService {
         countertopConfig: {
           enabled: true,
           materialType: 'LAMINATE',
-          thicknessMm: 38,
+          thicknessMm: this._globalDefaultCountertopThicknessMm,
           jointType: 'NONE',
           edgeType: 'ABS_EDGE'
         },
@@ -605,10 +627,10 @@ export class KitchenStateService {
     this._currentProjectStatus.set('DRAFT');
     this._currentProjectAllowedTransitions.set([]);
 
-    // Reset ustawień projektu do domyślnych
-    this._plinthHeightMm.set(100);
-    this._countertopThicknessMm.set(38);
-    this._upperFillerHeightMm.set(100);
+    // Reset ustawień projektu do globalnych defaults (z user_settings DB)
+    this._plinthHeightMm.set(this._globalDefaultPlinthHeightMm);
+    this._countertopThicknessMm.set(this._globalDefaultCountertopThicknessMm);
+    this._upperFillerHeightMm.set(this._globalDefaultUpperFillerHeightMm);
   }
 
   // ============ PROJECT LOAD/SAVE ============
@@ -1018,11 +1040,14 @@ export class KitchenStateService {
   private mapCalculationResult(result: any): CabinetCalculationResult | undefined {
     if (!result) return undefined;
 
+    // CabinetResponse (/add endpoint) używa: summaryCosts, boardTotalCost, componentTotalCost, jobTotalCost
+    // CabinetPlacementResponse (projekt z bazy) używa: totalCost, boardsCost, componentsCost, jobsCost
+    // Obsługujemy oba formaty — priorytet: CabinetResponse (świeża kalkulacja)
     return {
-      totalCost: result.totalCost ?? 0,
-      boardCosts: result.boardCosts ?? 0,
-      componentCosts: result.componentCosts ?? 0,
-      jobCosts: result.jobCosts ?? 0
+      totalCost: result.summaryCosts ?? result.totalCost ?? 0,
+      boardCosts: result.boardTotalCost ?? result.boardsCost ?? result.boardCosts ?? 0,
+      componentCosts: result.componentTotalCost ?? result.componentsCost ?? result.componentCosts ?? 0,
+      jobCosts: result.jobTotalCost ?? result.jobsCost ?? result.jobCosts ?? 0
     };
   }
 

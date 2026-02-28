@@ -1,0 +1,111 @@
+<div class="settings-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">
+      <span class="page-title-icon">⚙️</span>
+      Ustawienia
+    </h1>
+    <p class="page-subtitle">Globalne domyślne wartości dla nowych projektów</p>
+  </div>
+
+  <!-- Info bar -->
+  <div class="info-bar">
+    <span class="info-icon">ℹ️</span>
+    <span class="info-text">
+      Poniższe wartości są stosowane automatycznie przy tworzeniu nowych projektów.
+      Każdy projekt może nadpisać je indywidualnie.
+    </span>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="state-loading">
+    <div class="spinner"></div>
+    <span>Ładowanie ustawień…</span>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="error && !loading" class="state-error">
+    <span class="error-icon">⚠️</span>
+    {{ error }}
+    <button class="btn-retry" (click)="loadSettings()">Spróbuj ponownie</button>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="!loading" class="settings-card">
+    <div class="card-section-title">Kuchnia — domyślne</div>
+
+    <div class="form-grid">
+
+      <!-- Cokół -->
+      <div class="form-group">
+        <label class="form-label" for="plinth">Cokół</label>
+        <div class="input-with-unit">
+          <select
+            id="plinth"
+            class="form-control"
+            [(ngModel)]="plinthHeightMm"
+            [disabled]="saving">
+            <option *ngFor="let opt of plinthOptions" [value]="opt">{{ opt }}</option>
+          </select>
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">Wysokość cokołu pod szafkami dolnymi</span>
+      </div>
+
+      <!-- Blat -->
+      <div class="form-group">
+        <label class="form-label" for="countertop">Blat</label>
+        <div class="input-with-unit">
+          <select
+            id="countertop"
+            class="form-control"
+            [(ngModel)]="countertopThicknessMm"
+            [disabled]="saving">
+            <option *ngFor="let opt of countertopOptions" [value]="opt">{{ opt }}</option>
+          </select>
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">Grubość blatu roboczego</span>
+      </div>
+
+      <!-- Blenda górna -->
+      <div class="form-group">
+        <label class="form-label" for="filler">Blenda górna</label>
+        <div class="input-with-unit">
+          <input
+            id="filler"
+            type="number"
+            class="form-control"
+            [(ngModel)]="upperFillerHeightMm"
+            [disabled]="saving"
+            min="0"
+            max="150"
+            step="5"
+          />
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">Przestrzeń nad szafkami wiszącymi (0–150 mm)</span>
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button
+        class="btn btn-primary"
+        (click)="saveSettings()"
+        [disabled]="saving || loading">
+        <span *ngIf="saving" class="spinner spinner-sm"></span>
+        <span *ngIf="!saving">💾</span>
+        {{ saving ? 'Zapisuję…' : 'Zapisz ustawienia' }}
+      </button>
+
+      <!-- Success toast inline -->
+      <div *ngIf="savedSuccess" class="save-success">
+        ✓ Zapisano
+      </div>
+    </div>
+  </div>
+
+</div>
