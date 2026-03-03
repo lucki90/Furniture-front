@@ -70,6 +70,12 @@ interface VisualCabinetPosition {
   // Wskaźniki wymiarów
   heightDiff?: number;
   depthDiff?: number;
+  // Obudowy boczne
+  leftEnclosureType?: string;
+  rightEnclosureType?: string;
+  /** Szerokość obudowy w px (0 = brak). Dla płyty bocznej = 18mm×scale, dla blendy = fillerWidth×scale. */
+  leftEnclosureDisplayWidth: number;
+  rightEnclosureDisplayWidth: number;
 }
 
 @Component({
@@ -282,6 +288,21 @@ export class KitchenLayoutComponent {
       const heightDiff = cab.height - standardHeight;
       const depthDiff = depth - standardDepth;
 
+      // Oblicz szerokość obudów w px (0 = brak)
+      const globalFillerW = this.stateService.fillerWidthMm();
+      const PLATE_MM = 18;
+      const leftFillerMm = originalCabinet?.leftFillerWidthOverrideMm ?? globalFillerW;
+      const rightFillerMm = originalCabinet?.rightFillerWidthOverrideMm ?? globalFillerW;
+      const leftEncType = originalCabinet?.leftEnclosureType;
+      const rightEncType = originalCabinet?.rightEnclosureType;
+      const calcEncW = (type: string | undefined, fillerMm: number): number => {
+        if (!type || type === 'NONE') return 0;
+        const widthMm = type === 'PARALLEL_FILLER_STRIP' ? fillerMm : PLATE_MM;
+        return Math.max(1, Math.round(widthMm * scale));
+      };
+      const leftEnclosureDisplayWidth = calcEncW(leftEncType, leftFillerMm);
+      const rightEnclosureDisplayWidth = calcEncW(rightEncType, rightFillerMm);
+
       return {
         cabinetId: cab.cabinetId,
         name: cab.name,
@@ -307,7 +328,11 @@ export class KitchenLayoutComponent {
         drawerQuantity,
         segments,
         heightDiff: heightDiff !== 0 ? heightDiff : undefined,
-        depthDiff: depthDiff !== 0 ? depthDiff : undefined
+        depthDiff: depthDiff !== 0 ? depthDiff : undefined,
+        leftEnclosureType: leftEncType,
+        rightEnclosureType: rightEncType,
+        leftEnclosureDisplayWidth,
+        rightEnclosureDisplayWidth
       };
     });
   });
@@ -756,6 +781,8 @@ export class KitchenLayoutComponent {
   /**
    * Oblicza wymiary blatu na podstawie szafek dolnych.
    * Zwraca długość i głębokość w mm.
+   * Głębokość pobierana z countertopConfig.manualDepthMm (default 600mm).
+   * Długość = szerokość szafek + blendy boczne + naddatek boczny (sideOverhangExtraMm, default 5mm z każdej strony).
    */
   readonly countertopDimensions = computed(() => {
     const cabinets = this.stateService.cabinets();
@@ -768,12 +795,30 @@ export class KitchenLayoutComponent {
       return null;
     }
 
-    // Całkowita szerokość szafek dolnych
-    const totalWidth = bottomCabinets.reduce((sum, cab) => sum + cab.width, 0);
+    // Głębokość z config (default 600mm)
+    const wall = this.selectedWall();
+    const depthMm = wall?.countertopConfig?.manualDepthMm ?? this.COUNTERTOP_DEPTH_DEFAULT;
 
-    // Blat ma standardową głębokość 600mm i nawis z przodu
-    const lengthMm = totalWidth + this.COUNTERTOP_OVERHANG;
-    const depthMm = this.COUNTERTOP_DEPTH_DEFAULT;
+    // Naddatek boczny z config (default 5mm z każdej strony)
+    const sideExtra = wall?.countertopConfig?.sideOverhangExtraMm ?? 5;
+
+    // Całkowita szerokość szafek dolnych
+    const totalCabinetWidth = bottomCabinets.reduce((sum, cab) => sum + cab.width, 0);
+
+    // Szerokości blend bocznych (z visualPositions) — przeliczone mm
+    const sf = this.scaleFactor();
+    const bottomPositions = this.visualPositions()
+      .filter(p => p.zone === 'BOTTOM' || p.zone === 'FULL')
+      .sort((a, b) => a.displayX - b.displayX);
+
+    const leftEnclosureW = (bottomPositions.length > 0 && sf > 0)
+      ? Math.round(bottomPositions[0].leftEnclosureDisplayWidth / sf)
+      : 0;
+    const rightEnclosureW = (bottomPositions.length > 0 && sf > 0)
+      ? Math.round(bottomPositions[bottomPositions.length - 1].rightEnclosureDisplayWidth / sf)
+      : 0;
+
+    const lengthMm = totalCabinetWidth + leftEnclosureW + rightEnclosureW + 2 * sideExtra;
 
     return { lengthMm, depthMm };
   });
@@ -792,9 +837,18 @@ export class KitchenLayoutComponent {
       return null;
     }
 
-    // Cokół ciągnie się od pierwszej do ostatniej szafki dolnej
-    const minX = Math.min(...bottomPositions.map(p => p.displayX));
-    const maxX = Math.max(...bottomPositions.map(p => p.displayX + p.displayWidth));
+    // Cokół ciągnie się od pierwszej do ostatniej szafki dolnej — uwzględnij blendy boczne.
+    // SIDE_PLATE_TO_FLOOR → płyta sięga sama do podłogi; cokół globalny NIE wchodzi w jej obszar.
+    const minX = Math.min(...bottomPositions.map(p =>
+      this.plinthExtendsInto(p.leftEnclosureType)
+        ? p.displayX - p.leftEnclosureDisplayWidth
+        : p.displayX
+    ));
+    const maxX = Math.max(...bottomPositions.map(p =>
+      this.plinthExtendsInto(p.rightEnclosureType)
+        ? p.displayX + p.displayWidth + p.rightEnclosureDisplayWidth
+        : p.displayX + p.displayWidth
+    ));
 
     // Wysokość nóżek w px
     const feetHeight = bottomPositions[0]?.feetHeight ?? 0;
@@ -857,8 +911,18 @@ export class KitchenLayoutComponent {
     const topPositions = this.visualPositions().filter(p => p.zone === 'TOP');
     if (topPositions.length === 0) return null;
 
-    const minX = Math.min(...topPositions.map(p => p.displayX));
-    const maxX = Math.max(...topPositions.map(p => p.displayX + p.displayWidth));
+    // Blenda górna rozciąga się od pierwszej do ostatniej szafki wiszącej — uwzględnij blendy boczne.
+    // SIDE_PLATE_TO_FLOOR (tu: do sufitu) → płyta sięga sama do sufitu; blenda górna NIE wchodzi w jej obszar.
+    const minX = Math.min(...topPositions.map(p =>
+      this.plinthExtendsInto(p.leftEnclosureType)
+        ? p.displayX - p.leftEnclosureDisplayWidth
+        : p.displayX
+    ));
+    const maxX = Math.max(...topPositions.map(p =>
+      this.plinthExtendsInto(p.rightEnclosureType)
+        ? p.displayX + p.displayWidth + p.rightEnclosureDisplayWidth
+        : p.displayX + p.displayWidth
+    ));
     const fillerH = this.fillerHeightPx();
 
     return {
@@ -868,6 +932,121 @@ export class KitchenLayoutComponent {
       height: fillerH
     };
   });
+
+  /**
+   * Czy cokół globalny (lub blenda górna) ma rozciągać się nad/pod danym typem obudowy bocznej.
+   *
+   * Reguła:
+   * - SIDE_PLATE_WITH_PLINTH, PARALLEL_FILLER_STRIP → cokół/blenda ROZCIĄGAJĄ SIĘ nad blendą boczną (✓)
+   * - SIDE_PLATE_TO_FLOOR (dla dolnych: do podłogi; dla górnych: do sufitu) → płyta sama dociera do
+   *   podłogi/sufitu, cokół/blenda globalna NIE wchodzi w jej obszar (↔ 18mm mniej z tej strony)
+   * - NONE / undefined → brak obudowy, nie ma znaczenia (i tak enclosureDisplayWidth = 0)
+   */
+  private plinthExtendsInto(type: string | undefined): boolean {
+    return !!type && type !== 'NONE' && type !== 'SIDE_PLATE_TO_FLOOR';
+  }
+
+  /** Maksymalna długość segmentu płyty (cokół, blenda górna) w mm — limit standardowej płyty. */
+  private readonly MAX_BOARD_SEGMENT_MM = 2800;
+
+  /**
+   * Pozycje spojenia cokołu (w pikselach SVG) — z preferencją styku szafek (jak backend).
+   * Algorytm: szuka końca szafki najbliżej 2800mm; jeśli nie ma — szuka za 2800mm.
+   * Wyświetlane jako przerywane czerwone linie na wizualizacji.
+   */
+  readonly plinthJoinXPositions = computed(() => {
+    const plinth = this.plinthPosition();
+    if (!plinth) return [];
+    return this.computePlinthJoinPositions();
+  });
+
+  /**
+   * Pozycje spojenia blendy górnej (w pikselach SVG) — co 2800mm od lewej krawędzi blendy.
+   * Blenda górna nie ma preferencji styku szafek — prosta formuła co 2800mm.
+   * Wyświetlane jako przerywane czerwone linie na wizualizacji.
+   */
+  readonly fillerJoinXPositions = computed(() => {
+    const filler = this.fillerPosition();
+    if (!filler) return [];
+    return this.computeJoinPositions(filler.x, filler.width);
+  });
+
+  /**
+   * Oblicza pozycje spojenia cokołu z preferencją styków szafek (dolnych i słupków).
+   * Replikuje algorytm backendowy findOptimalSplitPoints() z PlinthCalculationService.
+   * Zwraca absolutne pozycje X w pikselach SVG.
+   */
+  private computePlinthJoinPositions(): number[] {
+    const sf = this.scaleFactor();
+    const maxSegPx = this.MAX_BOARD_SEGMENT_MM * sf;
+
+    // Szafki dolne i słupki (te które mają cokół)
+    const bottomPositions = this.visualPositions()
+      .filter(p => p.zone === 'BOTTOM' || p.zone === 'FULL')
+      .sort((a, b) => a.displayX - b.displayX);
+
+    if (bottomPositions.length === 0) return [];
+
+    const startXPx = bottomPositions[0].displayX;
+    const endXPx = Math.max(...bottomPositions.map(p => p.displayX + p.displayWidth));
+    const totalWidthPx = endXPx - startXPx;
+
+    if (totalWidthPx <= maxSegPx) return [];
+
+    // Końce prawych krawędzi korpusów szafek (absolutne pozycje w px SVG)
+    const cabinetEndPxs = [...new Set(
+      bottomPositions.map(p => p.displayX + p.displayWidth)
+    )].sort((a, b) => a - b);
+
+    const joinPositions: number[] = [];
+    let currentX = startXPx;
+    let remaining = totalWidthPx;
+
+    while (remaining > maxSegPx) {
+      const targetX = currentX + maxSegPx;
+
+      // Znajdź ostatni koniec szafki w przedziale (currentX, targetX]
+      let bestX = targetX;
+      let foundEnd = false;
+      for (const endX of cabinetEndPxs) {
+        if (endX > currentX && endX <= targetX) {
+          bestX = endX;
+          foundEnd = true;
+        }
+      }
+
+      // Jeśli nie znaleziono — szukaj pierwszego końca szafki za targetX
+      if (!foundEnd) {
+        for (const endX of cabinetEndPxs) {
+          if (endX > targetX) {
+            bestX = endX;
+            break;
+          }
+        }
+      }
+
+      joinPositions.push(bestX);
+      remaining -= (bestX - currentX);
+      currentX = bestX;
+    }
+
+    return joinPositions;
+  }
+
+  /**
+   * Oblicza pozycje X linii spojenia dla elementu o podanym początku i szerokości (w px).
+   * Prosta formuła: linie co 2800mm od startXPx (używana dla blendy górnej).
+   */
+  private computeJoinPositions(startXPx: number, totalWidthPx: number): number[] {
+    const maxSegPx = this.MAX_BOARD_SEGMENT_MM * this.scaleFactor();
+    const positions: number[] = [];
+    let x = startXPx + maxSegPx;
+    while (x < startXPx + totalWidthPx - 1) {
+      positions.push(x);
+      x += maxSegPx;
+    }
+    return positions;
+  }
 
   /**
    * Linia wymiarowa gap (przestrzeń robocza między blatem a szafkami wiszącymi).
@@ -896,6 +1075,48 @@ export class KitchenLayoutComponent {
       return pos.name;
     }
     return `${index + 1}`;
+  }
+
+  /**
+   * Pozycja Y prostokąta obudowy w SVG (w px).
+   *
+   * Reguła dla SIDE_PLATE_TO_FLOOR:
+   * - strefa TOP (szafka wisząca) → płyta sięga DO SUFITU, zaczyna od y=0
+   * - strefa BOTTOM/FULL → zaczyna od displayY (góra korpusu), sięga do podłogi
+   *
+   * Pozostałe typy → zawsze displayY (góra korpusu)
+   */
+  enclosureDisplayY(type: string | undefined, zone: CabinetZone, displayY: number): number {
+    return type === 'SIDE_PLATE_TO_FLOOR' && zone === 'TOP' ? 0 : displayY;
+  }
+
+  /**
+   * Wysokość prostokąta obudowy w px.
+   *
+   * Reguła dla SIDE_PLATE_TO_FLOOR:
+   * - strefa TOP → od sufitu (y=0) do dołu korpusu = displayY + bodyHeight
+   * - strefa BOTTOM/FULL → od góry korpusu do podłogi = bodyHeight + feetHeight
+   *
+   * Pozostałe typy → tylko wysokość korpusu (bodyHeight)
+   */
+  enclosureDisplayHeight(
+    type: string | undefined,
+    zone: CabinetZone,
+    displayY: number,
+    bodyHeight: number,
+    feetHeight: number
+  ): number {
+    if (type === 'SIDE_PLATE_TO_FLOOR') {
+      return zone === 'TOP' ? displayY + bodyHeight : bodyHeight + feetHeight;
+    }
+    return bodyHeight;
+  }
+
+  /**
+   * @deprecated Użyj enclosureDisplayHeight z parametrem zone.
+   */
+  enclosureHeight(type: string | undefined, bodyHeight: number, feetHeight: number): number {
+    return type === 'SIDE_PLATE_TO_FLOOR' ? bodyHeight + feetHeight : bodyHeight;
   }
 
   /**

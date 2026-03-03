@@ -69,6 +69,15 @@ export interface KitchenCabinet {
   positioningMode?: PositioningMode;  // tryb pozycjonowania (dla UPPER_*)
   gapFromCountertopMm?: number;       // odstęp od blatu (dla RELATIVE_TO_COUNTERTOP)
 
+  // Obudowa boczna
+  leftEnclosureType?: string;   // EnclosureType ('NONE' | 'SIDE_PLATE_WITH_PLINTH' | ...)
+  rightEnclosureType?: string;
+  leftSupportPlate?: boolean;   // podpora blendy (tylko PARALLEL_FILLER_STRIP)
+  rightSupportPlate?: boolean;
+  distanceFromWallMm?: number | null; // null = użyj globalnych ustawień
+  leftFillerWidthOverrideMm?: number | null;   // override szerokości lewej blendy (null = globalny)
+  rightFillerWidthOverrideMm?: number | null;  // override szerokości prawej blendy (null = globalny)
+
   // Konfiguracja wizualna (cokoły, nóżki, uchwyty, fronty)
   visualConfig?: CabinetVisualConfig;
 
@@ -142,6 +151,8 @@ export interface CountertopConfig {
   frontOverhangMm?: number;
   jointType?: CountertopJointType;
   edgeType?: CountertopEdgeType;
+  /** Naddatek boczny z każdej strony ponad blendy (mm). Default: 5mm. */
+  sideOverhangExtraMm?: number;
 }
 
 /**
@@ -193,6 +204,15 @@ export interface CabinetFormData {
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;
   gapFromCountertopMm?: number;
+
+  // Obudowa boczna
+  leftEnclosureType?: string;
+  rightEnclosureType?: string;
+  leftSupportPlate?: boolean;
+  rightSupportPlate?: boolean;
+  distanceFromWallMm?: number | null;
+  leftFillerWidthOverrideMm?: number | null;
+  rightFillerWidthOverrideMm?: number | null;
 
   // Konfiguracja wizualna (cokoły, nóżki, uchwyty, fronty)
   visualConfig?: CabinetVisualConfig;

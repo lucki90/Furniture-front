@@ -27,6 +27,9 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
     v.cornerMechanism = true;
     v.isUpperCorner = true;
 
+    // Pokaż sekcję obudowy bocznej
+    v.enclosureSection = true;
+
     // Wartości domyślne dla dolnej szafki narożnej
     const isUpper = form.get('isUpperCorner')?.value ?? false;
     const constraints = isUpper ? UPPER_CORNER_CONSTRAINTS : BASE_CORNER_CONSTRAINTS;

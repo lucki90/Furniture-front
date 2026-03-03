@@ -2,6 +2,59 @@
    CABINET FORM - KOMPAKTOWY STYL
    ============================================ */
 
+/* ============ Obudowa boczna ============ */
+.enclosure-section {
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.enclosure-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.enclosure-side {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.enclosure-side-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+  letter-spacing: 0.05em;
+}
+
+.enclosure-support-group {
+  margin-top: 2px;
+}
+
+.enclosure-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.enclosure-checkbox {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.enclosure-distance-group {
+  margin-top: 4px;
+}
+/* =========================================== */
+
 .cabinet-form {
   display: flex;
   flex-direction: column;
@@ -575,3 +628,4 @@
     min-width: 100%;
   }
 }
+

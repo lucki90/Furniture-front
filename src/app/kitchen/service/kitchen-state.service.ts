@@ -9,7 +9,8 @@ import {
   CabinetZone,
   getCabinetZone,
   CountertopConfig,
-  PlinthConfig
+  PlinthConfig,
+  isUpperCabinetType
 } from '../model/kitchen-state.model';
 import {
   KitchenProjectRequest,
@@ -31,6 +32,7 @@ import { PlinthRequest, DEFAULT_PLINTH_REQUEST } from '../model/plinth.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { mapSegmentToRequest, SegmentRequest, SegmentFormData, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
+import { EnclosureConfig, EnclosureType } from '../cabinet-form/model/enclosure.model';
 
 @Injectable({
   providedIn: 'root'
@@ -81,11 +83,25 @@ export class KitchenStateService {
   private _countertopThicknessMm = signal<number>(38);     // Domyślna grubość blatu
   private _upperFillerHeightMm = signal<number>(100);      // Domyślna wysokość blendy górnej
 
+  // Ustawienia obudowy szafek
+  private _distanceFromWallMm = signal<number>(560);       // Głębokość zabudowy
+  private _plinthSetbackMm = signal<number>(60);           // Cofnięcie cokołu od frontu
+  private _fillerWidthMm = signal<number>(50);             // Szerokość blendy bocznej
+  private _frontGapMm = signal<number>(2);                 // Szczelina frontowa
+  private _supportHeightReductionMm = signal<number>(30);  // Zmniejszenie podpory (H)
+  private _supportWidthReductionMm = signal<number>(50);   // Zmniejszenie podpory (W)
+
   // Globalne defaults z user_settings DB — cache używany przez clearAll() i addWall()
   // Ustawiane JEDNOKROTNIE przy starcie przez setGlobalDefaults() z app.component.ts
   private _globalDefaultPlinthHeightMm = 100;
   private _globalDefaultCountertopThicknessMm = 38;
   private _globalDefaultUpperFillerHeightMm = 100;
+  private _globalDefaultDistanceFromWallMm = 560;
+  private _globalDefaultPlinthSetbackMm = 60;
+  private _globalDefaultFillerWidthMm = 50;
+  private _globalDefaultFrontGapMm = 2;
+  private _globalDefaultSupportHeightReductionMm = 30;
+  private _globalDefaultSupportWidthReductionMm = 50;
 
   // ============ PUBLIC SIGNALS ============
 
@@ -102,6 +118,14 @@ export class KitchenStateService {
   readonly plinthHeightMm = this._plinthHeightMm.asReadonly();
   readonly countertopThicknessMm = this._countertopThicknessMm.asReadonly();
   readonly upperFillerHeightMm = this._upperFillerHeightMm.asReadonly();
+
+  // Ustawienia obudowy (publiczne)
+  readonly distanceFromWallMm = this._distanceFromWallMm.asReadonly();
+  readonly plinthSetbackMm = this._plinthSetbackMm.asReadonly();
+  readonly fillerWidthMm = this._fillerWidthMm.asReadonly();
+  readonly frontGapMm = this._frontGapMm.asReadonly();
+  readonly supportHeightReductionMm = this._supportHeightReductionMm.asReadonly();
+  readonly supportWidthReductionMm = this._supportWidthReductionMm.asReadonly();
 
   /**
    * Obliczona wysokość blatu od podłogi:
@@ -156,7 +180,9 @@ export class KitchenStateService {
     for (const cabinet of this.cabinets()) {
       const zone = getCabinetZone(cabinet);
       if (zone === 'BOTTOM' || zone === 'FULL') {
-        currentX += cabinet.width;
+        currentX += this.enclosureOuterWidthMm(cabinet, 'left')
+                 + cabinet.width
+                 + this.enclosureOuterWidthMm(cabinet, 'right');
       }
     }
     return currentX;
@@ -170,7 +196,9 @@ export class KitchenStateService {
     for (const cabinet of this.cabinets()) {
       const zone = getCabinetZone(cabinet);
       if (zone === 'TOP' || zone === 'FULL') {
-        currentX += cabinet.width;
+        currentX += this.enclosureOuterWidthMm(cabinet, 'left')
+                 + cabinet.width
+                 + this.enclosureOuterWidthMm(cabinet, 'right');
       }
     }
     return currentX;
@@ -254,16 +282,19 @@ export class KitchenStateService {
       let y: number;
 
       switch (zone) {
-        case 'FULL':
-          x = Math.max(currentXBottom, currentXTop);
-          currentXBottom = x + cabinet.width;
-          currentXTop = x + cabinet.width;
+        case 'FULL': {
+          const leftW = this.enclosureOuterWidthMm(cabinet, 'left');
+          const rightW = this.enclosureOuterWidthMm(cabinet, 'right');
+          x = Math.max(currentXBottom, currentXTop) + leftW;
+          currentXBottom = x + cabinet.width + rightW;
+          currentXTop    = x + cabinet.width + rightW;
           y = plinth;
           break;
-
-        case 'TOP':
-          x = currentXTop;
-          currentXTop += cabinet.width;
+        }
+        case 'TOP': {
+          const leftW = this.enclosureOuterWidthMm(cabinet, 'left');
+          x = currentXTop + leftW;
+          currentXTop = x + cabinet.width + this.enclosureOuterWidthMm(cabinet, 'right');
           // Oblicz Y na podstawie trybu pozycjonowania
           if (cabinet.positioningMode === 'RELATIVE_TO_COUNTERTOP') {
             const gap = cabinet.gapFromCountertopMm ?? 500;
@@ -273,13 +304,15 @@ export class KitchenStateService {
             y = wallHeight - upperFiller - cabinet.height;
           }
           break;
-
+        }
         case 'BOTTOM':
-        default:
-          x = currentXBottom;
-          currentXBottom += cabinet.width;
+        default: {
+          const leftW = this.enclosureOuterWidthMm(cabinet, 'left');
+          x = currentXBottom + leftW;
+          currentXBottom = x + cabinet.width + this.enclosureOuterWidthMm(cabinet, 'right');
           y = plinth;
           break;
+        }
       }
 
       positions.push({
@@ -317,7 +350,8 @@ export class KitchenStateService {
         materialType: 'LAMINATE',
         thicknessMm: this._globalDefaultCountertopThicknessMm,
         jointType: 'NONE',
-        edgeType: 'ABS_EDGE'
+        edgeType: 'ABS_EDGE',
+        sideOverhangExtraMm: 5
       },
       plinthConfig: {
         enabled: true,
@@ -385,7 +419,17 @@ export class KitchenStateService {
 
   // ============ PROJECT SETTINGS MANAGEMENT ============
 
-  updateProjectSettings(settings: { plinthHeightMm?: number; countertopThicknessMm?: number; upperFillerHeightMm?: number }): void {
+  updateProjectSettings(settings: {
+    plinthHeightMm?: number;
+    countertopThicknessMm?: number;
+    upperFillerHeightMm?: number;
+    distanceFromWallMm?: number;
+    plinthSetbackMm?: number;
+    fillerWidthMm?: number;
+    frontGapMm?: number;
+    supportHeightReductionMm?: number;
+    supportWidthReductionMm?: number;
+  }): void {
     if (settings.plinthHeightMm !== undefined) {
       this._plinthHeightMm.set(settings.plinthHeightMm);
     }
@@ -395,6 +439,24 @@ export class KitchenStateService {
     if (settings.upperFillerHeightMm !== undefined) {
       this._upperFillerHeightMm.set(settings.upperFillerHeightMm);
     }
+    if (settings.distanceFromWallMm !== undefined) {
+      this._distanceFromWallMm.set(settings.distanceFromWallMm);
+    }
+    if (settings.plinthSetbackMm !== undefined) {
+      this._plinthSetbackMm.set(settings.plinthSetbackMm);
+    }
+    if (settings.fillerWidthMm !== undefined) {
+      this._fillerWidthMm.set(settings.fillerWidthMm);
+    }
+    if (settings.frontGapMm !== undefined) {
+      this._frontGapMm.set(settings.frontGapMm);
+    }
+    if (settings.supportHeightReductionMm !== undefined) {
+      this._supportHeightReductionMm.set(settings.supportHeightReductionMm);
+    }
+    if (settings.supportWidthReductionMm !== undefined) {
+      this._supportWidthReductionMm.set(settings.supportWidthReductionMm);
+    }
   }
 
   /**
@@ -402,11 +464,39 @@ export class KitchenStateService {
    * Wywoływać TYLKO raz przy starcie aplikacji (app.component.ts ngOnInit).
    * Dzięki temu clearAll() i addWall() mogą dziedziczyć wartości z bazy zamiast hardcoded stałych.
    */
-  setGlobalDefaults(settings: { plinthHeightMm: number; countertopThicknessMm: number; upperFillerHeightMm: number }): void {
+  setGlobalDefaults(settings: {
+    plinthHeightMm: number;
+    countertopThicknessMm: number;
+    upperFillerHeightMm: number;
+    distanceFromWallMm?: number;
+    plinthSetbackMm?: number;
+    fillerWidthMm?: number;
+    frontGapMm?: number;
+    supportHeightReductionMm?: number;
+    supportWidthReductionMm?: number;
+  }): void {
     // Zapamiętaj jako globalne defaults (używane przez clearAll / addWall)
     this._globalDefaultPlinthHeightMm = settings.plinthHeightMm;
     this._globalDefaultCountertopThicknessMm = settings.countertopThicknessMm;
     this._globalDefaultUpperFillerHeightMm = settings.upperFillerHeightMm;
+    if (settings.distanceFromWallMm !== undefined) {
+      this._globalDefaultDistanceFromWallMm = settings.distanceFromWallMm;
+    }
+    if (settings.plinthSetbackMm !== undefined) {
+      this._globalDefaultPlinthSetbackMm = settings.plinthSetbackMm;
+    }
+    if (settings.fillerWidthMm !== undefined) {
+      this._globalDefaultFillerWidthMm = settings.fillerWidthMm;
+    }
+    if (settings.frontGapMm !== undefined) {
+      this._globalDefaultFrontGapMm = settings.frontGapMm;
+    }
+    if (settings.supportHeightReductionMm !== undefined) {
+      this._globalDefaultSupportHeightReductionMm = settings.supportHeightReductionMm;
+    }
+    if (settings.supportWidthReductionMm !== undefined) {
+      this._globalDefaultSupportWidthReductionMm = settings.supportWidthReductionMm;
+    }
 
     // Zastosuj od razu do live signals (żeby bieżący stan też był spójny)
     this.updateProjectSettings(settings);
@@ -497,6 +587,15 @@ export class KitchenStateService {
       positioningMode: formData.positioningMode,
       gapFromCountertopMm: formData.gapFromCountertopMm,
 
+      // Obudowa boczna
+      leftEnclosureType: formData.leftEnclosureType,
+      rightEnclosureType: formData.rightEnclosureType,
+      leftSupportPlate: formData.leftSupportPlate,
+      rightSupportPlate: formData.rightSupportPlate,
+      distanceFromWallMm: formData.distanceFromWallMm,
+      leftFillerWidthOverrideMm: formData.leftFillerWidthOverrideMm,
+      rightFillerWidthOverrideMm: formData.rightFillerWidthOverrideMm,
+
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
 
@@ -572,6 +671,15 @@ export class KitchenStateService {
             positioningMode: formData.positioningMode,
             gapFromCountertopMm: formData.gapFromCountertopMm,
 
+            // Obudowa boczna
+            leftEnclosureType: formData.leftEnclosureType,
+            rightEnclosureType: formData.rightEnclosureType,
+            leftSupportPlate: formData.leftSupportPlate,
+            rightSupportPlate: formData.rightSupportPlate,
+            distanceFromWallMm: formData.distanceFromWallMm,
+            leftFillerWidthOverrideMm: formData.leftFillerWidthOverrideMm,
+            rightFillerWidthOverrideMm: formData.rightFillerWidthOverrideMm,
+
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
         })
@@ -608,7 +716,8 @@ export class KitchenStateService {
           materialType: 'LAMINATE',
           thicknessMm: this._globalDefaultCountertopThicknessMm,
           jointType: 'NONE',
-          edgeType: 'ABS_EDGE'
+          edgeType: 'ABS_EDGE',
+          sideOverhangExtraMm: 5
         },
         plinthConfig: {
           enabled: true,
@@ -706,7 +815,10 @@ export class KitchenStateService {
         countertopConfig = {
           enabled: true,
           materialType: wallResp.countertop.materialType,
-          thicknessMm: wallResp.countertop.thicknessMm
+          thicknessMm: wallResp.countertop.thicknessMm,
+          // Przywróć głębokość z response (jest to wartość użyta w ostatnim obliczeniu)
+          manualDepthMm: wallResp.countertop.depthMm ?? 600,
+          sideOverhangExtraMm: 5  // domyślne — nie jest przechowywane w backend response
           // jointType i edgeType można by też odczytać z segmentów jeśli potrzebne
         };
       }
@@ -885,7 +997,23 @@ export class KitchenStateService {
     const walls = this._walls();
 
     return walls.map(wall => {
-      let currentX = 0;
+      // Osobne liczniki X dla strefy dolnej (BOTTOM + FULL) i górnej (TOP).
+      // Szafki wiszące startują od X=0 niezależnie od szafek dolnych — inaczej
+      // walidacja zgłasza błąd przekroczenia szerokości ściany.
+      let currentXBottom = 0;
+      let currentXTop = 0;
+
+      // Oblicz positionY dla szafek wiszących (tak samo jak cabinetPositions() dla SVG).
+      // positionY musi być poprawne, bo PlacementValidator sprawdza nakładanie w osi Y.
+      const wallPlinthH = this._plinthHeightMm();
+      const wallCountertopThickness = this._countertopThicknessMm();
+      const wallUpperFillerH = this._upperFillerHeightMm();
+      const wallH = wall.heightMm;
+      const bottomCabsInWall = wall.cabinets.filter(c => !isUpperCabinetType(c.type));
+      const maxBaseCorpusH = bottomCabsInWall.length > 0
+        ? Math.max(...bottomCabsInWall.map(c => c.height))
+        : 720;
+      const countertopH = wallPlinthH + maxBaseCorpusH + wallCountertopThickness;
 
       const cabinets: ProjectCabinetRequest[] = wall.cabinets.map(cab => {
         // Przygotuj drawerRequest dla szafek z szufladami
@@ -934,6 +1062,31 @@ export class KitchenStateService {
           };
         }
 
+        // Oblicz positionX osobno dla strefy dolnej i górnej — z uwzględnieniem enclosureWidths
+        const isTop = isUpperCabinetType(cab.type);
+        const leftEncW = this.enclosureOuterWidthMm(cab, 'left');
+        const rightEncW = this.enclosureOuterWidthMm(cab, 'right');
+        let posX: number;
+        if (isTop) {
+          posX = currentXTop + leftEncW;
+          currentXTop = posX + cab.width + rightEncW;
+        } else {
+          posX = currentXBottom + leftEncW;
+          currentXBottom = posX + cab.width + rightEncW;
+        }
+
+        // Oblicz positionY: górne szafki mają Y zależny od trybu pozycjonowania;
+        // dolne/słupki mają Y=0 (walidator sprawdza nakładanie w osi Y, więc musi być poprawne).
+        let computedPosY = 0;
+        if (isTop) {
+          if (cab.positioningMode === 'RELATIVE_TO_COUNTERTOP') {
+            computedPosY = countertopH + (cab.gapFromCountertopMm ?? 500);
+          } else {
+            // RELATIVE_TO_CEILING (domyślne)
+            computedPosY = wallH - wallUpperFillerH - cab.height;
+          }
+        }
+
         const request: ProjectCabinetRequest = {
           cabinetId: cab.name || cab.id, // użyj nazwy jeśli jest, inaczej ID
           kitchenCabinetType: cab.type,
@@ -941,8 +1094,8 @@ export class KitchenStateService {
           height: cab.height,
           width: cab.width,
           depth: cab.depth,
-          positionX: currentX,
-          positionY: cab.positionY ?? 0,
+          positionX: posX,
+          positionY: computedPosY,
           shelfQuantity: cab.shelfQuantity,
           varnishedFront: false,
           materialRequest: {
@@ -960,14 +1113,41 @@ export class KitchenStateService {
           cascadeSegments,
           cornerRequest,
           positioningMode: cab.positioningMode,
-          gapFromCountertopMm: cab.gapFromCountertopMm
+          gapFromCountertopMm: cab.gapFromCountertopMm,
+
+          // Obudowa boczna — wysyłaj tylko jeśli typ nie jest NONE
+          leftEnclosure: (cab.leftEnclosureType && cab.leftEnclosureType !== 'NONE')
+            ? {
+                type: cab.leftEnclosureType as EnclosureType,
+                supportPlate: cab.leftSupportPlate ?? false,
+                fillerWidthOverrideMm: cab.leftFillerWidthOverrideMm ?? null
+              }
+            : undefined,
+          rightEnclosure: (cab.rightEnclosureType && cab.rightEnclosureType !== 'NONE')
+            ? {
+                type: cab.rightEnclosureType as EnclosureType,
+                supportPlate: cab.rightSupportPlate ?? false,
+                fillerWidthOverrideMm: cab.rightFillerWidthOverrideMm ?? null
+              }
+            : undefined,
+          distanceFromWallMm: cab.distanceFromWallMm ?? null
         };
-        currentX += cab.width;
         return request;
       });
 
+      // Oblicz czy blendy skrajne powinny rozszerzyć blat (leftOverhang / rightOverhang)
+      const bottomCabinetTypes = [
+        KitchenCabinetType.BASE_ONE_DOOR, KitchenCabinetType.BASE_TWO_DOOR,
+        KitchenCabinetType.BASE_WITH_DRAWERS, KitchenCabinetType.CORNER_CABINET
+      ];
+      const bottomCabs = wall.cabinets.filter(c => bottomCabinetTypes.includes(c.type));
+      const leftOverhangMm = bottomCabs.length > 0
+        ? this.enclosureOuterWidthMm(bottomCabs[0], 'left') : 0;
+      const rightOverhangMm = bottomCabs.length > 0
+        ? this.enclosureOuterWidthMm(bottomCabs[bottomCabs.length - 1], 'right') : 0;
+
       // Buduj konfigurację blatu
-      const countertop: CountertopRequest = this.buildCountertopRequest(wall);
+      const countertop: CountertopRequest = this.buildCountertopRequest(wall, leftOverhangMm, rightOverhangMm);
 
       // Buduj konfigurację cokołu
       const plinth: PlinthRequest = this.buildPlinthRequest(wall);
@@ -984,9 +1164,29 @@ export class KitchenStateService {
   }
 
   /**
+   * Zwraca szerokość obudowy bocznej dla danej szafki i strony (w mm).
+   * Dla PARALLEL_FILLER_STRIP = fillerWidthOverride lub globalFillerWidth.
+   * Dla SIDE_PLATE_* = 18mm (grubość płyty).
+   * Dla NONE / brak = 0.
+   */
+  private enclosureOuterWidthMm(cab: KitchenCabinet, side: 'left' | 'right'): number {
+    const type = side === 'left' ? cab.leftEnclosureType : cab.rightEnclosureType;
+    if (!type || type === 'NONE') return 0;
+    if (type === 'PARALLEL_FILLER_STRIP') {
+      const override = side === 'left' ? cab.leftFillerWidthOverrideMm : cab.rightFillerWidthOverrideMm;
+      return override ?? this._fillerWidthMm();
+    }
+    return 18; // SIDE_PLATE_WITH_PLINTH | SIDE_PLATE_TO_FLOOR
+  }
+
+  /**
    * Buduje CountertopRequest na podstawie konfiguracji ściany.
    */
-  private buildCountertopRequest(wall: WallWithCabinets): CountertopRequest {
+  private buildCountertopRequest(
+    wall: WallWithCabinets,
+    leftOverhangMm = 0,
+    rightOverhangMm = 0
+  ): CountertopRequest {
     const config = wall.countertopConfig;
 
     if (!config || !config.enabled) {
@@ -997,17 +1197,21 @@ export class KitchenStateService {
     const jointType = (config.jointType as any) ?? DEFAULT_COUNTERTOP_REQUEST.jointType;
     const edgeType = (config.edgeType as any) ?? DEFAULT_COUNTERTOP_REQUEST.frontEdgeType;
 
+    // Naddatek boczny: per-ściana + domyślny 5mm (poza blendami bocznymi)
+    const sideExtra = config.sideOverhangExtraMm ?? 5;
+
     return {
       enabled: true,
       materialType: (config.materialType as any) ?? DEFAULT_COUNTERTOP_REQUEST.materialType,
       colorCode: config.colorCode,
       thicknessMm: config.thicknessMm ?? DEFAULT_COUNTERTOP_REQUEST.thicknessMm,
       manualLengthMm: config.manualLengthMm,
-      manualDepthMm: config.manualDepthMm,
+      // Zawsze wysyłaj głębokość (domyślnie 600mm) — backend używa jej zamiast auto-kalkulacji
+      manualDepthMm: config.manualDepthMm ?? 600,
       frontOverhangMm: config.frontOverhangMm ?? DEFAULT_COUNTERTOP_REQUEST.frontOverhangMm,
       backOverhangMm: DEFAULT_COUNTERTOP_REQUEST.backOverhangMm,
-      leftOverhangMm: DEFAULT_COUNTERTOP_REQUEST.leftOverhangMm,
-      rightOverhangMm: DEFAULT_COUNTERTOP_REQUEST.rightOverhangMm,
+      leftOverhangMm: leftOverhangMm + sideExtra,   // blenda lewa + naddatek boczny
+      rightOverhangMm: rightOverhangMm + sideExtra, // blenda prawa + naddatek boczny
       jointType,
       frontEdgeType: edgeType,
       leftEdgeType: DEFAULT_COUNTERTOP_REQUEST.leftEdgeType,

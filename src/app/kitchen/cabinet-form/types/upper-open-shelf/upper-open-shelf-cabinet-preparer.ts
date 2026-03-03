@@ -27,6 +27,9 @@ export class UpperOpenShelfCabinetPreparer implements KitchenCabinetPreparer {
     v.positioningMode = true;
     v.gapFromCountertopMm = true;
 
+    // Pokaż sekcję obudowy bocznej
+    v.enclosureSection = true;
+
     // Wartości domyślne — szafka otwarta, min 1 półka
     form.patchValue({
       width: 400,

@@ -24,6 +24,9 @@ export class TallCabinetPreparer implements KitchenCabinetPreparer {
     v.cornerShelfQuantity = false;
     v.isUpperCorner = false;
 
+    // Pokaż sekcję obudowy bocznej
+    v.enclosureSection = true;
+
     // Wartości domyślne dla słupka
     form.patchValue({
       width: 450,

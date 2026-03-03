@@ -32,7 +32,16 @@ export class DefaultKitchenFormFactory {
       cascadeLowerHeight: [400],   // Wysokość dolnego (głębszego) segmentu
       cascadeLowerDepth: [400],    // Głębokość dolnego segmentu (300-560mm)
       cascadeUpperHeight: [320],   // Wysokość górnego (płytszego) segmentu
-      cascadeUpperDepth: [300]     // Głębokość górnego segmentu (250-400mm)
+      cascadeUpperDepth: [300],    // Głębokość górnego segmentu (250-400mm)
+
+      // Pola obudowy bocznej
+      leftEnclosureType: ['NONE'],   // EnclosureType dla lewej strony
+      rightEnclosureType: ['NONE'],  // EnclosureType dla prawej strony
+      leftSupportPlate: [false],     // Podpora blendy (tylko PARALLEL_FILLER_STRIP)
+      rightSupportPlate: [false],    // Podpora blendy (tylko PARALLEL_FILLER_STRIP)
+      distanceFromWallMm: [null],    // null = użyj wartości z ustawień globalnych
+      leftFillerWidthOverrideMm: [null],   // override szerokości lewej blendy (null = użyj globalnego)
+      rightFillerWidthOverrideMm: [null]   // override szerokości prawej blendy (null = użyj globalnego)
     });
   }
 }

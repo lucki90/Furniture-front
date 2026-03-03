@@ -277,6 +277,28 @@
   border-color: var(--accent-color, #3b82f6);
 }
 
+.config-field input[type=number] {
+  padding: 4px 6px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 4px;
+  font-size: 11px;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.config-field input[type=number]:focus {
+  outline: none;
+  border-color: var(--accent-color, #3b82f6);
+}
+
+/* Ostrzeżenie w konfiguracji blatu (głębokość < głębokość szafek) */
+.warning-hint {
+  font-size: 9px;
+  color: #d97706;
+  margin-top: 2px;
+}
+
 /* Front view column */
 .front-view-column {
   min-width: 0;

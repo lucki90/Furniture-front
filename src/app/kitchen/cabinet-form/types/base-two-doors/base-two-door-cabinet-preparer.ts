@@ -21,6 +21,9 @@ export class BaseTwoDoorCabinetPreparer
     v.cornerShelfQuantity = false;
     v.isUpperCorner = false;
 
+    // Pokaż sekcję obudowy bocznej
+    v.enclosureSection = true;
+
     // wartości domyślne
     // kitchenCabinetType: [KitchenCabinetType.BASE_TWO_DOOR], -- ta wartosc ustawiana jest przy wyborze typu szafki
     form.patchValue({

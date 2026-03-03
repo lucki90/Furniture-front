@@ -19,6 +19,9 @@ export class BaseWithDrawersCabinetPreparer implements KitchenCabinetPreparer {
     v.cornerShelfQuantity = false;
     v.isUpperCorner = false;
 
+    // Pokaż sekcję obudowy bocznej
+    v.enclosureSection = true;
+
     // wartości domyślne dla szafki z szufladami
     form.patchValue({
       width: 450,

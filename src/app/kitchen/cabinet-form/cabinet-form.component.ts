@@ -24,6 +24,7 @@ import {
   UPPER_CORNER_CONSTRAINTS,
   mechanismRequiresShelves
 } from './model/corner-cabinet.model';
+import { ENCLOSURE_TYPE_OPTIONS, EnclosureType, getEnclosureTypeOptions } from './model/enclosure.model';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -64,6 +65,9 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   cornerMechanismLabels = CORNER_MECHANISM_LABELS;
   availableCornerMechanisms: { value: CornerMechanismType; label: string }[] = [];
   cornerConstraints = BASE_CORNER_CONSTRAINTS;
+
+  // Opcje obudowy bocznej — aktualizowane przy zmianie typu szafki (nie tablica tworzona na każdy cykl CD)
+  enclosureOptions = getEnclosureTypeOptions(false);
 
   /**
    * Zwraca aktualnie wybrany mechanizm narożnika.
@@ -219,6 +223,24 @@ export class CabinetFormComponent implements OnChanges, OnInit {
     return lower + upper;
   }
 
+  /** Czy lewa obudowa to blenda równoległa (wymaga checkboxa supportPlate). */
+  get isLeftParallelFiller(): boolean {
+    return this.form.get('leftEnclosureType')?.value === 'PARALLEL_FILLER_STRIP';
+  }
+
+  /** Czy prawa obudowa to blenda równoległa (wymaga checkboxa supportPlate). */
+  get isRightParallelFiller(): boolean {
+    return this.form.get('rightEnclosureType')?.value === 'PARALLEL_FILLER_STRIP';
+  }
+
+  /**
+   * Dynamiczne opcje selecta obudowy — zależne od strefy szafki.
+   * Dla szafek wiszących (UPPER_*) etykiety SIDE_PLATE_WITH_PLINTH i SIDE_PLATE_TO_FLOOR są inne.
+   */
+  getEnclosureOptions() {
+    return getEnclosureTypeOptions(this.isUpperCabinet);
+  }
+
   /**
    * Błąd kolejności głębokości segmentów kaskadowych.
    */
@@ -304,7 +326,15 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       cascadeLowerHeight: cabinet.cascadeLowerHeight ?? 400,
       cascadeLowerDepth: cabinet.cascadeLowerDepth ?? 400,
       cascadeUpperHeight: cabinet.cascadeUpperHeight ?? 320,
-      cascadeUpperDepth: cabinet.cascadeUpperDepth ?? 300
+      cascadeUpperDepth: cabinet.cascadeUpperDepth ?? 300,
+      // Obudowa boczna
+      leftEnclosureType: cabinet.leftEnclosureType ?? 'NONE',
+      rightEnclosureType: cabinet.rightEnclosureType ?? 'NONE',
+      leftSupportPlate: cabinet.leftSupportPlate ?? false,
+      rightSupportPlate: cabinet.rightSupportPlate ?? false,
+      distanceFromWallMm: cabinet.distanceFromWallMm ?? null,
+      leftFillerWidthOverrideMm: cabinet.leftFillerWidthOverrideMm ?? null,
+      rightFillerWidthOverrideMm: cabinet.rightFillerWidthOverrideMm ?? null
     });
 
     this.onTypeChange(cabinet.type);
@@ -326,12 +356,16 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       isUpperCorner: false,
       positioningMode: false,
       gapFromCountertopMm: false,
-      cascadeSegments: false
+      cascadeSegments: false,
+      enclosureSection: false
     };
 
     const config = KitchenCabinetTypeConfig[type];
     config.preparer.prepare(this.form, this.visibility);
     config.validator.validate(this.form);
+
+    // Aktualizuj opcje obudowy — etykiety różnią się dla szafek wiszących (UPPER_*)
+    this.enclosureOptions = getEnclosureTypeOptions(isUpperCabinetType(type));
 
     // Inicjalizuj opcje narożnika, jeśli to CORNER_CABINET
     if (type === KitchenCabinetType.CORNER_CABINET) {
@@ -375,6 +409,17 @@ export class CabinetFormComponent implements OnChanges, OnInit {
         });
         this.cascadePreparer.recalculateDimensions(this.form);
       }
+
+      // Przywróć pola obudowy przy edycji
+      this.form.patchValue({
+        leftEnclosureType: this.editingCabinet.leftEnclosureType ?? 'NONE',
+        rightEnclosureType: this.editingCabinet.rightEnclosureType ?? 'NONE',
+        leftSupportPlate: this.editingCabinet.leftSupportPlate ?? false,
+        rightSupportPlate: this.editingCabinet.rightSupportPlate ?? false,
+        distanceFromWallMm: this.editingCabinet.distanceFromWallMm ?? null,
+        leftFillerWidthOverrideMm: this.editingCabinet.leftFillerWidthOverrideMm ?? null,
+        rightFillerWidthOverrideMm: this.editingCabinet.rightFillerWidthOverrideMm ?? null
+      });
 
       // Przywróć segmenty TALL_CABINET przy edycji
       // (preparer domyślnie ustawia 2 segmenty, trzeba je zastąpić zapisanymi)

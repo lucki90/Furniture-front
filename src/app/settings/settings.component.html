@@ -90,6 +90,79 @@
 
     </div>
 
+    <!-- SEKCJA: Obudowy — domyślne -->
+    <div class="card-section-title" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color, #e2e8f0);">Obudowy szafek — domyślne</div>
+
+    <div class="form-grid">
+
+      <!-- Głębokość zabudowy -->
+      <div class="form-group">
+        <label class="form-label" for="distanceFromWall">Głębokość zabudowy</label>
+        <div class="input-with-unit">
+          <input id="distanceFromWall" type="number" class="form-control"
+            [(ngModel)]="distanceFromWallMm" [disabled]="saving" min="400" max="700" step="10" />
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">Odległość od tylnej ściany (400–700 mm)</span>
+      </div>
+
+      <!-- Cofnięcie cokołu -->
+      <div class="form-group">
+        <label class="form-label" for="plinthSetback">Cofnięcie cokołu</label>
+        <div class="input-with-unit">
+          <input id="plinthSetback" type="number" class="form-control"
+            [(ngModel)]="plinthSetbackMm" [disabled]="saving" min="0" max="100" step="5" />
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">Cofnięcie cokołu od frontu szafki (0–100 mm)</span>
+      </div>
+
+      <!-- Szerokość blendy bocznej -->
+      <div class="form-group">
+        <label class="form-label" for="fillerWidth">Szerokość blendy bocznej</label>
+        <div class="input-with-unit">
+          <input id="fillerWidth" type="number" class="form-control"
+            [(ngModel)]="fillerWidthMm" [disabled]="saving" min="20" max="150" step="5" />
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">Szerokość blendy równoległej do frontu (20–150 mm)</span>
+      </div>
+
+      <!-- Szczelina frontowa -->
+      <div class="form-group">
+        <label class="form-label" for="frontGap">Szczelina frontowa</label>
+        <div class="input-with-unit">
+          <input id="frontGap" type="number" class="form-control"
+            [(ngModel)]="frontGapMm" [disabled]="saving" min="0" max="20" step="1" />
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">Szczelina między frontem szafki a blendą (0–20 mm)</span>
+      </div>
+
+      <!-- Zmniejszenie podpory — wysokość -->
+      <div class="form-group">
+        <label class="form-label" for="supportHReduction">Zmniejsz podporę (H)</label>
+        <div class="input-with-unit">
+          <input id="supportHReduction" type="number" class="form-control"
+            [(ngModel)]="supportHeightReductionMm" [disabled]="saving" min="0" max="100" step="5" />
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">Pomniejszenie podpory blendy w pionie (0–100 mm)</span>
+      </div>
+
+      <!-- Zmniejszenie podpory — szerokość -->
+      <div class="form-group">
+        <label class="form-label" for="supportWReduction">Zmniejsz podporę (W)</label>
+        <div class="input-with-unit">
+          <input id="supportWReduction" type="number" class="form-control"
+            [(ngModel)]="supportWidthReductionMm" [disabled]="saving" min="0" max="200" step="10" />
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">Pomniejszenie podpory blendy w poziomie (0–200 mm)</span>
+      </div>
+
+    </div>
+
     <!-- Actions -->
     <div class="form-actions">
       <button

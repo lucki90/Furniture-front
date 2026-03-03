@@ -17,10 +17,18 @@ export class SettingsComponent implements OnInit {
   private settingsService = inject(SettingsService);
   private kitchenStateService = inject(KitchenStateService);
 
-  // Form values
+  // Form values — kuchnia
   plinthHeightMm = 100;
   countertopThicknessMm = 38;
   upperFillerHeightMm = 100;
+
+  // Form values — obudowa szafek
+  distanceFromWallMm = 560;
+  plinthSetbackMm = 60;
+  fillerWidthMm = 50;
+  frontGapMm = 2;
+  supportHeightReductionMm = 30;
+  supportWidthReductionMm = 50;
 
   // UI states
   loading = false;
@@ -45,6 +53,12 @@ export class SettingsComponent implements OnInit {
         this.plinthHeightMm = settings.defaultPlinthHeightMm;
         this.countertopThicknessMm = settings.defaultCountertopThicknessMm;
         this.upperFillerHeightMm = settings.defaultUpperFillerHeightMm;
+        this.distanceFromWallMm = settings.defaultDistanceFromWallMm ?? 560;
+        this.plinthSetbackMm = settings.defaultPlinthSetbackMm ?? 60;
+        this.fillerWidthMm = settings.defaultFillerWidthMm ?? 50;
+        this.frontGapMm = settings.defaultFrontGapMm ?? 2;
+        this.supportHeightReductionMm = settings.defaultSupportHeightReductionMm ?? 30;
+        this.supportWidthReductionMm = settings.defaultSupportWidthReductionMm ?? 50;
         this.loading = false;
       },
       error: (err) => {
@@ -63,7 +77,13 @@ export class SettingsComponent implements OnInit {
     const request: UserSettings = {
       defaultPlinthHeightMm: this.plinthHeightMm,
       defaultCountertopThicknessMm: this.countertopThicknessMm,
-      defaultUpperFillerHeightMm: this.upperFillerHeightMm
+      defaultUpperFillerHeightMm: this.upperFillerHeightMm,
+      defaultDistanceFromWallMm: this.distanceFromWallMm,
+      defaultPlinthSetbackMm: this.plinthSetbackMm,
+      defaultFillerWidthMm: this.fillerWidthMm,
+      defaultFrontGapMm: this.frontGapMm,
+      defaultSupportHeightReductionMm: this.supportHeightReductionMm,
+      defaultSupportWidthReductionMm: this.supportWidthReductionMm
     };
 
     this.settingsService.updateSettings(request).subscribe({
@@ -72,7 +92,13 @@ export class SettingsComponent implements OnInit {
         this.kitchenStateService.setGlobalDefaults({
           plinthHeightMm: updated.defaultPlinthHeightMm,
           countertopThicknessMm: updated.defaultCountertopThicknessMm,
-          upperFillerHeightMm: updated.defaultUpperFillerHeightMm
+          upperFillerHeightMm: updated.defaultUpperFillerHeightMm,
+          distanceFromWallMm: updated.defaultDistanceFromWallMm ?? 560,
+          plinthSetbackMm: updated.defaultPlinthSetbackMm ?? 60,
+          fillerWidthMm: updated.defaultFillerWidthMm ?? 50,
+          frontGapMm: updated.defaultFrontGapMm ?? 2,
+          supportHeightReductionMm: updated.defaultSupportHeightReductionMm ?? 30,
+          supportWidthReductionMm: updated.defaultSupportWidthReductionMm ?? 50
         });
 
         this.saving = false;

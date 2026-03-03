@@ -36,6 +36,9 @@ export class UpperCascadeCabinetPreparer implements KitchenCabinetPreparer {
     // Pokaż sekcję segmentów kaskadowych
     v.cascadeSegments = true;
 
+    // Pokaż sekcję obudowy bocznej
+    v.enclosureSection = true;
+
     // Wartości domyślne
     // Dolny = płytszy (300mm), górny = głębszy (400mm)
     form.patchValue({

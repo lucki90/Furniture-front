@@ -27,6 +27,9 @@ export class UpperTwoDoorCabinetPreparer implements KitchenCabinetPreparer {
     v.positioningMode = true;
     v.gapFromCountertopMm = true;
 
+    // Pokaż sekcję obudowy bocznej
+    v.enclosureSection = true;
+
     // Wartości domyślne — wymiary korpusu szafki wiszącej 2-drzwiowej
     form.patchValue({
       width: 600,

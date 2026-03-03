@@ -84,6 +84,22 @@
         <g *ngFor="let pos of visualPositions(); let i = index" class="cabinet-group"
            [class.editing]="isEditing(pos.cabinetId)">
 
+          <!-- Lewa płyta obudowy — kolor taki sam jak szafka, szerokość w mm -->
+          <rect *ngIf="pos.leftEnclosureDisplayWidth > 0"
+                [attr.x]="pos.displayX - pos.leftEnclosureDisplayWidth"
+                [attr.y]="enclosureDisplayY(pos.leftEnclosureType, pos.zone, pos.displayY)"
+                [attr.width]="pos.leftEnclosureDisplayWidth"
+                [attr.height]="enclosureDisplayHeight(pos.leftEnclosureType, pos.zone, pos.displayY, pos.bodyHeight, pos.feetHeight)"
+                [class]="'enclosure-plate cabinet-' + pos.zone.toLowerCase()" />
+
+          <!-- Prawa płyta obudowy — kolor taki sam jak szafka, szerokość w mm -->
+          <rect *ngIf="pos.rightEnclosureDisplayWidth > 0"
+                [attr.x]="pos.displayX + pos.displayWidth"
+                [attr.y]="enclosureDisplayY(pos.rightEnclosureType, pos.zone, pos.displayY)"
+                [attr.width]="pos.rightEnclosureDisplayWidth"
+                [attr.height]="enclosureDisplayHeight(pos.rightEnclosureType, pos.zone, pos.displayY, pos.bodyHeight, pos.feetHeight)"
+                [class]="'enclosure-plate cabinet-' + pos.zone.toLowerCase()" />
+
           <!-- Korpus szafki (tło) -->
           <rect [attr.x]="pos.displayX"
                 [attr.y]="pos.displayY"
@@ -234,6 +250,17 @@
           <title>Blenda górna</title>
         </rect>
 
+        <!-- Znaczniki spojenia blendy górnej (przy długości > 2800mm) -->
+        <ng-container *ngFor="let joinX of fillerJoinXPositions()">
+          <line *ngIf="fillerPosition() as filler"
+                [attr.x1]="joinX" [attr.x2]="joinX"
+                [attr.y1]="filler.y"
+                [attr.y2]="filler.y + filler.height"
+                class="board-join-line">
+            <title>Połączenie blendy górnej</title>
+          </line>
+        </ng-container>
+
         <!-- Cokół (pod szafkami dolnymi) -->
         <rect *ngIf="plinthPosition() as plinth"
               [attr.x]="plinth.x"
@@ -243,6 +270,17 @@
               class="plinth-rect">
           <title>Cokół</title>
         </rect>
+
+        <!-- Znaczniki spojenia cokołu (przy długości > 2800mm) -->
+        <ng-container *ngFor="let joinX of plinthJoinXPositions()">
+          <line *ngIf="plinthPosition() as plinth"
+                [attr.x1]="joinX" [attr.x2]="joinX"
+                [attr.y1]="plinth.y"
+                [attr.y2]="plinth.y + plinth.height"
+                class="board-join-line">
+            <title>Połączenie cokołu</title>
+          </line>
+        </ng-container>
 
         <!-- Linia wymiarowa gap (przestrzeń robocza) -->
         <g *ngIf="gapDimensionLine() as dim" class="gap-dimension-group">

@@ -12,7 +12,7 @@ import { AddWallDialogComponent, AddWallDialogData, AddWallDialogResult } from '
 import { SaveProjectDialogComponent, SaveProjectDialogData, SaveProjectDialogResult } from './save-project-dialog/save-project-dialog.component';
 import { KitchenStateService } from './service/kitchen-state.service';
 import { KitchenService } from './service/kitchen.service';
-import { CabinetCalculatedEvent, KitchenCabinet, CountertopConfig, PlinthConfig } from './model/kitchen-state.model';
+import { CabinetCalculatedEvent, KitchenCabinet, CountertopConfig, PlinthConfig, isUpperCabinetType } from './model/kitchen-state.model';
 import { MultiWallCalculateResponse, ProjectStatus, getStatusLabel, getStatusColor, PROJECT_STATUSES } from './model/kitchen-project.model';
 import { Board, Component as CabinetComponent, Job } from './cabinet-form/model/kitchen-cabinet-form.model';
 import {
@@ -274,6 +274,81 @@ export class KitchenPageComponent {
     const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
     this.stateService.updateCountertopConfig(wallId, { ...current, edgeType: value });
     this.resetProjectResult();
+  }
+
+  // Głębokość blatu (manualDepthMm, default 600mm)
+  get countertopDepth(): number {
+    return this.getSelectedWallCountertopConfig()?.manualDepthMm ?? 600;
+  }
+
+  set countertopDepth(value: number) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true };
+    this.stateService.updateCountertopConfig(wallId, { ...current, manualDepthMm: value });
+    this.resetProjectResult();
+  }
+
+  // Naddatek boczny (sideOverhangExtraMm, default 5mm)
+  get countertopSideOverhang(): number {
+    return this.getSelectedWallCountertopConfig()?.sideOverhangExtraMm ?? 5;
+  }
+
+  set countertopSideOverhang(value: number) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true };
+    this.stateService.updateCountertopConfig(wallId, { ...current, sideOverhangExtraMm: value });
+    this.resetProjectResult();
+  }
+
+  // Włączenie ręcznego nadpisania długości blatu
+  get countertopManualLengthEnabled(): boolean {
+    return this.getSelectedWallCountertopConfig()?.manualLengthMm != null;
+  }
+
+  set countertopManualLengthEnabled(enabled: boolean) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true };
+    this.stateService.updateCountertopConfig(wallId, {
+      ...current,
+      manualLengthMm: enabled ? (current.manualLengthMm ?? 1200) : undefined
+    });
+    this.resetProjectResult();
+  }
+
+  // Ręczna długość blatu
+  get countertopManualLength(): number {
+    return this.getSelectedWallCountertopConfig()?.manualLengthMm ?? 1200;
+  }
+
+  set countertopManualLength(value: number) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true };
+    this.stateService.updateCountertopConfig(wallId, { ...current, manualLengthMm: value });
+    this.resetProjectResult();
+  }
+
+  /**
+   * Maksymalna głębokość szafek dolnych/słupków (do walidacji głębokości blatu).
+   */
+  get maxBottomCabinetDepth(): number {
+    const wall = this.selectedWall();
+    if (!wall || wall.cabinets.length === 0) return 0;
+    const bottomCabinets = wall.cabinets.filter(c => !isUpperCabinetType(c.type));
+    if (bottomCabinets.length === 0) return 0;
+    return Math.max(...bottomCabinets.map(c => c.depth));
+  }
+
+  /**
+   * Ostrzeżenie: głębokość blatu jest mniejsza niż głębokość najgłębszej szafki dolnej.
+   */
+  get countertopDepthWarning(): boolean {
+    const depth = this.countertopDepth;
+    const maxCabDepth = this.maxBottomCabinetDepth;
+    return maxCabDepth > 0 && depth < maxCabDepth;
   }
 
   // Gettery dla konfiguracji cokołu
@@ -693,7 +768,8 @@ export class KitchenPageComponent {
         for (const segment of wall.plinth.segments) {
           this.addBoardToMap(boardsMap, {
             material: `COKOL_${wall.plinth.materialType}`,
-            thickness: 16, // standardowa grubość cokołu
+            // PVC i ALUMINUM mają 16mm; MDF_LAMINATED i CHIPBOARD mają 18mm (grubość płyty)
+            thickness: (wall.plinth.materialType === 'MDF_LAMINATED' || wall.plinth.materialType === 'CHIPBOARD') ? 18 : 16,
             width: segment.lengthMm,
             height: segment.heightMm,
             quantity: 1,
@@ -727,10 +803,114 @@ export class KitchenPageComponent {
         }
       }
 
-      // 4. Agreguj blendy jako płyty (TODO: gdy blendy będą zaimplementowane)
+      // 4. Agreguj blendy jako płyty
       if (wall.fillerPanels) {
         for (const filler of wall.fillerPanels) {
-          // Blendy będą dodane analogicznie
+          // Płyta blendy → boards
+          this.addBoardToMap(boardsMap, {
+            material: `BLENDA_${filler.fillerType}`,
+            thickness: filler.thicknessMm,
+            width: filler.widthMm,
+            height: filler.heightMm,
+            quantity: 1,
+            unitCost: filler.materialCost,
+            totalCost: filler.materialCost
+          });
+
+          // Cięcie blendy → jobs
+          if (filler.cuttingCost > 0) {
+            this.addJobToMap(jobsMap, {
+              name: 'FILLER_CUTTING',
+              type: 'FILLER',
+              quantity: 1,
+              unitCost: filler.cuttingCost,
+              totalCost: filler.cuttingCost
+            });
+          }
+
+          // Oklejina blendy → jobs
+          if (filler.veneerCost > 0) {
+            this.addJobToMap(jobsMap, {
+              name: 'FILLER_VENEER',
+              type: 'FILLER',
+              quantity: 1,
+              unitCost: filler.veneerCost,
+              totalCost: filler.veneerCost
+            });
+          }
+
+          // Komponenty blendy (oklejiny, złączki)
+          if (filler.components) {
+            for (const comp of filler.components) {
+              this.addComponentToMap(componentsMap, {
+                name: comp.model,
+                type: comp.category,
+                quantity: comp.quantity,
+                unitCost: comp.priceEntry?.price ?? 0,
+                totalCost: comp.totalPrice ?? 0
+              });
+            }
+          }
+        }
+      }
+
+      // 5. Agreguj obudowy boczne jako płyty
+      if (wall.enclosures) {
+        for (const enc of wall.enclosures) {
+          const sideLabel = enc.leftSide ? 'L' : 'P';
+
+          // Płyty obudowy
+          for (const board of enc.boards ?? []) {
+            this.addBoardToMap(boardsMap, {
+              material: `${board.label} (${enc.leftSide ? 'lewa' : 'prawa'})`,
+              thickness: board.thicknessMm,
+              width: board.widthMm,
+              height: board.heightMm,
+              quantity: 1,
+              unitCost: board.materialCost,
+              totalCost: board.materialCost
+            });
+          }
+
+          // Cięcie obudowy → jobs
+          if (enc.cuttingCost > 0) {
+            this.addJobToMap(jobsMap, {
+              name: 'ENCLOSURE_CUTTING',
+              type: 'ENCLOSURE',
+              quantity: 1,
+              unitCost: enc.cuttingCost,
+              totalCost: enc.cuttingCost
+            });
+          }
+        }
+      }
+
+      // 6. Agreguj blendę górną jako płyty (z podziałem na segmenty ≤ 2800mm)
+      if (wall.upperFiller?.enabled && wall.upperFiller.segments) {
+        for (const seg of wall.upperFiller.segments) {
+          const label = seg.requiresJoint
+            ? `Blenda górna (seg. ${seg.segmentIndex + 1})`
+            : 'Blenda górna';
+          // Materiał płyty
+          this.addBoardToMap(boardsMap, {
+            material: label,
+            thickness: 18,
+            width: seg.lengthMm,
+            height: seg.heightMm,
+            quantity: 1,
+            unitCost: seg.materialCost,
+            totalCost: seg.materialCost
+          });
+          // Cięcie → jobs
+          if (seg.cuttingCost > 0) {
+            this.addJobToMap(jobsMap, {
+              name: `UPPER_FILLER_CUTTING${seg.requiresJoint ? `_${seg.segmentIndex + 1}` : ''}`,
+              type: 'UPPER_FILLER',
+              quantity: 1,
+              unitCost: seg.cuttingCost,
+              totalCost: seg.cuttingCost
+            });
+          }
         }
       }
     }

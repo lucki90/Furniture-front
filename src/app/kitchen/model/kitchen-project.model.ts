@@ -6,6 +6,64 @@ import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model'
 import { CountertopRequest, CountertopResponse } from './countertop.model';
 import { PlinthRequest, PlinthResponse } from './plinth.model';
 import { FillerPanelRequest, FillerPanelResponse } from './filler-panel.model';
+import { EnclosureConfig } from '../cabinet-form/model/enclosure.model';
+
+// ============ ENCLOSURE RESPONSE ============
+
+/**
+ * Pojedyncza płyta wygenerowana przez obliczenie obudowy.
+ */
+export interface EnclosureBoardDto {
+  label: string;
+  widthMm: number;
+  heightMm: number;
+  thicknessMm: number;
+  materialCost: number;
+}
+
+/**
+ * Response z kalkulacji obudowy jednej strony szafki.
+ */
+export interface EnclosureResponse {
+  cabinetId: string;
+  leftSide: boolean;
+  enclosureType: string;
+  boards: EnclosureBoardDto[];
+  materialCost: number;
+  cuttingCost: number;
+  totalCost: number;
+}
+
+// ============ UPPER FILLER (blenda górna) ============
+
+/**
+ * Jeden segment blendy górnej (maks. 2800mm długości).
+ */
+export interface UpperFillerSegmentDto {
+  segmentIndex: number;
+  positionX: number;
+  lengthMm: number;
+  heightMm: number;
+  requiresJoint: boolean;
+  materialCost: number;
+  cuttingCost: number;
+  totalCost: number;
+}
+
+/**
+ * Wynik kalkulacji blendy górnej dla jednej ściany.
+ * Blenda górna biegnie nad wszystkimi szafkami wiszącymi.
+ * Jeśli długość > 2800mm, jest dzielona na segmenty.
+ */
+export interface UpperFillerResponse {
+  enabled: boolean;
+  totalLengthMm: number;
+  heightMm: number;
+  segmentCount: number;
+  wasSplit: boolean;
+  segments: UpperFillerSegmentDto[];
+  totalCost: number;
+}
 
 // ============ POSITIONING MODE ============
 
@@ -88,6 +146,13 @@ export interface ProjectCabinetRequest {
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;  // null dla szafek dolnych i słupków
   gapFromCountertopMm?: number;       // odstęp od blatu (dla RELATIVE_TO_COUNTERTOP)
+
+  // Obudowa boczna (lewa i prawa strona)
+  leftEnclosure?: EnclosureConfig;
+  rightEnclosure?: EnclosureConfig;
+
+  /** null = użyj wartości z ustawień globalnych użytkownika */
+  distanceFromWallMm?: number | null;
 }
 
 /**
@@ -359,7 +424,11 @@ export interface MultiWallCalculateResponse {
   /** Koszt odpadu z cięcia płyt (wydzielony). Wliczony już w totalProjectCost. */
   totalWasteCost: number;
   totalJobCost: number;
-  /** Koszt całkowity z odpadem: totalBoardCost + totalComponentCost + totalWasteCost + totalJobCost. */
+  /** Koszt obudów (płyty boczne, blendy). */
+  totalEnclosureCost?: number;
+  /** Koszt blend górnych (listwy nad szafkami wiszącymi). */
+  totalUpperFillerCost?: number;
+  /** Koszt całkowity z odpadem: totalBoardCost + totalComponentCost + totalWasteCost + totalJobCost + totalEnclosureCost + totalUpperFillerCost. */
   totalProjectCost: number;
 }
 
@@ -373,10 +442,14 @@ export interface WallCalculationSummary {
 
   cabinets: CabinetSummary[];
 
-  // Blat, cokół i blendy
+  // Blat, cokół, blendy, obudowy i blenda górna
   countertop?: CountertopResponse;
   plinth?: PlinthResponse;
   fillerPanels?: FillerPanelResponse[];
+  enclosures?: EnclosureResponse[];
+  enclosuresCost?: number;
+  upperFiller?: UpperFillerResponse;
+  upperFillerCost?: number;
 
   cabinetCount: number;
   usedWidthBottom: number;

@@ -18,4 +18,7 @@ export interface CabinetFormVisibility {
 
   // Pola szafki kaskadowej (UPPER_CASCADE)
   cascadeSegments: boolean;       // Sekcja segmentów kaskadowych (dolny + górny)
+
+  // Obudowa boczna (BASE_*, TALL_CABINET, UPPER_*)
+  enclosureSection: boolean;      // Sekcja konfiguracji obudów (lewa/prawa strona)
 }
