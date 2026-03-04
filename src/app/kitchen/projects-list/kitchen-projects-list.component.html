@@ -6,6 +6,62 @@
     </button>
   </header>
 
+  <!-- ===== DIAGRAM FLOW ETAPÓW ===== -->
+  <section class="flow-section">
+    <h2 class="flow-section-title">Cykl życia projektu</h2>
+    <div class="flow-diagram">
+
+      <!-- Główny rząd kroków -->
+      <div class="flow-main-row">
+        <ng-container *ngFor="let step of flowSteps; let last = last">
+          <button
+            class="flow-node"
+            [class.flow-node--selected]="isFilterActive(step.status)"
+            [style.background-color]="step.color + (isFilterActive(step.status) ? '33' : '18')"
+            [style.color]="step.color"
+            [style.border-color]="isFilterActive(step.status) ? step.color : 'transparent'"
+            (click)="toggleStatusFilter(step.status)"
+            [title]="'Filtruj: ' + step.label + ' (' + countByStatus(step.status) + ')'">
+            <span class="flow-node__num">{{ step.num }}</span>
+            <span class="flow-node__label">{{ step.label }}</span>
+            <span *ngIf="countByStatus(step.status) > 0" class="flow-node__count">
+              {{ countByStatus(step.status) }}
+            </span>
+          </button>
+          <span *ngIf="!last" class="flow-arrow">→</span>
+        </ng-container>
+      </div>
+
+      <!-- Rząd CANCELLED + info o przywróceniu -->
+      <div class="flow-bottom-row">
+        <div class="flow-cancel-paths">
+          <span class="flow-cancel-bracket">↙ anuluj z etapów 1–3</span>
+        </div>
+        <button
+          class="flow-node flow-node--cancelled"
+          [class.flow-node--selected]="isFilterActive('CANCELLED')"
+          [style.background-color]="isFilterActive('CANCELLED') ? '#fee2e233' : '#fee2e218'"
+          [style.color]="'#991b1b'"
+          [style.border-color]="isFilterActive('CANCELLED') ? '#991b1b' : 'transparent'"
+          (click)="toggleStatusFilter('CANCELLED')"
+          title="Filtruj: Anulowany">
+          <span class="flow-node__label">✕ Anulowany</span>
+          <span *ngIf="countByStatus('CANCELLED') > 0" class="flow-node__count">
+            {{ countByStatus('CANCELLED') }}
+          </span>
+        </button>
+        <span class="flow-restore-hint">↩ przywróć do Szkic</span>
+      </div>
+
+      <!-- Notatki o niestandardowych przejściach -->
+      <div class="flow-notes">
+        <span class="flow-note">↩ Oferta wysłana → Szkic (cofnięcie)</span>
+        <span class="flow-note">⤵ W produkcji → Zakończony (z pominięciem montażu)</span>
+        <span class="flow-note">↺ Anulowany → Szkic (przywrócenie projektu)</span>
+      </div>
+    </div>
+  </section>
+
   <!-- Loading -->
   <div *ngIf="loading" class="loading-state">
     <div class="spinner"></div>
@@ -18,7 +74,7 @@
     <button class="btn btn-secondary" (click)="loadProjects()">Spróbuj ponownie</button>
   </div>
 
-  <!-- Empty state -->
+  <!-- Empty state (brak projektów w ogóle) -->
   <div *ngIf="!loading && !error && projects.length === 0" class="empty-state">
     <div class="empty-icon">📁</div>
     <h2>Brak projektów</h2>
@@ -28,9 +84,67 @@
     </button>
   </div>
 
+  <!-- Filtry i sortowanie (tylko gdy są projekty) -->
+  <div *ngIf="!loading && projects.length > 0" class="filters-bar">
+    <!-- Filtry statusów -->
+    <div class="filter-group">
+      <span class="filter-label">Filtruj:</span>
+      <button
+        *ngFor="let step of flowSteps"
+        class="filter-btn"
+        [class.filter-btn--active]="isFilterActive(step.status)"
+        [style.color]="step.color"
+        [style.border-color]="step.color"
+        [style.background-color]="isFilterActive(step.status) ? (step.color + '22') : 'transparent'"
+        (click)="toggleStatusFilter(step.status)">
+        {{ step.label }}
+        <span *ngIf="countByStatus(step.status) > 0" class="filter-count">
+          {{ countByStatus(step.status) }}
+        </span>
+      </button>
+      <button
+        class="filter-btn filter-btn--cancelled"
+        [class.filter-btn--active]="isFilterActive('CANCELLED')"
+        (click)="toggleStatusFilter('CANCELLED')">
+        Anulowany
+        <span *ngIf="countByStatus('CANCELLED') > 0" class="filter-count">
+          {{ countByStatus('CANCELLED') }}
+        </span>
+      </button>
+      <button *ngIf="hasActiveFilters" class="btn-clear-filters" (click)="clearFilters()">
+        ✕ Wyczyść
+      </button>
+    </div>
+
+    <!-- Sortowanie -->
+    <div class="sort-group">
+      <span class="filter-label">Sortuj:</span>
+      <button class="sort-btn" [class.sort-btn--active]="sortField === 'updatedAt'" (click)="setSortField('updatedAt')">
+        Modyfikacja{{ getSortIcon('updatedAt') }}
+      </button>
+      <button class="sort-btn" [class.sort-btn--active]="sortField === 'createdAt'" (click)="setSortField('createdAt')">
+        Utworzenie{{ getSortIcon('createdAt') }}
+      </button>
+      <button class="sort-btn" [class.sort-btn--active]="sortField === 'totalCost'" (click)="setSortField('totalCost')">
+        Koszt{{ getSortIcon('totalCost') }}
+      </button>
+      <button class="sort-btn" [class.sort-btn--active]="sortField === 'status'" (click)="setSortField('status')">
+        Etap{{ getSortIcon('status') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Brak wyników po filtrowaniu -->
+  <div *ngIf="!loading && projects.length > 0 && filteredAndSortedProjects.length === 0" class="empty-filtered">
+    <span>Brak projektów pasujących do wybranych filtrów.</span>
+    <button class="btn btn-secondary btn-sm" (click)="clearFilters()">Wyczyść filtry</button>
+  </div>
+
   <!-- Projects list -->
-  <div *ngIf="!loading && projects.length > 0" class="projects-grid">
-    <div *ngFor="let project of projects" class="project-card" [class.deleting]="deletingProjectId === project.id">
+  <div *ngIf="!loading && filteredAndSortedProjects.length > 0" class="projects-grid">
+    <div *ngFor="let project of filteredAndSortedProjects; trackBy: trackById"
+         class="project-card"
+         [class.deleting]="deletingProjectId === project.id">
 
       <!-- Delete confirmation overlay -->
       <div *ngIf="deletingProjectId === project.id" class="delete-overlay">

@@ -274,6 +274,304 @@
   gap: 12px;
 }
 
+/* ====================================================
+   DIAGRAM FLOW ETAPÓW
+   ==================================================== */
+
+.flow-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.flow-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 16px 0;
+}
+
+.flow-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Główny rząd węzłów */
+.flow-main-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Węzeł statusu (button) */
+.flow-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  position: relative;
+  min-width: 78px;
+  font-family: inherit;
+}
+
+.flow-node:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+
+.flow-node--selected {
+  box-shadow: 0 0 0 3px currentColor, 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Numer kroku */
+.flow-node__num {
+  font-size: 0.6rem;
+  font-weight: 700;
+  opacity: 0.65;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+/* Etykieta statusu */
+.flow-node__label {
+  font-size: 0.73rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Badge z liczbą projektów */
+.flow-node__count {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  background: #1e293b;
+  color: white;
+  border-radius: 10px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Strzałka między węzłami */
+.flow-arrow {
+  color: #94a3b8;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  font-weight: 400;
+}
+
+/* Rząd z CANCELLED + restore hint */
+.flow-bottom-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.flow-cancel-paths {
+  display: flex;
+  align-items: center;
+}
+
+.flow-cancel-bracket {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.flow-node--cancelled {
+  /* Kolor ustawiany inline via [style] */
+}
+
+.flow-restore-hint {
+  font-size: 0.72rem;
+  color: #2563eb;
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* Notatki o niestandardowych przejściach */
+.flow-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.flow-note {
+  font-size: 0.68rem;
+  color: #64748b;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+/* ====================================================
+   FILTRY I SORTOWANIE
+   ==================================================== */
+
+.filters-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* Przycisk filtra statusu */
+.filter-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  font-size: 0.73rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.12s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.filter-btn:hover {
+  transform: translateY(-1px);
+}
+
+.filter-btn--active {
+  font-weight: 700;
+}
+
+/* CANCELLED filter button (kolor czerwony) */
+.filter-btn--cancelled {
+  color: #991b1b;
+  border-color: #991b1b;
+  background: transparent;
+}
+
+.filter-btn--cancelled.filter-btn--active {
+  background-color: #fee2e2;
+}
+
+/* Liczba w filtrze */
+.filter-count {
+  display: inline-block;
+  background: currentColor;
+  color: white;
+  border-radius: 8px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0 4px;
+  min-width: 14px;
+  text-align: center;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+/* Przycisk wyczyść filtry */
+.btn-clear-filters {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: #475569;
+  transition: all 0.12s ease;
+}
+
+.btn-clear-filters:hover {
+  background: #f1f5f9;
+}
+
+/* Sortowanie — group */
+.sort-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Przycisk sortowania */
+.sort-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.73rem;
+  font-weight: 500;
+  cursor: pointer;
+  background: white;
+  color: #374151;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.sort-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.sort-btn--active {
+  background: #1e293b;
+  color: white;
+  border-color: #1e293b;
+}
+
+.sort-btn--active:hover {
+  background: #334155;
+}
+
+/* Komunikat brak wyników po filtrowaniu */
+.empty-filtered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 20px;
+  background: #f9fafb;
+  border: 1px dashed #d1d5db;
+  border-radius: 10px;
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .projects-header {
