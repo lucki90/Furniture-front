@@ -171,6 +171,11 @@
                   <option *ngFor="let opt of plinthMaterialOptions" [value]="opt.value">{{ opt.label }}</option>
                 </select>
               </div>
+              <div class="config-field">
+                <label>Grubość (mm)</label>
+                <input type="number" [(ngModel)]="plinthThickness" min="12" max="25" step="1"
+                       style="width:60px" [title]="'Grubość płyty cokołowej (domyślnie ' + plinthThickness + 'mm)'">
+              </div>
             </div>
           </div>
 
@@ -611,8 +616,12 @@
       <!-- Przyciski eksportu (gdy jest kalkulacja) -->
       <ng-container *ngIf="projectResult">
         <div class="footer-divider"></div>
-        <button class="btn btn-outline">
-          <span>📊</span> Excel
+        <button class="btn btn-outline"
+                (click)="downloadExcel()"
+                [disabled]="isExporting"
+                [title]="isExporting ? 'Generowanie pliku...' : 'Pobierz listę płyt do zamówienia (.xlsx)'">
+          <span>{{ isExporting ? '⏳' : '📊' }}</span>
+          {{ isExporting ? 'Generowanie...' : 'Excel' }}
         </button>
         <button class="btn btn-outline">
           <span>📄</span> PDF

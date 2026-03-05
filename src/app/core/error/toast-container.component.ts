@@ -19,7 +19,6 @@ import { ToastData, ToastType } from './api-error.model';
         <div
           class="toast"
           [class]="'toast--' + toast.type"
-          [@toastAnimation]
         >
           <!-- Ikona -->
           <div class="toast__icon">

@@ -31,6 +31,23 @@ import {
   PLINTH_MATERIAL_OPTIONS
 } from './model/plinth.model';
 import { ToastService } from '../core/error/toast.service';
+import { ExcelService, ExcelRowRequest } from './service/excel.service';
+
+// Tłumaczenia nazw płyt z backendu (BoardNameEnum) na język polski
+const BOARD_NAME_PL: Record<string, string> = {
+  'SIDE_NAME': 'Bok',
+  'WREATH_NAME': 'Wieniec',
+  'TOP_WREATH_NAME': 'Wieniec górny',
+  'FRONT_NAME': 'Front',
+  'FRONT_DRAWER_NAME': 'Front szuflady',
+  'BASE_DRAWER_NAME': 'Dno szuflady',
+  'BACK_DRAWER_NAME': 'Tył szuflady',
+  'FRONT_SUPPORTER_DRAWER_NAME': 'Podpora frontu szuflady',
+  'SIDE_DRAWER_NAME': 'Bok szuflady',
+  'SHELF_NAME': 'Półka',
+  'HDF_NAME': 'HDF tył',
+  'SEGMENT_DIVIDER_NAME': 'Przegroda segmentu'
+};
 
 // Aggregated types for details tabs
 export interface AggregatedBoard {
@@ -41,6 +58,24 @@ export interface AggregatedBoard {
   quantity: number;
   unitCost: number;
   totalCost: number;
+  /** Kolor płyty — z boardDto.color (np. "RAL 9016", "Dąb naturalny") */
+  color?: string;
+  /** Okleina na krawędziach szerokości (0/1/2 krawędzie) — z boardDto.veneerX */
+  veneerX?: number;
+  /** Okleina na krawędziach długości (0/1/2 krawędzie) — z boardDto.veneerY */
+  veneerY?: number;
+  /** Kolor okleiny — z boardDto.veneerColor */
+  veneerColor?: string;
+  /** Polska nazwa płyty (tłumaczenie BoardNameEnum) — np. "Bok", "Półka" */
+  boardLabel?: string;
+  /** Numery szafek, w których ta płyta wystąpiła — np. ["Sz.1", "Sz.3"] */
+  cabinetRefs?: string[];
+  /**
+   * Uwagi do płyty — generowane automatycznie:
+   * - FRONT_NAME + HINGE_MILLING: "X puszek na długość Ymm"
+   * - SIDE_NAME + GROOVE_FOR_HDF: "Frezowanie nutu pod HDF na boku Ymm"
+   */
+  remarks?: string;
 }
 
 export interface AggregatedComponent {
@@ -79,6 +114,7 @@ export class KitchenPageComponent {
 
   private stateService = inject(KitchenStateService);
   private kitchenService = inject(KitchenService);
+  private excelService = inject(ExcelService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private toast = inject(ToastService);
@@ -103,6 +139,9 @@ export class KitchenPageComponent {
   includeWasteCost = false;
   totalWasteCost = 0;
   wasteDetails: AggregatedComponent[] = [];
+
+  // Stan eksportu Excel
+  isExporting = false;
 
   // Stan zapisywania projektu
   isSavingProject = false;
@@ -391,6 +430,22 @@ export class KitchenPageComponent {
     this.resetProjectResult();
   }
 
+  /** Grubość płyty cokołowej (domyślnie: 18mm dla MDF/CHIPBOARD, 16mm dla PVC/ALUMINUM) */
+  get plinthThickness(): number {
+    const configured = this.getSelectedWallPlinthConfig()?.thicknessMm;
+    if (configured != null) return configured;
+    const mat = this.plinthMaterial;
+    return (mat === 'MDF_LAMINATED' || mat === 'CHIPBOARD') ? 18 : 16;
+  }
+
+  set plinthThickness(value: number) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true };
+    this.stateService.updatePlinthConfig(wallId, { ...current, thicknessMm: value });
+    this.resetProjectResult();
+  }
+
   /**
    * Zwraca wysokość cokołu na podstawie wybranego typu nóżek
    */
@@ -653,11 +708,37 @@ export class KitchenPageComponent {
     const componentsMap = new Map<string, AggregatedComponent>();
     const jobsMap = new Map<string, AggregatedJob>();
 
-    for (const wall of response.walls) {
+    // Globalny licznik szafek (przez wszystkie ściany), do kolumny "Etykieta" w Excelu
+    let globalCabinetIdx = 0;
+    // Konfiguracja ścian frontendu — do odczytu thicknessMm cokołu
+    const frontendWalls = this.stateService.walls();
+
+    for (let wallIdx = 0; wallIdx < response.walls.length; wallIdx++) {
+      const wall = response.walls[wallIdx];
+      const frontendWall = frontendWalls[wallIdx];
+
       // 1. Agreguj płyty z szafek
       for (const cabinet of wall.cabinets) {
+        const cabinetRef = `Sz.${++globalCabinetIdx}`;
+
+        // Uwagi auto-generowane na podstawie prac frezarskich szafki
+        const cabinetJobs = cabinet.jobs ?? [];
+        const hingeMilling = cabinetJobs.find(j => j.type === 'HINGE_MILLING');
+        const grooveForHdf = cabinetJobs.find(j => j.type === 'GROOVE_FOR_HDF');
+
         if (cabinet.boards) {
           for (const board of cabinet.boards) {
+            // Generuj uwagę specyficzną dla rodzaju płyty
+            let boardRemarks = '';
+            if (board.boardName === 'FRONT_NAME' && hingeMilling) {
+              // Liczba puszek na zawiasy; sideY = wysokość frontu (bok montażu zawiasów)
+              const hingeCount = Math.round(hingeMilling.quantity);
+              boardRemarks = `${hingeCount} ${hingeCount === 1 ? 'puszka' : hingeCount < 5 ? 'puszki' : 'puszek'} na długość ${board.sideY}mm`;
+            } else if (board.boardName === 'SIDE_NAME' && grooveForHdf) {
+              // Nut pod HDF biegnie wzdłuż wysokości boku szafki (sideY)
+              boardRemarks = `Frezowanie nutu pod HDF na boku ${board.sideY}mm`;
+            }
+
             this.addBoardToMap(boardsMap, {
               material: board.boardName,
               thickness: board.boardThickness,
@@ -665,7 +746,14 @@ export class KitchenPageComponent {
               height: board.sideY,
               quantity: board.quantity,
               unitCost: board.priceEntry?.price ?? 0,
-              totalCost: board.totalPrice
+              totalCost: board.totalPrice,
+              color: board.color,
+              veneerX: board.veneerX ?? 0,
+              veneerY: board.veneerY ?? 0,
+              veneerColor: board.veneerColor ?? '',
+              boardLabel: BOARD_NAME_PL[board.boardName] ?? board.boardName,
+              cabinetRefs: [cabinetRef],
+              remarks: boardRemarks || undefined
             });
           }
         }
@@ -765,11 +853,14 @@ export class KitchenPageComponent {
 
       // 3. Agreguj cokół jako płytę
       if (wall.plinth?.enabled && wall.plinth.segments) {
+        // Grubość: użyj skonfigurowanej przez użytkownika, fallback wg materiału
+        const plinthMat = wall.plinth.materialType ?? '';
+        const plinthThicknessMm = frontendWall?.plinthConfig?.thicknessMm
+          ?? ((plinthMat === 'MDF_LAMINATED' || plinthMat === 'CHIPBOARD') ? 18 : 16);
         for (const segment of wall.plinth.segments) {
           this.addBoardToMap(boardsMap, {
-            material: `COKOL_${wall.plinth.materialType}`,
-            // PVC i ALUMINUM mają 16mm; MDF_LAMINATED i CHIPBOARD mają 18mm (grubość płyty)
-            thickness: (wall.plinth.materialType === 'MDF_LAMINATED' || wall.plinth.materialType === 'CHIPBOARD') ? 18 : 16,
+            material: `COKOL_${plinthMat}`,
+            thickness: plinthThicknessMm,
             width: segment.lengthMm,
             height: segment.heightMm,
             quantity: 1,
@@ -928,13 +1019,27 @@ export class KitchenPageComponent {
 
   /**
    * Dodaje płytę do mapy agregacji (lub sumuje jeśli istnieje).
+   * Klucz uwzględnia kolor i okleinę — płyty o różnych kolorach/okleinach nie są łączone.
+   * Przy łączeniu: scalane są numery szafek (cabinetRefs).
    */
   private addBoardToMap(map: Map<string, AggregatedBoard>, board: AggregatedBoard): void {
-    const key = `${board.material}_${board.thickness}_${board.width}_${board.height}`;
+    const key = [
+      board.material, board.thickness, board.width, board.height,
+      board.color ?? '', board.veneerX ?? 0, board.veneerY ?? 0, board.veneerColor ?? ''
+    ].join('_');
     const existing = map.get(key);
     if (existing) {
       existing.quantity += board.quantity;
       existing.totalCost += board.totalCost;
+      if (board.cabinetRefs?.length) {
+        existing.cabinetRefs = [...(existing.cabinetRefs ?? []), ...board.cabinetRefs];
+      }
+      // Merge remarks: deduplikacja (jeśli taka sama uwaga, nie duplikuj)
+      if (board.remarks && board.remarks !== existing.remarks) {
+        existing.remarks = existing.remarks
+          ? `${existing.remarks}; ${board.remarks}`
+          : board.remarks;
+      }
     } else {
       map.set(key, { ...board });
     }
@@ -1018,5 +1123,63 @@ export class KitchenPageComponent {
    */
   get totalAggregatedJobsCost(): number {
     return this.aggregatedJobs.reduce((sum, job) => sum + job.totalCost, 0);
+  }
+
+  // ─── Eksport Excel ──────────────────────────────────────────────────────────
+
+  /**
+   * Generuje plik Excel z listą płyt do zamówienia (zamówienie_cięcia).
+   * Wysyła zagregowane płyty do backendu → POST /download/excel → plik .xlsx.
+   *
+   * Kolumna "Uwagi" jest gotowa w szablonie — wypełnienie automatyczne w kolejnej iteracji
+   * (np. "2 puszki ø35mm na boku 400mm", "rzaz na boku 450mm").
+   */
+  downloadExcel(): void {
+    if (!this.projectResult || this.isExporting) return;
+
+    this.isExporting = true;
+
+    const rows: ExcelRowRequest[] = this.aggregatedBoards.map((board, index) => {
+      // Etykieta (naklejka): polska nazwa płyty + numery szafek w nawiasie
+      let sticker = board.boardLabel ?? board.material;
+      if (board.cabinetRefs?.length) {
+        sticker += ` (${board.cabinetRefs.join(', ')})`;
+      }
+
+      return {
+        lp: index + 1,
+        quantity: board.quantity,
+        // Symbol = kolor płyty (np. "RAL 9016", "Dąb"); fallback: material/boardName
+        symbol: board.color || board.material,
+        thickness: board.thickness,
+        // sideY = wysokość płyty = kierunek słoja (długość)
+        length: board.height,
+        lengthVeneer: board.veneerY ?? 0,   // liczba okleinowanych krawędzi (kierunek długości)
+        width: board.width,
+        widthVeneer: board.veneerX ?? 0,    // liczba okleinowanych krawędzi (kierunek szerokości)
+        veneerColor: board.veneerColor ?? '',
+        sticker,
+        remarks: board.remarks ?? ''
+      };
+    });
+
+    // Nazwa pliku: kuchnia_plyty_%nazwa%_%data% lub kuchnia_%data% gdy brak nazwy
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    const projectName = this.stateService.currentProjectName();
+    const namePart = projectName
+      ? `kuchnia_plyty_${projectName}_${dateStr}`
+      : `kuchnia_${dateStr}`;
+    const filename = namePart.replace(/[^\w\-ąęółśżźćńĄĘÓŁŚŻŹĆŃ]/g, '_') + '.xlsx';
+
+    this.excelService.downloadBoardList(rows, filename).subscribe({
+      next: () => {
+        this.isExporting = false;
+      },
+      error: () => {
+        this.isExporting = false;
+        this.toast.error('Błąd podczas generowania pliku Excel');
+      }
+    });
   }
 }

@@ -164,6 +164,8 @@ export interface PlinthConfig {
   materialType?: PlinthMaterialType;
   colorCode?: string;
   setbackMm?: number;
+  /** Grubość płyty cokołowej w mm (domyślnie: 18 dla MDF/CHIPBOARD, 16 dla PVC/ALUMINUM) */
+  thicknessMm?: number;
 }
 
 export interface CabinetPosition {
