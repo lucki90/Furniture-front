@@ -425,6 +425,15 @@
     </div>
   </div>
 
+  <!-- ============ Dolny wieniec na podłodze ============ -->
+  <div *ngIf="visibility.bottomWreathOnFloor" class="config-field">
+    <label class="form-label enclosure-checkbox-label">
+      <input type="checkbox" formControlName="bottomWreathOnFloor" class="enclosure-checkbox" />
+      Dolny wieniec na podłodze
+      <span class="form-hint">(boki oparte na wieńcu dolnym)</span>
+    </label>
+  </div>
+
   <!-- ============ Obudowa boczna ============ -->
   <div *ngIf="visibility.enclosureSection" class="enclosure-section">
     <h4 class="section-title">Obudowa boczna</h4>

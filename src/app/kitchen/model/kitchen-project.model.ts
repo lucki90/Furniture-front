@@ -153,6 +153,9 @@ export interface ProjectCabinetRequest {
 
   /** null = użyj wartości z ustawień globalnych użytkownika */
   distanceFromWallMm?: number | null;
+
+  /** Dolny wieniec na podłodze: boki oparte na wieńcu. Tylko BASE_*. */
+  bottomWreathOnFloor?: boolean;
 }
 
 /**

@@ -22,6 +22,9 @@ export class BaseWithDrawersCabinetPreparer implements KitchenCabinetPreparer {
     // Pokaż sekcję obudowy bocznej
     v.enclosureSection = true;
 
+    // Pokaż opcję dolnego wieńca na podłodze
+    v.bottomWreathOnFloor = true;
+
     // wartości domyślne dla szafki z szufladami
     form.patchValue({
       width: 450,

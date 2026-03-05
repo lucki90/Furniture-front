@@ -334,7 +334,8 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       rightSupportPlate: cabinet.rightSupportPlate ?? false,
       distanceFromWallMm: cabinet.distanceFromWallMm ?? null,
       leftFillerWidthOverrideMm: cabinet.leftFillerWidthOverrideMm ?? null,
-      rightFillerWidthOverrideMm: cabinet.rightFillerWidthOverrideMm ?? null
+      rightFillerWidthOverrideMm: cabinet.rightFillerWidthOverrideMm ?? null,
+      bottomWreathOnFloor: cabinet.bottomWreathOnFloor ?? false
     });
 
     this.onTypeChange(cabinet.type);
@@ -357,7 +358,8 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       positioningMode: false,
       gapFromCountertopMm: false,
       cascadeSegments: false,
-      enclosureSection: false
+      enclosureSection: false,
+      bottomWreathOnFloor: false
     };
 
     const config = KitchenCabinetTypeConfig[type];

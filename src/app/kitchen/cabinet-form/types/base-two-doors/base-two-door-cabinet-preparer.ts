@@ -24,6 +24,9 @@ export class BaseTwoDoorCabinetPreparer
     // Pokaż sekcję obudowy bocznej
     v.enclosureSection = true;
 
+    // Pokaż opcję dolnego wieńca na podłodze
+    v.bottomWreathOnFloor = true;
+
     // wartości domyślne
     // kitchenCabinetType: [KitchenCabinetType.BASE_TWO_DOOR], -- ta wartosc ustawiana jest przy wyborze typu szafki
     form.patchValue({

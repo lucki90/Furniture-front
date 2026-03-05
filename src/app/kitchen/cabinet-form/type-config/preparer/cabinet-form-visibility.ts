@@ -21,4 +21,7 @@ export interface CabinetFormVisibility {
 
   // Obudowa boczna (BASE_*, TALL_CABINET, UPPER_*)
   enclosureSection: boolean;      // Sekcja konfiguracji obudów (lewa/prawa strona)
+
+  // Nowy sposób liczenia dolnych szafek (tylko BASE_ONE_DOOR, BASE_TWO_DOOR, BASE_WITH_DRAWERS)
+  bottomWreathOnFloor: boolean;
 }

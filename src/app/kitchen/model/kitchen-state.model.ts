@@ -81,6 +81,9 @@ export interface KitchenCabinet {
   // Konfiguracja wizualna (cokoły, nóżki, uchwyty, fronty)
   visualConfig?: CabinetVisualConfig;
 
+  // Nowy sposób liczenia dolnych: dolny wieniec na podłodze, boki oparte na wieńcu
+  bottomWreathOnFloor?: boolean;
+
   calculatedResult?: CabinetCalculationResult;
 }
 
@@ -218,6 +221,9 @@ export interface CabinetFormData {
 
   // Konfiguracja wizualna (cokoły, nóżki, uchwyty, fronty)
   visualConfig?: CabinetVisualConfig;
+
+  // Nowy sposób liczenia dolnych: dolny wieniec na podłodze, boki oparte na wieńcu
+  bottomWreathOnFloor?: boolean;
 }
 
 export interface CabinetCalculatedEvent {

@@ -41,7 +41,10 @@ export class DefaultKitchenFormFactory {
       rightSupportPlate: [false],    // Podpora blendy (tylko PARALLEL_FILLER_STRIP)
       distanceFromWallMm: [null],    // null = użyj wartości z ustawień globalnych
       leftFillerWidthOverrideMm: [null],   // override szerokości lewej blendy (null = użyj globalnego)
-      rightFillerWidthOverrideMm: [null]   // override szerokości prawej blendy (null = użyj globalnego)
+      rightFillerWidthOverrideMm: [null],  // override szerokości prawej blendy (null = użyj globalnego)
+
+      // Nowy sposób liczenia dolnych: dolny wieniec na podłodze
+      bottomWreathOnFloor: [false]
     });
   }
 }

@@ -596,6 +596,9 @@ export class KitchenStateService {
       leftFillerWidthOverrideMm: formData.leftFillerWidthOverrideMm,
       rightFillerWidthOverrideMm: formData.rightFillerWidthOverrideMm,
 
+      // Nowy sposób liczenia dolnych
+      bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
+
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
 
@@ -679,6 +682,9 @@ export class KitchenStateService {
             distanceFromWallMm: formData.distanceFromWallMm,
             leftFillerWidthOverrideMm: formData.leftFillerWidthOverrideMm,
             rightFillerWidthOverrideMm: formData.rightFillerWidthOverrideMm,
+
+            // Nowy sposób liczenia dolnych
+            bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
 
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
@@ -1130,7 +1136,8 @@ export class KitchenStateService {
                 fillerWidthOverrideMm: cab.rightFillerWidthOverrideMm ?? null
               }
             : undefined,
-          distanceFromWallMm: cab.distanceFromWallMm ?? null
+          distanceFromWallMm: cab.distanceFromWallMm ?? null,
+          bottomWreathOnFloor: cab.bottomWreathOnFloor ?? false
         };
         return request;
       });
