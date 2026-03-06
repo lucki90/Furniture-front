@@ -22,6 +22,12 @@ export interface CabinetFormVisibility {
   // Obudowa boczna (BASE_*, TALL_CABINET, UPPER_*)
   enclosureSection: boolean;      // Sekcja konfiguracji obudów (lewa/prawa strona)
 
-  // Nowy sposób liczenia dolnych szafek (tylko BASE_ONE_DOOR, BASE_TWO_DOOR, BASE_WITH_DRAWERS)
+  // Nowy sposób liczenia dolnych szafek (tylko BASE_ONE_DOOR, BASE_TWO_DOOR, BASE_WITH_DRAWERS, BASE_SINK)
   bottomWreathOnFloor: boolean;
+
+  // Pola szafki zlewowej (BASE_SINK)
+  sinkFrontType: boolean;    // Selector: 1 drzwi / 2 drzwi / szuflada
+  sinkApron: boolean;        // Sekcja blendy (checkbox + pole wysokości)
+  sinkApronHeight: boolean;  // Pole wysokości blendy (widoczne gdy apronEnabled=true)
+  sinkDrawerModel: boolean;  // Selector systemu szuflad (widoczne gdy frontType=DRAWER)
 }

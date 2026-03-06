@@ -599,6 +599,12 @@ export class KitchenStateService {
       // Nowy sposób liczenia dolnych
       bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
 
+      // Pola szafki zlewowej (BASE_SINK)
+      sinkFrontType: formData.sinkFrontType,
+      sinkApronEnabled: (formData as any).sinkApronEnabled ?? true,
+      sinkApronHeightMm: (formData as any).sinkApronHeightMm ?? 150,
+      sinkDrawerModel: (formData as any).sinkDrawerModel,
+
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
 
@@ -685,6 +691,12 @@ export class KitchenStateService {
 
             // Nowy sposób liczenia dolnych
             bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
+
+            // Pola szafki zlewowej (BASE_SINK)
+            sinkFrontType: (formData as any).sinkFrontType,
+            sinkApronEnabled: (formData as any).sinkApronEnabled ?? true,
+            sinkApronHeightMm: (formData as any).sinkApronHeightMm ?? 150,
+            sinkDrawerModel: (formData as any).sinkDrawerModel,
 
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
@@ -1032,6 +1044,15 @@ export class KitchenStateService {
             drawerFrontDetails: null
           };
         }
+        // BASE_SINK z typem frontu DRAWER — przekazujemy drawer request z 1 szufladą
+        if (cab.type === KitchenCabinetType.BASE_SINK && (cab as any).sinkFrontType === 'DRAWER') {
+          drawerRequest = {
+            drawerQuantity: 1,
+            drawerModel: (cab as any).sinkDrawerModel ?? 'ANTARO_TANDEMBOX',
+            drawerBaseHdf: false,
+            drawerFrontDetails: null
+          };
+        }
 
         // Przygotuj segmenty dla TALL_CABINET
         let segments: SegmentRequest[] | undefined;
@@ -1137,7 +1158,12 @@ export class KitchenStateService {
               }
             : undefined,
           distanceFromWallMm: cab.distanceFromWallMm ?? null,
-          bottomWreathOnFloor: cab.bottomWreathOnFloor ?? false
+          bottomWreathOnFloor: cab.bottomWreathOnFloor ?? false,
+
+          // Pola szafki zlewowej (BASE_SINK)
+          sinkFrontType: (cab as any).sinkFrontType,
+          sinkApronEnabled: (cab as any).sinkApronEnabled ?? true,
+          sinkApronHeightMm: (cab as any).sinkApronHeightMm ?? 150
         };
         return request;
       });
@@ -1145,7 +1171,8 @@ export class KitchenStateService {
       // Oblicz czy blendy skrajne powinny rozszerzyć blat (leftOverhang / rightOverhang)
       const bottomCabinetTypes = [
         KitchenCabinetType.BASE_ONE_DOOR, KitchenCabinetType.BASE_TWO_DOOR,
-        KitchenCabinetType.BASE_WITH_DRAWERS, KitchenCabinetType.CORNER_CABINET
+        KitchenCabinetType.BASE_WITH_DRAWERS, KitchenCabinetType.CORNER_CABINET,
+        KitchenCabinetType.BASE_SINK
       ];
       const bottomCabs = wall.cabinets.filter(c => bottomCabinetTypes.includes(c.type));
       const leftOverhangMm = bottomCabs.length > 0

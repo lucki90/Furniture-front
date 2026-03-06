@@ -44,7 +44,13 @@ export class DefaultKitchenFormFactory {
       rightFillerWidthOverrideMm: [null],  // override szerokości prawej blendy (null = użyj globalnego)
 
       // Nowy sposób liczenia dolnych: dolny wieniec na podłodze
-      bottomWreathOnFloor: [false]
+      bottomWreathOnFloor: [false],
+
+      // Pola szafki zlewowej (BASE_SINK)
+      sinkFrontType:     ['TWO_DOORS'],       // ONE_DOOR | TWO_DOORS | DRAWER
+      sinkApronEnabled:  [true],              // blenda maskująca ON/OFF
+      sinkApronHeightMm: [150],              // wysokość blendy (50–200mm)
+      sinkDrawerModel:   ['ANTARO_TANDEMBOX'] // system szuflad (gdy DRAWER)
     });
   }
 }

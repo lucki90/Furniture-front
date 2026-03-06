@@ -46,7 +46,8 @@ const BOARD_NAME_PL: Record<string, string> = {
   'SIDE_DRAWER_NAME': 'Bok szuflady',
   'SHELF_NAME': 'Półka',
   'HDF_NAME': 'HDF tył',
-  'SEGMENT_DIVIDER_NAME': 'Przegroda segmentu'
+  'SEGMENT_DIVIDER_NAME': 'Przegroda segmentu',
+  'SINK_APRON': 'Blenda zlewu'
 };
 
 // Aggregated types for details tabs

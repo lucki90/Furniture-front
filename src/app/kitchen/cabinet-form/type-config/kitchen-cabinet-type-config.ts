@@ -26,6 +26,9 @@ import {UpperOpenShelfRequestMapper} from "../types/upper-open-shelf/upper-open-
 import {UpperCascadeCabinetPreparer} from "../types/upper-cascade/upper-cascade-cabinet-preparer";
 import {UpperCascadeCabinetValidator} from "../types/upper-cascade/upper-cascade-cabinet-validator";
 import {UpperCascadeRequestMapper} from "../types/upper-cascade/upper-cascade-request-mapper";
+import {BaseSinkCabinetPreparer} from "../types/base-sink/base-sink-cabinet-preparer";
+import {BaseSinkCabinetValidator} from "../types/base-sink/base-sink-cabinet-validator";
+import {BaseSinkRequestMapper} from "../types/base-sink/base-sink-request-mapper";
 
 export const KitchenCabinetTypeConfig = {
   [KitchenCabinetType.BASE_ONE_DOOR]: {
@@ -72,5 +75,10 @@ export const KitchenCabinetTypeConfig = {
     preparer: new UpperCascadeCabinetPreparer(),
     validator: new UpperCascadeCabinetValidator(),
     requestMapper: new UpperCascadeRequestMapper()
+  },
+  [KitchenCabinetType.BASE_SINK]: {
+    preparer: new BaseSinkCabinetPreparer(),
+    validator: new BaseSinkCabinetValidator(),
+    requestMapper: new BaseSinkRequestMapper()
   }
 } as const;

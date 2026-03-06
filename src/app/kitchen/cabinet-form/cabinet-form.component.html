@@ -14,6 +14,7 @@
               <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
               <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
               <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
+              <option value="BASE_SINK">Dolna – zlewowa</option>
             </optgroup>
             <optgroup label="Szafki wiszące">
               <option value="UPPER_ONE_DOOR">Wisząca – 1 drzwi</option>
@@ -432,6 +433,68 @@
       Dolny wieniec na podłodze
       <span class="form-hint">(boki oparte na wieńcu dolnym)</span>
     </label>
+  </div>
+
+  <!-- ============ Szafka zlewowa (BASE_SINK) ============ -->
+  <div *ngIf="visibility.sinkFrontType" class="sink-section">
+    <h4 class="section-title">Konfiguracja szafki zlewowej</h4>
+
+    <!-- Typ frontu -->
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Typ frontu</label>
+        <select class="form-control" formControlName="sinkFrontType"
+                (change)="onSinkFrontTypeChange(form.get('sinkFrontType')?.value)">
+          <option value="ONE_DOOR">1 drzwi</option>
+          <option value="TWO_DOORS">2 drzwi</option>
+          <option value="DRAWER">Szuflada (Antaro / Tandembox)</option>
+        </select>
+      </div>
+      <div class="form-group flex-2">
+        <label class="form-label">Szerokość wnętrza korpusu</label>
+        <div class="input-with-unit">
+          <input type="text" class="form-control" [value]="innerCabinetWidth" readonly>
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">= szerokość − 2 × 18 mm boku</span>
+      </div>
+    </div>
+
+    <!-- Blenda maskująca (apron) -->
+    <div class="form-row" *ngIf="visibility.sinkApron">
+      <div class="form-group flex-2">
+        <label class="form-label enclosure-checkbox-label">
+          <input type="checkbox" formControlName="sinkApronEnabled" class="enclosure-checkbox"
+                 (change)="onSinkApronEnabledChange(form.get('sinkApronEnabled')?.value)"/>
+          Blenda maskująca (apron)
+          <span class="form-hint">fałszywy front nad zlewem</span>
+        </label>
+      </div>
+      <div class="form-group flex-2" *ngIf="visibility.sinkApronHeight && isSinkApronEnabled">
+        <label class="form-label">Wysokość blendy</label>
+        <div class="input-with-unit">
+          <input type="number" class="form-control" formControlName="sinkApronHeightMm"
+                 min="80" max="200" step="10">
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">80–200 mm (domyślnie 150)</span>
+        <span class="form-error" *ngIf="form.get('sinkApronHeightMm')?.touched && form.get('sinkApronHeightMm')?.errors">
+          <ng-container *ngIf="form.get('sinkApronHeightMm')?.errors?.['min']">Min: 80</ng-container>
+          <ng-container *ngIf="form.get('sinkApronHeightMm')?.errors?.['max']">Max: 200</ng-container>
+        </span>
+      </div>
+    </div>
+
+    <!-- System szuflad (widoczny gdy frontType=DRAWER) -->
+    <div class="form-row" *ngIf="visibility.sinkDrawerModel">
+      <div class="form-group flex-2">
+        <label class="form-label">System szuflad</label>
+        <select class="form-control" formControlName="sinkDrawerModel">
+          <option value="ANTARO_TANDEMBOX">Blum Antaro / Tandembox (zalecany)</option>
+          <option value="SEVROLL_BALL">Sevroll kulkowe</option>
+        </select>
+      </div>
+    </div>
   </div>
 
   <!-- ============ Obudowa boczna ============ -->

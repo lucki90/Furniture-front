@@ -156,6 +156,11 @@ export interface ProjectCabinetRequest {
 
   /** Dolny wieniec na podłodze: boki oparte na wieńcu. Tylko BASE_*. */
   bottomWreathOnFloor?: boolean;
+
+  // Pola szafki zlewowej (BASE_SINK)
+  sinkFrontType?: string;      // ONE_DOOR | TWO_DOORS | DRAWER
+  sinkApronEnabled?: boolean;  // blenda maskująca ON/OFF
+  sinkApronHeightMm?: number;  // wysokość blendy (50–200mm)
 }
 
 /**

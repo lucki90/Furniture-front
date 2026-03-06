@@ -242,6 +242,54 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   }
 
   /**
+   * Czy aktualny typ to szafka zlewowa (BASE_SINK).
+   */
+  get isSinkCabinet(): boolean {
+    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_SINK;
+  }
+
+  /**
+   * Czy wybrany front zlewowy to szuflada — wpływa na widoczność pól szuflad.
+   */
+  get isSinkDrawer(): boolean {
+    return this.form.get('sinkFrontType')?.value === 'DRAWER';
+  }
+
+  /**
+   * Szerokość wnętrza korpusu (display only): width - 2×grubość boku (18mm).
+   */
+  get innerCabinetWidth(): number {
+    const w = this.form.get('width')?.value ?? 0;
+    return w - 2 * 18;
+  }
+
+  /**
+   * Czy blenda maskująca (apron) jest włączona.
+   */
+  get isSinkApronEnabled(): boolean {
+    return this.form.get('sinkApronEnabled')?.value === true;
+  }
+
+  /**
+   * Reaguje na zmianę typu frontu zlewowego — aktualizuje widoczność sekcji szuflad.
+   */
+  onSinkFrontTypeChange(frontType: string): void {
+    const isDrawer = frontType === 'DRAWER';
+    this.visibility.sinkDrawerModel = isDrawer;
+    const ctrl = this.form.get('sinkDrawerModel');
+    if (ctrl) {
+      isDrawer ? ctrl.enable() : ctrl.disable();
+    }
+  }
+
+  /**
+   * Reaguje na zmianę checkboxa blendy — aktualizuje widoczność pola wysokości blendy.
+   */
+  onSinkApronEnabledChange(enabled: boolean): void {
+    this.visibility.sinkApronHeight = enabled;
+  }
+
+  /**
    * Błąd kolejności głębokości segmentów kaskadowych.
    */
   get cascadeDepthError(): string | null {
@@ -335,7 +383,12 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       distanceFromWallMm: cabinet.distanceFromWallMm ?? null,
       leftFillerWidthOverrideMm: cabinet.leftFillerWidthOverrideMm ?? null,
       rightFillerWidthOverrideMm: cabinet.rightFillerWidthOverrideMm ?? null,
-      bottomWreathOnFloor: cabinet.bottomWreathOnFloor ?? false
+      bottomWreathOnFloor: cabinet.bottomWreathOnFloor ?? false,
+      // Szafka zlewowa (BASE_SINK)
+      sinkFrontType: cabinet.sinkFrontType ?? 'TWO_DOORS',
+      sinkApronEnabled: cabinet.sinkApronEnabled ?? true,
+      sinkApronHeightMm: cabinet.sinkApronHeightMm ?? 150,
+      sinkDrawerModel: cabinet.sinkDrawerModel ?? 'ANTARO_TANDEMBOX'
     });
 
     this.onTypeChange(cabinet.type);
@@ -359,7 +412,11 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       gapFromCountertopMm: false,
       cascadeSegments: false,
       enclosureSection: false,
-      bottomWreathOnFloor: false
+      bottomWreathOnFloor: false,
+      sinkFrontType: false,
+      sinkApron: false,
+      sinkApronHeight: false,
+      sinkDrawerModel: false
     };
 
     const config = KitchenCabinetTypeConfig[type];
