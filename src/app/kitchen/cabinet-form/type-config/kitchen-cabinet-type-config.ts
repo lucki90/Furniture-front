@@ -29,6 +29,12 @@ import {UpperCascadeRequestMapper} from "../types/upper-cascade/upper-cascade-re
 import {BaseSinkCabinetPreparer} from "../types/base-sink/base-sink-cabinet-preparer";
 import {BaseSinkCabinetValidator} from "../types/base-sink/base-sink-cabinet-validator";
 import {BaseSinkRequestMapper} from "../types/base-sink/base-sink-request-mapper";
+import {BaseDishwasherCabinetPreparer} from "../types/base-dishwasher/base-dishwasher-cabinet-preparer";
+import {BaseDishwasherCabinetValidator} from "../types/base-dishwasher/base-dishwasher-cabinet-validator";
+import {BaseDishwasherRequestMapper} from "../types/base-dishwasher/base-dishwasher-request-mapper";
+import {BaseDishwasherFreestandingCabinetPreparer} from "../types/base-dishwasher-freestanding/base-dishwasher-freestanding-cabinet-preparer";
+import {BaseDishwasherFreestandingCabinetValidator} from "../types/base-dishwasher-freestanding/base-dishwasher-freestanding-cabinet-validator";
+import {BaseDishwasherFreestandingRequestMapper} from "../types/base-dishwasher-freestanding/base-dishwasher-freestanding-request-mapper";
 
 export const KitchenCabinetTypeConfig = {
   [KitchenCabinetType.BASE_ONE_DOOR]: {
@@ -80,5 +86,15 @@ export const KitchenCabinetTypeConfig = {
     preparer: new BaseSinkCabinetPreparer(),
     validator: new BaseSinkCabinetValidator(),
     requestMapper: new BaseSinkRequestMapper()
+  },
+  [KitchenCabinetType.BASE_DISHWASHER]: {
+    preparer: new BaseDishwasherCabinetPreparer(),
+    validator: new BaseDishwasherCabinetValidator(),
+    requestMapper: new BaseDishwasherRequestMapper()
+  },
+  [KitchenCabinetType.BASE_DISHWASHER_FREESTANDING]: {
+    preparer: new BaseDishwasherFreestandingCabinetPreparer(),
+    validator: new BaseDishwasherFreestandingCabinetValidator(),
+    requestMapper: new BaseDishwasherFreestandingRequestMapper()
   }
 } as const;

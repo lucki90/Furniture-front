@@ -1172,7 +1172,8 @@ export class KitchenStateService {
       const bottomCabinetTypes = [
         KitchenCabinetType.BASE_ONE_DOOR, KitchenCabinetType.BASE_TWO_DOOR,
         KitchenCabinetType.BASE_WITH_DRAWERS, KitchenCabinetType.CORNER_CABINET,
-        KitchenCabinetType.BASE_SINK
+        KitchenCabinetType.BASE_SINK,
+        KitchenCabinetType.BASE_DISHWASHER, KitchenCabinetType.BASE_DISHWASHER_FREESTANDING
       ];
       const bottomCabs = wall.cabinets.filter(c => bottomCabinetTypes.includes(c.type));
       const leftOverhangMm = bottomCabs.length > 0

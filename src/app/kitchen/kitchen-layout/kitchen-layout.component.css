@@ -242,6 +242,11 @@
   stroke: #ef6c00;
 }
 
+.cabinet-body.cabinet-appliance-freestanding {
+  fill: #e0e0e0; /* srebrno-szary — wolnostojące urządzenie AGD */
+  stroke: #9e9e9e;
+}
+
 .cabinet-body.overflow {
   fill: #ef9a9a !important;
   stroke: #c62828 !important;

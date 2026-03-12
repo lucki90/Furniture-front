@@ -415,6 +415,10 @@ export class KitchenLayoutComponent {
         this.addCascadeSegments(fronts, handles, displayX, bodyY, displayWidth, bodyHeight, gap, cascadeLowerHeight, cascadeUpperHeight);
         break;
 
+      case KitchenCabinetType.BASE_DISHWASHER_FREESTANDING:
+        // Wolnostojąca zmywarka — tylko korpus, bez frontu (wizualizacja AGD)
+        break;
+
       default:
         this.addSingleDoor(fronts, handles, displayX, bodyY, displayWidth, bodyHeight, gap);
     }
@@ -1071,10 +1075,24 @@ export class KitchenLayoutComponent {
   });
 
   getCabinetLabel(pos: VisualCabinetPosition, index: number): string {
-    if (pos.name) {
-      return pos.name;
+    const num = index + 1;
+    const suffix = this.getCabinetTypeSuffix(pos.type);
+    if (suffix) {
+      return `${num}(${suffix})`;
     }
-    return `${index + 1}`;
+    return pos.name || `${num}`;
+  }
+
+  private getCabinetTypeSuffix(type: KitchenCabinetType): string | null {
+    switch (type) {
+      case KitchenCabinetType.BASE_DISHWASHER:
+      case KitchenCabinetType.BASE_DISHWASHER_FREESTANDING:
+        return 'zmyw.';
+      case KitchenCabinetType.BASE_SINK:
+        return 'zlew';
+      default:
+        return null;
+    }
   }
 
   /**

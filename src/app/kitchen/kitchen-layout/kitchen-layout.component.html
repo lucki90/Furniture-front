@@ -106,10 +106,11 @@
                 [attr.width]="pos.displayWidth"
                 [attr.height]="pos.bodyHeight"
                 [class.cabinet-body]="true"
-                [class.cabinet-bottom]="pos.zone === 'BOTTOM'"
+                [class.cabinet-bottom]="pos.zone === 'BOTTOM' && pos.type !== 'BASE_DISHWASHER_FREESTANDING'"
                 [class.cabinet-top]="pos.zone === 'TOP'"
                 [class.cabinet-full]="pos.zone === 'FULL'"
                 [class.cabinet-corner]="pos.isCorner"
+                [class.cabinet-appliance-freestanding]="pos.type === 'BASE_DISHWASHER_FREESTANDING'"
                 [class.overflow]="pos.isOverflow"
                 rx="1">
             <title>{{ (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + '×' + pos.depth + 'mm' }}</title>

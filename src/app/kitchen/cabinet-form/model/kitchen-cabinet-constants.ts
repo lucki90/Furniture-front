@@ -93,6 +93,21 @@ export const KitchenCabinetConstraints = {
     SHELF_MIN: 1,
     SHELF_MAX: 6
   },
+  BASE_DISHWASHER: {
+    WIDTH_ALLOWED: [450, 600] as readonly number[],
+    HEIGHT_MIN: 600,
+    HEIGHT_MAX: 900,
+    DEPTH_MIN: 400,
+    DEPTH_MAX: 700
+  },
+  BASE_DISHWASHER_FREESTANDING: {
+    WIDTH_MIN: 300,
+    WIDTH_MAX: 900,
+    HEIGHT_MIN: 600,
+    HEIGHT_MAX: 950,
+    DEPTH_MIN: 400,
+    DEPTH_MAX: 700
+  },
   UPPER_CASCADE: {
     WIDTH_MIN: 200,
     WIDTH_MAX: 900,
