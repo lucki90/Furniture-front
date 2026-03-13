@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, OnInit, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { KitchenService } from '../service/kitchen.service';
+import { ToastService } from '../../core/error/toast.service';
 import { DictionaryService, DictionaryItem } from '../service/dictionary.service';
 import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
@@ -290,6 +291,33 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   }
 
   /**
+   * Czy aktualny typ to szafka pod płytę grzewczą (BASE_COOKTOP).
+   */
+  get isCooktopCabinet(): boolean {
+    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_COOKTOP;
+  }
+
+  /**
+   * Czy wybrany front dla cooktop to szuflady — wpływa na widoczność pól szuflad.
+   */
+  get isCooktopDrawers(): boolean {
+    return this.form.get('cooktopFrontType')?.value === 'DRAWERS';
+  }
+
+  /**
+   * Reaguje na zmianę typu frontu szafki pod płytę — aktualizuje widoczność szuflad.
+   */
+  onCooktopFrontTypeChange(frontType: string): void {
+    const isDrawers = frontType === 'DRAWERS';
+    this.visibility.drawerQuantity = isDrawers;
+    this.visibility.drawerModel = isDrawers;
+    const qtyCtrl = this.form.get('drawerQuantity');
+    const modelCtrl = this.form.get('drawerModel');
+    if (qtyCtrl) isDrawers ? qtyCtrl.enable() : qtyCtrl.disable();
+    if (modelCtrl) isDrawers ? modelCtrl.enable() : modelCtrl.disable();
+  }
+
+  /**
    * Błąd kolejności głębokości segmentów kaskadowych.
    */
   get cascadeDepthError(): string | null {
@@ -305,6 +333,8 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       this.cascadePreparer.recalculateDimensions(this.form);
     }
   }
+
+  private readonly toastService = inject(ToastService);
 
   constructor(
     private fb: FormBuilder,
@@ -388,7 +418,10 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       sinkFrontType: cabinet.sinkFrontType ?? 'TWO_DOORS',
       sinkApronEnabled: cabinet.sinkApronEnabled ?? true,
       sinkApronHeightMm: cabinet.sinkApronHeightMm ?? 150,
-      sinkDrawerModel: cabinet.sinkDrawerModel ?? 'ANTARO_TANDEMBOX'
+      sinkDrawerModel: cabinet.sinkDrawerModel ?? 'ANTARO_TANDEMBOX',
+      // Szafka pod płytę grzewczą (BASE_COOKTOP)
+      cooktopType: (cabinet as any).cooktopType ?? 'INDUCTION',
+      cooktopFrontType: (cabinet as any).cooktopFrontType ?? 'DRAWERS'
     });
 
     this.onTypeChange(cabinet.type);
@@ -416,7 +449,9 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       sinkFrontType: false,
       sinkApron: false,
       sinkApronHeight: false,
-      sinkDrawerModel: false
+      sinkDrawerModel: false,
+      cooktopType: false,
+      cooktopFrontType: false
     };
 
     const config = KitchenCabinetTypeConfig[type];
@@ -533,6 +568,7 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       },
       error: err => {
         console.error(err);
+        this.toastService.showHttpError(err);
         this.loading = false;
       }
     });

@@ -328,11 +328,16 @@
     </div>
 
     <!-- Panel ostrzeżeń real-time -->
-    <div class="warnings-panel" *ngIf="isWorkspaceGapViolation() || !fitsOnWall()">
+    <div class="warnings-panel" *ngIf="isWorkspaceGapViolation() || !fitsOnWall() || cooktopGapWarning()">
       <div class="warning-item" *ngIf="isWorkspaceGapViolation()">
         <span class="warning-icon">⚠</span>
         Przestrzeń robocza zbyt mała: <strong>{{ gapMm() }} mm</strong>
         (wymagane min. 450 mm). Zmniejsz wysokość szafek wiszących lub podnieś ich pozycję.
+      </div>
+      <div class="warning-item warning-item--danger" *ngIf="cooktopGapWarning() as w">
+        <span class="warning-icon">🔥</span>
+        <strong>Norma bezpieczeństwa:</strong> {{ w.message }}.
+        Podnieś szafki wiszące lub zmniejsz ich wysokość.
       </div>
       <div class="warning-item" *ngIf="!fitsOnWall()">
         <span class="warning-icon">⚠</span>

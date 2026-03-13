@@ -161,6 +161,10 @@ export interface ProjectCabinetRequest {
   sinkFrontType?: string;      // ONE_DOOR | TWO_DOORS | DRAWER
   sinkApronEnabled?: boolean;  // blenda maskująca ON/OFF
   sinkApronHeightMm?: number;  // wysokość blendy (50–200mm)
+
+  // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
+  cooktopType?: string;        // GAS | INDUCTION
+  cooktopFrontType?: string;   // DRAWERS | TWO_DOORS | ONE_DOOR
 }
 
 /**

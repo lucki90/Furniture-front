@@ -198,6 +198,17 @@
   color: #d32f2f;
 }
 
+/* Ostrzeżenie krytyczne (norma bezpieczeństwa płyty grzewczej) */
+.warning-item--danger {
+  background: #ffebee;
+  border-left-color: #c62828;
+  color: #b71c1c;
+}
+
+.warning-item--danger strong {
+  color: #b71c1c;
+}
+
 .warning-icon {
   font-size: 14px;
   color: #e65100;

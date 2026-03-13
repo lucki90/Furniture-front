@@ -605,6 +605,10 @@ export class KitchenStateService {
       sinkApronHeightMm: (formData as any).sinkApronHeightMm ?? 150,
       sinkDrawerModel: (formData as any).sinkDrawerModel,
 
+      // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
+      cooktopType: (formData as any).cooktopType ?? 'INDUCTION',
+      cooktopFrontType: (formData as any).cooktopFrontType ?? 'DRAWERS',
+
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
 
@@ -697,6 +701,10 @@ export class KitchenStateService {
             sinkApronEnabled: (formData as any).sinkApronEnabled ?? true,
             sinkApronHeightMm: (formData as any).sinkApronHeightMm ?? 150,
             sinkDrawerModel: (formData as any).sinkDrawerModel,
+
+            // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
+            cooktopType: (formData as any).cooktopType ?? 'INDUCTION',
+            cooktopFrontType: (formData as any).cooktopFrontType ?? 'DRAWERS',
 
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
@@ -1163,7 +1171,11 @@ export class KitchenStateService {
           // Pola szafki zlewowej (BASE_SINK)
           sinkFrontType: (cab as any).sinkFrontType,
           sinkApronEnabled: (cab as any).sinkApronEnabled ?? true,
-          sinkApronHeightMm: (cab as any).sinkApronHeightMm ?? 150
+          sinkApronHeightMm: (cab as any).sinkApronHeightMm ?? 150,
+
+          // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
+          cooktopType: (cab as any).cooktopType,
+          cooktopFrontType: (cab as any).cooktopFrontType
         };
         return request;
       });
@@ -1172,7 +1184,7 @@ export class KitchenStateService {
       const bottomCabinetTypes = [
         KitchenCabinetType.BASE_ONE_DOOR, KitchenCabinetType.BASE_TWO_DOOR,
         KitchenCabinetType.BASE_WITH_DRAWERS, KitchenCabinetType.CORNER_CABINET,
-        KitchenCabinetType.BASE_SINK,
+        KitchenCabinetType.BASE_SINK, KitchenCabinetType.BASE_COOKTOP,
         KitchenCabinetType.BASE_DISHWASHER, KitchenCabinetType.BASE_DISHWASHER_FREESTANDING
       ];
       const bottomCabs = wall.cabinets.filter(c => bottomCabinetTypes.includes(c.type));

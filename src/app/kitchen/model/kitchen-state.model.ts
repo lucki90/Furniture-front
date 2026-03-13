@@ -90,6 +90,10 @@ export interface KitchenCabinet {
   sinkApronHeightMm?: number;  // wysokość blendy (50–200mm)
   sinkDrawerModel?: string;    // system szuflad (gdy DRAWER)
 
+  // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
+  cooktopType?: string;        // GAS | INDUCTION
+  cooktopFrontType?: string;   // DRAWERS | TWO_DOORS | ONE_DOOR
+
   calculatedResult?: CabinetCalculationResult;
 }
 

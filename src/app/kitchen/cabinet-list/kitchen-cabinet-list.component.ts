@@ -30,6 +30,7 @@ export class KitchenCabinetListComponent {
       [KitchenCabinetType.UPPER_OPEN_SHELF]: 'Wisząca otwarta',
       [KitchenCabinetType.UPPER_CASCADE]: 'Wisząca kaskadowa',
       [KitchenCabinetType.BASE_SINK]: 'Zlewowa',
+      [KitchenCabinetType.BASE_COOKTOP]: 'Pod płytę grzewczą',
       [KitchenCabinetType.BASE_DISHWASHER]: 'Zmywarka (front)',
       [KitchenCabinetType.BASE_DISHWASHER_FREESTANDING]: 'Zmywarka wolnostojąca'
     };

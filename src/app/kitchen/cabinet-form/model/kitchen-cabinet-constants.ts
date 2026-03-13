@@ -93,6 +93,17 @@ export const KitchenCabinetConstraints = {
     SHELF_MIN: 1,
     SHELF_MAX: 6
   },
+  BASE_COOKTOP: {
+    WIDTH_MIN: 450,
+    WIDTH_MAX: 900,
+    WIDTH_STEP: 50,
+    HEIGHT_MIN: 600,
+    HEIGHT_MAX: 900,
+    DEPTH_MIN: 400,
+    DEPTH_MAX: 700,
+    DRAWER_MIN: 2,
+    DRAWER_MAX: 3
+  },
   BASE_DISHWASHER: {
     WIDTH_ALLOWED: [450, 600] as readonly number[],
     HEIGHT_MIN: 600,

@@ -50,7 +50,11 @@ export class DefaultKitchenFormFactory {
       sinkFrontType:     ['TWO_DOORS'],       // ONE_DOOR | TWO_DOORS | DRAWER
       sinkApronEnabled:  [true],              // blenda maskująca ON/OFF
       sinkApronHeightMm: [150],              // wysokość blendy (50–200mm)
-      sinkDrawerModel:   ['ANTARO_TANDEMBOX'] // system szuflad (gdy DRAWER)
+      sinkDrawerModel:   ['ANTARO_TANDEMBOX'], // system szuflad (gdy DRAWER)
+
+      // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
+      cooktopType:      ['INDUCTION'],        // GAS | INDUCTION
+      cooktopFrontType: ['DRAWERS']           // DRAWERS | TWO_DOORS | ONE_DOOR
     });
   }
 }

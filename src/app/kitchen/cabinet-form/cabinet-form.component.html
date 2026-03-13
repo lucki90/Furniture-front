@@ -15,6 +15,7 @@
               <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
               <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
               <option value="BASE_SINK">Dolna – zlewowa</option>
+              <option value="BASE_COOKTOP">Dolna – pod płytę grzewczą</option>
               <option value="BASE_DISHWASHER">Dolna – zmywarka (front)</option>
               <option value="BASE_DISHWASHER_FREESTANDING">Dolna – zmywarka wolnostojąca</option>
             </optgroup>
@@ -492,6 +493,55 @@
       <div class="form-group flex-2">
         <label class="form-label">System szuflad</label>
         <select class="form-control" formControlName="sinkDrawerModel">
+          <option value="ANTARO_TANDEMBOX">Blum Antaro / Tandembox (zalecany)</option>
+          <option value="SEVROLL_BALL">Sevroll kulkowe</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Szafka pod płytę grzewczą (BASE_COOKTOP) ============ -->
+  <div *ngIf="visibility.cooktopType" class="sink-section">
+    <h4 class="section-title">Konfiguracja szafki pod płytę grzewczą</h4>
+
+    <!-- Typ płyty grzewczej -->
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Typ płyty grzewczej</label>
+        <select class="form-control" formControlName="cooktopType">
+          <option value="INDUCTION">Indukcyjna / elektryczna (standardowy tył)</option>
+          <option value="GAS">Gazowa (bez tylnej ścianki HDF — wentylacja)</option>
+        </select>
+        <span class="form-hint" *ngIf="form.get('cooktopType')?.value === 'GAS'">
+          ⚠️ Wymagana wentylacja wg PN-83/B-03430 — brak tylnej ścianki HDF w BOM
+        </span>
+      </div>
+    </div>
+
+    <!-- Typ frontu -->
+    <div class="form-row" *ngIf="visibility.cooktopFrontType">
+      <div class="form-group flex-2">
+        <label class="form-label">Konfiguracja frontu</label>
+        <select class="form-control" formControlName="cooktopFrontType"
+                (change)="onCooktopFrontTypeChange(form.get('cooktopFrontType')?.value)">
+          <option value="DRAWERS">Szuflady (2–3 szt. — zalecane)</option>
+          <option value="TWO_DOORS">2 drzwi</option>
+          <option value="ONE_DOOR">1 drzwi</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Szuflady — widoczne gdy DRAWERS -->
+    <div class="form-row" *ngIf="visibility.drawerQuantity && isCooktopDrawers">
+      <div class="form-group flex-1">
+        <label class="form-label">Ilość szuflad</label>
+        <input type="number" class="form-control" formControlName="drawerQuantity"
+               min="2" max="3" step="1">
+        <span class="form-hint">2 lub 3 szuflady</span>
+      </div>
+      <div class="form-group flex-2" *ngIf="visibility.drawerModel">
+        <label class="form-label">System szuflad</label>
+        <select class="form-control" formControlName="drawerModel">
           <option value="ANTARO_TANDEMBOX">Blum Antaro / Tandembox (zalecany)</option>
           <option value="SEVROLL_BALL">Sevroll kulkowe</option>
         </select>

@@ -144,6 +144,34 @@ export class KitchenLayoutComponent {
     this.hasBottomCabinets() && this.hasHangingCabinets() && this.actualGapMm() < this.MIN_GAP_MM
   );
 
+  /**
+   * Ostrzeżenie o minimalnej odległości między płytą grzewczą a szafką/okapem powyżej.
+   * Normy: gaz ≥750mm, indukcja ≥600mm (od powierzchni płyty do dołu szafki).
+   * Przerwa robocza (actualGapMm) = odległość od blatu do dołu szafek wiszących.
+   */
+  readonly cooktopGapWarning = computed((): { message: string; minMm: number; actualMm: number } | null => {
+    if (!this.hasHangingCabinets()) return null;  // Brak szafek górnych — nie ma czego mierzyć
+
+    const wall = this.selectedWall();
+    if (!wall) return null;
+
+    const cooktopCab = wall.cabinets.find(c => c.type === 'BASE_COOKTOP');
+    if (!cooktopCab) return null;
+
+    const isGas = cooktopCab.cooktopType === 'GAS';
+    const minMm = isGas ? 750 : 600;
+    const actualMm = Math.round(this.actualGapMm());
+
+    if (actualMm >= minMm) return null;
+
+    const typeName = isGas ? 'gazowej' : 'indukcyjnej';
+    return {
+      message: `Odległość między płytą ${typeName} a szafką powyżej: ${actualMm}mm (wymagane min. ${minMm}mm)`,
+      minMm,
+      actualMm
+    };
+  });
+
   /** Przerwa robocza: reszta ściany, min MIN_GAP_MM */
   private readonly realGapMm = computed(() => {
     return Math.max(this.actualGapMm(), this.MIN_GAP_MM);

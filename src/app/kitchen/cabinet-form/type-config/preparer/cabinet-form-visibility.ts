@@ -30,4 +30,8 @@ export interface CabinetFormVisibility {
   sinkApron: boolean;        // Sekcja blendy (checkbox + pole wysokości)
   sinkApronHeight: boolean;  // Pole wysokości blendy (widoczne gdy apronEnabled=true)
   sinkDrawerModel: boolean;  // Selector systemu szuflad (widoczne gdy frontType=DRAWER)
+
+  // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
+  cooktopType: boolean;      // Typ płyty: GAS | INDUCTION
+  cooktopFrontType: boolean; // Typ frontu: DRAWERS | TWO_DOORS | ONE_DOOR
 }
