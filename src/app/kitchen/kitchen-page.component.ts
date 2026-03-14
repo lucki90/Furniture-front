@@ -126,7 +126,6 @@ export class KitchenPageComponent {
 
   // Stan kalkulacji projektu (multi-wall)
   projectResult: MultiWallCalculateResponse | null = null;
-  projectError: string | null = null;
   isCalculatingProject = false;
 
   // Aktywna zakładka w szczegółach projektu
@@ -665,12 +664,11 @@ export class KitchenPageComponent {
    */
   calculateProject(): void {
     if (this.totalCabinetCount() === 0) {
-      this.projectError = 'Dodaj przynajmniej jedną szafkę do projektu';
+      this.toast.error('Dodaj przynajmniej jedną szafkę do projektu');
       return;
     }
 
     this.isCalculatingProject = true;
-    this.projectError = null;
     this.projectResult = null;
 
     const request = this.stateService.buildMultiWallCalculateRequest();
@@ -685,7 +683,6 @@ export class KitchenPageComponent {
       error: (err) => {
         console.error('Multi-wall calculation error:', err);
         this.toast.showHttpError(err);
-        this.projectError = 'Wystąpił błąd podczas kalkulacji - sprawdź szczegóły w powiadomieniu';
         this.isCalculatingProject = false;
       }
     });
@@ -693,7 +690,6 @@ export class KitchenPageComponent {
 
   private resetProjectResult(): void {
     this.projectResult = null;
-    this.projectError = null;
     this.aggregatedBoards = [];
     this.aggregatedComponents = [];
     this.aggregatedJobs = [];
