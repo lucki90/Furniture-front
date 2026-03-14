@@ -54,7 +54,12 @@ export class DefaultKitchenFormFactory {
 
       // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
       cooktopType:      ['INDUCTION'],        // GAS | INDUCTION
-      cooktopFrontType: ['DRAWERS']           // DRAWERS | TWO_DOORS | ONE_DOOR
+      cooktopFrontType: ['DRAWERS'],          // DRAWERS | TWO_DOORS | ONE_DOOR
+
+      // Pola szafki wiszącej na okap (UPPER_HOOD)
+      hoodFrontType:      ['FLAP'],           // FLAP | TWO_DOORS | OPEN
+      hoodScreenEnabled:  [false],            // blenda wewnętrzna maskująca mechanizm okapu
+      hoodScreenHeightMm: [100]               // wysokość blendy (50–200mm, domyślnie 100mm)
     });
   }
 }

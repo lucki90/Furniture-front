@@ -38,6 +38,9 @@ import {BaseDishwasherRequestMapper} from "../types/base-dishwasher/base-dishwas
 import {BaseDishwasherFreestandingCabinetPreparer} from "../types/base-dishwasher-freestanding/base-dishwasher-freestanding-cabinet-preparer";
 import {BaseDishwasherFreestandingCabinetValidator} from "../types/base-dishwasher-freestanding/base-dishwasher-freestanding-cabinet-validator";
 import {BaseDishwasherFreestandingRequestMapper} from "../types/base-dishwasher-freestanding/base-dishwasher-freestanding-request-mapper";
+import {UpperHoodCabinetPreparer} from "../types/upper-hood/upper-hood-cabinet-preparer";
+import {UpperHoodCabinetValidator} from "../types/upper-hood/upper-hood-cabinet-validator";
+import {UpperHoodRequestMapper} from "../types/upper-hood/upper-hood-request-mapper";
 
 export const KitchenCabinetTypeConfig = {
   [KitchenCabinetType.BASE_ONE_DOOR]: {
@@ -104,5 +107,10 @@ export const KitchenCabinetTypeConfig = {
     preparer: new BaseDishwasherFreestandingCabinetPreparer(),
     validator: new BaseDishwasherFreestandingCabinetValidator(),
     requestMapper: new BaseDishwasherFreestandingRequestMapper()
+  },
+  [KitchenCabinetType.UPPER_HOOD]: {
+    preparer: new UpperHoodCabinetPreparer(),
+    validator: new UpperHoodCabinetValidator(),
+    requestMapper: new UpperHoodRequestMapper()
   }
 } as const;

@@ -24,6 +24,7 @@
               <option value="UPPER_TWO_DOOR">Wisząca – 2 drzwi</option>
               <option value="UPPER_OPEN_SHELF">Wisząca – otwarta półka</option>
               <option value="UPPER_CASCADE">Wisząca – kaskadowa</option>
+              <option value="UPPER_HOOD">Wisząca – na okap</option>
             </optgroup>
             <optgroup label="Specjalne">
               <option value="TALL_CABINET">Słupek</option>
@@ -545,6 +546,48 @@
           <option value="ANTARO_TANDEMBOX">Blum Antaro / Tandembox (zalecany)</option>
           <option value="SEVROLL_BALL">Sevroll kulkowe</option>
         </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Szafka wisząca na okap (UPPER_HOOD) ============ -->
+  <div *ngIf="visibility.hoodFrontType" class="sink-section">
+    <h4 class="section-title">Konfiguracja szafki na okap</h4>
+
+    <!-- Typ frontu okapu -->
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Typ frontu</label>
+        <select class="form-control" formControlName="hoodFrontType">
+          <option value="FLAP">Klapa (lift-up) — zalecane</option>
+          <option value="TWO_DOORS">2 drzwi</option>
+          <option value="OPEN">Otwarta (bez frontu)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Blenda wewnętrzna maskująca okap -->
+    <div class="form-row" *ngIf="visibility.hoodScreenEnabled">
+      <div class="form-group flex-2">
+        <label class="form-label enclosure-checkbox-label">
+          <input type="checkbox" formControlName="hoodScreenEnabled" class="enclosure-checkbox"
+                 (change)="onHoodScreenEnabledChange(form.get('hoodScreenEnabled')?.value)">
+          Blenda wewnętrzna (maskuje mechanizm okapu)
+        </label>
+        <span class="form-hint">Panel poziomy w przedniej części szafki, zasłaniający sterowanie okapu</span>
+      </div>
+    </div>
+
+    <!-- Wysokość blendy — widoczna gdy blenda włączona -->
+    <div class="form-row" *ngIf="visibility.hoodScreenHeight">
+      <div class="form-group flex-1">
+        <label class="form-label">Wysokość blendy wewnętrznej (mm)</label>
+        <input type="number" class="form-control" formControlName="hoodScreenHeightMm"
+               min="50" max="200" step="10">
+        <span class="form-hint">50–200mm (domyślnie 100mm)</span>
+        <span class="form-error" *ngIf="form.get('hoodScreenHeightMm')?.errors?.['outOfRange']">
+          Wysokość blendy musi mieścić się w zakresie 50–200mm
+        </span>
       </div>
     </div>
   </div>

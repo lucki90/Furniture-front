@@ -94,6 +94,11 @@ export interface KitchenCabinet {
   cooktopType?: string;        // GAS | INDUCTION
   cooktopFrontType?: string;   // DRAWERS | TWO_DOORS | ONE_DOOR
 
+  // Pola szafki wiszącej na okap (UPPER_HOOD)
+  hoodFrontType?: string;      // FLAP | TWO_DOORS | OPEN
+  hoodScreenEnabled?: boolean; // blenda wewnętrzna maskująca mechanizm okapu
+  hoodScreenHeightMm?: number; // wysokość blendy wewnętrznej (50–200mm)
+
   calculatedResult?: CabinetCalculationResult;
 }
 
@@ -240,6 +245,11 @@ export interface CabinetFormData {
   sinkApronEnabled?: boolean;  // blenda maskująca ON/OFF
   sinkApronHeightMm?: number;  // wysokość blendy (50–200mm)
   sinkDrawerModel?: string;    // system szuflad (gdy DRAWER)
+
+  // Pola szafki wiszącej na okap (UPPER_HOOD)
+  hoodFrontType?: string;      // FLAP | TWO_DOORS | OPEN
+  hoodScreenEnabled?: boolean; // blenda wewnętrzna maskująca mechanizm okapu
+  hoodScreenHeightMm?: number; // wysokość blendy wewnętrznej (50–200mm)
 }
 
 export interface CabinetCalculatedEvent {

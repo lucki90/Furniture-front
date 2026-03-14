@@ -131,6 +131,17 @@ export const KitchenCabinetConstraints = {
     UPPER_DEPTH_MAX: 400,
     SEGMENT_HEIGHT_MIN: 100,
     SEGMENT_HEIGHT_MAX: 900
+  },
+  UPPER_HOOD: {
+    WIDTH_MIN: 450,
+    WIDTH_MAX: 1200,
+    WIDTH_STEP: 50,
+    HEIGHT_MIN: 300,
+    HEIGHT_MAX: 720,
+    DEPTH_MIN: 280,
+    DEPTH_MAX: 400,
+    HOOD_SCREEN_MIN: 50,
+    HOOD_SCREEN_MAX: 200
   }
 } as const;
 

@@ -47,7 +47,8 @@ const BOARD_NAME_PL: Record<string, string> = {
   'SHELF_NAME': 'Półka',
   'HDF_NAME': 'HDF tył',
   'SEGMENT_DIVIDER_NAME': 'Przegroda segmentu',
-  'SINK_APRON': 'Blenda zlewu'
+  'SINK_APRON': 'Blenda zlewu',
+  'HOOD_SCREEN': 'Blenda okapu'
 };
 
 // Aggregated types for details tabs

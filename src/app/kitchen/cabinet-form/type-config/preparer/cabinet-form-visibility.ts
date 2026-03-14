@@ -34,4 +34,9 @@ export interface CabinetFormVisibility {
   // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
   cooktopType: boolean;      // Typ płyty: GAS | INDUCTION
   cooktopFrontType: boolean; // Typ frontu: DRAWERS | TWO_DOORS | ONE_DOOR
+
+  // Pola szafki wiszącej na okap (UPPER_HOOD)
+  hoodFrontType: boolean;    // Typ frontu: FLAP | TWO_DOORS | OPEN
+  hoodScreenEnabled: boolean; // Checkbox: blenda wewnętrzna maskująca okap
+  hoodScreenHeight: boolean;  // Pole wysokości blendy (aktywne gdy hoodScreenEnabled=true)
 }

@@ -609,6 +609,11 @@ export class KitchenStateService {
       cooktopType: (formData as any).cooktopType ?? 'INDUCTION',
       cooktopFrontType: (formData as any).cooktopFrontType ?? 'DRAWERS',
 
+      // Pola szafki wiszącej na okap (UPPER_HOOD)
+      hoodFrontType: (formData as any).hoodFrontType ?? 'FLAP',
+      hoodScreenEnabled: (formData as any).hoodScreenEnabled ?? false,
+      hoodScreenHeightMm: (formData as any).hoodScreenHeightMm ?? 100,
+
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
 
@@ -705,6 +710,11 @@ export class KitchenStateService {
             // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
             cooktopType: (formData as any).cooktopType ?? 'INDUCTION',
             cooktopFrontType: (formData as any).cooktopFrontType ?? 'DRAWERS',
+
+            // Pola szafki wiszącej na okap (UPPER_HOOD)
+            hoodFrontType: (formData as any).hoodFrontType ?? 'FLAP',
+            hoodScreenEnabled: (formData as any).hoodScreenEnabled ?? false,
+            hoodScreenHeightMm: (formData as any).hoodScreenHeightMm ?? 100,
 
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
@@ -1175,7 +1185,12 @@ export class KitchenStateService {
 
           // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
           cooktopType: (cab as any).cooktopType,
-          cooktopFrontType: (cab as any).cooktopFrontType
+          cooktopFrontType: (cab as any).cooktopFrontType,
+
+          // Pola szafki wiszącej na okap (UPPER_HOOD)
+          hoodFrontType: (cab as any).hoodFrontType,
+          hoodScreenEnabled: (cab as any).hoodScreenEnabled ?? false,
+          hoodScreenHeightMm: (cab as any).hoodScreenHeightMm ?? 0
         };
         return request;
       });

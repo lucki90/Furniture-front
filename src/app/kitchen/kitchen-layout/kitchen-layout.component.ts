@@ -1118,6 +1118,8 @@ export class KitchenLayoutComponent {
         return 'zmyw.';
       case KitchenCabinetType.BASE_SINK:
         return 'zlew';
+      case KitchenCabinetType.UPPER_HOOD:
+        return 'okap';
       default:
         return null;
     }

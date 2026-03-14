@@ -29,6 +29,7 @@ export class KitchenCabinetListComponent {
       [KitchenCabinetType.UPPER_TWO_DOOR]: 'Wisząca 2-drzwiowa',
       [KitchenCabinetType.UPPER_OPEN_SHELF]: 'Wisząca otwarta',
       [KitchenCabinetType.UPPER_CASCADE]: 'Wisząca kaskadowa',
+      [KitchenCabinetType.UPPER_HOOD]: 'Na okap',
       [KitchenCabinetType.BASE_SINK]: 'Zlewowa',
       [KitchenCabinetType.BASE_COOKTOP]: 'Pod płytę grzewczą',
       [KitchenCabinetType.BASE_DISHWASHER]: 'Zmywarka (front)',

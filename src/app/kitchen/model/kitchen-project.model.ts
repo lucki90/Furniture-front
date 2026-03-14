@@ -165,6 +165,11 @@ export interface ProjectCabinetRequest {
   // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
   cooktopType?: string;        // GAS | INDUCTION
   cooktopFrontType?: string;   // DRAWERS | TWO_DOORS | ONE_DOOR
+
+  // Pola szafki wiszącej na okap (UPPER_HOOD)
+  hoodFrontType?: string;      // FLAP | TWO_DOORS | OPEN
+  hoodScreenEnabled?: boolean; // blenda wewnętrzna maskująca mechanizm okapu
+  hoodScreenHeightMm?: number; // wysokość blendy wewnętrznej (50–200mm)
 }
 
 /**

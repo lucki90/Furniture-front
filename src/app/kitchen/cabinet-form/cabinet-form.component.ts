@@ -318,6 +318,23 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   }
 
   /**
+   * Czy aktualny typ to szafka wisząca na okap (UPPER_HOOD).
+   */
+  get isHoodCabinet(): boolean {
+    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.UPPER_HOOD;
+  }
+
+  /**
+   * Reaguje na zmianę checkboxa blendy wewnętrznej okapu.
+   * Pokazuje/ukrywa pole wysokości blendy.
+   */
+  onHoodScreenEnabledChange(enabled: boolean): void {
+    this.visibility.hoodScreenHeight = enabled;
+    const ctrl = this.form.get('hoodScreenHeightMm');
+    if (ctrl) enabled ? ctrl.enable() : ctrl.disable();
+  }
+
+  /**
    * Błąd kolejności głębokości segmentów kaskadowych.
    */
   get cascadeDepthError(): string | null {
@@ -421,7 +438,11 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       sinkDrawerModel: cabinet.sinkDrawerModel ?? 'ANTARO_TANDEMBOX',
       // Szafka pod płytę grzewczą (BASE_COOKTOP)
       cooktopType: (cabinet as any).cooktopType ?? 'INDUCTION',
-      cooktopFrontType: (cabinet as any).cooktopFrontType ?? 'DRAWERS'
+      cooktopFrontType: (cabinet as any).cooktopFrontType ?? 'DRAWERS',
+      // Szafka wisząca na okap (UPPER_HOOD)
+      hoodFrontType: (cabinet as any).hoodFrontType ?? 'FLAP',
+      hoodScreenEnabled: (cabinet as any).hoodScreenEnabled ?? false,
+      hoodScreenHeightMm: (cabinet as any).hoodScreenHeightMm ?? 100
     });
 
     this.onTypeChange(cabinet.type);
@@ -451,7 +472,10 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       sinkApronHeight: false,
       sinkDrawerModel: false,
       cooktopType: false,
-      cooktopFrontType: false
+      cooktopFrontType: false,
+      hoodFrontType: false,
+      hoodScreenEnabled: false,
+      hoodScreenHeight: false
     };
 
     const config = KitchenCabinetTypeConfig[type];
