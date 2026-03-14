@@ -1071,6 +1071,15 @@ export class KitchenStateService {
             drawerFrontDetails: null
           };
         }
+        // BASE_COOKTOP z typem frontu DRAWERS — przekazujemy drawer request
+        if (cab.type === KitchenCabinetType.BASE_COOKTOP && (cab as any).cooktopFrontType === 'DRAWERS') {
+          drawerRequest = {
+            drawerQuantity: cab.drawerQuantity ?? 3,
+            drawerModel: cab.drawerModel ?? 'ANTARO_TANDEMBOX',
+            drawerBaseHdf: false,
+            drawerFrontDetails: null
+          };
+        }
 
         // Przygotuj segmenty dla TALL_CABINET
         let segments: SegmentRequest[] | undefined;
