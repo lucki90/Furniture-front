@@ -575,6 +575,9 @@ export class KitchenStateService {
       cascadeLowerDepth: formData.cascadeLowerDepth,
       cascadeUpperHeight: formData.cascadeUpperHeight,
       cascadeUpperDepth: formData.cascadeUpperDepth,
+      cascadeLowerIsLiftUp: formData.cascadeLowerIsLiftUp ?? false,
+      cascadeLowerIsFrontExtended: formData.cascadeLowerIsFrontExtended ?? false,
+      cascadeUpperIsLiftUp: formData.cascadeUpperIsLiftUp ?? false,
 
       // Pola dla szafki narożnej (CORNER_CABINET)
       cornerWidthA: isCorner ? formData.cornerWidthA : undefined,
@@ -615,6 +618,10 @@ export class KitchenStateService {
       hoodFrontType: (formData as any).hoodFrontType ?? 'FLAP',
       hoodScreenEnabled: (formData as any).hoodScreenEnabled ?? false,
       hoodScreenHeightMm: (formData as any).hoodScreenHeightMm ?? 100,
+
+      // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+      isLiftUp: (formData as any).isLiftUp ?? false,
+      isFrontExtended: (formData as any).isFrontExtended ?? false,
 
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
@@ -719,6 +726,10 @@ export class KitchenStateService {
             hoodFrontType: (formData as any).hoodFrontType ?? 'FLAP',
             hoodScreenEnabled: (formData as any).hoodScreenEnabled ?? false,
             hoodScreenHeightMm: (formData as any).hoodScreenHeightMm ?? 100,
+
+            // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+            isLiftUp: (formData as any).isLiftUp ?? false,
+            isFrontExtended: (formData as any).isFrontExtended ?? false,
 
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
@@ -1102,9 +1113,19 @@ export class KitchenStateService {
         if (cab.type === KitchenCabinetType.UPPER_CASCADE &&
             cab.cascadeLowerHeight && cab.cascadeLowerDepth &&
             cab.cascadeUpperHeight && cab.cascadeUpperDepth) {
+          const lowerLiftUp = cab.cascadeLowerIsLiftUp ?? false;
+          const upperLiftUp = cab.cascadeUpperIsLiftUp ?? false;
           cascadeSegments = [
-            { orderIndex: 0, height: cab.cascadeLowerHeight, depth: cab.cascadeLowerDepth, frontType: 'ONE_DOOR', shelfQuantity: 0 },
-            { orderIndex: 1, height: cab.cascadeUpperHeight, depth: cab.cascadeUpperDepth, frontType: 'ONE_DOOR', shelfQuantity: 0 }
+            {
+              orderIndex: 0, height: cab.cascadeLowerHeight, depth: cab.cascadeLowerDepth,
+              frontType: lowerLiftUp ? 'UPWARDS' : 'ONE_DOOR', shelfQuantity: 0,
+              isLiftUp: lowerLiftUp, isFrontExtended: cab.cascadeLowerIsFrontExtended ?? false
+            },
+            {
+              orderIndex: 1, height: cab.cascadeUpperHeight, depth: cab.cascadeUpperDepth,
+              frontType: upperLiftUp ? 'UPWARDS' : 'ONE_DOOR', shelfQuantity: 0,
+              isLiftUp: upperLiftUp, isFrontExtended: false
+            }
           ];
         }
 
@@ -1205,7 +1226,11 @@ export class KitchenStateService {
           // Pola szafki wiszącej na okap (UPPER_HOOD)
           hoodFrontType: (cab as any).hoodFrontType,
           hoodScreenEnabled: (cab as any).hoodScreenEnabled ?? false,
-          hoodScreenHeightMm: (cab as any).hoodScreenHeightMm ?? 0
+          hoodScreenHeightMm: (cab as any).hoodScreenHeightMm ?? 0,
+
+          // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+          isLiftUp: (cab as any).isLiftUp ?? false,
+          isFrontExtended: (cab as any).isFrontExtended ?? false
         };
         return request;
       });

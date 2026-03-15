@@ -35,6 +35,10 @@ export class DefaultKitchenFormFactory {
       cascadeLowerDepth: [400],    // Głębokość dolnego segmentu (300-560mm)
       cascadeUpperHeight: [320],   // Wysokość górnego (płytszego) segmentu
       cascadeUpperDepth: [300],    // Głębokość górnego segmentu (250-400mm)
+      // Opcje frontu per segment (UPPER_CASCADE)
+      cascadeLowerIsLiftUp: [false],          // klapa lift-up segmentu dolnego
+      cascadeLowerIsFrontExtended: [false],   // przedłużony front segmentu dolnego
+      cascadeUpperIsLiftUp: [false],          // klapa lift-up segmentu górnego
 
       // Pola obudowy bocznej
       leftEnclosureType: ['NONE'],   // EnclosureType dla lewej strony
@@ -61,7 +65,11 @@ export class DefaultKitchenFormFactory {
       // Pola szafki wiszącej na okap (UPPER_HOOD)
       hoodFrontType:      ['FLAP'],           // FLAP | TWO_DOORS | OPEN
       hoodScreenEnabled:  [false],            // blenda wewnętrzna maskująca mechanizm okapu
-      hoodScreenHeightMm: [100]               // wysokość blendy (50–200mm, domyślnie 100mm)
+      hoodScreenHeightMm: [100],              // wysokość blendy (50–200mm, domyślnie 100mm)
+
+      // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+      isLiftUp:       [false],  // klapa lift-up zamiast drzwi obrotowych
+      isFrontExtended:[false]   // front wychodzi ponad górny wieniec o extendedFrontMm
     });
   }
 }

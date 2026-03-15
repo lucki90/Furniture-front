@@ -57,6 +57,9 @@ export interface KitchenCabinet {
   cascadeLowerDepth?: number;
   cascadeUpperHeight?: number;
   cascadeUpperDepth?: number;
+  cascadeLowerIsLiftUp?: boolean;         // klapa lift-up segmentu dolnego
+  cascadeLowerIsFrontExtended?: boolean;  // przedłużony front segmentu dolnego
+  cascadeUpperIsLiftUp?: boolean;         // klapa lift-up segmentu górnego
 
   // Pola dla szafki narożnej (CORNER_CABINET)
   cornerWidthA?: number;  // Szerokość na ścianie A (głównej)
@@ -100,6 +103,10 @@ export interface KitchenCabinet {
   hoodFrontType?: string;      // FLAP | TWO_DOORS | OPEN
   hoodScreenEnabled?: boolean; // blenda wewnętrzna maskująca mechanizm okapu
   hoodScreenHeightMm?: number; // wysokość blendy wewnętrznej (50–200mm)
+
+  // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+  isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
+  isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
 
   calculatedResult?: CabinetCalculationResult;
 }
@@ -215,6 +222,9 @@ export interface CabinetFormData {
   cascadeLowerDepth?: number;
   cascadeUpperHeight?: number;
   cascadeUpperDepth?: number;
+  cascadeLowerIsLiftUp?: boolean;
+  cascadeLowerIsFrontExtended?: boolean;
+  cascadeUpperIsLiftUp?: boolean;
 
   // Pola dla szafki narożnej (CORNER_CABINET)
   cornerWidthA?: number;
@@ -254,6 +264,10 @@ export interface CabinetFormData {
   hoodFrontType?: string;      // FLAP | TWO_DOORS | OPEN
   hoodScreenEnabled?: boolean; // blenda wewnętrzna maskująca mechanizm okapu
   hoodScreenHeightMm?: number; // wysokość blendy wewnętrznej (50–200mm)
+
+  // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+  isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
+  isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
 }
 
 export interface CabinetCalculatedEvent {

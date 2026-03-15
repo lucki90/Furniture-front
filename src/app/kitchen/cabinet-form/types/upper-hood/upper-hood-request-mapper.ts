@@ -23,7 +23,7 @@ export class UpperHoodRequestMapper implements KitchenCabinetRequestMapper {
       isHangingOnRail: true,
       isStandingOnFeet: false,
       isBackInGroove: false,
-      isFrontExtended: false,
+      isFrontExtended: form.isFrontExtended ?? false,
       isCoveredWithCounterTop: false,
       varnishedFront: false,
 

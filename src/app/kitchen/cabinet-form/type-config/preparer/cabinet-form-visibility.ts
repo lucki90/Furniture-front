@@ -41,4 +41,8 @@ export interface CabinetFormVisibility {
   hoodFrontType: boolean;    // Typ frontu: FLAP | TWO_DOORS | OPEN
   hoodScreenEnabled: boolean; // Checkbox: blenda wewnętrzna maskująca okap
   hoodScreenHeight: boolean;  // Pole wysokości blendy (aktywne gdy hoodScreenEnabled=true)
+
+  // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+  liftUp: boolean;         // Checkbox: klapa lift-up zamiast drzwi obrotowych
+  extendedFront: boolean;  // Checkbox: front wychodzi ponad korpus (isFrontExtended)
 }

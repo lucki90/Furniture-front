@@ -30,6 +30,10 @@ export class UpperOneDoorCabinetPreparer implements KitchenCabinetPreparer {
     // Pokaż sekcję obudowy bocznej
     v.enclosureSection = true;
 
+    // Opcje frontu wiszącej
+    v.liftUp = true;
+    v.extendedFront = true;
+
     // Wartości domyślne — wymiary korpusu szafki wiszącej
     form.patchValue({
       width: 400,
@@ -39,7 +43,9 @@ export class UpperOneDoorCabinetPreparer implements KitchenCabinetPreparer {
       drawerQuantity: 0,
       drawerModel: null,
       positioningMode: 'RELATIVE_TO_CEILING',
-      gapFromCountertopMm: 500
+      gapFromCountertopMm: 500,
+      isLiftUp: false,
+      isFrontExtended: false
     });
 
     // Kontrolki

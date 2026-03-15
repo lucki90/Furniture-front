@@ -20,10 +20,11 @@ export class UpperTwoDoorRequestMapper implements KitchenCabinetRequestMapper {
       isHangingOnRail: true,
       isStandingOnFeet: false,
       isBackInGroove: false,
-      isFrontExtended: false,
+      isFrontExtended: form.isFrontExtended ?? false,
       isCoveredWithCounterTop: false,
       varnishedFront: false,
 
+      // Lift-up niedostępny dla szafki z dwojgiem drzwi — zawsze TWO_DOORS
       frontType: 'TWO_DOORS',
       cabinetType: 'STANDARD',
       openingType: form.openingType ?? 'HANDLE',

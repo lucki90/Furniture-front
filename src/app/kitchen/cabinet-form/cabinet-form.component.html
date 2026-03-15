@@ -372,6 +372,25 @@
             </span>
           </div>
         </div>
+        <!-- Opcje frontu segmentu dolnego -->
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label class="form-label enclosure-checkbox-label">
+              <input type="checkbox" formControlName="cascadeLowerIsLiftUp" class="enclosure-checkbox">
+              Klapa lift-up (otwieranie do góry)
+            </label>
+            <span class="form-hint">Front unoszony ku górze — siłowniki gazowe zamiast zawiasów.</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label class="form-label enclosure-checkbox-label">
+              <input type="checkbox" formControlName="cascadeLowerIsFrontExtended" class="enclosure-checkbox">
+              Przedłużony front (wychodzi ponad korpus)
+            </label>
+            <span class="form-hint">Front wysunięty ponad górny wieniec segmentu (wg ustawień technicznych, domyślnie 23 mm).</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -409,6 +428,16 @@
               <ng-container *ngIf="form.get('cascadeUpperDepth')?.errors?.['min']">Min: 300</ng-container>
               <ng-container *ngIf="form.get('cascadeUpperDepth')?.errors?.['max']">Max: 560</ng-container>
             </span>
+          </div>
+        </div>
+        <!-- Opcja frontu segmentu górnego -->
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label class="form-label enclosure-checkbox-label">
+              <input type="checkbox" formControlName="cascadeUpperIsLiftUp" class="enclosure-checkbox">
+              Klapa lift-up (otwieranie do góry)
+            </label>
+            <span class="form-hint">Front unoszony ku górze — siłowniki gazowe zamiast zawiasów.</span>
           </div>
         </div>
       </div>
@@ -630,6 +659,33 @@
         <span class="form-error" *ngIf="form.get('hoodScreenHeightMm')?.errors?.['outOfRange']">
           Wysokość blendy musi mieścić się w zakresie 50–200mm
         </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Opcje frontu szafki wiszącej (UPPER_ONE_DOOR / UPPER_TWO_DOOR) ============ -->
+  <div *ngIf="visibility.liftUp || visibility.extendedFront" class="sink-section">
+    <h4 class="section-title">Opcje frontu</h4>
+
+    <!-- Klapa lift-up -->
+    <div class="form-row" *ngIf="visibility.liftUp">
+      <div class="form-group flex-2">
+        <label class="form-label enclosure-checkbox-label">
+          <input type="checkbox" formControlName="isLiftUp" class="enclosure-checkbox">
+          Klapa lift-up (zamiast drzwi obrotowych)
+        </label>
+        <span class="form-hint">Front unoszony ku górze (mechanizm gazowy). Zamiast zawiasów standardowych.</span>
+      </div>
+    </div>
+
+    <!-- Przedłużony front -->
+    <div class="form-row" *ngIf="visibility.extendedFront">
+      <div class="form-group flex-2">
+        <label class="form-label enclosure-checkbox-label">
+          <input type="checkbox" formControlName="isFrontExtended" class="enclosure-checkbox">
+          Przedłużony front (wychodzi ponad korpus)
+        </label>
+        <span class="form-hint">Front wysunięty ponad górny wieniec (wg ustawień technicznych, domyślnie 23 mm). Stosowane przy szafkach do sufitu.</span>
       </div>
     </div>
   </div>

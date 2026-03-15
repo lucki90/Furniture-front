@@ -170,6 +170,10 @@ export interface ProjectCabinetRequest {
   hoodFrontType?: string;      // FLAP | TWO_DOORS | OPEN
   hoodScreenEnabled?: boolean; // blenda wewnętrzna maskująca mechanizm okapu
   hoodScreenHeightMm?: number; // wysokość blendy wewnętrznej (50–200mm)
+
+  // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+  isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
+  isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
 }
 
 /**
@@ -203,6 +207,8 @@ export interface CascadeSegmentRequest {
   depth: number;
   frontType: string;
   shelfQuantity: number;
+  isLiftUp?: boolean;
+  isFrontExtended?: boolean;
 }
 
 export interface MaterialRequest {

@@ -19,6 +19,11 @@ export class UpperCascadeRequestMapper implements KitchenCabinetRequestMapper {
     const upperHeight = form.cascadeUpperHeight ?? 320;
     const upperDepth = form.cascadeUpperDepth ?? 400;
 
+    // Per-segment opcje
+    const lowerIsLiftUp: boolean = form.cascadeLowerIsLiftUp ?? false;
+    const lowerIsFrontExtended: boolean = form.cascadeLowerIsFrontExtended ?? false;
+    const upperIsLiftUp: boolean = form.cascadeUpperIsLiftUp ?? false;
+
     return {
       lang: 'pl',
       kitchenCabinetType: 'UPPER_CASCADE',
@@ -33,11 +38,11 @@ export class UpperCascadeRequestMapper implements KitchenCabinetRequestMapper {
       isHangingOnRail: true,
       isStandingOnFeet: false,
       isBackInGroove: false,
-      isFrontExtended: false,
+      isFrontExtended: false,   // per-segment tylko (cascadeSegments[0].isFrontExtended)
       isCoveredWithCounterTop: false,
       varnishedFront: false,
 
-      frontType: 'ONE_DOOR',
+      frontType: 'ONE_DOOR',    // per-segment (getEffectiveFrontType() wywołuje backend)
       cabinetType: 'STANDARD',
       openingType: form.openingType ?? 'HANDLE',
 
@@ -45,18 +50,22 @@ export class UpperCascadeRequestMapper implements KitchenCabinetRequestMapper {
 
       cascadeSegments: [
         {
-          orderIndex: 0,                // Dolny segment (płytszy)
+          orderIndex: 0,                // Segment dolny (płytszy, bliżej blatu)
           height: lowerHeight,
           depth: lowerDepth,
-          frontType: 'ONE_DOOR',
-          shelfQuantity: 0
+          frontType: lowerIsLiftUp ? 'UPWARDS' : 'ONE_DOOR',
+          shelfQuantity: 0,
+          isLiftUp: lowerIsLiftUp,
+          isFrontExtended: lowerIsFrontExtended
         },
         {
-          orderIndex: 1,                // Górny segment (głębszy)
+          orderIndex: 1,                // Segment górny (głębszy, bliżej sufitu)
           height: upperHeight,
           depth: upperDepth,
-          frontType: 'ONE_DOOR',
-          shelfQuantity: 0
+          frontType: upperIsLiftUp ? 'UPWARDS' : 'ONE_DOOR',
+          shelfQuantity: 0,
+          isLiftUp: upperIsLiftUp,
+          isFrontExtended: false         // przedłużony front tylko dla dolnego
         }
       ],
 

@@ -456,7 +456,10 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       hoodScreenHeightMm: (cabinet as any).hoodScreenHeightMm ?? 100,
       // Szafka narożna — nowe pola Type A/B
       cornerOpeningType: (cabinet as any).cornerOpeningType ?? 'TWO_DOORS',
-      cornerFrontUchylnyWidthMm: (cabinet as any).cornerFrontUchylnyWidthMm ?? 500
+      cornerFrontUchylnyWidthMm: (cabinet as any).cornerFrontUchylnyWidthMm ?? 500,
+      // Szafki wiszące (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+      isLiftUp: (cabinet as any).isLiftUp ?? false,
+      isFrontExtended: (cabinet as any).isFrontExtended ?? false
     });
 
     this.onTypeChange(cabinet.type);
@@ -491,7 +494,9 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       hoodScreenEnabled: false,
       hoodScreenHeight: false,
       cornerOpeningType: false,
-      cornerFrontUchylnyWidth: false
+      cornerFrontUchylnyWidth: false,
+      liftUp: false,
+      extendedFront: false
     };
 
     const config = KitchenCabinetTypeConfig[type];

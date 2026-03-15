@@ -20,11 +20,12 @@ export class UpperOneDoorRequestMapper implements KitchenCabinetRequestMapper {
       isHangingOnRail: true,
       isStandingOnFeet: false,
       isBackInGroove: false,
-      isFrontExtended: false,
+      isFrontExtended: form.isFrontExtended ?? false,
       isCoveredWithCounterTop: false,
       varnishedFront: false,
 
-      frontType: 'ONE_DOOR',
+      isLiftUp: form.isLiftUp ?? false,
+      frontType: (form.isLiftUp ?? false) ? 'UPWARDS' : 'ONE_DOOR',
       cabinetType: 'STANDARD',
       openingType: form.openingType ?? 'HANDLE',
 

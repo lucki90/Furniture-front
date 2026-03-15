@@ -39,6 +39,10 @@ export class UpperCascadeCabinetPreparer implements KitchenCabinetPreparer {
     // Pokaż sekcję obudowy bocznej
     v.enclosureSection = true;
 
+    // Opcje frontu — per segment (widoczne w sekcji kaskadowej, nie globalne v.liftUp/extendedFront)
+    v.liftUp = false;
+    v.extendedFront = false;
+
     // Wartości domyślne
     // Dolny = płytszy (300mm), górny = głębszy (400mm)
     form.patchValue({
@@ -50,7 +54,10 @@ export class UpperCascadeCabinetPreparer implements KitchenCabinetPreparer {
       drawerQuantity: 0,
       drawerModel: null,
       positioningMode: 'RELATIVE_TO_CEILING',
-      gapFromCountertopMm: 500
+      gapFromCountertopMm: 500,
+      cascadeLowerIsLiftUp: false,
+      cascadeLowerIsFrontExtended: false,
+      cascadeUpperIsLiftUp: false
     });
 
     // Oblicz i ustaw wymiary z segmentów

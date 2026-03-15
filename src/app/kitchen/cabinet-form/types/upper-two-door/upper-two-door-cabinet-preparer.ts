@@ -30,6 +30,10 @@ export class UpperTwoDoorCabinetPreparer implements KitchenCabinetPreparer {
     // Pokaż sekcję obudowy bocznej
     v.enclosureSection = true;
 
+    // Opcje frontu wiszącej — tylko extendedFront (lift-up niedostępny dla 2-drzwiowej)
+    v.liftUp = false;
+    v.extendedFront = true;
+
     // Wartości domyślne — wymiary korpusu szafki wiszącej 2-drzwiowej
     form.patchValue({
       width: 600,
@@ -39,7 +43,8 @@ export class UpperTwoDoorCabinetPreparer implements KitchenCabinetPreparer {
       drawerQuantity: 0,
       drawerModel: null,
       positioningMode: 'RELATIVE_TO_CEILING',
-      gapFromCountertopMm: 500
+      gapFromCountertopMm: 500,
+      isFrontExtended: false
     });
 
     // Kontrolki

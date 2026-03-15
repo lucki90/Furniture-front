@@ -32,6 +32,10 @@ export class UpperHoodCabinetPreparer implements KitchenCabinetPreparer {
     // Pokaż sekcję obudowy bocznej
     v.enclosureSection = true;
 
+    // Przedłużony front dostępny dla szafki na okap (lift-up obsługiwany przez hoodFrontType=FLAP)
+    v.liftUp = false;
+    v.extendedFront = true;
+
     // Pokaż sekcję specyficzną dla szafki na okap
     v.hoodFrontType = true;       // typ frontu: FLAP | TWO_DOORS | OPEN
     v.hoodScreenEnabled = true;   // checkbox: blenda wewnętrzna
@@ -59,7 +63,8 @@ export class UpperHoodCabinetPreparer implements KitchenCabinetPreparer {
       gapFromCountertopMm: 500,
       hoodFrontType: 'FLAP',
       hoodScreenEnabled: false,
-      hoodScreenHeightMm: 100
+      hoodScreenHeightMm: 100,
+      isFrontExtended: false
     });
 
     // Kontrolki
