@@ -296,7 +296,7 @@
 }
 
 .front-rect.open-front {
-  fill: rgba(200, 200, 200, 0.2);
+  /* fill pochodzi z gradientu url(#openFrontGradient) z pełną kryjnością */
 }
 
 /* Handles */

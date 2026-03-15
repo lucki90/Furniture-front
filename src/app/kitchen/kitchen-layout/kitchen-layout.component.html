@@ -37,10 +37,10 @@
             <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
             <stop offset="100%" style="stop-color:#e8e8e8;stop-opacity:1" />
           </linearGradient>
-          <!-- Gradient dla frontu otwartego -->
+          <!-- Gradient dla frontu otwartego — pełna kryjność (aby kolor korpusu nie przeświecał) -->
           <linearGradient id="openFrontGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#f5f5f5;stop-opacity:0.3" />
-            <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:0.3" />
+            <stop offset="0%" style="stop-color:#f5f5f5;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1" />
           </linearGradient>
           <!-- Gradient dla blatu -->
           <linearGradient id="countertopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -60,19 +60,20 @@
               [attr.width]="wallDisplayWidth()" [attr.height]="gapZoneHeight"
               class="zone-bg gap-zone-bg"/>
 
-        <!-- Blat -->
-        <rect [attr.x]="0" [attr.y]="counterZoneY"
-              [attr.width]="wallDisplayWidth()" [attr.height]="counterZoneHeight"
+        <!-- Blat — podzielony na segmenty w miejscach słupków (TALL_CABINET) -->
+        <rect *ngFor="let seg of countertopZoneRects()"
+              [attr.x]="seg.x" [attr.y]="counterZoneY"
+              [attr.width]="seg.width" [attr.height]="counterZoneHeight"
               fill="url(#countertopGradient)" class="countertop-rect">
           <title *ngIf="countertopDimensions()">Blat: {{ countertopDimensions()!.lengthMm }}×{{ countertopDimensions()!.depthMm }}mm</title>
         </rect>
-        <!-- Etykieta wymiarów blatu (nad blatem) -->
-        <text *ngIf="countertopDimensions() && hasBottomCabinets()"
-              [attr.x]="wallDisplayWidth() / 2"
+        <!-- Etykiety wymiarów blatu — osobna per segment (podzielona przy słupkach FULL) -->
+        <text *ngFor="let lbl of countertopSegmentLabels()"
+              [attr.x]="lbl.x"
               [attr.y]="counterZoneY - 2"
               class="countertop-dimension-label"
               text-anchor="middle">
-          {{ countertopDimensions()!.lengthMm }}×{{ countertopDimensions()!.depthMm }}mm
+          {{ lbl.lengthMm }}×{{ lbl.depthMm }}mm
         </text>
 
         <!-- Strefa dolna -->

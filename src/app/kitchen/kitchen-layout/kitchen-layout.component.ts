@@ -818,10 +818,7 @@ export class KitchenLayoutComponent {
    */
   readonly countertopDimensions = computed(() => {
     const cabinets = this.stateService.cabinets();
-    const bottomCabinets = cabinets.filter(cab => {
-      const zone = getCabinetZone(cab);
-      return zone === 'BOTTOM' || zone === 'FULL';
-    });
+    const bottomCabinets = cabinets.filter(cab => getCabinetZone(cab) === 'BOTTOM');
 
     if (bottomCabinets.length === 0) {
       return null;
@@ -840,7 +837,7 @@ export class KitchenLayoutComponent {
     // Szerokości blend bocznych (z visualPositions) — przeliczone mm
     const sf = this.scaleFactor();
     const bottomPositions = this.visualPositions()
-      .filter(p => p.zone === 'BOTTOM' || p.zone === 'FULL')
+      .filter(p => p.zone === 'BOTTOM')
       .sort((a, b) => a.displayX - b.displayX);
 
     const leftEnclosureW = (bottomPositions.length > 0 && sf > 0)
@@ -853,6 +850,110 @@ export class KitchenLayoutComponent {
     const lengthMm = totalCabinetWidth + leftEnclosureW + rightEnclosureW + 2 * sideExtra;
 
     return { lengthMm, depthMm };
+  });
+
+  /**
+   * Prostokąty strefy blatu w pikselach SVG — podzielone w miejscach, gdzie stoją słupki (FULL/TALL_CABINET).
+   * Bez słupków: jeden prostokąt obejmuje całą szerokość ściany.
+   * Ze słupkami: luki w miejscach szafek FULL (słupek zajmuje całą wysokość ściany — nie ma blatu nad słupkiem).
+   *
+   * Celowo NIE używa visualPositions() (heavy signal) — korzysta bezpośrednio z cabinetPositions().
+   */
+  readonly countertopZoneRects = computed((): { x: number; width: number }[] => {
+    const cabPositions = this.cabinetPositions();
+    const allCabinets = this.stateService.cabinets();
+    const sf = this.scaleFactor();
+    const wallW = this.wallDisplayWidth();
+
+    // Span każdego słupka (FULL) w pikselach SVG
+    const fullSpans = cabPositions
+      .filter(cab => {
+        const orig = allCabinets.find(c => c.id === cab.cabinetId);
+        return orig ? getCabinetZone(orig) === 'FULL' : false;
+      })
+      .map(cab => ({ displayX: cab.x * sf, displayW: cab.width * sf }))
+      .sort((a, b) => a.displayX - b.displayX);
+
+    if (fullSpans.length === 0) {
+      return [{ x: 0, width: wallW }];
+    }
+
+    const rects: { x: number; width: number }[] = [];
+    let cursor = 0;
+
+    for (const span of fullSpans) {
+      if (span.displayX > cursor + 1) {
+        rects.push({ x: cursor, width: span.displayX - cursor });
+      }
+      cursor = span.displayX + span.displayW;
+    }
+
+    if (cursor < wallW - 1) {
+      rects.push({ x: cursor, width: wallW - cursor });
+    }
+
+    return rects.length > 0 ? rects : [{ x: 0, width: wallW }];
+  });
+
+  /**
+   * Etykiety wymiarów blatu — jedna per segment (podzielona przy słupkach FULL).
+   *
+   * - Jeden segment → jak dotychczas: `countertopDimensions()` (cała ściana, z blendami i naddatkami)
+   * - Wiele segmentów → per-segment: suma szafek BOTTOM w danym przedziale + naddatek boczny dla
+   *   skrajnych segmentów + blendy obudów dla pierwszego (left) i ostatniego (right) segmentu.
+   */
+  readonly countertopSegmentLabels = computed((): { x: number; lengthMm: number; depthMm: number }[] => {
+    if (!this.hasBottomCabinets()) return [];
+
+    const segs = this.countertopZoneRects();
+    if (segs.length === 0) return [];
+
+    const wall = this.selectedWall();
+    if (!wall) return [];
+
+    const depthMm = wall.countertopConfig?.manualDepthMm ?? this.COUNTERTOP_DEPTH_DEFAULT;
+
+    // Jeden segment — użyj istniejącego countertopDimensions (z blendami + naddatkami)
+    if (segs.length === 1) {
+      const dim = this.countertopDimensions();
+      if (!dim) return [];
+      return [{ x: this.wallDisplayWidth() / 2, lengthMm: dim.lengthMm, depthMm }];
+    }
+
+    // Wiele segmentów — oblicz długość per segment
+    const cabPositions = this.cabinetPositions();
+    const allCabinets = this.stateService.cabinets();
+    const sf = this.scaleFactor();
+    const sideExtra = wall.countertopConfig?.sideOverhangExtraMm ?? 5;
+
+    // Blendy obudów — tylko skrajne szafki dolne
+    const vPos = this.visualPositions().filter(p => p.zone === 'BOTTOM').sort((a, b) => a.displayX - b.displayX);
+    const leftEncMm = (vPos.length > 0 && sf > 0) ? Math.round(vPos[0].leftEnclosureDisplayWidth / sf) : 0;
+    const rightEncMm = (vPos.length > 0 && sf > 0) ? Math.round(vPos[vPos.length - 1].rightEnclosureDisplayWidth / sf) : 0;
+
+    return segs.map((seg, i) => {
+      const isFirst = i === 0;
+      const isLast = i === segs.length - 1;
+
+      // Zakres segmentu w mm
+      const segStartMm = sf > 0 ? seg.x / sf : 0;
+      const segEndMm = sf > 0 ? (seg.x + seg.width) / sf : 0;
+
+      // Szafki BOTTOM w zakresie segmentu (środek szafki musi być w przedziale)
+      const segCabs = cabPositions.filter(cab => {
+        const orig = allCabinets.find(c => c.id === cab.cabinetId);
+        if (!orig || getCabinetZone(orig) !== 'BOTTOM') return false;
+        const cabCenter = cab.x + cab.width / 2;
+        return cabCenter >= segStartMm - 1 && cabCenter <= segEndMm + 1;
+      });
+
+      const segCabsWidth = segCabs.reduce((sum, p) => sum + p.width, 0);
+      const leftExtra  = isFirst ? leftEncMm + sideExtra : 0;
+      const rightExtra = isLast  ? rightEncMm + sideExtra : 0;
+      const lengthMm   = segCabsWidth + leftExtra + rightExtra;
+
+      return { x: seg.x + seg.width / 2, lengthMm, depthMm };
+    });
   });
 
   /**

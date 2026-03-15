@@ -274,14 +274,7 @@
         <option value="SEVROLL_BALL">Sevroll Ball</option>
       </select>
     </div>
-    <div class="form-group" *ngIf="!isUpperCabinet">
-      <label class="form-label">Pozycja Y</label>
-      <div class="input-with-unit">
-        <input type="number" class="form-control" formControlName="positionY" placeholder="0">
-        <span class="unit">mm</span>
-      </div>
-      <span class="form-hint">obliczana automatycznie z ustawień</span>
-    </div>
+    <!-- Pozycja Y jest obliczana automatycznie z ustawień projektu — brak pola UI -->
   </div>
 
   <!-- Sekcja kaskadowych segmentów (dla UPPER_CASCADE) -->
