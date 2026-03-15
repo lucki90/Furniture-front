@@ -10,6 +10,27 @@ export interface UserSettings {
   defaultFrontGapMm: number;
   defaultSupportHeightReductionMm: number;
   defaultSupportWidthReductionMm: number;
+
+  // Konfigurowalne wymiary techniczne szafek
+  hdfThicknessMm: number;
+  hdfGrooveDistanceMm: number;
+  hdfGrooveDepthMm: number;
+  hdfBorderDistanceMm: number;
+  frontShiftMm: number;
+  extendedFrontMm: number;
+  veneerMm: number;
+  spaceBetweenSideAndFrontMm: number;
+  spaceBetweenWreathAndFrontMm: number;
+  verticallySpaceBetweenTwoFrontsMm: number;
+  horizontallySpaceBetweenTwoFrontsMm: number;
+  shelfCutoutWidthMm: number;
+  shelfCutoutDepthMm: number;
+
+  // Grubości płyt szuflad
+  /** Konfigurowalna grubość płyt Sevroll Ball Slide (16–22mm). Wysyłana w PUT. */
+  ballSlideSevrollDrawerThicknessMm: number;
+  /** Stała grubość płyt Blum Antaro / Tandembox (16mm). Tylko odczyt z GET. */
+  antaroTandemboxDrawerThicknessMm?: number;
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
@@ -21,5 +42,19 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   defaultFillerWidthMm: 50,
   defaultFrontGapMm: 2,
   defaultSupportHeightReductionMm: 30,
-  defaultSupportWidthReductionMm: 50
+  defaultSupportWidthReductionMm: 50,
+  hdfThicknessMm: 3,
+  hdfGrooveDistanceMm: 20,
+  hdfGrooveDepthMm: 10,
+  hdfBorderDistanceMm: 5,
+  frontShiftMm: 2,
+  extendedFrontMm: 23,
+  veneerMm: 1,
+  spaceBetweenSideAndFrontMm: 2,
+  spaceBetweenWreathAndFrontMm: 3,
+  verticallySpaceBetweenTwoFrontsMm: 4,
+  horizontallySpaceBetweenTwoFrontsMm: 3,
+  shelfCutoutWidthMm: 1,
+  shelfCutoutDepthMm: 2,
+  ballSlideSevrollDrawerThicknessMm: 18
 };

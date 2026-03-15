@@ -163,6 +163,176 @@
 
     </div>
 
+    <!-- SEKCJA: Wymiary techniczne szafek — zwijana -->
+    <div class="card-section-title tech-section-header" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color, #e2e8f0); cursor: pointer; user-select: none;"
+         (click)="techSectionExpanded = !techSectionExpanded">
+      <span>Wymiary techniczne szafek</span>
+      <span style="float: right; font-size: 12px; color: #888;">{{ techSectionExpanded ? '▲ zwiń' : '▼ rozwiń' }}</span>
+    </div>
+    <div *ngIf="techSectionExpanded">
+      <p style="font-size: 12px; color: #888; margin: 4px 0 12px 0;">
+        Zaawansowane parametry konstrukcyjne. Domyślne wartości są zgodne ze standardami meblarskimi — zmień tylko jeśli wiesz co robisz.
+      </p>
+      <div class="form-grid">
+
+        <!-- Szuflady — grubości płyt -->
+        <div class="form-group">
+          <label class="form-label" for="sevrollThickness">Grubość płyt szuflad (Sevroll)</label>
+          <div class="input-with-unit">
+            <input id="sevrollThickness" type="number" class="form-control"
+              [(ngModel)]="ballSlideSevrollDrawerThicknessMm" [disabled]="saving" min="16" max="22" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Płyty szuflad Sevroll Ball Slide (16–22 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="antaroThickness">Grubość płyt szuflad (Antaro/Tandembox)</label>
+          <div class="input-with-unit">
+            <input id="antaroThickness" type="number" class="form-control"
+              [ngModel]="antaroTandemboxDrawerThicknessMm" [disabled]="true" readonly />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Stała właściwość systemu Blum — nie można zmienić</span>
+        </div>
+
+        <!-- HDF -->
+        <div class="form-group">
+          <label class="form-label" for="hdfThickness">Grubość HDF (tył)</label>
+          <div class="input-with-unit">
+            <input id="hdfThickness" type="number" class="form-control"
+              [(ngModel)]="hdfThicknessMm" [disabled]="saving" min="1" max="5" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Grubość płyty tylnej HDF (1–5 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hdfGrooveDistance">Odl. nutu od krawędzi</label>
+          <div class="input-with-unit">
+            <input id="hdfGrooveDistance" type="number" class="form-control"
+              [(ngModel)]="hdfGrooveDistanceMm" [disabled]="saving" min="10" max="35" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Odległość nutu pod HDF od tylnej krawędzi boku (10–35 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hdfGrooveDepth">Głębokość nutu HDF</label>
+          <div class="input-with-unit">
+            <input id="hdfGrooveDepth" type="number" class="form-control"
+              [(ngModel)]="hdfGrooveDepthMm" [disabled]="saving" min="5" max="15" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Głębokość frezowanego nutu (5–15 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hdfBorderDistance">Odl. HDF od krawędzi</label>
+          <div class="input-with-unit">
+            <input id="hdfBorderDistance" type="number" class="form-control"
+              [(ngModel)]="hdfBorderDistanceMm" [disabled]="saving" min="2" max="15" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Odległość płyty HDF od krawędzi korpusu (2–15 mm)</span>
+        </div>
+
+        <!-- Fronty -->
+        <div class="form-group">
+          <label class="form-label" for="frontShift">Wysunięcie frontu</label>
+          <div class="input-with-unit">
+            <input id="frontShift" type="number" class="form-control"
+              [(ngModel)]="frontShiftMm" [disabled]="saving" min="0" max="10" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">O ile front wystaje poza ramę szafki (0–10 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="extendedFront">Naddatek frontu górnego</label>
+          <div class="input-with-unit">
+            <input id="extendedFront" type="number" class="form-control"
+              [(ngModel)]="extendedFrontMm" [disabled]="saving" min="15" max="35" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Naddatek wysokości frontu szafki wiszącej (15–35 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="spaceSideAndFront">Szczelina bok–front</label>
+          <div class="input-with-unit">
+            <input id="spaceSideAndFront" type="number" class="form-control"
+              [(ngModel)]="spaceBetweenSideAndFrontMm" [disabled]="saving" min="0" max="10" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Szczelina między frontem a bokiem szafki (0–10 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="spaceWreathAndFront">Szczelina wieniec–front</label>
+          <div class="input-with-unit">
+            <input id="spaceWreathAndFront" type="number" class="form-control"
+              [(ngModel)]="spaceBetweenWreathAndFrontMm" [disabled]="saving" min="1" max="10" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Szczelina pionowa między frontem a wieńcem (1–10 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="spaceVertical">Szczelina między drzwiami (pion)</label>
+          <div class="input-with-unit">
+            <input id="spaceVertical" type="number" class="form-control"
+              [(ngModel)]="verticallySpaceBetweenTwoFrontsMm" [disabled]="saving" min="2" max="10" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Szczelina pionowa między dwoma frontami (2–10 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="spaceHorizontal">Szczelina między szufladami (poziom)</label>
+          <div class="input-with-unit">
+            <input id="spaceHorizontal" type="number" class="form-control"
+              [(ngModel)]="horizontallySpaceBetweenTwoFrontsMm" [disabled]="saving" min="2" max="10" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Szczelina pozioma między frontami szuflad (2–10 mm)</span>
+        </div>
+
+        <!-- Okleina -->
+        <div class="form-group">
+          <label class="form-label" for="veneer">Grubość okleiny</label>
+          <div class="input-with-unit">
+            <input id="veneer" type="number" class="form-control"
+              [(ngModel)]="veneerMm" [disabled]="saving" min="0" max="3" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Grubość okleiny krawędziowej (0–3 mm)</span>
+        </div>
+
+        <!-- Półki -->
+        <div class="form-group">
+          <label class="form-label" for="shelfCutoutWidth">Wcięcie półki (bok)</label>
+          <div class="input-with-unit">
+            <input id="shelfCutoutWidth" type="number" class="form-control"
+              [(ngModel)]="shelfCutoutWidthMm" [disabled]="saving" min="0" max="5" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Wcięcie półki od boku szafki (0–5 mm)</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="shelfCutoutDepth">Wcięcie półki (głębokość)</label>
+          <div class="input-with-unit">
+            <input id="shelfCutoutDepth" type="number" class="form-control"
+              [(ngModel)]="shelfCutoutDepthMm" [disabled]="saving" min="0" max="10" step="1" />
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">Wcięcie półki od tylnej ścianki HDF (0–10 mm)</span>
+        </div>
+
+      </div>
+    </div>
+
     <!-- Actions -->
     <div class="form-actions">
       <button

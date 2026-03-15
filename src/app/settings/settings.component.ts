@@ -30,11 +30,33 @@ export class SettingsComponent implements OnInit {
   supportHeightReductionMm = 30;
   supportWidthReductionMm = 50;
 
+  // Form values — grubości płyt szuflad
+  ballSlideSevrollDrawerThicknessMm = 18;  // konfigurowalna (16–22mm)
+  antaroTandemboxDrawerThicknessMm = 16;   // stała (tylko do odczytu)
+
+  // Form values — wymiary techniczne szafek
+  hdfThicknessMm = 3;
+  hdfGrooveDistanceMm = 20;
+  hdfGrooveDepthMm = 10;
+  hdfBorderDistanceMm = 5;
+  frontShiftMm = 2;
+  extendedFrontMm = 23;
+  veneerMm = 1;
+  spaceBetweenSideAndFrontMm = 2;
+  spaceBetweenWreathAndFrontMm = 3;
+  verticallySpaceBetweenTwoFrontsMm = 4;
+  horizontallySpaceBetweenTwoFrontsMm = 3;
+  shelfCutoutWidthMm = 1;
+  shelfCutoutDepthMm = 2;
+
   // UI states
   loading = false;
   saving = false;
   savedSuccess = false;
   error: string | null = null;
+
+  // UI — sekcja techniczna zwinięta domyślnie
+  techSectionExpanded = false;
 
   // Options for select fields
   readonly plinthOptions = [80, 100, 150];
@@ -59,6 +81,22 @@ export class SettingsComponent implements OnInit {
         this.frontGapMm = settings.defaultFrontGapMm ?? 2;
         this.supportHeightReductionMm = settings.defaultSupportHeightReductionMm ?? 30;
         this.supportWidthReductionMm = settings.defaultSupportWidthReductionMm ?? 50;
+        // Wymiary techniczne
+        this.hdfThicknessMm = settings.hdfThicknessMm ?? 3;
+        this.hdfGrooveDistanceMm = settings.hdfGrooveDistanceMm ?? 20;
+        this.hdfGrooveDepthMm = settings.hdfGrooveDepthMm ?? 10;
+        this.hdfBorderDistanceMm = settings.hdfBorderDistanceMm ?? 5;
+        this.frontShiftMm = settings.frontShiftMm ?? 2;
+        this.extendedFrontMm = settings.extendedFrontMm ?? 23;
+        this.veneerMm = settings.veneerMm ?? 1;
+        this.spaceBetweenSideAndFrontMm = settings.spaceBetweenSideAndFrontMm ?? 2;
+        this.spaceBetweenWreathAndFrontMm = settings.spaceBetweenWreathAndFrontMm ?? 3;
+        this.verticallySpaceBetweenTwoFrontsMm = settings.verticallySpaceBetweenTwoFrontsMm ?? 4;
+        this.horizontallySpaceBetweenTwoFrontsMm = settings.horizontallySpaceBetweenTwoFrontsMm ?? 3;
+        this.shelfCutoutWidthMm = settings.shelfCutoutWidthMm ?? 1;
+        this.shelfCutoutDepthMm = settings.shelfCutoutDepthMm ?? 2;
+        this.ballSlideSevrollDrawerThicknessMm = settings.ballSlideSevrollDrawerThicknessMm ?? 18;
+        this.antaroTandemboxDrawerThicknessMm = settings.antaroTandemboxDrawerThicknessMm ?? 16;
         this.loading = false;
       },
       error: (err) => {
@@ -83,7 +121,21 @@ export class SettingsComponent implements OnInit {
       defaultFillerWidthMm: this.fillerWidthMm,
       defaultFrontGapMm: this.frontGapMm,
       defaultSupportHeightReductionMm: this.supportHeightReductionMm,
-      defaultSupportWidthReductionMm: this.supportWidthReductionMm
+      defaultSupportWidthReductionMm: this.supportWidthReductionMm,
+      hdfThicknessMm: this.hdfThicknessMm,
+      hdfGrooveDistanceMm: this.hdfGrooveDistanceMm,
+      hdfGrooveDepthMm: this.hdfGrooveDepthMm,
+      hdfBorderDistanceMm: this.hdfBorderDistanceMm,
+      frontShiftMm: this.frontShiftMm,
+      extendedFrontMm: this.extendedFrontMm,
+      veneerMm: this.veneerMm,
+      spaceBetweenSideAndFrontMm: this.spaceBetweenSideAndFrontMm,
+      spaceBetweenWreathAndFrontMm: this.spaceBetweenWreathAndFrontMm,
+      verticallySpaceBetweenTwoFrontsMm: this.verticallySpaceBetweenTwoFrontsMm,
+      horizontallySpaceBetweenTwoFrontsMm: this.horizontallySpaceBetweenTwoFrontsMm,
+      shelfCutoutWidthMm: this.shelfCutoutWidthMm,
+      shelfCutoutDepthMm: this.shelfCutoutDepthMm,
+      ballSlideSevrollDrawerThicknessMm: this.ballSlideSevrollDrawerThicknessMm
     };
 
     this.settingsService.updateSettings(request).subscribe({
