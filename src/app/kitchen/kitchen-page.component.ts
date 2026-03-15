@@ -48,7 +48,10 @@ const BOARD_NAME_PL: Record<string, string> = {
   'HDF_NAME': 'HDF tył',
   'SEGMENT_DIVIDER_NAME': 'Przegroda segmentu',
   'SINK_APRON': 'Blenda zlewu',
-  'HOOD_SCREEN': 'Blenda okapu'
+  'HOOD_SCREEN': 'Blenda okapu',
+  'CORNER_PANEL': 'Ścianka narożna',
+  'BLIND_PANEL': 'Front ślepy',
+  'BIFOLD_INNER_FRONT': 'Skrzydło wewnętrzne (harmonijka)'
 };
 
 // Aggregated types for details tabs

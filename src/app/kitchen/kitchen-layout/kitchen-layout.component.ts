@@ -424,6 +424,22 @@ export class KitchenLayoutComponent {
         break;
 
       case KitchenCabinetType.CORNER_CABINET:
+        // TODO [wizualizacja narożnika — niski priorytet]:
+        //
+        // 1) WIDOK Z GÓRY (kształt L):
+        //    Aktualnie: prostokąt (widthA) — uproszczenie.
+        //    Docelowo: wielokąt SVG w kształcie L (ramię A + ramię B pod kątem 90°).
+        //    Dane: pos.cornerWidthB już dostępne w VisualCabinetPosition.
+        //    Metoda: nowy `addLShapedCornerTopView()` rysujący polygon zamiast rect.
+        //
+        // 2) WIDOK OD FRONTU — zaznaczenie załamania:
+        //    Docelowo: widoczna linia pionowa w miejscu zgięcia narożnika (po widthA - depth od lewej krawędzi).
+        //    Prosta pionowa kreska w innym kolorze/stylu — wskazuje granicę ramienia A i ramienia B.
+        //
+        // 3) ŚLEPY FRONT (cornerOpeningType === 'BLIND'):
+        //    Aktualnie: renderuje standardowe drzwi na całej szerokości.
+        //    Docelowo: 1 drzwi na ramieniu A (szer. ≈ depth - T), ramię B bez frontu (puste lub szare wypełnienie).
+        //    Dane: pos.cornerOpeningType (CornerOpeningType) — dodać to pole do VisualCabinetPosition.
         this.addSingleDoor(fronts, handles, displayX, bodyY, displayWidth, bodyHeight, gap);
         break;
 

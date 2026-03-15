@@ -60,10 +60,12 @@ export interface KitchenCabinet {
 
   // Pola dla szafki narożnej (CORNER_CABINET)
   cornerWidthA?: number;  // Szerokość na ścianie A (głównej)
-  cornerWidthB?: number;  // Szerokość na ścianie B (bocznej)
+  cornerWidthB?: number;  // Szerokość na ścianie B (bocznej) — Type A only
   cornerMechanism?: CornerMechanismType;  // Typ mechanizmu (Magic Corner, karuzela, itp.)
-  cornerShelfQuantity?: number;  // Liczba półek (dla FIXED_SHELVES)
-  isUpperCorner?: boolean;  // true = górna wisząca, false = dolna
+  cornerShelfQuantity?: number;  // Liczba półek (dla FIXED_SHELVES lub BLIND_CORNER)
+  isUpperCorner?: boolean;  // true = górna wisząca, false = dolna (Type A only)
+  cornerOpeningType?: string;  // Type A base: TWO_DOORS | BIFOLD
+  cornerFrontUchylnyWidthMm?: number;  // Type B: szerokość frontu uchylnego 400-600mm
 
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;  // tryb pozycjonowania (dla UPPER_*)
@@ -220,6 +222,8 @@ export interface CabinetFormData {
   cornerMechanism?: CornerMechanismType;
   cornerShelfQuantity?: number;
   isUpperCorner?: boolean;
+  cornerOpeningType?: string;
+  cornerFrontUchylnyWidthMm?: number;
 
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;

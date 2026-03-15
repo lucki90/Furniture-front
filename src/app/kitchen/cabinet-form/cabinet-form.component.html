@@ -136,9 +136,9 @@
   <div *ngIf="visibility.cornerWidthA" class="corner-section">
     <h4 class="section-title">Konfiguracja narożnika</h4>
 
-    <!-- Typ montażu: dolna/górna -->
+    <!-- Typ montażu: dolna/górna (tylko dla Type A — ukryte dla Type B) -->
     <div class="form-row">
-      <div class="form-group flex-2">
+      <div class="form-group flex-2" *ngIf="visibility.isUpperCorner">
         <label class="form-label">Typ montażu</label>
         <select class="form-control" formControlName="isUpperCorner">
           <option [ngValue]="false">Dolna (z blatem)</option>
@@ -150,6 +150,42 @@
         <select class="form-control" formControlName="cornerMechanism">
           <option *ngFor="let m of availableCornerMechanisms" [value]="m.value">{{ m.label }}</option>
         </select>
+      </div>
+    </div>
+
+    <!-- Typ otwarcia (Type A: dwie drzwi, harmonijka lub ślepy narożnik) -->
+    <div class="form-row" *ngIf="visibility.cornerOpeningType">
+      <div class="form-group flex-2">
+        <label class="form-label">Typ otwarcia</label>
+        <select class="form-control" formControlName="cornerOpeningType">
+          <option value="TWO_DOORS">2 drzwi (jedna na każde ramię)</option>
+          <option value="BIFOLD">Harmonijka (bifold — para skrzydeł na jednym ramieniu)</option>
+          <option value="BLIND">Ślepy (jedno ramię bez frontu — zasłonięte ścianą lub szafką)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Szerokość frontu uchylnego (tylko Type B: Blind/Magic Corner/Le Mans) -->
+    <div class="form-row" *ngIf="visibility.cornerFrontUchylnyWidth">
+      <div class="form-group flex-2">
+        <label class="form-label">Szerokość frontu uchylnego</label>
+        <div class="input-with-unit">
+          <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm"
+                 min="400" max="600" step="50">
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-hint">400–600 mm (domyślnie 500 mm)</span>
+        <span class="form-error"
+              *ngIf="form.get('cornerFrontUchylnyWidthMm')?.touched && form.get('cornerFrontUchylnyWidthMm')?.errors">
+          <ng-container *ngIf="form.get('cornerFrontUchylnyWidthMm')?.errors?.['min']">Min: 400</ng-container>
+          <ng-container *ngIf="form.get('cornerFrontUchylnyWidthMm')?.errors?.['max']">Max: 600</ng-container>
+          <ng-container *ngIf="form.get('cornerFrontUchylnyWidthMm')?.errors?.['required']">Wymagane</ng-container>
+        </span>
+      </div>
+      <div class="form-group flex-2">
+        <span class="form-hint" style="display:block; margin-top: 28px;">
+          ℹ Front uchylny zasłania przestrzeń narożną i umożliwia dostęp do mechanizmu.
+        </span>
       </div>
     </div>
 
@@ -169,7 +205,7 @@
           <ng-container *ngIf="form.get('cornerWidthA')?.errors?.['max']">Max: {{ cornerConstraints.widthMax }}</ng-container>
         </span>
       </div>
-      <div class="form-group">
+      <div class="form-group" *ngIf="visibility.cornerWidthB">
         <label class="form-label">Szerokość B</label>
         <div class="input-with-unit">
           <input type="number" class="form-control" formControlName="cornerWidthB"
@@ -220,24 +256,37 @@
       </div>
     </div>
 
-    <!-- Wizualizacja kształtu L -->
+    <!-- Wizualizacja kształtu: L (Type A) lub prostokąt z frontem uchylnym (Type B) -->
     <div class="corner-preview">
       <svg viewBox="0 0 200 200" class="corner-svg">
-        <!-- Kształt L -->
-        <polygon
-          [attr.points]="'10,10 ' + (10 + 80) + ',10 ' + (10 + 80) + ',' + (10 + 40) + ' ' + (10 + 40) + ',' + (10 + 40) + ' ' + (10 + 40) + ',' + (10 + 80) + ' 10,' + (10 + 80)"
-          fill="#e8d4a8" stroke="#8B4513" stroke-width="2"/>
-        <!-- Etykiety wymiarów -->
-        <text x="50" y="8" font-size="10" text-anchor="middle">A: {{ form.get('cornerWidthA')?.value }}mm</text>
-        <text x="5" y="55" font-size="10" text-anchor="middle" transform="rotate(-90, 5, 55)">B: {{ form.get('cornerWidthB')?.value }}mm</text>
+        <!-- Type A: Kształt L -->
+        <ng-container *ngIf="!isCornerTypeB">
+          <polygon
+            [attr.points]="'10,10 ' + (10 + 80) + ',10 ' + (10 + 80) + ',' + (10 + 40) + ' ' + (10 + 40) + ',' + (10 + 40) + ' ' + (10 + 40) + ',' + (10 + 80) + ' 10,' + (10 + 80)"
+            fill="#e8d4a8" stroke="#8B4513" stroke-width="2"/>
+          <!-- Etykiety wymiarów -->
+          <text x="50" y="8" font-size="10" text-anchor="middle">A: {{ form.get('cornerWidthA')?.value }}mm</text>
+          <text x="5" y="55" font-size="10" text-anchor="middle" transform="rotate(-90, 5, 55)">B: {{ form.get('cornerWidthB')?.value }}mm</text>
+        </ng-container>
+        <!-- Type B: Prostokąt z frontem uchylnym -->
+        <ng-container *ngIf="isCornerTypeB">
+          <rect x="10" y="10" width="100" height="80" fill="#d4e8d4" stroke="#2e7d32" stroke-width="2"/>
+          <!-- Front uchylny (wyróżniony kolorem) -->
+          <rect x="10" y="10" [attr.width]="(form.get('cornerFrontUchylnyWidthMm')?.value || 500) / 12" height="80"
+                fill="#a5d6a7" stroke="#2e7d32" stroke-width="2"/>
+          <text x="60" y="8" font-size="10" text-anchor="middle">A: {{ form.get('cornerWidthA')?.value }}mm</text>
+          <text x="8" y="55" font-size="9" text-anchor="middle" transform="rotate(-90, 8, 55)">front: {{ form.get('cornerFrontUchylnyWidthMm')?.value }}mm</text>
+          <text x="60" y="55" font-size="8" text-anchor="middle" fill="#555">Ślepy narożnik</text>
+        </ng-container>
         <!-- Ikona mechanizmu -->
-        <text x="100" y="120" font-size="24" text-anchor="middle">
+        <text x="100" y="140" font-size="24" text-anchor="middle">
           {{ currentCornerMechanism === 'MAGIC_CORNER' ? '🪄' :
              currentCornerMechanism === 'CAROUSEL_270' || currentCornerMechanism === 'CAROUSEL_360' ? '🎠' :
              currentCornerMechanism === 'LE_MANS' ? '🫘' :
-             currentCornerMechanism === 'FIXED_SHELVES' ? '📚' : '📦' }}
+             currentCornerMechanism === 'FIXED_SHELVES' ? '📚' :
+             currentCornerMechanism === 'BLIND_CORNER' ? '🚪' : '📦' }}
         </text>
-        <text x="100" y="140" font-size="10" text-anchor="middle">{{ currentCornerMechanismLabel }}</text>
+        <text x="100" y="160" font-size="10" text-anchor="middle">{{ currentCornerMechanismLabel }}</text>
       </svg>
     </div>
   </div>

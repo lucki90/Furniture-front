@@ -177,10 +177,13 @@ export interface ProjectCabinetRequest {
  */
 export interface CornerCabinetRequest {
   widthA: number;
-  widthB: number;
+  widthB?: number | null;    // null dla Type B (brak ściany B)
   mechanism: CornerMechanismType;
   shelfQuantity?: number;
   upperCabinet: boolean;
+  cornerOpeningType?: string;       // Type A base: TWO_DOORS | BIFOLD
+  frontUchylnyWidthMm?: number;     // Type B: szerokość frontu uchylnego 400-600mm
+  magicCornerFrontOnHinges?: boolean; // MAGIC_CORNER: front na zawiasach (opcjonalne)
 }
 
 export interface DrawerRequest {
@@ -400,6 +403,8 @@ export interface CabinetPlacementResponse {
   cornerMechanism?: string;
   cornerShelfQuantity?: number;
   isUpperCorner?: boolean;
+  cornerOpeningType?: string;
+  cornerFrontUchylnyWidthMm?: number;
 
   // Additional configuration - tall cabinet segments
   segments?: SegmentRequest[];

@@ -7,10 +7,12 @@ export interface CabinetFormVisibility {
   // Pola dla szafki narożnej (CORNER_CABINET)
   width: boolean;  // Standardowe pole szerokości (ukryte dla narożnika)
   cornerWidthA: boolean;  // Szerokość na ścianie A
-  cornerWidthB: boolean;  // Szerokość na ścianie B
+  cornerWidthB: boolean;  // Szerokość na ścianie B (Type A tylko)
   cornerMechanism: boolean;  // Typ mechanizmu (Magic Corner, karuzela, itp.)
-  cornerShelfQuantity: boolean;  // Liczba półek (tylko dla FIXED_SHELVES)
-  isUpperCorner: boolean;  // Wybór: dolna/górna
+  cornerShelfQuantity: boolean;  // Liczba półek (tylko dla FIXED_SHELVES i BLIND_CORNER)
+  isUpperCorner: boolean;  // Wybór: dolna/górna (Type A tylko)
+  cornerOpeningType: boolean;  // Typ otwarcia: TWO_DOORS | BIFOLD (Type A base only)
+  cornerFrontUchylnyWidth: boolean;  // Szerokość frontu uchylnego 400-600mm (Type B only)
 
   // Pola pozycjonowania szafek wiszących (UPPER_*)
   positioningMode: boolean;       // Tryb: SUFIT / BLAT

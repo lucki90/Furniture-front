@@ -3,104 +3,177 @@ import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabin
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
 import {
   CornerMechanismType,
+  CornerOpeningType,
   BASE_CORNER_CONSTRAINTS,
-  UPPER_CORNER_CONSTRAINTS
+  UPPER_CORNER_CONSTRAINTS,
+  BLIND_CORNER_CONSTRAINTS,
+  isBlindType,
+  isAllowedForUpperCabinet
 } from '../../model/corner-cabinet.model';
 
 /**
  * Preparer dla szafki narożnej (CORNER_CABINET).
- * Inicjalizuje formularz z domyślnymi wartościami dla narożnika.
+ *
+ * Obsługuje dwa fizycznie różne typy narożników:
+ * - Type A (L-shaped): FIXED_SHELVES, NONE, CAROUSEL_270, CAROUSEL_360
+ *   widthA + widthB, głębokość 560mm, typ otwarcia (TWO_DOORS | BIFOLD)
+ * - Type B (Blind/Rectangular): BLIND_CORNER, MAGIC_CORNER, LE_MANS
+ *   tylko widthA, głębokość 510mm, frontUchylnyWidthMm 400-600mm, wyłącznie dolna
  */
 export class CornerCabinetPreparer implements KitchenCabinetPreparer {
 
   prepare(form: FormGroup, v: CabinetFormVisibility): void {
-    // Widoczność - pokaż pola narożnika, ukryj standardowe
-    v.width = false;  // Zamiast width używamy cornerWidthA i cornerWidthB
-    v.shelfQuantity = false;  // Półki zależą od mechanizmu
+    // Ukryj standardowe pola — narożnik używa własnych
+    v.width = false;
+    v.shelfQuantity = false;
     v.drawerQuantity = false;
     v.drawerModel = false;
     v.segments = false;
 
-    // Pokaż pola specyficzne dla narożnika
+    // Pola wspólne narożnika
     v.cornerWidthA = true;
-    v.cornerWidthB = true;
     v.cornerMechanism = true;
-    v.isUpperCorner = true;
-
-    // Pokaż sekcję obudowy bocznej
     v.enclosureSection = true;
 
-    // Wartości domyślne dla dolnej szafki narożnej
-    const isUpper = form.get('isUpperCorner')?.value ?? false;
-    const constraints = isUpper ? UPPER_CORNER_CONSTRAINTS : BASE_CORNER_CONSTRAINTS;
+    // Wstępna konfiguracja na podstawie bieżącego mechanizmu
+    const mechanism = (form.get('cornerMechanism')?.value ?? CornerMechanismType.FIXED_SHELVES) as CornerMechanismType;
+    this.updateVisibilityForMechanism(mechanism, form, v);
 
-    form.patchValue({
-      // Wymiary domyślne
-      cornerWidthA: 900,
-      cornerWidthB: 900,
-      height: isUpper ? 720 : 720,
-      depth: isUpper ? 320 : BASE_CORNER_CONSTRAINTS.depth,
-      // Mechanizm domyślny
-      cornerMechanism: CornerMechanismType.FIXED_SHELVES,
-      cornerShelfQuantity: 2,
-      isUpperCorner: false,
-      // Ukryte pola
-      width: 900,  // Dla kompatybilności używamy cornerWidthA
-      shelfQuantity: 0,
-      drawerQuantity: 0,
-      drawerModel: null
-    });
+    // Wartości domyślne
+    this.applyDefaultValues(form, mechanism);
 
-    // Wyłącz standardowe pola
+    // Wyłącz pola nieużywane
     this.setControlEnabled(form.get('width'), false);
     this.setControlEnabled(form.get('drawerQuantity'), false);
     this.setControlEnabled(form.get('shelfQuantity'), false);
     this.setControlEnabled(form.get('drawerModel'), false);
 
-    // Obserwuj zmiany typu (dolna/górna)
+    // Nasłuchuj zmian mechanizmu
+    this.setupMechanismListener(form, v);
+
+    // Nasłuchuj zmian isUpperCorner (tylko Type A)
     this.setupUpperCabinetListener(form, v);
   }
 
   /**
-   * Reaguje na zmianę typu szafki (dolna/górna).
+   * Ustawia widoczność pól w zależności od mechanizmu (Type A / Type B).
+   */
+  private updateVisibilityForMechanism(
+    mechanism: CornerMechanismType, form: FormGroup, v: CabinetFormVisibility
+  ): void {
+    const typeB = isBlindType(mechanism);
+
+    // Type B: brak widthB, brak isUpperCorner, brak cornerOpeningType; ma frontUchylnyWidth
+    v.cornerWidthB = !typeB;
+    v.isUpperCorner = !typeB;
+    v.cornerOpeningType = !typeB;  // BIFOLD dozwolony zarówno dla dolnych jak i górnych
+    v.cornerFrontUchylnyWidth = typeB;
+
+    // Półki: FIXED_SHELVES (Type A) lub BLIND_CORNER (Type B)
+    v.cornerShelfQuantity = mechanism === CornerMechanismType.FIXED_SHELVES
+      || mechanism === CornerMechanismType.BLIND_CORNER;
+  }
+
+  private applyDefaultValues(form: FormGroup, mechanism: CornerMechanismType): void {
+    const typeB = isBlindType(mechanism);
+    const isUpper = !typeB && (form.get('isUpperCorner')?.value ?? false);
+    const constraints = typeB ? BLIND_CORNER_CONSTRAINTS
+                      : isUpper ? UPPER_CORNER_CONSTRAINTS
+                      : BASE_CORNER_CONSTRAINTS;
+
+    const patch: any = {
+      cornerWidthA: typeB ? 1000 : (isUpper ? 700 : 900),
+      cornerWidthB: isUpper ? 700 : 900,
+      height: 720,
+      depth: constraints.depth,
+      cornerMechanism: mechanism,
+      width: typeB ? 1000 : (isUpper ? 700 : 900),
+      shelfQuantity: 0,
+      drawerQuantity: 0,
+      drawerModel: null
+    };
+
+    if (typeB) {
+      patch.cornerFrontUchylnyWidthMm = form.get('cornerFrontUchylnyWidthMm')?.value ?? 500;
+      patch.cornerShelfQuantity = mechanism === CornerMechanismType.BLIND_CORNER
+        ? (form.get('cornerShelfQuantity')?.value ?? 0) : 0;
+      patch.isUpperCorner = false;
+    } else {
+      patch.cornerOpeningType = form.get('cornerOpeningType')?.value ?? CornerOpeningType.TWO_DOORS;
+      patch.cornerShelfQuantity = mechanism === CornerMechanismType.FIXED_SHELVES
+        ? (form.get('cornerShelfQuantity')?.value ?? 2) : 0;
+    }
+
+    form.patchValue(patch);
+  }
+
+  /**
+   * Nasłuchuje zmian mechanizmu — reroutuje widoczność (Type A ↔ Type B).
+   */
+  private setupMechanismListener(form: FormGroup, v: CabinetFormVisibility): void {
+    const mechanismControl = form.get('cornerMechanism');
+    if (!mechanismControl) return;
+
+    mechanismControl.valueChanges.subscribe((mechanism: CornerMechanismType) => {
+      const typeB = isBlindType(mechanism);
+
+      this.updateVisibilityForMechanism(mechanism, form, v);
+
+      // Przy przejściu na Type B — wymuś dolną szafkę i wyczyść widthB
+      if (typeB) {
+        form.patchValue({
+          isUpperCorner: false,
+          cornerFrontUchylnyWidthMm: form.get('cornerFrontUchylnyWidthMm')?.value ?? 500,
+          depth: BLIND_CORNER_CONSTRAINTS.depth,
+          cornerShelfQuantity: mechanism === CornerMechanismType.BLIND_CORNER
+            ? (form.get('cornerShelfQuantity')?.value ?? 0) : 0
+        });
+      } else {
+        // Type A — przywróć domyślne dla isUpperCorner
+        const isUpper = form.get('isUpperCorner')?.value ?? false;
+        const constraints = isUpper ? UPPER_CORNER_CONSTRAINTS : BASE_CORNER_CONSTRAINTS;
+        form.patchValue({
+          depth: constraints.depth,
+          cornerShelfQuantity: mechanism === CornerMechanismType.FIXED_SHELVES
+            ? (form.get('cornerShelfQuantity')?.value ?? 2) : 0
+        });
+      }
+    });
+
+    // Ustaw początkowy stan cornerShelfQuantity
+    v.cornerShelfQuantity = mechanismControl.value === CornerMechanismType.FIXED_SHELVES
+      || mechanismControl.value === CornerMechanismType.BLIND_CORNER;
+  }
+
+  /**
+   * Nasłuchuje zmian isUpperCorner (Type A only) — aktualizuje ograniczenia i widoczność cornerOpeningType.
    */
   private setupUpperCabinetListener(form: FormGroup, v: CabinetFormVisibility): void {
     const isUpperControl = form.get('isUpperCorner');
     if (!isUpperControl) return;
 
-    // Przy zmianie typu aktualizuj ograniczenia i widoczność półek
     isUpperControl.valueChanges.subscribe((isUpper: boolean) => {
+      const mechanism = form.get('cornerMechanism')?.value as CornerMechanismType;
+      const typeB = isBlindType(mechanism);
+      if (typeB) return;  // Type B nie ma górnej wersji
+
       const constraints = isUpper ? UPPER_CORNER_CONSTRAINTS : BASE_CORNER_CONSTRAINTS;
 
-      // Aktualizuj wymiary do domyślnych dla typu
+      // cornerOpeningType zawsze widoczny dla Type A (dolna i górna obsługują TWO_DOORS i BIFOLD)
+      v.cornerOpeningType = true;
+
       form.patchValue({
-        height: isUpper ? 720 : 720,
-        depth: isUpper ? 320 : BASE_CORNER_CONSTRAINTS.depth,
+        height: 720,
+        depth: constraints.depth,
         cornerWidthA: isUpper ? 700 : 900,
         cornerWidthB: isUpper ? 700 : 900
       });
 
-      // Dla górnej szafki ogranicz mechanizmy
-      const currentMechanism = form.get('cornerMechanism')?.value;
-      if (isUpper && currentMechanism &&
-          currentMechanism !== CornerMechanismType.FIXED_SHELVES &&
-          currentMechanism !== CornerMechanismType.NONE) {
-        form.patchValue({
-          cornerMechanism: CornerMechanismType.FIXED_SHELVES
-        });
+      // Resetuj mechanizm jeśli niedozwolony dla górnej (tylko FIXED_SHELVES dla górnych)
+      if (isUpper && mechanism && !isAllowedForUpperCabinet(mechanism)) {
+        form.patchValue({ cornerMechanism: CornerMechanismType.FIXED_SHELVES });
       }
     });
-
-    // Obserwuj zmianę mechanizmu - pokaż/ukryj półki
-    const mechanismControl = form.get('cornerMechanism');
-    if (mechanismControl) {
-      mechanismControl.valueChanges.subscribe((mechanism: CornerMechanismType) => {
-        v.cornerShelfQuantity = mechanism === CornerMechanismType.FIXED_SHELVES;
-      });
-
-      // Ustaw początkową widoczność półek
-      v.cornerShelfQuantity = mechanismControl.value === CornerMechanismType.FIXED_SHELVES;
-    }
   }
 
   private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {

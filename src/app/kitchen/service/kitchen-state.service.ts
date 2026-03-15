@@ -582,6 +582,8 @@ export class KitchenStateService {
       cornerMechanism: isCorner ? formData.cornerMechanism : undefined,
       cornerShelfQuantity: isCorner ? formData.cornerShelfQuantity : undefined,
       isUpperCorner: isCorner ? formData.isUpperCorner : undefined,
+      cornerOpeningType: isCorner ? formData.cornerOpeningType : undefined,
+      cornerFrontUchylnyWidthMm: isCorner ? formData.cornerFrontUchylnyWidthMm : undefined,
 
       // Pozycjonowanie szafek wiszących
       positioningMode: formData.positioningMode,
@@ -684,6 +686,8 @@ export class KitchenStateService {
             cornerMechanism: isCorner ? formData.cornerMechanism : undefined,
             cornerShelfQuantity: isCorner ? formData.cornerShelfQuantity : undefined,
             isUpperCorner: isCorner ? formData.isUpperCorner : undefined,
+            cornerOpeningType: isCorner ? formData.cornerOpeningType : undefined,
+            cornerFrontUchylnyWidthMm: isCorner ? formData.cornerFrontUchylnyWidthMm : undefined,
 
             // Pozycjonowanie szafek wiszących
             positioningMode: formData.positioningMode,
@@ -1106,13 +1110,15 @@ export class KitchenStateService {
 
         // Przygotuj cornerRequest dla CORNER_CABINET
         let cornerRequest: CornerCabinetRequest | undefined;
-        if (cab.type === KitchenCabinetType.CORNER_CABINET && cab.cornerWidthA && cab.cornerWidthB && cab.cornerMechanism) {
+        if (cab.type === KitchenCabinetType.CORNER_CABINET && cab.cornerWidthA && cab.cornerMechanism) {
           cornerRequest = {
             widthA: cab.cornerWidthA,
-            widthB: cab.cornerWidthB,
+            widthB: cab.cornerWidthB ?? null,
             mechanism: cab.cornerMechanism,
             shelfQuantity: cab.cornerShelfQuantity,
-            upperCabinet: cab.isUpperCorner ?? false
+            upperCabinet: cab.isUpperCorner ?? false,
+            cornerOpeningType: cab.cornerOpeningType,
+            frontUchylnyWidthMm: cab.cornerFrontUchylnyWidthMm
           };
         }
 

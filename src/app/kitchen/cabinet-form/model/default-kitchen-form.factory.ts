@@ -19,10 +19,12 @@ export class DefaultKitchenFormFactory {
 
       // Pola dla szafki narożnej (CORNER_CABINET)
       cornerWidthA: [900],       // Szerokość na ścianie A (mm)
-      cornerWidthB: [900],       // Szerokość na ścianie B (mm)
+      cornerWidthB: [900],       // Szerokość na ścianie B (mm) — Type A tylko
       cornerMechanism: [CornerMechanismType.FIXED_SHELVES],  // Typ mechanizmu
-      cornerShelfQuantity: [2],  // Liczba półek (dla FIXED_SHELVES)
-      isUpperCorner: [false],    // true = górna wisząca, false = dolna
+      cornerShelfQuantity: [2],  // Liczba półek (dla FIXED_SHELVES lub BLIND_CORNER)
+      isUpperCorner: [false],    // true = górna wisząca, false = dolna (Type A tylko)
+      cornerOpeningType: ['TWO_DOORS'],   // TWO_DOORS | BIFOLD (Type A base tylko)
+      cornerFrontUchylnyWidthMm: [500],  // 400–600mm (Type B tylko)
 
       // Pola pozycjonowania szafek wiszących (UPPER_*)
       positioningMode: ['RELATIVE_TO_CEILING'],  // RELATIVE_TO_CEILING | RELATIVE_TO_COUNTERTOP

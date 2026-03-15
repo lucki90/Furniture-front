@@ -23,7 +23,9 @@ import {
   UPPER_CORNER_MECHANISMS,
   BASE_CORNER_CONSTRAINTS,
   UPPER_CORNER_CONSTRAINTS,
-  mechanismRequiresShelves
+  BLIND_CORNER_CONSTRAINTS,
+  mechanismRequiresShelves,
+  isBlindType
 } from './model/corner-cabinet.model';
 import { ENCLOSURE_TYPE_OPTIONS, EnclosureType, getEnclosureTypeOptions } from './model/enclosure.model';
 
@@ -82,6 +84,15 @@ export class CabinetFormComponent implements OnChanges, OnInit {
    */
   get currentCornerMechanismLabel(): string {
     return this.cornerMechanismLabels[this.currentCornerMechanism] ?? '';
+  }
+
+  /**
+   * Czy aktualnie wybrany mechanizm to Type B (Blind/Rectangular).
+   * Type B: BLIND_CORNER, MAGIC_CORNER, LE_MANS
+   */
+  get isCornerTypeB(): boolean {
+    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
+    return mechanism ? isBlindType(mechanism) : false;
   }
 
   get isEditMode(): boolean {
@@ -442,7 +453,10 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       // Szafka wisząca na okap (UPPER_HOOD)
       hoodFrontType: (cabinet as any).hoodFrontType ?? 'FLAP',
       hoodScreenEnabled: (cabinet as any).hoodScreenEnabled ?? false,
-      hoodScreenHeightMm: (cabinet as any).hoodScreenHeightMm ?? 100
+      hoodScreenHeightMm: (cabinet as any).hoodScreenHeightMm ?? 100,
+      // Szafka narożna — nowe pola Type A/B
+      cornerOpeningType: (cabinet as any).cornerOpeningType ?? 'TWO_DOORS',
+      cornerFrontUchylnyWidthMm: (cabinet as any).cornerFrontUchylnyWidthMm ?? 500
     });
 
     this.onTypeChange(cabinet.type);
@@ -475,7 +489,9 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       cooktopFrontType: false,
       hoodFrontType: false,
       hoodScreenEnabled: false,
-      hoodScreenHeight: false
+      hoodScreenHeight: false,
+      cornerOpeningType: false,
+      cornerFrontUchylnyWidth: false
     };
 
     const config = KitchenCabinetTypeConfig[type];
@@ -513,7 +529,9 @@ export class CabinetFormComponent implements OnChanges, OnInit {
           cornerWidthB: this.editingCabinet.cornerWidthB,
           cornerMechanism: this.editingCabinet.cornerMechanism,
           cornerShelfQuantity: this.editingCabinet.cornerShelfQuantity,
-          isUpperCorner: this.editingCabinet.isUpperCorner
+          isUpperCorner: this.editingCabinet.isUpperCorner,
+          cornerOpeningType: (this.editingCabinet as any).cornerOpeningType ?? 'TWO_DOORS',
+          cornerFrontUchylnyWidthMm: (this.editingCabinet as any).cornerFrontUchylnyWidthMm ?? 500
         });
       }
 
@@ -606,8 +624,15 @@ export class CabinetFormComponent implements OnChanges, OnInit {
 
   /**
    * Reaguje na zmianę typu narożnika (dolna/górna).
+   * Dla Type B (Blind) mechanizm zarządza wyświetlaniem — isUpperCorner jest niewidoczny.
    */
   private onCornerTypeChange(isUpper: boolean): void {
+    // Type B (blind) zawsze dolna — zignoruj zmianę isUpperCorner
+    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
+    if (mechanism && isBlindType(mechanism)) {
+      return;
+    }
+
     if (isUpper) {
       this.cornerConstraints = UPPER_CORNER_CONSTRAINTS;
       this.availableCornerMechanisms = UPPER_CORNER_MECHANISMS.map(m => ({
@@ -648,6 +673,11 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       });
     }
 
+    // Aktualizuj widoczność pól zależnych od isUpper (Type A only)
+    this.visibility.cornerWidthB = !isUpper;
+    this.visibility.cornerOpeningType = !isUpper;
+    this.visibility.cornerFrontUchylnyWidth = false; // Type A never shows this
+
     // Rewaliduj formularz
     const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;
     if (type === KitchenCabinetType.CORNER_CABINET) {
@@ -658,8 +688,27 @@ export class CabinetFormComponent implements OnChanges, OnInit {
 
   /**
    * Reaguje na zmianę mechanizmu narożnika.
+   * Przełącza między Type A (L-shaped) a Type B (Blind/Rectangular) z pełnym update visibility.
    */
   private onCornerMechanismChange(mechanism: CornerMechanismType): void {
+    const typeB = mechanism ? isBlindType(mechanism) : false;
+    const isUpper = !typeB && (this.form.get('isUpperCorner')?.value ?? false);
+
+    // Aktualizuj constraints na podstawie typu
+    if (typeB) {
+      this.cornerConstraints = BLIND_CORNER_CONSTRAINTS;
+    } else if (isUpper) {
+      this.cornerConstraints = UPPER_CORNER_CONSTRAINTS;
+    } else {
+      this.cornerConstraints = BASE_CORNER_CONSTRAINTS;
+    }
+
+    // Widoczność pól specyficznych dla Type A / Type B
+    this.visibility.cornerWidthB = !typeB && !isUpper;
+    this.visibility.isUpperCorner = !typeB;
+    this.visibility.cornerOpeningType = !typeB && !isUpper;
+    this.visibility.cornerFrontUchylnyWidth = typeB;
+
     // Pokaż/ukryj pole półek w zależności od mechanizmu
     this.visibility.cornerShelfQuantity = mechanismRequiresShelves(mechanism);
 
