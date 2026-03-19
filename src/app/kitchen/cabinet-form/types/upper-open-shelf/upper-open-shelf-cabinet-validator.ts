@@ -1,7 +1,6 @@
 import { FormGroup, Validators } from '@angular/forms';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
-import { widthStepValidator } from '../../validators/width-step.validator';
 
 /**
  * Validator dla szafki wiszącej otwartej — bez drzwi (UPPER_OPEN_SHELF).
@@ -14,8 +13,7 @@ export class UpperOpenShelfCabinetValidator implements KitchenCabinetValidator {
     form.get('width')?.setValidators([
       Validators.required,
       Validators.min(this.constraints.WIDTH_MIN),
-      Validators.max(this.constraints.WIDTH_MAX),
-      widthStepValidator(this.constraints.WIDTH_MIN, this.constraints.WIDTH_STEP)
+      Validators.max(this.constraints.WIDTH_MAX)
     ]);
 
     form.get('height')?.setValidators([

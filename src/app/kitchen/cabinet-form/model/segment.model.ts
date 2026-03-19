@@ -2,9 +2,11 @@
  * Typ segmentu w szafce wielosegmentowej (np. słupek).
  */
 export enum SegmentType {
-  DRAWER = 'DRAWER',      // Segment z szufladami
-  DOOR = 'DOOR',          // Segment z drzwiami
-  OPEN_SHELF = 'OPEN_SHELF'  // Segment otwarty (bez frontu)
+  DRAWER = 'DRAWER',          // Segment z szufladami
+  DOOR = 'DOOR',              // Segment z drzwiami
+  OPEN_SHELF = 'OPEN_SHELF',  // Segment otwarty (bez frontu)
+  OVEN = 'OVEN',              // Wnęka na piekarnik (bez frontu, bez półek)
+  MICROWAVE = 'MICROWAVE'     // Wnęka na mikrofalówkę (bez frontu, bez półek)
 }
 
 /**
@@ -55,7 +57,9 @@ export interface SegmentRequest {
 export const SEGMENT_TYPE_OPTIONS: { value: SegmentType; label: string; icon: string }[] = [
   { value: SegmentType.DRAWER, label: 'Szuflady', icon: '🗄️' },
   { value: SegmentType.DOOR, label: 'Drzwi', icon: '🚪' },
-  { value: SegmentType.OPEN_SHELF, label: 'Otwarte półki', icon: '📚' }
+  { value: SegmentType.OPEN_SHELF, label: 'Otwarte półki', icon: '📚' },
+  { value: SegmentType.OVEN, label: 'Piekarnik (wnęka)', icon: '🔥' },
+  { value: SegmentType.MICROWAVE, label: 'Mikrofalówka (wnęka)', icon: '📡' }
 ];
 
 /**
@@ -72,7 +76,9 @@ export const DOOR_FRONT_TYPE_OPTIONS: { value: SegmentFrontType; label: string }
 export const SEGMENT_COLORS: Record<SegmentType, string> = {
   [SegmentType.DRAWER]: '#3498db',    // niebieski
   [SegmentType.DOOR]: '#27ae60',      // zielony
-  [SegmentType.OPEN_SHELF]: '#95a5a6' // szary
+  [SegmentType.OPEN_SHELF]: '#95a5a6', // szary
+  [SegmentType.OVEN]: '#e74c3c',      // czerwony — piekarnik
+  [SegmentType.MICROWAVE]: '#e67e22'  // pomarańczowy — mikrofalówka
 };
 
 /**
@@ -107,6 +113,14 @@ export function mapSegmentToRequest(segment: SegmentFormData): SegmentRequest {
     case SegmentType.OPEN_SHELF:
       request.frontType = 'OPEN';
       request.shelfQuantity = segment.shelfQuantity ?? 0;
+      break;
+
+    case SegmentType.OVEN:
+    case SegmentType.MICROWAVE:
+      // Wnęki AGD — bez frontu, bez półek (sprzęt zajmuje całą wnękę)
+      request.frontType = 'OPEN';
+      request.shelfQuantity = 0;
+      request.drawerRequest = null;
       break;
   }
 

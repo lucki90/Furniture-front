@@ -67,6 +67,12 @@ export class DefaultKitchenFormFactory {
       hoodScreenEnabled:  [false],            // blenda wewnętrzna maskująca mechanizm okapu
       hoodScreenHeightMm: [100],              // wysokość blendy (50–200mm, domyślnie 100mm)
 
+      // Pola szafki na piekarnik (BASE_OVEN)
+      ovenHeightType:      ['STANDARD'],    // STANDARD (595mm) | COMPACT (455mm)
+      ovenLowerSectionType:['LOW_DRAWER'],  // LOW_DRAWER | HINGED_DOOR | NONE
+      ovenApronEnabled:    [false],         // blenda dekoracyjna nad piekarnikiem
+      ovenApronHeightMm:   [60],            // wysokość blendy (30–150mm, domyślnie 60mm)
+
       // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
       isLiftUp:       [false],  // klapa lift-up zamiast drzwi obrotowych
       isFrontExtended:[false]   // front wychodzi ponad górny wieniec o extendedFrontMm

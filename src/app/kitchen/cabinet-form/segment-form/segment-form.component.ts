@@ -59,6 +59,19 @@ export class SegmentFormComponent implements OnInit {
     return this.segmentType === SegmentType.OPEN_SHELF;
   }
 
+  get isOvenSegment(): boolean {
+    return this.segmentType === SegmentType.OVEN;
+  }
+
+  get isMicrowaveSegment(): boolean {
+    return this.segmentType === SegmentType.MICROWAVE;
+  }
+
+  /** Wnęki AGD (piekarnik, mikro) — tylko wysokość, bez opcji dodatkowych */
+  get isApplianceSlot(): boolean {
+    return this.isOvenSegment || this.isMicrowaveSegment;
+  }
+
   get showShelfQuantity(): boolean {
     return this.isDoorSegment || this.isOpenShelfSegment;
   }
@@ -99,6 +112,17 @@ export class SegmentFormComponent implements OnInit {
           drawerQuantity: null,
           drawerModel: null,
           shelfQuantity: this.segmentForm.get('shelfQuantity')?.value ?? 0,
+          frontType: 'OPEN'
+        });
+        break;
+
+      case SegmentType.OVEN:
+      case SegmentType.MICROWAVE:
+        // Wnęka AGD — bez szuflad, bez półek, bez frontu
+        this.segmentForm.patchValue({
+          drawerQuantity: null,
+          drawerModel: null,
+          shelfQuantity: 0,
           frontType: 'OPEN'
         });
         break;

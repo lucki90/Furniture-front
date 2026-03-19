@@ -2,14 +2,15 @@ import { FormGroup } from '@angular/forms';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
 
-export class UpperHoodCabinetValidator implements KitchenCabinetValidator {
+export class BaseOvenFreestandingCabinetValidator implements KitchenCabinetValidator {
 
   validate(form: FormGroup): void {
-    const c = KitchenCabinetConstraints.UPPER_HOOD;
+    const c = KitchenCabinetConstraints.BASE_OVEN_FREESTANDING;
 
     const widthCtrl = form.get('width');
     if (widthCtrl) {
       const w = widthCtrl.value;
+      // Brak kroku — piekarnik wolnostojący może mieć dowolną szerokość w zakresie
       if (w < c.WIDTH_MIN || w > c.WIDTH_MAX) {
         widthCtrl.setErrors({ outOfRange: true });
       } else {
@@ -34,18 +35,6 @@ export class UpperHoodCabinetValidator implements KitchenCabinetValidator {
         depthCtrl.setErrors({ outOfRange: true });
       } else {
         depthCtrl.setErrors(null);
-      }
-    }
-
-    // Walidacja wysokości blendy wewnętrznej (gdy włączona)
-    const screenEnabledCtrl = form.get('hoodScreenEnabled');
-    const screenHeightCtrl = form.get('hoodScreenHeightMm');
-    if (screenEnabledCtrl?.value && screenHeightCtrl) {
-      const sh = screenHeightCtrl.value;
-      if (sh < c.HOOD_SCREEN_MIN || sh > c.HOOD_SCREEN_MAX) {
-        screenHeightCtrl.setErrors({ outOfRange: true });
-      } else {
-        screenHeightCtrl.setErrors(null);
       }
     }
   }

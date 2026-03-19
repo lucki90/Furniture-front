@@ -107,11 +107,11 @@
                 [attr.width]="pos.displayWidth"
                 [attr.height]="pos.bodyHeight"
                 [class.cabinet-body]="true"
-                [class.cabinet-bottom]="pos.zone === 'BOTTOM' && pos.type !== 'BASE_DISHWASHER_FREESTANDING'"
+                [class.cabinet-bottom]="pos.zone === 'BOTTOM' && pos.type !== 'BASE_DISHWASHER_FREESTANDING' && pos.type !== 'BASE_OVEN_FREESTANDING'"
                 [class.cabinet-top]="pos.zone === 'TOP'"
                 [class.cabinet-full]="pos.zone === 'FULL'"
                 [class.cabinet-corner]="pos.isCorner"
-                [class.cabinet-appliance-freestanding]="pos.type === 'BASE_DISHWASHER_FREESTANDING'"
+                [class.cabinet-appliance-freestanding]="pos.type === 'BASE_DISHWASHER_FREESTANDING' || pos.type === 'BASE_OVEN_FREESTANDING'"
                 [class.overflow]="pos.isOverflow"
                 rx="1">
             <title>{{ (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + '×' + pos.depth + 'mm' }}</title>
@@ -143,6 +143,18 @@
                     stroke-dasharray="2 2"
                     rx="0.5">
               </rect>
+              <!-- Wnęka AGD (piekarnik / mikrofalówka w słupku) -->
+              <rect *ngIf="front.type === 'APPLIANCE'"
+                    [attr.x]="front.x"
+                    [attr.y]="front.y"
+                    [attr.width]="front.width"
+                    [attr.height]="front.height"
+                    fill="#e0e0e0"
+                    class="front-rect appliance-slot"
+                    stroke="#9e9e9e"
+                    stroke-width="0.5"
+                    rx="0.5">
+              </rect>
               <!-- Linia półki wewnętrznej -->
               <line *ngIf="front.type === 'SHELF_LINE'"
                     [attr.x1]="front.x"
@@ -163,6 +175,14 @@
                   class="handle-line"
                   stroke-linecap="round"/>
           </g>
+
+          <!-- Linia separatora: wnęka piekarnika / sekcja dolna (BASE_OVEN) -->
+          <line *ngIf="pos.ovenSeparatorDisplayY"
+                [attr.x1]="pos.displayX + 1"
+                [attr.y1]="pos.ovenSeparatorDisplayY"
+                [attr.x2]="pos.displayX + pos.displayWidth - 1"
+                [attr.y2]="pos.ovenSeparatorDisplayY"
+                class="oven-separator-line"/>
 
           <!-- Nóżki — pionowe bary od korpusu do podłogi -->
           <g *ngIf="pos.feetHeight > 0" class="feet-group">

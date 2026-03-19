@@ -33,7 +33,9 @@ export class KitchenCabinetListComponent {
       [KitchenCabinetType.BASE_SINK]: 'Zlewowa',
       [KitchenCabinetType.BASE_COOKTOP]: 'Pod płytę grzewczą',
       [KitchenCabinetType.BASE_DISHWASHER]: 'Zmywarka (front)',
-      [KitchenCabinetType.BASE_DISHWASHER_FREESTANDING]: 'Zmywarka wolnostojąca'
+      [KitchenCabinetType.BASE_DISHWASHER_FREESTANDING]: 'Zmywarka wolnostojąca',
+      [KitchenCabinetType.BASE_OVEN]: 'Piekarnik (szafka)',
+      [KitchenCabinetType.BASE_OVEN_FREESTANDING]: 'Piekarnik wolnostojący'
     };
     return typeNames[type] ?? type;
   }

@@ -171,6 +171,12 @@ export interface ProjectCabinetRequest {
   hoodScreenEnabled?: boolean; // blenda wewnętrzna maskująca mechanizm okapu
   hoodScreenHeightMm?: number; // wysokość blendy wewnętrznej (50–200mm)
 
+  // Pola szafki na piekarnik (BASE_OVEN)
+  ovenHeightType?: string;         // STANDARD (595mm) | COMPACT (455mm)
+  ovenLowerSectionType?: string;   // LOW_DRAWER | HINGED_DOOR | NONE
+  ovenApronEnabled?: boolean;      // blenda dekoracyjna nad piekarnikiem
+  ovenApronHeightMm?: number;      // wysokość blendy (30–150mm)
+
   // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
   isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)

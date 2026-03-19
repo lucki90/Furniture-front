@@ -42,7 +42,18 @@ export interface CabinetFormVisibility {
   hoodScreenEnabled: boolean; // Checkbox: blenda wewnętrzna maskująca okap
   hoodScreenHeight: boolean;  // Pole wysokości blendy (aktywne gdy hoodScreenEnabled=true)
 
+  // Pola szafki na wbudowany piekarnik (BASE_OVEN)
+  ovenHeightType: boolean;        // Selector: STANDARD (595mm) / COMPACT (455mm)
+  ovenLowerSectionType: boolean;  // Selector: szuflada niska / drzwi / brak
+  ovenApronEnabled: boolean;      // Checkbox: blenda dekoracyjna nad piekarnikiem
+  ovenApronHeight: boolean;       // Pole wysokości blendy (aktywne gdy ovenApronEnabled=true)
+  ovenDrawerModel: boolean;       // Selector systemu szuflad (widoczny gdy ovenLowerSectionType=LOW_DRAWER)
+
   // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   liftUp: boolean;         // Checkbox: klapa lift-up zamiast drzwi obrotowych
   extendedFront: boolean;  // Checkbox: front wychodzi ponad korpus (isFrontExtended)
+
+  // Typ otwarcia (HANDLE, CLICK, MILLED, NONE)
+  // false dla wolnostojących urządzeń (mają własny uchwyt), domyślnie true
+  openingType: boolean;
 }

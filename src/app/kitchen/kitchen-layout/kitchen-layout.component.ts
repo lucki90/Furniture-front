@@ -76,6 +76,8 @@ interface VisualCabinetPosition {
   /** Szerokość obudowy w px (0 = brak). Dla płyty bocznej = 18mm×scale, dla blendy = fillerWidth×scale. */
   leftEnclosureDisplayWidth: number;
   rightEnclosureDisplayWidth: number;
+  /** Y-pozycja linii separatora piekarnik/sekcja dolna (px). Tylko dla BASE_OVEN gdy jest sekcja dolna. */
+  ovenSeparatorDisplayY?: number;
 }
 
 @Component({
@@ -296,6 +298,14 @@ export class KitchenLayoutComponent {
       // Generuj nóżki — pozycja: tuż pod korpusem (w szparze nad cokołem)
       const feet = this.generateFeet(displayX, displayY + bodyHeight, displayWidth, feetHeight);
 
+      // Dane piekarnika wbudowanego (dla wizualizacji i separatora)
+      const ovenConfig = cabinetType === KitchenCabinetType.BASE_OVEN ? {
+        ovenHeightType: originalCabinet?.ovenHeightType,
+        ovenLowerSectionType: originalCabinet?.ovenLowerSectionType,
+        ovenApronEnabled: originalCabinet?.ovenApronEnabled,
+        ovenApronHeightMm: originalCabinet?.ovenApronHeightMm
+      } : undefined;
+
       // Generuj fronty i uchwyty
       const { fronts, handles } = this.generateVisualElements(
         cabinetType,
@@ -307,8 +317,22 @@ export class KitchenLayoutComponent {
         segments,
         shelfQuantity,
         cascadeLowerHeight,
-        cascadeUpperHeight
+        cascadeUpperHeight,
+        ovenConfig
       );
+
+      // Separator piekarnik / sekcja dolna (tylko BASE_OVEN, gdy jest sekcja dolna)
+      let ovenSeparatorDisplayY: number | undefined;
+      if (cabinetType === KitchenCabinetType.BASE_OVEN && ovenConfig?.ovenLowerSectionType !== 'NONE') {
+        const T = 18; // grubość płyty (default, wystarczająca dokładność dla wizualizacji)
+        const apronH = ovenConfig?.ovenApronEnabled ? (ovenConfig?.ovenApronHeightMm ?? 0) : 0;
+        const ovenSlotH = ovenConfig?.ovenHeightType === 'COMPACT' ? 455 : 595;
+        ovenSeparatorDisplayY = displayY + Math.round((T + apronH + ovenSlotH) * sv);
+        // Ogranicz do obszaru korpusu (zapobiegaj wyjściu poza szafkę)
+        if (ovenSeparatorDisplayY >= displayY + bodyHeight || ovenSeparatorDisplayY <= displayY) {
+          ovenSeparatorDisplayY = undefined;
+        }
+      }
 
       // Oblicz różnice wymiarów
       const standardHeight = zone === 'TOP' ? this.STANDARD_TOP_HEIGHT : this.STANDARD_BOTTOM_HEIGHT;
@@ -360,7 +384,8 @@ export class KitchenLayoutComponent {
         leftEnclosureType: leftEncType,
         rightEnclosureType: rightEncType,
         leftEnclosureDisplayWidth,
-        rightEnclosureDisplayWidth
+        rightEnclosureDisplayWidth,
+        ovenSeparatorDisplayY
       };
     });
   });
@@ -398,7 +423,8 @@ export class KitchenLayoutComponent {
     segments?: SegmentFormData[],
     shelfQuantity?: number,
     cascadeLowerHeight?: number,
-    cascadeUpperHeight?: number
+    cascadeUpperHeight?: number,
+    ovenConfig?: { ovenHeightType?: string; ovenLowerSectionType?: string; ovenApronEnabled?: boolean; ovenApronHeightMm?: number }
   ): { fronts: DisplayFront[]; handles: DisplayHandle[] } {
     const fronts: DisplayFront[] = [];
     const handles: DisplayHandle[] = [];
@@ -460,7 +486,12 @@ export class KitchenLayoutComponent {
         break;
 
       case KitchenCabinetType.BASE_DISHWASHER_FREESTANDING:
-        // Wolnostojąca zmywarka — tylko korpus, bez frontu (wizualizacja AGD)
+      case KitchenCabinetType.BASE_OVEN_FREESTANDING:
+        // Wolnostojące AGD — tylko korpus, bez frontu (wizualizacja AGD)
+        break;
+
+      case KitchenCabinetType.BASE_OVEN:
+        this.addOvenElements(fronts, handles, displayX, bodyY, displayWidth, bodyHeight, gap, ovenConfig);
         break;
 
       default:
@@ -575,6 +606,91 @@ export class KitchenLayoutComponent {
         drawerY + drawerHeight / 2,
         Math.min(displayWidth * 0.4, 15)
       ));
+    }
+  }
+
+  /**
+   * Wizualizacja piekarnika wbudowanego (BASE_OVEN).
+   * Struktura (od góry):
+   *  - blenda dekoracyjna (opcjonalna, DOOR_SINGLE)
+   *  - wnęka piekarnika (APPLIANCE — szaro-srebrna)
+   *  - sekcja dolna: szuflada (DRAWER) | drzwi (DOOR_SINGLE) | brak (NONE)
+   * Separator między wnęką a sekcją dolną jest rysowany w HTML jako osobna linia (ovenSeparatorDisplayY).
+   */
+  private addOvenElements(
+    fronts: DisplayFront[],
+    handles: DisplayHandle[],
+    displayX: number,
+    bodyY: number,
+    displayWidth: number,
+    bodyHeight: number,
+    gap: number,
+    ovenConfig?: { ovenHeightType?: string; ovenLowerSectionType?: string; ovenApronEnabled?: boolean; ovenApronHeightMm?: number }
+  ): void {
+    const sv = this.SCALE_VERT();
+    const T = 18; // grubość płyty — ta sama stała co po stronie Java
+    const apronH = ovenConfig?.ovenApronEnabled ? (ovenConfig?.ovenApronHeightMm ?? 0) : 0;
+    const ovenSlotH = ovenConfig?.ovenHeightType === 'COMPACT' ? 455 : 595;
+    const lowerSectionType = ovenConfig?.ovenLowerSectionType ?? 'NONE';
+
+    const apronDisplayH = Math.round(apronH * sv);
+    const ovenSlotDisplayH = Math.round(ovenSlotH * sv);
+
+    // Blenda dekoracyjna (opcjonalna) — nad wnęką piekarnika
+    if (apronH > 0 && apronDisplayH > gap) {
+      fronts.push({
+        type: 'DOOR_SINGLE',
+        x: displayX + gap,
+        y: bodyY + gap,
+        width: displayWidth - gap * 2,
+        height: apronDisplayH - gap,
+        hingesSide: 'LEFT'
+      });
+    }
+
+    // Wnęka piekarnika — szaro-srebrna (APPLIANCE)
+    const ovenSlotY = bodyY + Math.round(T * sv) + apronDisplayH;
+    fronts.push({
+      type: 'APPLIANCE',
+      x: displayX + gap,
+      y: ovenSlotY,
+      width: displayWidth - gap * 2,
+      height: ovenSlotDisplayH
+    });
+
+    // Sekcja dolna: szuflada lub drzwi
+    const lowerStartPx = bodyY + Math.round((T + apronH + ovenSlotH + T) * sv);
+    const lowerH = bodyY + bodyHeight - gap - lowerStartPx;
+
+    if (lowerSectionType !== 'NONE' && lowerH > gap * 2) {
+      if (lowerSectionType === 'LOW_DRAWER') {
+        fronts.push({
+          type: 'DRAWER',
+          x: displayX + gap,
+          y: lowerStartPx,
+          width: displayWidth - gap * 2,
+          height: lowerH
+        });
+        handles.push(this.createHorizontalHandle(
+          displayX + displayWidth / 2,
+          lowerStartPx + lowerH / 2,
+          Math.min(displayWidth * 0.4, 15)
+        ));
+      } else if (lowerSectionType === 'HINGED_DOOR') {
+        fronts.push({
+          type: 'DOOR_SINGLE',
+          x: displayX + gap,
+          y: lowerStartPx,
+          width: displayWidth - gap * 2,
+          height: lowerH,
+          hingesSide: 'LEFT'
+        });
+        handles.push(this.createVerticalHandle(
+          displayX + displayWidth - gap - 4,
+          lowerStartPx + 3,
+          lowerH - 6
+        ));
+      }
     }
   }
 
@@ -720,6 +836,18 @@ export class KitchenLayoutComponent {
           // Segment otwarty - tylko obrys
           fronts.push({
             type: 'OPEN',
+            x: displayX + gap,
+            y: currentY,
+            width: displayWidth - gap * 2,
+            height: segmentHeightPx
+          });
+          break;
+
+        case SegmentType.OVEN:
+        case SegmentType.MICROWAVE:
+          // Wnęka AGD — srebrno-szary kolor (wypełnienie przez typ 'APPLIANCE')
+          fronts.push({
+            type: 'APPLIANCE',
             x: displayX + gap,
             y: currentY,
             width: displayWidth - gap * 2,
@@ -1237,6 +1365,9 @@ export class KitchenLayoutComponent {
         return 'zlew';
       case KitchenCabinetType.UPPER_HOOD:
         return 'okap';
+      case KitchenCabinetType.BASE_OVEN:
+      case KitchenCabinetType.BASE_OVEN_FREESTANDING:
+        return 'piek.';
       default:
         return null;
     }

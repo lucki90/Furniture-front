@@ -619,6 +619,12 @@ export class KitchenStateService {
       hoodScreenEnabled: (formData as any).hoodScreenEnabled ?? false,
       hoodScreenHeightMm: (formData as any).hoodScreenHeightMm ?? 100,
 
+      // Pola szafki na piekarnik (BASE_OVEN)
+      ovenHeightType: (formData as any).ovenHeightType ?? 'STANDARD',
+      ovenLowerSectionType: (formData as any).ovenLowerSectionType ?? 'LOW_DRAWER',
+      ovenApronEnabled: (formData as any).ovenApronEnabled ?? false,
+      ovenApronHeightMm: (formData as any).ovenApronHeightMm ?? 60,
+
       // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
       isLiftUp: (formData as any).isLiftUp ?? false,
       isFrontExtended: (formData as any).isFrontExtended ?? false,
@@ -726,6 +732,12 @@ export class KitchenStateService {
             hoodFrontType: (formData as any).hoodFrontType ?? 'FLAP',
             hoodScreenEnabled: (formData as any).hoodScreenEnabled ?? false,
             hoodScreenHeightMm: (formData as any).hoodScreenHeightMm ?? 100,
+
+            // Pola szafki na piekarnik (BASE_OVEN)
+            ovenHeightType: (formData as any).ovenHeightType ?? 'STANDARD',
+            ovenLowerSectionType: (formData as any).ovenLowerSectionType ?? 'LOW_DRAWER',
+            ovenApronEnabled: (formData as any).ovenApronEnabled ?? false,
+            ovenApronHeightMm: (formData as any).ovenApronHeightMm ?? 60,
 
             // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
             isLiftUp: (formData as any).isLiftUp ?? false,
@@ -1095,6 +1107,17 @@ export class KitchenStateService {
             drawerFrontDetails: null
           };
         }
+        // BASE_OVEN z szufladą niską (LOW_DRAWER) — wyślij model prowadnicy do backendu
+        // drawerQuantity: 1 żeby przejść walidację @Min(1); backend ignoruje ilość dla tacy
+        // Warunek: tylko gdy drawerModel jest ustawiony — dla HINGED_DOOR/NONE drawerModel=null
+        if (cab.type === KitchenCabinetType.BASE_OVEN && cab.drawerModel) {
+          drawerRequest = {
+            drawerQuantity: 1,
+            drawerModel: cab.drawerModel,
+            drawerBaseHdf: false,
+            drawerFrontDetails: null
+          };
+        }
 
         // Przygotuj segmenty dla TALL_CABINET
         let segments: SegmentRequest[] | undefined;
@@ -1228,6 +1251,12 @@ export class KitchenStateService {
           hoodScreenEnabled: (cab as any).hoodScreenEnabled ?? false,
           hoodScreenHeightMm: (cab as any).hoodScreenHeightMm ?? 0,
 
+          // Pola szafki na piekarnik (BASE_OVEN)
+          ovenHeightType: (cab as any).ovenHeightType,
+          ovenLowerSectionType: (cab as any).ovenLowerSectionType,
+          ovenApronEnabled: (cab as any).ovenApronEnabled ?? false,
+          ovenApronHeightMm: (cab as any).ovenApronHeightMm ?? 0,
+
           // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
           isLiftUp: (cab as any).isLiftUp ?? false,
           isFrontExtended: (cab as any).isFrontExtended ?? false
@@ -1240,7 +1269,8 @@ export class KitchenStateService {
         KitchenCabinetType.BASE_ONE_DOOR, KitchenCabinetType.BASE_TWO_DOOR,
         KitchenCabinetType.BASE_WITH_DRAWERS, KitchenCabinetType.CORNER_CABINET,
         KitchenCabinetType.BASE_SINK, KitchenCabinetType.BASE_COOKTOP,
-        KitchenCabinetType.BASE_DISHWASHER, KitchenCabinetType.BASE_DISHWASHER_FREESTANDING
+        KitchenCabinetType.BASE_DISHWASHER, KitchenCabinetType.BASE_DISHWASHER_FREESTANDING,
+        KitchenCabinetType.BASE_OVEN, KitchenCabinetType.BASE_OVEN_FREESTANDING
       ];
       const bottomCabs = wall.cabinets.filter(c => bottomCabinetTypes.includes(c.type));
       const leftOverhangMm = bottomCabs.length > 0

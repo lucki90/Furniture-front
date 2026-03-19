@@ -1,6 +1,5 @@
 import { FormGroup, Validators } from "@angular/forms";
 import { KitchenCabinetValidator } from "../../type-config/validator/kitchen-cabinet-validator";
-import { widthStepValidator } from "../../validators/width-step.validator";
 import {
   CornerMechanismType,
   BASE_CORNER_CONSTRAINTS,
@@ -54,16 +53,14 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     form.get('cornerWidthA')?.setValidators([
       Validators.required,
       Validators.min(constraints.widthMin),
-      Validators.max(constraints.widthMax),
-      widthStepValidator(constraints.widthMin, constraints.widthStep)
+      Validators.max(constraints.widthMax)
     ]);
 
     // Szerokość B
     form.get('cornerWidthB')?.setValidators([
       Validators.required,
       Validators.min(constraints.widthMin),
-      Validators.max(constraints.widthMax),
-      widthStepValidator(constraints.widthMin, constraints.widthStep)
+      Validators.max(constraints.widthMax)
     ]);
 
     // Wysokość
@@ -108,8 +105,7 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     form.get('cornerWidthA')?.setValidators([
       Validators.required,
       Validators.min(constraints.widthMin),
-      Validators.max(constraints.widthMax),
-      widthStepValidator(constraints.widthMin, constraints.widthStep)
+      Validators.max(constraints.widthMax)
     ]);
 
     // Szerokość B — nie wymagana dla Type B

@@ -10,7 +10,7 @@ export class BaseCooktopCabinetValidator implements KitchenCabinetValidator {
     const widthCtrl = form.get('width');
     if (widthCtrl) {
       const w = widthCtrl.value;
-      if (w < c.WIDTH_MIN || w > c.WIDTH_MAX || (w - c.WIDTH_MIN) % c.WIDTH_STEP !== 0) {
+      if (w < c.WIDTH_MIN || w > c.WIDTH_MAX) {
         widthCtrl.setErrors({ outOfRange: true });
       } else {
         widthCtrl.setErrors(null);

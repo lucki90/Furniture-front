@@ -152,6 +152,12 @@
   stroke-dasharray: 3 1;
 }
 
+/* Linia separatora: wnęka piekarnika / sekcja dolna (BASE_OVEN) */
+.oven-separator-line {
+  stroke: #546e7a;
+  stroke-width: 1.5;
+}
+
 /* Linia wymiarowa gap (przestrzeń robocza) */
 .gap-dimension-line {
   stroke: #ef6c00;

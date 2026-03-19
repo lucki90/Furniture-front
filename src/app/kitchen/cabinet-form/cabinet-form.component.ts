@@ -128,6 +128,16 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   }
 
   /**
+   * Czy aktualny typ to wolnostojące urządzenie AGD (piekarnik/zmywarka wolnostojące).
+   * Dla tych typów nie pokazujemy "Blat na wysokości" — nie mają blatu.
+   */
+  get isFreestandingAppliance(): boolean {
+    const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
+    return type === KitchenCabinetType.BASE_OVEN_FREESTANDING
+        || type === KitchenCabinetType.BASE_DISHWASHER_FREESTANDING;
+  }
+
+  /**
    * Czy tryb pozycjonowania to WZGLĘDEM_BLATU — pokazujemy pole odstępu.
    */
   get isCountertopMode(): boolean {
@@ -346,6 +356,47 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   }
 
   /**
+   * Czy aktualny typ to szafka na wbudowany piekarnik (BASE_OVEN).
+   */
+  get isOvenCabinet(): boolean {
+    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_OVEN;
+  }
+
+  /**
+   * Czy blenda dekoracyjna nad piekarnikiem jest włączona.
+   */
+  get isOvenApronEnabled(): boolean {
+    return this.form.get('ovenApronEnabled')?.value === true;
+  }
+
+  /**
+   * Reaguje na zmianę checkboxa blendy piekarnika — aktualizuje widoczność pola wysokości blendy.
+   */
+  onOvenApronEnabledChange(enabled: boolean): void {
+    this.visibility.ovenApronHeight = enabled;
+    const ctrl = this.form.get('ovenApronHeightMm');
+    if (ctrl) enabled ? ctrl.enable() : ctrl.disable();
+  }
+
+  /**
+   * Reaguje na zmianę sekcji dolnej piekarnika — pokaż/ukryj selector systemu szuflad.
+   */
+  onOvenLowerSectionTypeChange(sectionType: string): void {
+    const isLowDrawer = sectionType === 'LOW_DRAWER';
+    this.visibility.ovenDrawerModel = isLowDrawer;
+    const ctrl = this.form.get('drawerModel');
+    if (ctrl) {
+      if (isLowDrawer) {
+        ctrl.enable();
+        if (!ctrl.value) ctrl.setValue('ANTARO_TANDEMBOX');
+      } else {
+        ctrl.setValue(null);
+        ctrl.disable();
+      }
+    }
+  }
+
+  /**
    * Błąd kolejności głębokości segmentów kaskadowych.
    */
   get cascadeDepthError(): string | null {
@@ -454,6 +505,11 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       hoodFrontType: (cabinet as any).hoodFrontType ?? 'FLAP',
       hoodScreenEnabled: (cabinet as any).hoodScreenEnabled ?? false,
       hoodScreenHeightMm: (cabinet as any).hoodScreenHeightMm ?? 100,
+      // Szafka na piekarnik (BASE_OVEN)
+      ovenHeightType: (cabinet as any).ovenHeightType ?? 'STANDARD',
+      ovenLowerSectionType: (cabinet as any).ovenLowerSectionType ?? 'LOW_DRAWER',
+      ovenApronEnabled: (cabinet as any).ovenApronEnabled ?? false,
+      ovenApronHeightMm: (cabinet as any).ovenApronHeightMm ?? 60,
       // Szafka narożna — nowe pola Type A/B
       cornerOpeningType: (cabinet as any).cornerOpeningType ?? 'TWO_DOORS',
       cornerFrontUchylnyWidthMm: (cabinet as any).cornerFrontUchylnyWidthMm ?? 500,
@@ -493,10 +549,16 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       hoodFrontType: false,
       hoodScreenEnabled: false,
       hoodScreenHeight: false,
+      ovenHeightType: false,
+      ovenLowerSectionType: false,
+      ovenApronEnabled: false,
+      ovenApronHeight: false,
+      ovenDrawerModel: false,
       cornerOpeningType: false,
       cornerFrontUchylnyWidth: false,
       liftUp: false,
-      extendedFront: false
+      extendedFront: false,
+      openingType: true   // domyślnie widoczny; preparery wolnostojących urządzeń ustawiają false
     };
 
     const config = KitchenCabinetTypeConfig[type];

@@ -41,6 +41,12 @@ import {BaseDishwasherFreestandingRequestMapper} from "../types/base-dishwasher-
 import {UpperHoodCabinetPreparer} from "../types/upper-hood/upper-hood-cabinet-preparer";
 import {UpperHoodCabinetValidator} from "../types/upper-hood/upper-hood-cabinet-validator";
 import {UpperHoodRequestMapper} from "../types/upper-hood/upper-hood-request-mapper";
+import {BaseOvenCabinetPreparer} from "../types/base-oven/base-oven-cabinet-preparer";
+import {BaseOvenCabinetValidator} from "../types/base-oven/base-oven-cabinet-validator";
+import {BaseOvenRequestMapper} from "../types/base-oven/base-oven-request-mapper";
+import {BaseOvenFreestandingCabinetPreparer} from "../types/base-oven/base-oven-freestanding-cabinet-preparer";
+import {BaseOvenFreestandingCabinetValidator} from "../types/base-oven/base-oven-freestanding-cabinet-validator";
+import {BaseOvenFreestandingRequestMapper} from "../types/base-oven/base-oven-freestanding-request-mapper";
 
 export const KitchenCabinetTypeConfig = {
   [KitchenCabinetType.BASE_ONE_DOOR]: {
@@ -112,5 +118,15 @@ export const KitchenCabinetTypeConfig = {
     preparer: new UpperHoodCabinetPreparer(),
     validator: new UpperHoodCabinetValidator(),
     requestMapper: new UpperHoodRequestMapper()
+  },
+  [KitchenCabinetType.BASE_OVEN]: {
+    preparer: new BaseOvenCabinetPreparer(),
+    validator: new BaseOvenCabinetValidator(),
+    requestMapper: new BaseOvenRequestMapper()
+  },
+  [KitchenCabinetType.BASE_OVEN_FREESTANDING]: {
+    preparer: new BaseOvenFreestandingCabinetPreparer(),
+    validator: new BaseOvenFreestandingCabinetValidator(),
+    requestMapper: new BaseOvenFreestandingRequestMapper()
   }
 } as const;

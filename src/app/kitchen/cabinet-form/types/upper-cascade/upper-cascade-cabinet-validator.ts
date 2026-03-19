@@ -1,6 +1,5 @@
 import { FormGroup, Validators } from '@angular/forms';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
-import { widthStepValidator } from '../../validators/width-step.validator';
 
 /**
  * Validator dla szafki wiszącej kaskadowej (UPPER_CASCADE).
@@ -15,7 +14,6 @@ export class UpperCascadeCabinetValidator implements KitchenCabinetValidator {
 
   private readonly WIDTH_MIN = 200;
   private readonly WIDTH_MAX = 900;
-  private readonly WIDTH_STEP = 50;
 
   private readonly LOWER_DEPTH_MIN = 250;  // dolny = płytszy
   private readonly LOWER_DEPTH_MAX = 400;
@@ -30,8 +28,7 @@ export class UpperCascadeCabinetValidator implements KitchenCabinetValidator {
     form.get('width')?.setValidators([
       Validators.required,
       Validators.min(this.WIDTH_MIN),
-      Validators.max(this.WIDTH_MAX),
-      widthStepValidator(this.WIDTH_MIN, this.WIDTH_STEP)
+      Validators.max(this.WIDTH_MAX)
     ]);
 
     // Wysokość dolnego segmentu

@@ -6,7 +6,6 @@ export const KitchenCabinetConstraints = {
   BASE_ONE_DOOR: {
     WIDTH_MIN: 200,
     WIDTH_MAX: 600,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 680,
     HEIGHT_MAX: 760,
     DEPTH_MIN: 500,
@@ -17,7 +16,6 @@ export const KitchenCabinetConstraints = {
   BASE_TWO_DOOR: {
     WIDTH_MIN: 400,
     WIDTH_MAX: 900,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 680,
     HEIGHT_MAX: 760,
     DEPTH_MIN: 500,
@@ -28,7 +26,6 @@ export const KitchenCabinetConstraints = {
   BASE_WITH_DRAWERS: {
     WIDTH_MIN: 300,
     WIDTH_MAX: 600,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 680,
     HEIGHT_MAX: 760,
     DEPTH_MIN: 500,
@@ -39,7 +36,6 @@ export const KitchenCabinetConstraints = {
   BASE_SINK: {
     WIDTH_MIN: 400,
     WIDTH_MAX: 1200,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 600,
     HEIGHT_MAX: 900,
     DEPTH_MIN: 400,
@@ -50,7 +46,6 @@ export const KitchenCabinetConstraints = {
   TALL_CABINET: {
     WIDTH_MIN: 300,
     WIDTH_MAX: 600,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 1700,
     HEIGHT_MAX: 2500,
     DEPTH_MIN: 500,
@@ -63,7 +58,6 @@ export const KitchenCabinetConstraints = {
   UPPER_ONE_DOOR: {
     WIDTH_MIN: 200,
     WIDTH_MAX: 600,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 300,
     HEIGHT_MAX: 900,
     DEPTH_MIN: 250,
@@ -74,7 +68,6 @@ export const KitchenCabinetConstraints = {
   UPPER_TWO_DOOR: {
     WIDTH_MIN: 400,
     WIDTH_MAX: 900,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 300,
     HEIGHT_MAX: 900,
     DEPTH_MIN: 250,
@@ -85,7 +78,6 @@ export const KitchenCabinetConstraints = {
   UPPER_OPEN_SHELF: {
     WIDTH_MIN: 200,
     WIDTH_MAX: 900,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 300,
     HEIGHT_MAX: 900,
     DEPTH_MIN: 250,
@@ -96,7 +88,6 @@ export const KitchenCabinetConstraints = {
   BASE_COOKTOP: {
     WIDTH_MIN: 450,
     WIDTH_MAX: 900,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 600,
     HEIGHT_MAX: 900,
     DEPTH_MIN: 400,
@@ -122,7 +113,6 @@ export const KitchenCabinetConstraints = {
   UPPER_CASCADE: {
     WIDTH_MIN: 200,
     WIDTH_MAX: 900,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 200,
     HEIGHT_MAX: 1800,
     LOWER_DEPTH_MIN: 300,
@@ -135,13 +125,31 @@ export const KitchenCabinetConstraints = {
   UPPER_HOOD: {
     WIDTH_MIN: 450,
     WIDTH_MAX: 1200,
-    WIDTH_STEP: 50,
     HEIGHT_MIN: 300,
     HEIGHT_MAX: 720,
     DEPTH_MIN: 280,
     DEPTH_MAX: 400,
     HOOD_SCREEN_MIN: 50,
     HOOD_SCREEN_MAX: 200
+  },
+  BASE_OVEN: {
+    WIDTH_MIN: 500,
+    WIDTH_MAX: 900,
+    HEIGHT_MIN: 600,
+    HEIGHT_MAX: 950,
+    DEPTH_MIN: 550,
+    DEPTH_MAX: 650,
+    APRON_MIN: 30,
+    APRON_MAX: 150,
+    LOWER_SECTION_MIN: 50
+  },
+  BASE_OVEN_FREESTANDING: {
+    WIDTH_MIN: 200,
+    WIDTH_MAX: 1200,
+    HEIGHT_MIN: 300,
+    HEIGHT_MAX: 2000,
+    DEPTH_MIN: 200,
+    DEPTH_MAX: 1000
   }
 } as const;
 

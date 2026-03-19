@@ -32,6 +32,16 @@
       </span>
     </div>
 
+    <!-- Informacja dla wnęk AGD (OVEN / MICROWAVE) -->
+    <ng-container *ngIf="isApplianceSlot">
+      <div class="form-hint" style="margin-top: 4px; color: #666; font-size: 0.85em;">
+        ℹ <strong>Wysokość</strong> to wymiar wnęki w świetle (otwór w korpusie), do której wsunie się sprzęt.
+        Powinna być ok. 3–5 mm większa od sprzętu.<br>
+        Typowe wymiary: piekarnik standard <strong>598 mm</strong> (sprzęt 595 mm) ·
+        compact <strong>458 mm</strong> (sprzęt 455 mm) · mikrofalówka <strong>391 mm</strong> (sprzęt 388 mm).
+      </div>
+    </ng-container>
+
     <!-- Opcje dla szuflad (DRAWER) -->
     <ng-container *ngIf="showDrawerOptions">
       <div class="form-group">

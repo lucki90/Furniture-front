@@ -51,7 +51,9 @@ const BOARD_NAME_PL: Record<string, string> = {
   'HOOD_SCREEN': 'Blenda okapu',
   'CORNER_PANEL': 'Ścianka narożna',
   'BLIND_PANEL': 'Front ślepy',
-  'BIFOLD_INNER_FRONT': 'Skrzydło wewnętrzne (harmonijka)'
+  'BIFOLD_INNER_FRONT': 'Skrzydło wewnętrzne (harmonijka)',
+  'OVEN_APRON': 'Blenda piekarnika',
+  'OVEN_TRAY_FRONT': 'Front szuflady szybowej'
 };
 
 // Aggregated types for details tabs
@@ -782,6 +784,12 @@ export class KitchenPageComponent {
         }
 
         // Agreguj prace
+        // TODO: Brakuje prac oklejania (VENEER) dla zwykłych płyt wiórowych.
+        // Każda płyta ma veneerX/veneerY (liczba okleinowanych krawędzi) — należy wygenerować
+        // job VENEER per płyta na podstawie zagregowanych boardów z boardsMap.
+        // Problemem jest to, że trzeba wiedzieć KTÓRĄ krawędź oklejamy (nie tylko ile)
+        // — konieczne do prawidłowego oznaczenia na etykiecie i zachowania ciągłości słoi.
+        // Szczegółowy plan: CLAUDE.md → "TODO okleina (kolejna iteracja)".
         if (cabinet.jobs) {
           for (const job of cabinet.jobs) {
             const key = `${job.category}_${job.type}`;
