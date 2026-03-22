@@ -73,6 +73,13 @@ export class DefaultKitchenFormFactory {
       ovenApronEnabled:    [false],         // blenda dekoracyjna nad piekarnikiem
       ovenApronHeightMm:   [60],            // wysokość blendy (30–150mm, domyślnie 60mm)
 
+      // Pola szafki na lodówkę (BASE_FRIDGE)
+      fridgeSectionType:   ['TWO_DOORS'],   // ONE_DOOR | TWO_DOORS (domyślnie lodówka + zamrażarka)
+      lowerFrontHeightMm:  [713],           // wysokość dolnego frontu (zamrażarka, wg dokumentacji)
+
+      // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
+      fridgeFreestandingType: ['TWO_DOORS'], // SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
+
       // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
       isLiftUp:       [false],  // klapa lift-up zamiast drzwi obrotowych
       isFrontExtended:[false]   // front wychodzi ponad górny wieniec o extendedFrontMm

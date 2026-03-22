@@ -32,8 +32,8 @@
           </rect>
         }
 
-        <!-- Blat (countertop) - przezroczysta warstwa nad szafkami dolnymi -->
-        @if (getCountertopForWall(pos); as countertop) {
+        <!-- Blat (countertop) - segmenty nad ciągłymi przejazdami szafek dolnych -->
+        @for (countertop of getCountertopsForWall(pos); track countertop.x) {
           <g class="countertop-group">
             <rect
               [attr.x]="countertop.x"

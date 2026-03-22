@@ -61,23 +61,52 @@
       </div>
     </div>
 
-    <!-- Komunikat gdy brak segmentów -->
-    <div *ngIf="segmentsArray.length === 0" class="empty-message">
+    <!-- Sekcja lodówki (tylko dla BASE_FRIDGE z sekcjami górnymi) -->
+    <div *ngIf="fridgeSectionHeight > 0"
+         class="segment-block fridge-section-block"
+         [style.height.px]="fridgeSectionHeightPx">
+      <div class="segment-content">
+        <span class="segment-icon">🧊</span>
+        <span class="segment-info">
+          <span class="segment-type">Sekcja lodówki</span>
+          <span class="segment-height">{{ fridgeSectionHeight }}mm</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Komunikat gdy brak segmentów i brak sekcji lodówki -->
+    <div *ngIf="segmentsArray.length === 0 && fridgeSectionHeight <= 0" class="empty-message">
       Dodaj segmenty
     </div>
   </div>
 
-  <!-- Podsumowanie wysokości -->
-  <div class="height-summary" [class.invalid]="!isHeightValid">
-    <span class="sum-label">Suma:</span>
-    <span class="sum-value">{{ totalSegmentsHeight }}mm</span>
-    <span class="separator">/</span>
-    <span class="net-value">{{ netHeight }}mm</span>
-
-    <span class="difference" *ngIf="heightDifference !== 0">
-      (<span [class.over]="heightDifference > 0" [class.under]="heightDifference < 0">
-        {{ heightDifference > 0 ? '+' : '' }}{{ heightDifference }}mm
-      </span>)
-    </span>
-  </div>
+  <!-- Podsumowanie wysokości.
+       Dla BASE_FRIDGE z sekcjami górnymi: "Sekcje górne: Xmm + lodówka: Ymm = Zmm".
+       Dla BASE_FRIDGE bez sekcji górnych: ukryte (wizualizer sam pokazuje pełną sekcję lodówki).
+       Dla TALL_CABINET: standardowe "Suma: Xmm / Ymm". -->
+  <ng-container *ngIf="fridgeSectionHeight > 0 && segmentsArray.length > 0; else standardHeightSummary">
+    <div class="height-summary" [class.invalid]="!isHeightValid">
+      <span class="sum-label">Sekcje górne:</span>
+      <span class="sum-value">{{ totalSegmentsHeight }}mm</span>
+      <span class="separator">+</span>
+      <span class="fridge-label">lodówka:</span>
+      <span class="sum-value">{{ fridgeSectionHeight }}mm</span>
+      <span class="separator">=</span>
+      <span class="net-value">{{ netHeight }}mm</span>
+    </div>
+  </ng-container>
+  <ng-template #standardHeightSummary>
+    <div class="height-summary" [class.invalid]="!isHeightValid"
+         *ngIf="segmentsArray.length > 0">
+      <span class="sum-label">Suma:</span>
+      <span class="sum-value">{{ totalSegmentsHeight }}mm</span>
+      <span class="separator">/</span>
+      <span class="net-value">{{ netHeight }}mm</span>
+      <span class="difference" *ngIf="heightDifference !== 0">
+        (<span [class.over]="heightDifference > 0" [class.under]="heightDifference < 0">
+          {{ heightDifference > 0 ? '+' : '' }}{{ heightDifference }}mm
+        </span>)
+      </span>
+    </div>
+  </ng-template>
 </div>

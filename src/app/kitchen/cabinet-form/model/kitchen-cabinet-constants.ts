@@ -150,6 +150,24 @@ export const KitchenCabinetConstraints = {
     HEIGHT_MAX: 2000,
     DEPTH_MIN: 200,
     DEPTH_MAX: 1000
+  },
+  BASE_FRIDGE: {
+    WIDTH_MIN: 450,
+    WIDTH_MAX: 900,
+    HEIGHT_MIN: 1600,
+    HEIGHT_MAX: 2600,
+    DEPTH_MIN: 450,
+    DEPTH_MAX: 700,
+    LOWER_FRONT_MIN: 500,
+    LOWER_FRONT_MAX: 900
+  },
+  BASE_FRIDGE_FREESTANDING: {
+    WIDTH_MIN: 200,
+    WIDTH_MAX: 1600,
+    HEIGHT_MIN: 200,
+    HEIGHT_MAX: 2600,
+    DEPTH_MIN: 200,
+    DEPTH_MAX: 1000
   }
 } as const;
 

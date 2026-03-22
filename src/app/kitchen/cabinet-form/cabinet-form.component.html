@@ -20,6 +20,8 @@
               <option value="BASE_DISHWASHER_FREESTANDING">Dolna – zmywarka wolnostojąca</option>
               <option value="BASE_OVEN">Dolna – piekarnik (zabudowany)</option>
               <option value="BASE_OVEN_FREESTANDING">Dolna – piekarnik wolnostojący</option>
+              <option value="BASE_FRIDGE">Słupek – lodówka w zabudowie</option>
+              <option value="BASE_FRIDGE_FREESTANDING">Dolna – lodówka wolnostojąca</option>
             </optgroup>
             <optgroup label="Szafki wiszące">
               <option value="UPPER_ONE_DOOR">Wisząca – 1 drzwi</option>
@@ -301,7 +303,8 @@
         <option *ngFor="let opt of openingTypes" [value]="opt.value">{{ opt.label }}</option>
       </select>
     </div>
-    <div class="form-group" *ngIf="visibility.shelfQuantity">
+    <!-- Sekcja ogólna "Półki" — ukryta gdy aktywna jest sekcja lodówki (ma własną sekcję Półki) -->
+    <div class="form-group" *ngIf="visibility.shelfQuantity && !visibility.fridgeSectionType">
       <label class="form-label">Półki</label>
       <input type="number" class="form-control" formControlName="shelfQuantity">
       <span class="form-error" *ngIf="form.get('shelfQuantity')?.touched && form.get('shelfQuantity')?.errors">
@@ -451,48 +454,71 @@
     </div>
   </div>
 
-  <!-- Sekcja segmentów (dla TALL_CABINET) -->
+  <!-- Sekcja segmentów (dla TALL_CABINET i BASE_FRIDGE) -->
   <div *ngIf="visibility.segments" class="segments-section">
-    <h4 class="section-title">
+
+    <!-- Tytuł: TALL_CABINET -->
+    <h4 *ngIf="!isFridgeCabinet" class="section-title">
       Konfiguracja segmentów
       <span class="segment-count">({{ segmentsArray.length }})</span>
     </h4>
 
-    <!-- Wizualizer — pełna szerokość, klik otwiera popup edycji -->
-    <div class="segments-visualizer-wrapper">
+    <!-- Tytuł: BASE_FRIDGE -->
+    <h4 *ngIf="isFridgeCabinet" class="section-title">
+      Sekcje nad lodówką
+      <span class="segment-count" *ngIf="segmentsArray.length > 0">({{ segmentsArray.length }})</span>
+      <span class="form-hint" *ngIf="segmentsArray.length === 0"> — opcjonalne</span>
+    </h4>
+
+    <!-- Info o sekcji lodówki (BASE_FRIDGE) -->
+    <div *ngIf="isFridgeCabinet" class="fridge-section-info">
+      Sekcja lodówki: <strong>{{ baseFridgeValidator.getFridgeSectionHeight(form) }}mm</strong>
+      <span class="form-hint" *ngIf="segmentsArray.length > 0">
+        ({{ form.get('height')?.value }}mm − {{ baseFridgeValidator.getUpperSectionsHeightSum(form) }}mm sekcji górnych)
+      </span>
+    </div>
+
+    <!-- Wizualizer — pełna szerokość, klik otwiera popup edycji.
+         Dla BASE_FRIDGE: zawsze pokazujemy (blok sekcji lodówki widoczny od razu).
+         Dla TALL_CABINET: tylko gdy są segmenty. -->
+    <div class="segments-visualizer-wrapper" *ngIf="segmentsArray.length > 0 || isFridgeCabinet">
       <app-segment-visualizer
         [segmentsArray]="segmentsArray"
         [netHeight]="netCabinetHeight"
+        [fridgeSectionHeight]="fridgeSectionVisualHeight"
         [selectedIndex]="selectedSegmentIndex"
         (segmentSelected)="selectSegment($event)"
         (orderChanged)="onSegmentsReordered()">
       </app-segment-visualizer>
-      <p class="visualizer-hint">👆 Kliknij segment, aby edytować</p>
+      <p class="visualizer-hint" *ngIf="segmentsArray.length > 0">👆 Kliknij segment, aby edytować</p>
     </div>
 
     <button type="button" class="btn btn-secondary btn-add-segment" (click)="addSegment()">
-      + Dodaj segment
+      <ng-container *ngIf="isFridgeCabinet">+ Dodaj sekcję nad lodówką</ng-container>
+      <ng-container *ngIf="!isFridgeCabinet">+ Dodaj segment</ng-container>
     </button>
 
     <!-- Błąd walidacji wysokości segmentów -->
     <div *ngIf="segmentHeightError" class="segments-error">
-      {{ segmentHeightError }}
+      ⚠ {{ segmentHeightError }}
     </div>
   </div>
 
-  <!-- Popup edycji segmentu (fixed overlay, TALL_CABINET) -->
+  <!-- Popup edycji segmentu (fixed overlay) -->
   <div *ngIf="selectedSegmentIndex >= 0 && visibility.segments"
        class="segment-popup-backdrop"
        (click)="closeSegmentPopup()">
     <div class="segment-popup" (click)="$event.stopPropagation()">
       <div class="segment-popup-header">
-        <h4 class="segment-popup-title">✏️ Edycja segmentu {{ selectedSegmentIndex + 1 }}</h4>
+        <h4 *ngIf="!isFridgeCabinet" class="segment-popup-title">✏️ Edycja segmentu {{ selectedSegmentIndex + 1 }}</h4>
+        <h4 *ngIf="isFridgeCabinet" class="segment-popup-title">✏️ Edycja sekcji {{ selectedSegmentIndex + 1 }}</h4>
         <button type="button" class="btn-close-popup" (click)="closeSegmentPopup()" title="Zamknij">✕</button>
       </div>
       <app-segment-form
         *ngIf="selectedSegmentForm"
         [segmentForm]="selectedSegmentForm!"
         [segmentIndex]="selectedSegmentIndex"
+        [segmentTypeOptions]="activeSegmentTypeOptions"
         (remove)="removeSegment(selectedSegmentIndex)">
       </app-segment-form>
       <div class="segment-popup-footer">
@@ -725,6 +751,65 @@
         <span class="form-error" *ngIf="form.get('ovenApronHeightMm')?.errors?.['outOfRange']">
           Wysokość blendy musi mieścić się w zakresie 30–150 mm
         </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Szafka na wbudowaną lodówkę (BASE_FRIDGE) ============ -->
+  <div *ngIf="visibility.fridgeSectionType" class="sink-section">
+    <h4 class="section-title">Konfiguracja szafki na lodówkę</h4>
+
+    <!-- Typ sekcji: 1-drzwiowa / 2-drzwiowa -->
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Typ sekcji</label>
+        <select class="form-control" formControlName="fridgeSectionType"
+                (change)="onFridgeSectionTypeChange(form.get('fridgeSectionType')?.value)">
+          <option value="ONE_DOOR">Jednodrzwiowa (lodówka)</option>
+          <option value="TWO_DOORS">Dwudrzwiowa (lodówka + zamrażarka)</option>
+        </select>
+        <span class="form-hint">ONE_DOOR = 1 front na całą wysokość; TWO_DOORS = front górny (lodówka) + dolny (zamrażarka)</span>
+      </div>
+      <div class="form-group flex-2" *ngIf="visibility.lowerFrontHeightMm">
+        <label class="form-label">Wysokość frontu zamrażarki (mm)</label>
+        <input type="number" class="form-control" formControlName="lowerFrontHeightMm"
+               min="500" max="900" step="10">
+        <span class="form-hint">500–900 mm (domyślnie 713 mm)</span>
+        <span class="form-error" *ngIf="form.get('lowerFrontHeightMm')?.errors?.['min']">
+          Wysokość frontu zamrażarki min {{ form.get('lowerFrontHeightMm')?.errors?.['min']?.min }} mm
+        </span>
+        <span class="form-error" *ngIf="form.get('lowerFrontHeightMm')?.errors?.['max']">
+          Wysokość frontu zamrażarki max {{ form.get('lowerFrontHeightMm')?.errors?.['max']?.max }} mm
+        </span>
+        <span class="form-error" *ngIf="form.get('lowerFrontHeightMm')?.errors?.['outOfRange']">
+          Wysokość frontu zamrażarki musi mieścić się w zakresie 500–900 mm
+        </span>
+      </div>
+    </div>
+
+    <!-- Półka (opcjonalna — gdy >0 dodaje HDF tył) -->
+    <div class="form-row" *ngIf="visibility.shelfQuantity">
+      <div class="form-group flex-2">
+        <label class="form-label">Półki (opcjonalne)</label>
+        <input type="number" class="form-control" formControlName="shelfQuantity" min="0" max="2">
+        <span class="form-hint">0 = brak HDF (tylko korpus); ≥1 = dodaje HDF tył i półkę separującą</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Lodówka wolnostojąca (BASE_FRIDGE_FREESTANDING) ============ -->
+  <div *ngIf="visibility.fridgeFreestandingType" class="sink-section">
+    <h4 class="section-title">Konfiguracja lodówki wolnostojącej</h4>
+
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Typ wizualizacji</label>
+        <select class="form-control" formControlName="fridgeFreestandingType">
+          <option value="SINGLE_DOOR">Jednodrzwiowa</option>
+          <option value="TWO_DOORS">Dwudrzwiowa (zamrażarka u dołu)</option>
+          <option value="SIDE_BY_SIDE">Side-by-side (obok siebie)</option>
+        </select>
+        <span class="form-hint">Tylko wizualizacja SVG – lodówka wolnostojąca nie generuje płyt</span>
       </div>
     </div>
   </div>

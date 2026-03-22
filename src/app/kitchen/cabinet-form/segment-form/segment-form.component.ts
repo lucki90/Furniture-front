@@ -27,7 +27,7 @@ export class SegmentFormComponent implements OnInit {
 
   @Output() remove = new EventEmitter<void>();
 
-  readonly segmentTypeOptions = SEGMENT_TYPE_OPTIONS;
+  @Input() segmentTypeOptions = SEGMENT_TYPE_OPTIONS;
   readonly doorFrontTypeOptions = DOOR_FRONT_TYPE_OPTIONS;
   readonly constraints = KitchenCabinetConstraints.TALL_CABINET;
 

@@ -18,8 +18,10 @@ import { SegmentType, SEGMENT_COLORS, SEGMENT_TYPE_OPTIONS } from '../model/segm
 export class SegmentVisualizerComponent {
 
   @Input() segmentsArray!: FormArray;
-  @Input() netHeight: number = 2000;  // Wysokość netto szafki (bez cokołu)
+  @Input() netHeight: number = 2000;  // Całkowita wysokość szafki (netto)
   @Input() selectedIndex: number = -1;
+  /** Wysokość sekcji lodówki w mm (tylko dla BASE_FRIDGE). Gdy > 0, wyświetlany jest blok sekcji lodówki na dole. */
+  @Input() fridgeSectionHeight: number = 0;
 
   @Output() segmentSelected = new EventEmitter<number>();
   @Output() orderChanged = new EventEmitter<void>();
@@ -38,6 +40,14 @@ export class SegmentVisualizerComponent {
   }
 
   /**
+   * Oblicza wysokość bloku sekcji lodówki w pikselach (tylko dla BASE_FRIDGE).
+   */
+  get fridgeSectionHeightPx(): number {
+    if (this.fridgeSectionHeight <= 0 || this.netHeight <= 0) return 0;
+    return (this.fridgeSectionHeight / this.netHeight) * this.visualizerHeight;
+  }
+
+  /**
    * Oblicza sumę wysokości wszystkich segmentów.
    */
   get totalSegmentsHeight(): number {
@@ -48,18 +58,25 @@ export class SegmentVisualizerComponent {
   }
 
   /**
+   * Łączna wysokość segmentów + sekcja lodówki (dla BASE_FRIDGE).
+   */
+  get totalWithFridgeHeight(): number {
+    return this.totalSegmentsHeight + (this.fridgeSectionHeight > 0 ? this.fridgeSectionHeight : 0);
+  }
+
+  /**
    * Sprawdza czy suma wysokości jest poprawna (z tolerancją 5mm).
    */
   get isHeightValid(): boolean {
-    const difference = Math.abs(this.totalSegmentsHeight - this.netHeight);
+    const difference = Math.abs(this.totalWithFridgeHeight - this.netHeight);
     return difference <= 5;
   }
 
   /**
-   * Różnica między sumą segmentów a wysokością netto.
+   * Różnica między sumą segmentów (+ sekcja lodówki) a całkowitą wysokością szafki.
    */
   get heightDifference(): number {
-    return this.totalSegmentsHeight - this.netHeight;
+    return this.totalWithFridgeHeight - this.netHeight;
   }
 
   /**

@@ -49,6 +49,13 @@ export interface CabinetFormVisibility {
   ovenApronHeight: boolean;       // Pole wysokości blendy (aktywne gdy ovenApronEnabled=true)
   ovenDrawerModel: boolean;       // Selector systemu szuflad (widoczny gdy ovenLowerSectionType=LOW_DRAWER)
 
+  // Pola szafki na wbudowaną lodówkę (BASE_FRIDGE)
+  fridgeSectionType: boolean;   // Selector: ONE_DOOR | TWO_DOORS
+  lowerFrontHeightMm: boolean;  // Pole wysokości dolnego frontu (zamrażarka, tylko TWO_DOORS)
+
+  // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
+  fridgeFreestandingType: boolean;  // Selector: SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
+
   // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   liftUp: boolean;         // Checkbox: klapa lift-up zamiast drzwi obrotowych
   extendedFront: boolean;  // Checkbox: front wychodzi ponad korpus (isFrontExtended)

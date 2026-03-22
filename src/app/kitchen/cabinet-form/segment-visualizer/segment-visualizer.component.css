@@ -200,6 +200,22 @@
   color: #fd7e14;
 }
 
+/* Sekcja lodówki (BASE_FRIDGE) */
+.fridge-section-block {
+  background: #b0bec5;  /* blue-grey — symbolizuje lodówkę */
+  cursor: default;
+  min-height: 40px;
+}
+
+.fridge-section-block:hover {
+  filter: none;  /* brak efektu hover — blok nie jest interaktywny */
+}
+
+.fridge-label {
+  font-weight: 500;
+  color: #5c6bc0;
+}
+
 /* CDK Drag & Drop */
 .cdk-drag-preview {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);

@@ -860,7 +860,7 @@ export class KitchenPageComponent {
         }
       }
 
-      // 3. Agreguj cokół jako płytę
+      // 3. Agreguj cokół jako płytę (tylko gdy enabled i są segmenty)
       if (wall.plinth?.enabled && wall.plinth.segments) {
         // Grubość: użyj skonfigurowanej przez użytkownika, fallback wg materiału
         const plinthMat = wall.plinth.materialType ?? '';
@@ -888,18 +888,19 @@ export class KitchenPageComponent {
             });
           }
         }
+      }
 
-        // Komponenty cokołu (nóżki, klipsy)
-        if (wall.plinth.components) {
-          for (const comp of wall.plinth.components) {
-            this.addComponentToMap(componentsMap, {
-              name: comp.model,
-              type: comp.category,
-              quantity: comp.quantity,
-              unitCost: comp.priceEntry?.price ?? 0,
-              totalCost: comp.totalPrice ?? 0
-            });
-          }
+      // Komponenty cokołu (nóżki, klipsy) — agregowane nawet gdy cokół wyłączony,
+      // bo szafki takie jak BASE_FRIDGE mogą mieć nóżki bez panelu cokołu
+      if (wall.plinth?.components) {
+        for (const comp of wall.plinth.components) {
+          this.addComponentToMap(componentsMap, {
+            name: comp.model,
+            type: comp.category,
+            quantity: comp.quantity,
+            unitCost: comp.priceEntry?.price ?? 0,
+            totalCost: comp.totalPrice ?? 0
+          });
         }
       }
 

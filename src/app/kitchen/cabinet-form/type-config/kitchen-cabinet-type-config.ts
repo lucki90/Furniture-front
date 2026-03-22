@@ -47,6 +47,12 @@ import {BaseOvenRequestMapper} from "../types/base-oven/base-oven-request-mapper
 import {BaseOvenFreestandingCabinetPreparer} from "../types/base-oven/base-oven-freestanding-cabinet-preparer";
 import {BaseOvenFreestandingCabinetValidator} from "../types/base-oven/base-oven-freestanding-cabinet-validator";
 import {BaseOvenFreestandingRequestMapper} from "../types/base-oven/base-oven-freestanding-request-mapper";
+import {BaseFridgeCabinetPreparer} from "../types/base-fridge/base-fridge-cabinet-preparer";
+import {BaseFridgeCabinetValidator} from "../types/base-fridge/base-fridge-cabinet-validator";
+import {BaseFridgeRequestMapper} from "../types/base-fridge/base-fridge-request-mapper";
+import {BaseFridgeFreestandingCabinetPreparer} from "../types/base-fridge/base-fridge-freestanding-cabinet-preparer";
+import {BaseFridgeFreestandingCabinetValidator} from "../types/base-fridge/base-fridge-freestanding-cabinet-validator";
+import {BaseFridgeFreestandingRequestMapper} from "../types/base-fridge/base-fridge-freestanding-request-mapper";
 
 export const KitchenCabinetTypeConfig = {
   [KitchenCabinetType.BASE_ONE_DOOR]: {
@@ -128,5 +134,15 @@ export const KitchenCabinetTypeConfig = {
     preparer: new BaseOvenFreestandingCabinetPreparer(),
     validator: new BaseOvenFreestandingCabinetValidator(),
     requestMapper: new BaseOvenFreestandingRequestMapper()
+  },
+  [KitchenCabinetType.BASE_FRIDGE]: {
+    preparer: new BaseFridgeCabinetPreparer(),
+    validator: new BaseFridgeCabinetValidator(),
+    requestMapper: new BaseFridgeRequestMapper()
+  },
+  [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]: {
+    preparer: new BaseFridgeFreestandingCabinetPreparer(),
+    validator: new BaseFridgeFreestandingCabinetValidator(),
+    requestMapper: new BaseFridgeFreestandingRequestMapper()
   }
 } as const;

@@ -35,7 +35,9 @@ export class KitchenCabinetListComponent {
       [KitchenCabinetType.BASE_DISHWASHER]: 'Zmywarka (front)',
       [KitchenCabinetType.BASE_DISHWASHER_FREESTANDING]: 'Zmywarka wolnostojąca',
       [KitchenCabinetType.BASE_OVEN]: 'Piekarnik (szafka)',
-      [KitchenCabinetType.BASE_OVEN_FREESTANDING]: 'Piekarnik wolnostojący'
+      [KitchenCabinetType.BASE_OVEN_FREESTANDING]: 'Piekarnik wolnostojący',
+      [KitchenCabinetType.BASE_FRIDGE]: 'Szafka na lodówkę',
+      [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]: 'Lodówka wolnostojąca'
     };
     return typeNames[type] ?? type;
   }

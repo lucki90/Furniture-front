@@ -1,7 +1,7 @@
 import { Component, inject, computed, Input } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
-import { KitchenCabinet, CabinetZone, getCabinetZone } from '../model/kitchen-state.model';
+import { KitchenCabinet, CabinetZone, getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { SegmentFormData, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
 
@@ -119,7 +119,9 @@ export class KitchenLayoutComponent {
   /** Rzeczywista wysokość strefy dolnej: cokół + max(korpus dolnych, 720) */
   private readonly realBottomZoneMm = computed(() => {
     const plinth = this.stateService.plinthHeightMm();
-    const bottomCabs = this.stateService.cabinets().filter(c => getCabinetZone(c) === 'BOTTOM');
+    // Tylko szafki z blatem — wyklucza wolnostojące AGD (fridge/oven/dishwasher freestanding),
+    // żeby ich wysokość nie wpływała na rozmiar strefy dolnej w SVG.
+    const bottomCabs = this.stateService.cabinets().filter(c => requiresCountertop(c.type));
     const maxH = bottomCabs.length > 0 ? Math.max(...bottomCabs.map(c => c.height)) : 720;
     return plinth + maxH;
   });
@@ -306,6 +308,15 @@ export class KitchenLayoutComponent {
         ovenApronHeightMm: originalCabinet?.ovenApronHeightMm
       } : undefined;
 
+      // Dane lodówki (dla wizualizacji podziału na strefy)
+      const fridgeConfig = (cabinetType === KitchenCabinetType.BASE_FRIDGE || cabinetType === KitchenCabinetType.BASE_FRIDGE_FREESTANDING) ? {
+        fridgeSectionType: originalCabinet?.fridgeSectionType,
+        lowerFrontHeightMm: originalCabinet?.lowerFrontHeightMm,
+        fridgeFreestandingType: originalCabinet?.fridgeFreestandingType,
+        heightMm: originalCabinet?.height,
+        upperSections: originalCabinet?.segments  // sekcje nad lodówką (opcjonalne)
+      } : undefined;
+
       // Generuj fronty i uchwyty
       const { fronts, handles } = this.generateVisualElements(
         cabinetType,
@@ -318,7 +329,8 @@ export class KitchenLayoutComponent {
         shelfQuantity,
         cascadeLowerHeight,
         cascadeUpperHeight,
-        ovenConfig
+        ovenConfig,
+        fridgeConfig
       );
 
       // Separator piekarnik / sekcja dolna (tylko BASE_OVEN, gdy jest sekcja dolna)
@@ -424,7 +436,8 @@ export class KitchenLayoutComponent {
     shelfQuantity?: number,
     cascadeLowerHeight?: number,
     cascadeUpperHeight?: number,
-    ovenConfig?: { ovenHeightType?: string; ovenLowerSectionType?: string; ovenApronEnabled?: boolean; ovenApronHeightMm?: number }
+    ovenConfig?: { ovenHeightType?: string; ovenLowerSectionType?: string; ovenApronEnabled?: boolean; ovenApronHeightMm?: number },
+    fridgeConfig?: { fridgeSectionType?: string; lowerFrontHeightMm?: number; fridgeFreestandingType?: string; heightMm?: number; upperSections?: SegmentFormData[] }
   ): { fronts: DisplayFront[]; handles: DisplayHandle[] } {
     const fronts: DisplayFront[] = [];
     const handles: DisplayHandle[] = [];
@@ -490,6 +503,16 @@ export class KitchenLayoutComponent {
         // Wolnostojące AGD — tylko korpus, bez frontu (wizualizacja AGD)
         break;
 
+      case KitchenCabinetType.BASE_FRIDGE_FREESTANDING:
+        // Lodówka wolnostojąca — linie podziału dla TWO_DOORS i SIDE_BY_SIDE
+        this.addFridgeFreestandingElements(fronts, displayX, bodyY, displayWidth, bodyHeight, gap, fridgeConfig?.fridgeFreestandingType);
+        break;
+
+      case KitchenCabinetType.BASE_FRIDGE:
+        // Lodówka w zabudowie — jedna lub dwie sekcje (góra=lodówka, dół=zamrażarka)
+        this.addFridgeBuiltInElements(fronts, handles, displayX, bodyY, displayWidth, bodyHeight, gap, fridgeConfig);
+        break;
+
       case KitchenCabinetType.BASE_OVEN:
         this.addOvenElements(fronts, handles, displayX, bodyY, displayWidth, bodyHeight, gap, ovenConfig);
         break;
@@ -499,6 +522,157 @@ export class KitchenLayoutComponent {
     }
 
     return { fronts, handles };
+  }
+
+  /**
+   * Wizualizacja lodówki w zabudowie (BASE_FRIDGE).
+   * Strefa FULL — od podłogi do sufitu.
+   * ONE_DOOR: jedno duże drzwi.
+   * TWO_DOORS: dwie sekcje — górna (lodówka) i dolna (zamrażarka), proporcjonalnie do lowerFrontHeightMm.
+   */
+  private addFridgeBuiltInElements(
+    fronts: DisplayFront[],
+    handles: DisplayHandle[],
+    displayX: number,
+    bodyY: number,
+    displayWidth: number,
+    bodyHeight: number,
+    gap: number,
+    fridgeConfig?: { fridgeSectionType?: string; lowerFrontHeightMm?: number; heightMm?: number; upperSections?: SegmentFormData[] }
+  ): void {
+    const sectionType = fridgeConfig?.fridgeSectionType ?? 'TWO_DOORS';
+    const upperSections = fridgeConfig?.upperSections ?? [];
+    const totalHeightMm = fridgeConfig?.heightMm ?? 2000;
+
+    // Oblicz wysokość sekcji górnych (px)
+    const upperSectionsHeightMm = upperSections.reduce((sum, s) => sum + (s.height ?? 0), 0);
+    const upperSectionsTotalPx = upperSections.length > 0
+      ? Math.round((upperSectionsHeightMm / totalHeightMm) * bodyHeight)
+      : 0;
+
+    // Renderuj sekcje górne (od góry)
+    if (upperSections.length > 0) {
+      const sortedUpperSections = [...upperSections].sort((a, b) => a.orderIndex - b.orderIndex);
+      let currentUpperY = bodyY + gap;
+
+      for (const section of sortedUpperSections) {
+        const sectionPx = Math.round((section.height / totalHeightMm) * bodyHeight) - gap;
+
+        if (section.segmentType === SegmentType.OPEN_SHELF) {
+          fronts.push({
+            type: 'OPEN',
+            x: displayX + gap,
+            y: currentUpperY,
+            width: displayWidth - gap * 2,
+            height: Math.max(1, sectionPx)
+          });
+        } else {
+          // DOOR (ONE_DOOR lub TWO_DOORS)
+          if (section.frontType === SegmentFrontType.TWO_DOORS) {
+            const doorWidth = (displayWidth - gap * 3) / 2;
+            fronts.push(
+              { type: 'DOOR_SINGLE', x: displayX + gap, y: currentUpperY, width: doorWidth, height: Math.max(1, sectionPx), hingesSide: 'LEFT' },
+              { type: 'DOOR_SINGLE', x: displayX + gap + doorWidth + gap, y: currentUpperY, width: doorWidth, height: Math.max(1, sectionPx), hingesSide: 'RIGHT' }
+            );
+            handles.push(
+              this.createVerticalHandle(displayX + gap + doorWidth - 3, currentUpperY + 3, sectionPx - 6),
+              this.createVerticalHandle(displayX + gap + doorWidth + gap + 3, currentUpperY + 3, sectionPx - 6)
+            );
+          } else {
+            fronts.push({ type: 'DOOR_SINGLE', x: displayX + gap, y: currentUpperY, width: displayWidth - gap * 2, height: Math.max(1, sectionPx), hingesSide: 'LEFT' });
+            handles.push(this.createVerticalHandle(displayX + displayWidth - gap - 4, currentUpperY + 3, sectionPx - 6));
+          }
+        }
+
+        currentUpperY += sectionPx + gap;
+      }
+    }
+
+    // Sekcja lodówki — poniżej sekcji górnych
+    const fridgeSectionY = bodyY + upperSectionsTotalPx;
+    const fridgeSectionPx = bodyHeight - upperSectionsTotalPx;
+
+    if (sectionType === 'ONE_DOOR') {
+      this.addSingleDoor(fronts, handles, displayX, fridgeSectionY, displayWidth, fridgeSectionPx, gap);
+    } else {
+      // TWO_DOORS: górny front (lodówka) + dolny front (zamrażarka)
+      // Proporcja odwołuje się do SAMEJ sekcji lodówki (nie całej szafki)
+      const fridgeHeightMm = totalHeightMm - upperSectionsHeightMm;
+      const lowerH = fridgeConfig?.lowerFrontHeightMm ?? 713;
+      const lowerRatio = Math.min(Math.max(lowerH / Math.max(fridgeHeightMm, 1), 0.1), 0.9);
+      const lowerDisplayH = Math.round(fridgeSectionPx * lowerRatio);
+      const upperDisplayH = fridgeSectionPx - lowerDisplayH;
+
+      // Górny front (lodówka)
+      fronts.push({
+        type: 'DOOR_SINGLE',
+        x: displayX + gap,
+        y: fridgeSectionY + gap,
+        width: displayWidth - gap * 2,
+        height: Math.max(1, upperDisplayH - gap * 2),
+        hingesSide: 'LEFT'
+      });
+      handles.push(this.createVerticalHandle(
+        displayX + displayWidth - gap - 4,
+        fridgeSectionY + gap + 3,
+        upperDisplayH - gap * 2 - 6
+      ));
+
+      // Dolny front (zamrażarka)
+      const lowerY = fridgeSectionY + upperDisplayH + gap;
+      fronts.push({
+        type: 'DOOR_SINGLE',
+        x: displayX + gap,
+        y: lowerY,
+        width: displayWidth - gap * 2,
+        height: Math.max(1, lowerDisplayH - gap * 2),
+        hingesSide: 'LEFT'
+      });
+      handles.push(this.createVerticalHandle(
+        displayX + displayWidth - gap - 4,
+        lowerY + 3,
+        lowerDisplayH - gap * 2 - 6
+      ));
+    }
+  }
+
+  /**
+   * Wizualizacja lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING).
+   * Korpus ma kolor AGD (srebrny). Dodaje linie podziału dla TWO_DOORS i SIDE_BY_SIDE.
+   */
+  private addFridgeFreestandingElements(
+    fronts: DisplayFront[],
+    displayX: number,
+    bodyY: number,
+    displayWidth: number,
+    bodyHeight: number,
+    gap: number,
+    fridgeFreestandingType?: string
+  ): void {
+    if (!fridgeFreestandingType || fridgeFreestandingType === 'SINGLE_DOOR') {
+      return; // Tylko srebrny prostokąt — brak elementów dodatkowych
+    }
+
+    if (fridgeFreestandingType === 'TWO_DOORS') {
+      // Pozioma linia podziału na ~2/3 wysokości od góry (zamrażarka u dołu)
+      const splitY = bodyY + Math.round(bodyHeight * 2 / 3);
+      fronts.push({
+        type: 'SHELF_LINE',
+        x: displayX + gap,
+        y: splitY,
+        width: displayWidth - gap * 2,
+        height: 1
+      });
+    } else if (fridgeFreestandingType === 'SIDE_BY_SIDE') {
+      // Pionowa linia w połowie szerokości (dwa osobne sektory)
+      fronts.push({
+        type: 'VERT_DIVIDER',
+        x: displayX + displayWidth / 2,
+        y: bodyY + gap,
+        width: 0,
+        height: bodyHeight - gap * 2
+      });
+    }
   }
 
   /**
@@ -962,7 +1136,8 @@ export class KitchenLayoutComponent {
    */
   readonly countertopDimensions = computed(() => {
     const cabinets = this.stateService.cabinets();
-    const bottomCabinets = cabinets.filter(cab => getCabinetZone(cab) === 'BOTTOM');
+    // Tylko szafki z blatem — wyklucza wolnostojące AGD i BASE_FRIDGE (brak blatu nad nimi).
+    const bottomCabinets = cabinets.filter(cab => requiresCountertop(cab.type));
 
     if (bottomCabinets.length === 0) {
       return null;
@@ -1009,11 +1184,18 @@ export class KitchenLayoutComponent {
     const sf = this.scaleFactor();
     const wallW = this.wallDisplayWidth();
 
-    // Span każdego słupka (FULL) w pikselach SVG
+    // Span każdego słupka (FULL) oraz urządzeń wolnostojących w pikselach SVG.
+    // Urządzenia wolnostojące (freestanding) też blokują blat — traktowane jak FULL zone.
+    const freestandingTypes = new Set<KitchenCabinetType>([
+      KitchenCabinetType.BASE_FRIDGE_FREESTANDING,
+      KitchenCabinetType.BASE_OVEN_FREESTANDING,
+      KitchenCabinetType.BASE_DISHWASHER_FREESTANDING
+    ]);
     const fullSpans = cabPositions
       .filter(cab => {
         const orig = allCabinets.find(c => c.id === cab.cabinetId);
-        return orig ? getCabinetZone(orig) === 'FULL' : false;
+        if (!orig) return false;
+        return getCabinetZone(orig) === 'FULL' || freestandingTypes.has(orig.type);
       })
       .map(cab => ({ displayX: cab.x * sf, displayW: cab.width * sf }))
       .sort((a, b) => a.displayX - b.displayX);
@@ -1070,8 +1252,8 @@ export class KitchenLayoutComponent {
     const sf = this.scaleFactor();
     const sideExtra = wall.countertopConfig?.sideOverhangExtraMm ?? 5;
 
-    // Blendy obudów — tylko skrajne szafki dolne
-    const vPos = this.visualPositions().filter(p => p.zone === 'BOTTOM').sort((a, b) => a.displayX - b.displayX);
+    // Blendy obudów — tylko skrajne szafki dolne z blatem (bez wolnostojących AGD)
+    const vPos = this.visualPositions().filter(p => p.zone === 'BOTTOM' && requiresCountertop(p.type)).sort((a, b) => a.displayX - b.displayX);
     const leftEncMm = (vPos.length > 0 && sf > 0) ? Math.round(vPos[0].leftEnclosureDisplayWidth / sf) : 0;
     const rightEncMm = (vPos.length > 0 && sf > 0) ? Math.round(vPos[vPos.length - 1].rightEnclosureDisplayWidth / sf) : 0;
 
@@ -1083,13 +1265,17 @@ export class KitchenLayoutComponent {
       const segStartMm = sf > 0 ? seg.x / sf : 0;
       const segEndMm = sf > 0 ? (seg.x + seg.width) / sf : 0;
 
-      // Szafki BOTTOM w zakresie segmentu (środek szafki musi być w przedziale)
+      // Szafki z blatem w zakresie segmentu (środek szafki musi być w przedziale).
+      // Wyklucza wolnostojące AGD — nie wnoszą do długości blatu.
       const segCabs = cabPositions.filter(cab => {
         const orig = allCabinets.find(c => c.id === cab.cabinetId);
-        if (!orig || getCabinetZone(orig) !== 'BOTTOM') return false;
+        if (!orig || !requiresCountertop(orig.type)) return false;
         const cabCenter = cab.x + cab.width / 2;
         return cabCenter >= segStartMm - 1 && cabCenter <= segEndMm + 1;
       });
+
+      // Pomiń segment bez szafek dolnych (np. pusty segment za szafką FULL)
+      if (segCabs.length === 0) return null;
 
       const segCabsWidth = segCabs.reduce((sum, p) => sum + p.width, 0);
       const leftExtra  = isFirst ? leftEncMm + sideExtra : 0;
@@ -1097,54 +1283,75 @@ export class KitchenLayoutComponent {
       const lengthMm   = segCabsWidth + leftExtra + rightExtra;
 
       return { x: seg.x + seg.width / 2, lengthMm, depthMm };
-    });
+    }).filter((label): label is { x: number; lengthMm: number; depthMm: number } => label !== null);
   });
 
   /**
-   * Oblicza pozycję i wymiary panelu cokołu pod szafkami dolnymi.
+   * Oblicza pozycje i wymiary paneli cokołu pod szafkami dolnymi.
+   * Zwraca tablicę segmentów — gdy wolnostojące AGD tworzy lukę między szafkami,
+   * powstają dwa osobne odcinki cokołu.
    * Panel cokołu jest o PLINTH_PANEL_GAP_MM (3mm) niższy niż nóżki —
    * przez tę szparę widoczne są końcówki nóżek tuż pod korpusem.
    */
-  readonly plinthPosition = computed(() => {
+  readonly plinthSegments = computed(() => {
     const positions = this.visualPositions();
-    // Znajdź szafki dolne i słupki które mają cokół
-    const bottomPositions = positions.filter(p => p.zone === 'BOTTOM' || p.zone === 'FULL');
+    // Tylko szafki mające cokół (nie wolnostojące AGD)
+    const plinthPositions = positions.filter(p =>
+      (p.zone === 'BOTTOM' || p.zone === 'FULL') &&
+      p.type !== KitchenCabinetType.BASE_FRIDGE_FREESTANDING &&
+      p.type !== KitchenCabinetType.BASE_OVEN_FREESTANDING &&
+      p.type !== KitchenCabinetType.BASE_DISHWASHER_FREESTANDING
+    ).sort((a, b) => a.displayX - b.displayX);
 
-    if (bottomPositions.length === 0) {
-      return null;
-    }
+    if (plinthPositions.length === 0) return [];
 
-    // Cokół ciągnie się od pierwszej do ostatniej szafki dolnej — uwzględnij blendy boczne.
-    // SIDE_PLATE_TO_FLOOR → płyta sięga sama do podłogi; cokół globalny NIE wchodzi w jej obszar.
-    const minX = Math.min(...bottomPositions.map(p =>
-      this.plinthExtendsInto(p.leftEnclosureType)
-        ? p.displayX - p.leftEnclosureDisplayWidth
-        : p.displayX
-    ));
-    const maxX = Math.max(...bottomPositions.map(p =>
-      this.plinthExtendsInto(p.rightEnclosureType)
-        ? p.displayX + p.displayWidth + p.rightEnclosureDisplayWidth
-        : p.displayX + p.displayWidth
-    ));
+    const feetHeight = plinthPositions[0]?.feetHeight ?? 0;
+    if (feetHeight <= 0) return [];
 
-    // Wysokość nóżek w px
-    const feetHeight = bottomPositions[0]?.feetHeight ?? 0;
-    if (feetHeight <= 0) return null;
-
-    // Panel cokołu jest o 3mm (min. 1px) niższy niż nóżki → szpara widoczna nad cokołem
     const sv = this.SCALE_VERT();
     const plinthGapPx = Math.max(Math.round(this.PLINTH_PANEL_GAP_MM * sv), 1);
     const plinthPanelH = feetHeight - plinthGapPx;
-
-    // Panel cokołu przy podłodze: Y = WALL_DISPLAY_HEIGHT - plinthPanelH
     const plinthY = this.WALL_DISPLAY_HEIGHT - plinthPanelH;
 
-    return {
-      x: minX,
+    // Wyznacz efektywną lewą/prawą krawędź każdej szafki (uwzględniając blendy boczne)
+    const effectivePositions = plinthPositions.map(p => ({
+      left: this.plinthExtendsInto(p.leftEnclosureType)
+        ? p.displayX - p.leftEnclosureDisplayWidth
+        : p.displayX,
+      right: this.plinthExtendsInto(p.rightEnclosureType)
+        ? p.displayX + p.displayWidth + p.rightEnclosureDisplayWidth
+        : p.displayX + p.displayWidth
+    })).sort((a, b) => a.left - b.left);
+
+    // Grupuj ciągłe zakresy — luka (np. wolnostojące AGD) tworzy osobny odcinek cokołu
+    const runs: Array<{ x: number; endX: number }> = [];
+    let current = { x: effectivePositions[0].left, endX: effectivePositions[0].right };
+    for (let i = 1; i < effectivePositions.length; i++) {
+      const pos = effectivePositions[i];
+      if (pos.left > current.endX + 0.5) {
+        runs.push(current);
+        current = { x: pos.left, endX: pos.right };
+      } else {
+        current.endX = Math.max(current.endX, pos.right);
+      }
+    }
+    runs.push(current);
+
+    return runs.map(r => ({
+      x: r.x,
       y: plinthY,
-      width: maxX - minX,
+      width: r.endX - r.x,
       height: plinthPanelH
-    };
+    }));
+  });
+
+  /**
+   * Zwraca pierwszy segment cokołu (lub null) — używany jako punkt odniesienia
+   * dla linii podziału cokołu (Y-koordynat) oraz jako guard w plinthJoinXPositions.
+   */
+  readonly plinthPosition = computed(() => {
+    const segs = this.plinthSegments();
+    return segs.length > 0 ? segs[0] : null;
   });
 
   // Pozostałe miejsce - dolne szafki
@@ -1368,6 +1575,10 @@ export class KitchenLayoutComponent {
       case KitchenCabinetType.BASE_OVEN:
       case KitchenCabinetType.BASE_OVEN_FREESTANDING:
         return 'piek.';
+      case KitchenCabinetType.BASE_FRIDGE:
+        return 'lod.';
+      case KitchenCabinetType.BASE_FRIDGE_FREESTANDING:
+        return 'lod.wol.';
       default:
         return null;
     }

@@ -2,7 +2,7 @@ import { Component, inject, computed, output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { WallType } from '../model/kitchen-project.model';
-import { WallWithCabinets, CabinetZone, getCabinetZone } from '../model/kitchen-state.model';
+import { WallWithCabinets, CabinetZone, getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 
 interface WallPosition {
@@ -27,7 +27,8 @@ interface CabinetOnFloorPlan {
   width: number;
   depth: number;
   zone: CabinetZone;
-  isCorner: boolean;  // Czy to szafka narożna
+  isCorner: boolean;      // Czy to szafka narożna
+  isFreestanding: boolean; // Czy to wolnostojące AGD (kolor srebrny, brak blatu)
 }
 
 interface CountertopOnFloorPlan {
@@ -323,6 +324,9 @@ export class KitchenFloorPlanComponent {
           break;
       }
 
+      // Wolnostojące AGD (fridge/oven freestanding) — srebrny kolor, brak blatu
+      const isFreestanding = !requiresCountertop(cabinet.type) && zone === 'BOTTOM';
+
       const cabinetOnPlan = this.createCabinetOnFloorPlan(
         cabinet.id,
         cabinet.name,
@@ -332,7 +336,8 @@ export class KitchenFloorPlanComponent {
         cabinetWidth,
         cabinetDepth,
         zone,
-        isCorner
+        isCorner,
+        isFreestanding
       );
 
       // Grupuj według strefy
@@ -355,46 +360,98 @@ export class KitchenFloorPlanComponent {
   }
 
   /**
-   * Oblicza pozycję i wymiary blatu dla danej ściany.
-   * Blat pokrywa wszystkie szafki dolne (BOTTOM) i słupki (FULL) z nawisem.
-   * Zwraca null jeśli brak szafek dolnych.
+   * Oblicza pozycje blatu dla danej ściany jako listę segmentów.
+   * Każdy segment odpowiada ciągłemu "przebiegu" szafek z requiresCountertop=true.
+   * Przebieg jest przerywany przez FULL (TALL_CABINET, BASE_FRIDGE) lub wolnostojące AGD.
+   * Pozycje X obliczane są tak samo jak w getCabinetsForWall(), aby blat trafił
+   * dokładnie nad szafki dolne (nawet gdy poprzedza je lodówka lub słupek).
    */
-  getCountertopForWall(pos: WallPosition): CountertopOnFloorPlan | null {
+  getCountertopsForWall(pos: WallPosition): CountertopOnFloorPlan[] {
     const wall = pos.wall;
+
+    // Symuluj pozycje X szafek — identyczny algorytm jak getCabinetsForWall()
+    let currentXBottom = 0;
+    let currentXTop = 0;
+
+    const result: CountertopOnFloorPlan[] = [];
+
+    // Aktualny ciągły przebieg szafek dolnych z requiresCountertop=true
+    let runStartMm: number | null = null;
+    let runWidthMm = 0;
+
+    for (const cabinet of wall.cabinets) {
+      const zone = getCabinetZone(cabinet);
+
+      let posX: number;
+      switch (zone) {
+        case 'FULL':
+          posX = Math.max(currentXBottom, currentXTop);
+          currentXBottom = posX + cabinet.width;
+          currentXTop = posX + cabinet.width;
+          break;
+        case 'TOP':
+          posX = currentXTop;
+          currentXTop += cabinet.width;
+          break;
+        case 'BOTTOM':
+        default:
+          posX = currentXBottom;
+          currentXBottom += cabinet.width;
+          break;
+      }
+
+      // Szafki górne (TOP) nie wpływają na blat dolny — ignoruj
+      if (zone === 'TOP') {
+        continue;
+      }
+
+      if (requiresCountertop(cabinet.type)) {
+        // Kontynuuj lub zacznij nowy przebieg
+        if (runStartMm === null) {
+          runStartMm = posX;
+          runWidthMm = cabinet.width;
+        } else {
+          runWidthMm += cabinet.width;
+        }
+      } else {
+        // Przerwa (FULL bez blatu lub wolnostojące AGD) — zamknij poprzedni przebieg
+        if (runStartMm !== null) {
+          result.push(this.buildCountertopSegment(pos, runStartMm, runWidthMm));
+          runStartMm = null;
+          runWidthMm = 0;
+        }
+      }
+    }
+
+    // Zamknij ostatni przebieg (jeśli ściana kończy się szafką dolną)
+    if (runStartMm !== null) {
+      result.push(this.buildCountertopSegment(pos, runStartMm, runWidthMm));
+    }
+
+    return result;
+  }
+
+  /**
+   * Buduje pojedynczy segment blatu zaczynający się w startMm od lewej ściany
+   * i obejmujący widthMm (plus COUNTERTOP_OVERHANG na każdą stronę).
+   */
+  private buildCountertopSegment(
+    pos: WallPosition,
+    startMm: number,
+    widthMm: number
+  ): CountertopOnFloorPlan {
     const scale = pos.scale;
-
-    // Znajdź szafki dolne i słupki (które potrzebują blatu)
-    const bottomCabinets = wall.cabinets.filter(cab => {
-      const zone = getCabinetZone(cab);
-      return zone === 'BOTTOM' || zone === 'FULL';
-    });
-
-    if (bottomCabinets.length === 0) {
-      return null;
-    }
-
-    // Oblicz całkowitą szerokość szafek dolnych
-    let totalWidth = 0;
-    for (const cab of bottomCabinets) {
-      totalWidth += cab.width;
-    }
-
-    // Blat ma standardową głębokość 600mm (niezależnie od głębokości szafek)
     const countertopDepthMm = this.COUNTERTOP_STANDARD_DEPTH;
-    const countertopWidthMm = totalWidth + this.COUNTERTOP_OVERHANG;
-
-    // Przeskaluj do SVG
+    const countertopWidthMm = widthMm + this.COUNTERTOP_OVERHANG;
     const countertopWidth = countertopWidthMm * scale;
     const countertopDepth = countertopDepthMm * scale;
     const overhang = this.COUNTERTOP_OVERHANG * scale / 2;
 
     if (pos.isHorizontal) {
-      // Ściana pozioma - blat idzie od lewej do prawej
-      const x = pos.x - overhang;
+      const x = pos.x + startMm * scale - overhang;
       const y = pos.y - countertopDepth;
       return {
-        x,
-        y,
+        x, y,
         width: countertopWidth,
         depth: countertopDepth,
         lengthMm: countertopWidthMm,
@@ -406,13 +463,11 @@ export class KitchenFloorPlanComponent {
         isHorizontal: true
       };
     } else {
-      // Ściana pionowa
-      if (wall.type === 'LEFT') {
+      if (pos.wall.type === 'LEFT') {
         const x = pos.x + this.WALL_THICKNESS - overhang;
-        const y = pos.y - overhang;
+        const y = pos.y + startMm * scale - overhang;
         return {
-          x,
-          y,
+          x, y,
           width: countertopDepth,
           depth: countertopWidth,
           lengthMm: countertopWidthMm,
@@ -424,11 +479,11 @@ export class KitchenFloorPlanComponent {
           isHorizontal: false
         };
       } else {
+        // RIGHT
         const x = pos.x - countertopDepth + overhang;
-        const y = pos.y - overhang;
+        const y = pos.y + startMm * scale - overhang;
         return {
-          x,
-          y,
+          x, y,
           width: countertopDepth,
           depth: countertopWidth,
           lengthMm: countertopWidthMm,
@@ -455,7 +510,8 @@ export class KitchenFloorPlanComponent {
     cabinetWidth: number,
     cabinetDepth: number,
     zone: CabinetZone,
-    isCorner: boolean
+    isCorner: boolean,
+    isFreestanding: boolean
   ): CabinetOnFloorPlan {
     if (pos.isHorizontal) {
       // Ściana pozioma (MAIN, CORNER_LEFT, CORNER_RIGHT, ISLAND)
@@ -468,7 +524,8 @@ export class KitchenFloorPlanComponent {
         width: cabinetWidth,
         depth: cabinetDepth,
         zone,
-        isCorner
+        isCorner,
+        isFreestanding
       };
     } else {
       // Ściana pionowa (LEFT, RIGHT)
@@ -482,7 +539,8 @@ export class KitchenFloorPlanComponent {
           width: cabinetDepth,
           depth: cabinetWidth,
           zone,
-          isCorner
+          isCorner,
+          isFreestanding
         };
       } else {
         // RIGHT
@@ -494,7 +552,8 @@ export class KitchenFloorPlanComponent {
           width: cabinetDepth,
           depth: cabinetWidth,
           zone,
-          isCorner
+          isCorner,
+          isFreestanding
         };
       }
     }
@@ -514,6 +573,10 @@ export class KitchenFloorPlanComponent {
     if (this.isEditing(cab.cabinetId)) {
       return '#fbbf24'; // żółty dla edytowanej
     }
+    // Wolnostojące AGD — srebrny (spójny z widokiem frontalnym)
+    if (cab.isFreestanding) {
+      return '#e0e0e0';
+    }
     // Narożnik ma osobny kolor (pomarańczowy - zgodny z widokiem frontalnym)
     if (cab.isCorner) {
       return '#ffb74d';
@@ -532,6 +595,10 @@ export class KitchenFloorPlanComponent {
   getCabinetStroke(cab: CabinetOnFloorPlan): string {
     if (this.isEditing(cab.cabinetId)) {
       return '#f59e0b'; // ciemniejszy żółty dla edytowanej
+    }
+    // Wolnostojące AGD — szary kontur (jak w widoku frontalnym)
+    if (cab.isFreestanding) {
+      return '#9e9e9e';
     }
     // Narożnik ma osobny kolor obramowania
     if (cab.isCorner) {

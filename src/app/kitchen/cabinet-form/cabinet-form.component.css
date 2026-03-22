@@ -155,6 +155,14 @@
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
+.cabinet-form .form-control:disabled {
+  background: var(--bg-hover, #f1f5f9);
+  color: var(--text-muted, #94a3b8);
+  cursor: not-allowed;
+  opacity: 0.7;
+  border-color: var(--border-color, #e2e8f0);
+}
+
 .cabinet-form select.form-control {
   cursor: pointer;
   padding-right: 28px;
@@ -325,6 +333,16 @@
   font-weight: 400;
   font-size: 12px;
   color: var(--text-muted, #94a3b8);
+}
+
+.fridge-section-info {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: rgba(121, 134, 203, 0.1);
+  border: 1px solid rgba(121, 134, 203, 0.3);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-secondary, #64748b);
 }
 
 .btn-add-segment {

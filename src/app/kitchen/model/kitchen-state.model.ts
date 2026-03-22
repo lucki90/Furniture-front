@@ -31,10 +31,13 @@ export function isTallCabinetType(type: KitchenCabinetType): boolean {
 }
 
 export function requiresPlinth(type: KitchenCabinetType): boolean {
-  return isBaseCabinetType(type) || isTallCabinetType(type);
+  if (type === KitchenCabinetType.BASE_OVEN_FREESTANDING || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING) return false;
+  return isBaseCabinetType(type) || isTallCabinetType(type) || type === KitchenCabinetType.BASE_FRIDGE;
 }
 
 export function requiresCountertop(type: KitchenCabinetType): boolean {
+  if (type === KitchenCabinetType.BASE_OVEN_FREESTANDING || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING
+      || type === KitchenCabinetType.BASE_FRIDGE) return false;
   return isBaseCabinetType(type);
 }
 
@@ -110,6 +113,13 @@ export interface KitchenCabinet {
   ovenApronEnabled?: boolean;      // blenda dekoracyjna nad piekarnikiem
   ovenApronHeightMm?: number;      // wysokość blendy (30–150mm)
 
+  // Pola szafki na lodówkę (BASE_FRIDGE)
+  fridgeSectionType?: string;      // ONE_DOOR | TWO_DOORS
+  lowerFrontHeightMm?: number;     // wysokość dolnego frontu zamrażarki (500–900mm, tylko TWO_DOORS)
+
+  // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
+  fridgeFreestandingType?: string; // SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
+
   // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
   isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
@@ -125,8 +135,8 @@ export interface KitchenCabinet {
  * - BASE_* / CORNER_CABINET dolna → BOTTOM
  */
 export function getCabinetZone(cabinet: KitchenCabinet): CabinetZone {
-  // Słupek → FULL
-  if (isTallCabinetType(cabinet.type)) {
+  // Słupek i lodówka w zabudowie → FULL (od podłogi do sufitu)
+  if (isTallCabinetType(cabinet.type) || cabinet.type === KitchenCabinetType.BASE_FRIDGE) {
     return 'FULL';
   }
   // Szafki wiszące (UPPER_*) → TOP
@@ -276,6 +286,13 @@ export interface CabinetFormData {
   ovenLowerSectionType?: string;   // LOW_DRAWER | HINGED_DOOR | NONE
   ovenApronEnabled?: boolean;      // blenda dekoracyjna nad piekarnikiem
   ovenApronHeightMm?: number;      // wysokość blendy (30–150mm)
+
+  // Pola szafki na lodówkę (BASE_FRIDGE)
+  fridgeSectionType?: string;      // ONE_DOOR | TWO_DOORS
+  lowerFrontHeightMm?: number;     // wysokość dolnego frontu zamrażarki (500–900mm, tylko TWO_DOORS)
+
+  // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
+  fridgeFreestandingType?: string; // SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
 
   // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych

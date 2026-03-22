@@ -2,11 +2,12 @@
  * Typ segmentu w szafce wielosegmentowej (np. słupek).
  */
 export enum SegmentType {
-  DRAWER = 'DRAWER',          // Segment z szufladami
-  DOOR = 'DOOR',              // Segment z drzwiami
-  OPEN_SHELF = 'OPEN_SHELF',  // Segment otwarty (bez frontu)
-  OVEN = 'OVEN',              // Wnęka na piekarnik (bez frontu, bez półek)
-  MICROWAVE = 'MICROWAVE'     // Wnęka na mikrofalówkę (bez frontu, bez półek)
+  DRAWER = 'DRAWER',                    // Segment z szufladami
+  DOOR = 'DOOR',                        // Segment z drzwiami
+  OPEN_SHELF = 'OPEN_SHELF',            // Segment otwarty (bez frontu)
+  OVEN = 'OVEN',                        // Wnęka na piekarnik (bez frontu, bez półek)
+  MICROWAVE = 'MICROWAVE',              // Wnęka na mikrofalówkę (bez frontu, bez półek)
+  FRIDGE_BUILT_IN = 'FRIDGE_BUILT_IN'  // Sekcja lodówki w zabudowie (wewnętrzny typ, nie w UI)
 }
 
 /**
@@ -74,11 +75,12 @@ export const DOOR_FRONT_TYPE_OPTIONS: { value: SegmentFrontType; label: string }
  * Kolory dla wizualizacji segmentów.
  */
 export const SEGMENT_COLORS: Record<SegmentType, string> = {
-  [SegmentType.DRAWER]: '#3498db',    // niebieski
-  [SegmentType.DOOR]: '#27ae60',      // zielony
-  [SegmentType.OPEN_SHELF]: '#95a5a6', // szary
-  [SegmentType.OVEN]: '#e74c3c',      // czerwony — piekarnik
-  [SegmentType.MICROWAVE]: '#e67e22'  // pomarańczowy — mikrofalówka
+  [SegmentType.DRAWER]: '#3498db',             // niebieski
+  [SegmentType.DOOR]: '#27ae60',               // zielony
+  [SegmentType.OPEN_SHELF]: '#95a5a6',          // szary
+  [SegmentType.OVEN]: '#e74c3c',               // czerwony — piekarnik
+  [SegmentType.MICROWAVE]: '#e67e22',           // pomarańczowy — mikrofalówka
+  [SegmentType.FRIDGE_BUILT_IN]: '#7986cb'     // indigo — lodówka w zabudowie
 };
 
 /**

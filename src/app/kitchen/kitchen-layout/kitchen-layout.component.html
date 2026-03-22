@@ -107,11 +107,11 @@
                 [attr.width]="pos.displayWidth"
                 [attr.height]="pos.bodyHeight"
                 [class.cabinet-body]="true"
-                [class.cabinet-bottom]="pos.zone === 'BOTTOM' && pos.type !== 'BASE_DISHWASHER_FREESTANDING' && pos.type !== 'BASE_OVEN_FREESTANDING'"
+                [class.cabinet-bottom]="pos.zone === 'BOTTOM' && pos.type !== 'BASE_DISHWASHER_FREESTANDING' && pos.type !== 'BASE_OVEN_FREESTANDING' && pos.type !== 'BASE_FRIDGE_FREESTANDING'"
                 [class.cabinet-top]="pos.zone === 'TOP'"
                 [class.cabinet-full]="pos.zone === 'FULL'"
                 [class.cabinet-corner]="pos.isCorner"
-                [class.cabinet-appliance-freestanding]="pos.type === 'BASE_DISHWASHER_FREESTANDING' || pos.type === 'BASE_OVEN_FREESTANDING'"
+                [class.cabinet-appliance-freestanding]="pos.type === 'BASE_DISHWASHER_FREESTANDING' || pos.type === 'BASE_OVEN_FREESTANDING' || pos.type === 'BASE_FRIDGE_FREESTANDING'"
                 [class.overflow]="pos.isOverflow"
                 rx="1">
             <title>{{ (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + '×' + pos.depth + 'mm' }}</title>
@@ -121,7 +121,7 @@
           <g class="fronts-group">
             <ng-container *ngFor="let front of pos.fronts">
               <!-- Front normalny (drzwi/szuflada) -->
-              <rect *ngIf="front.type !== 'OPEN' && front.type !== 'SHELF_LINE'"
+              <rect *ngIf="front.type !== 'OPEN' && front.type !== 'SHELF_LINE' && front.type !== 'APPLIANCE' && front.type !== 'VERT_DIVIDER'"
                     [attr.x]="front.x"
                     [attr.y]="front.y"
                     [attr.width]="front.width"
@@ -155,12 +155,19 @@
                     stroke-width="0.5"
                     rx="0.5">
               </rect>
-              <!-- Linia półki wewnętrznej -->
+              <!-- Linia półki wewnętrznej (pozioma) -->
               <line *ngIf="front.type === 'SHELF_LINE'"
                     [attr.x1]="front.x"
                     [attr.y1]="front.y"
                     [attr.x2]="front.x + front.width"
                     [attr.y2]="front.y"
+                    class="shelf-line"/>
+              <!-- Pionowa linia podziału (lodówka side-by-side) -->
+              <line *ngIf="front.type === 'VERT_DIVIDER'"
+                    [attr.x1]="front.x"
+                    [attr.y1]="front.y"
+                    [attr.x2]="front.x"
+                    [attr.y2]="front.y + front.height"
                     class="shelf-line"/>
             </ng-container>
           </g>
@@ -283,15 +290,17 @@
           </line>
         </ng-container>
 
-        <!-- Cokół (pod szafkami dolnymi) -->
-        <rect *ngIf="plinthPosition() as plinth"
-              [attr.x]="plinth.x"
-              [attr.y]="plinth.y"
-              [attr.width]="plinth.width"
-              [attr.height]="plinth.height"
-              class="plinth-rect">
-          <title>Cokół</title>
-        </rect>
+        <!-- Cokół (pod szafkami dolnymi) — może być kilka odcinków gdy AGD wolnostojące w środku -->
+        @for (plinth of plinthSegments(); track plinth.x) {
+          <rect
+            [attr.x]="plinth.x"
+            [attr.y]="plinth.y"
+            [attr.width]="plinth.width"
+            [attr.height]="plinth.height"
+            class="plinth-rect">
+            <title>Cokół</title>
+          </rect>
+        }
 
         <!-- Znaczniki spojenia cokołu (przy długości > 2800mm) -->
         <ng-container *ngFor="let joinX of plinthJoinXPositions()">

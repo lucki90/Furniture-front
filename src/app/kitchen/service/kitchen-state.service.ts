@@ -10,7 +10,8 @@ import {
   getCabinetZone,
   CountertopConfig,
   PlinthConfig,
-  isUpperCabinetType
+  isUpperCabinetType,
+  requiresCountertop
 } from '../model/kitchen-state.model';
 import {
   KitchenProjectRequest,
@@ -267,8 +268,10 @@ export class KitchenStateService {
     const countertopThickness = this._countertopThicknessMm();
     const upperFiller = this._upperFillerHeightMm();
 
-    // Oblicz maksymalną wysokość korpusu dolnych szafek (typowo 720mm)
-    const baseCabinets = this.cabinets().filter(c => getCabinetZone(c) === 'BOTTOM' || getCabinetZone(c) === 'FULL');
+    // Oblicz maksymalną wysokość korpusu dolnych szafek (typowo 720mm).
+    // Uwzględnia tylko szafki z blatem (requiresCountertop=true).
+    // Wyklucza TALL_CABINET, BASE_FRIDGE (FULL zone), wolnostojące AGD — żeby nie zawyżać pozycji wiszących (T1 fix).
+    const baseCabinets = this.cabinets().filter(c => requiresCountertop(c.type));
     const maxBaseCorpusHeight = baseCabinets.length > 0
       ? Math.max(...baseCabinets.map(c => c.height))
       : 720;
@@ -625,6 +628,13 @@ export class KitchenStateService {
       ovenApronEnabled: (formData as any).ovenApronEnabled ?? false,
       ovenApronHeightMm: (formData as any).ovenApronHeightMm ?? 60,
 
+      // Pola szafki na lodówkę (BASE_FRIDGE)
+      fridgeSectionType: (formData as any).fridgeSectionType ?? 'TWO_DOORS',
+      lowerFrontHeightMm: (formData as any).lowerFrontHeightMm ?? 713,
+
+      // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
+      fridgeFreestandingType: (formData as any).fridgeFreestandingType ?? 'TWO_DOORS',
+
       // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
       isLiftUp: (formData as any).isLiftUp ?? false,
       isFrontExtended: (formData as any).isFrontExtended ?? false,
@@ -738,6 +748,13 @@ export class KitchenStateService {
             ovenLowerSectionType: (formData as any).ovenLowerSectionType ?? 'LOW_DRAWER',
             ovenApronEnabled: (formData as any).ovenApronEnabled ?? false,
             ovenApronHeightMm: (formData as any).ovenApronHeightMm ?? 60,
+
+            // Pola szafki na lodówkę (BASE_FRIDGE)
+            fridgeSectionType: (formData as any).fridgeSectionType ?? 'TWO_DOORS',
+            lowerFrontHeightMm: (formData as any).lowerFrontHeightMm ?? 713,
+
+            // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
+            fridgeFreestandingType: (formData as any).fridgeFreestandingType ?? 'TWO_DOORS',
 
             // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
             isLiftUp: (formData as any).isLiftUp ?? false,
@@ -1072,7 +1089,8 @@ export class KitchenStateService {
       const wallCountertopThickness = this._countertopThicknessMm();
       const wallUpperFillerH = this._upperFillerHeightMm();
       const wallH = wall.heightMm;
-      const bottomCabsInWall = wall.cabinets.filter(c => !isUpperCabinetType(c.type));
+      // Tylko szafki z blatem (requiresCountertop) — wyklucza TALL, BASE_FRIDGE, wolnostojące AGD (T1 fix)
+      const bottomCabsInWall = wall.cabinets.filter(c => requiresCountertop(c.type));
       const maxBaseCorpusH = bottomCabsInWall.length > 0
         ? Math.max(...bottomCabsInWall.map(c => c.height))
         : 720;
@@ -1119,9 +1137,11 @@ export class KitchenStateService {
           };
         }
 
-        // Przygotuj segmenty dla TALL_CABINET
+        // Przygotuj segmenty dla TALL_CABINET i BASE_FRIDGE (sekcje nad lodówką)
         let segments: SegmentRequest[] | undefined;
-        if (cab.type === KitchenCabinetType.TALL_CABINET && cab.segments && cab.segments.length > 0) {
+        const needsSegments = cab.type === KitchenCabinetType.TALL_CABINET
+          || cab.type === KitchenCabinetType.BASE_FRIDGE;
+        if (needsSegments && cab.segments && cab.segments.length > 0) {
           segments = cab.segments.map((segment, index) => {
             const segmentWithIndex: SegmentFormData = {
               ...segment,
@@ -1256,6 +1276,13 @@ export class KitchenStateService {
           ovenLowerSectionType: (cab as any).ovenLowerSectionType,
           ovenApronEnabled: (cab as any).ovenApronEnabled ?? false,
           ovenApronHeightMm: (cab as any).ovenApronHeightMm ?? 0,
+
+          // Pola szafki na lodówkę (BASE_FRIDGE)
+          fridgeSectionType: (cab as any).fridgeSectionType,
+          lowerFrontHeightMm: (cab as any).lowerFrontHeightMm ?? 0,
+
+          // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
+          fridgeFreestandingType: (cab as any).fridgeFreestandingType,
 
           // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
           isLiftUp: (cab as any).isLiftUp ?? false,

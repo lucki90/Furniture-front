@@ -177,6 +177,13 @@ export interface ProjectCabinetRequest {
   ovenApronEnabled?: boolean;      // blenda dekoracyjna nad piekarnikiem
   ovenApronHeightMm?: number;      // wysokość blendy (30–150mm)
 
+  // Pola szafki na lodówkę (BASE_FRIDGE)
+  fridgeSectionType?: string;      // ONE_DOOR | TWO_DOORS
+  lowerFrontHeightMm?: number;     // wysokość dolnego frontu zamrażarki (500–900mm, tylko TWO_DOORS)
+
+  // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
+  fridgeFreestandingType?: string; // SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
+
   // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
   isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
