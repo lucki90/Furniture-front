@@ -41,6 +41,36 @@ export function requiresCountertop(type: KitchenCabinetType): boolean {
   return isBaseCabinetType(type);
 }
 
+/**
+ * Sprawdza czy szafka jest wolnostojącym AGD (zmywarka/piekarnik/lodówka wolnostojąca).
+ * Wolnostojące AGD: 0 płyt, tylko wizualizacja (srebrny kolor SVG), brak komponentów cokołowych.
+ * Analogicznie do backendu: KitchenCabinetTypeEnum.isFreestandingAppliance().
+ */
+export function isFreestandingAppliance(type: KitchenCabinetType): boolean {
+  return type === KitchenCabinetType.BASE_DISHWASHER_FREESTANDING
+      || type === KitchenCabinetType.BASE_OVEN_FREESTANDING
+      || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING;
+}
+
+/**
+ * Sprawdza czy szafka przerywa ciągłość blatu roboczego.
+ * Analogicznie do backendu: KitchenCabinetTypeEnum.interruptsCountertop().
+ */
+export function interruptsCountertop(type: KitchenCabinetType): boolean {
+  return type === KitchenCabinetType.TALL_CABINET
+      || type === KitchenCabinetType.BASE_FRIDGE
+      || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING;
+}
+
+/**
+ * Sprawdza czy szafka może mieć segmenty (TALL_CABINET i BASE_FRIDGE).
+ * Używane przy mapowaniu szafek z segmentami do backendu.
+ */
+export function hasSegments(type: KitchenCabinetType): boolean {
+  return type === KitchenCabinetType.TALL_CABINET
+      || type === KitchenCabinetType.BASE_FRIDGE;
+}
+
 export interface KitchenCabinet {
   id: string;
   name?: string; // opcjonalna nazwa szafki

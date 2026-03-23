@@ -107,11 +107,11 @@
                 [attr.width]="pos.displayWidth"
                 [attr.height]="pos.bodyHeight"
                 [class.cabinet-body]="true"
-                [class.cabinet-bottom]="pos.zone === 'BOTTOM' && pos.type !== 'BASE_DISHWASHER_FREESTANDING' && pos.type !== 'BASE_OVEN_FREESTANDING' && pos.type !== 'BASE_FRIDGE_FREESTANDING'"
+                [class.cabinet-bottom]="pos.zone === 'BOTTOM' && !pos.isFreestandingAppliance"
                 [class.cabinet-top]="pos.zone === 'TOP'"
                 [class.cabinet-full]="pos.zone === 'FULL'"
                 [class.cabinet-corner]="pos.isCorner"
-                [class.cabinet-appliance-freestanding]="pos.type === 'BASE_DISHWASHER_FREESTANDING' || pos.type === 'BASE_OVEN_FREESTANDING' || pos.type === 'BASE_FRIDGE_FREESTANDING'"
+                [class.cabinet-appliance-freestanding]="pos.isFreestandingAppliance"
                 [class.overflow]="pos.isOverflow"
                 rx="1">
             <title>{{ (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + '×' + pos.depth + 'mm' }}</title>

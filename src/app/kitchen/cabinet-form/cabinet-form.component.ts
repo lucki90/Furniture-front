@@ -8,7 +8,7 @@ import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
 import { OPENING_TYPES, KitchenCabinetConstraints } from './model/kitchen-cabinet-constants';
 import { CommonModule } from "@angular/common";
-import { CabinetCalculatedEvent, KitchenCabinet, CabinetZone, isBaseCabinetType, isUpperCabinetType } from '../model/kitchen-state.model';
+import { CabinetCalculatedEvent, KitchenCabinet, CabinetZone, isBaseCabinetType, isUpperCabinetType, isFreestandingAppliance } from '../model/kitchen-state.model';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { SegmentFormComponent } from './segment-form/segment-form.component';
 import { SegmentVisualizerComponent } from './segment-visualizer/segment-visualizer.component';
@@ -160,13 +160,11 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   /**
    * Czy aktualny typ to wolnostojące urządzenie AGD lub lodówka w zabudowie (strefa FULL).
    * Dla tych typów nie pokazujemy "Blat na wysokości" — brak blatu lub strefa FULL.
+   * BASE_FRIDGE jest tu zachowane explicite — to nie jest wolnostojące AGD, ale też nie ma blatu.
    */
   get isFreestandingAppliance(): boolean {
     const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
-    return type === KitchenCabinetType.BASE_OVEN_FREESTANDING
-        || type === KitchenCabinetType.BASE_DISHWASHER_FREESTANDING
-        || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING
-        || type === KitchenCabinetType.BASE_FRIDGE;
+    return isFreestandingAppliance(type) || type === KitchenCabinetType.BASE_FRIDGE;
   }
 
   /**

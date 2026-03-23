@@ -11,7 +11,9 @@ import {
   CountertopConfig,
   PlinthConfig,
   isUpperCabinetType,
-  requiresCountertop
+  requiresCountertop,
+  isFreestandingAppliance,
+  hasSegments
 } from '../model/kitchen-state.model';
 import {
   KitchenProjectRequest,
@@ -1139,8 +1141,7 @@ export class KitchenStateService {
 
         // Przygotuj segmenty dla TALL_CABINET i BASE_FRIDGE (sekcje nad lodówką)
         let segments: SegmentRequest[] | undefined;
-        const needsSegments = cab.type === KitchenCabinetType.TALL_CABINET
-          || cab.type === KitchenCabinetType.BASE_FRIDGE;
+        const needsSegments = hasSegments(cab.type);
         if (needsSegments && cab.segments && cab.segments.length > 0) {
           segments = cab.segments.map((segment, index) => {
             const segmentWithIndex: SegmentFormData = {
@@ -1292,14 +1293,8 @@ export class KitchenStateService {
       });
 
       // Oblicz czy blendy skrajne powinny rozszerzyć blat (leftOverhang / rightOverhang)
-      const bottomCabinetTypes = [
-        KitchenCabinetType.BASE_ONE_DOOR, KitchenCabinetType.BASE_TWO_DOOR,
-        KitchenCabinetType.BASE_WITH_DRAWERS, KitchenCabinetType.CORNER_CABINET,
-        KitchenCabinetType.BASE_SINK, KitchenCabinetType.BASE_COOKTOP,
-        KitchenCabinetType.BASE_DISHWASHER, KitchenCabinetType.BASE_DISHWASHER_FREESTANDING,
-        KitchenCabinetType.BASE_OVEN, KitchenCabinetType.BASE_OVEN_FREESTANDING
-      ];
-      const bottomCabs = wall.cabinets.filter(c => bottomCabinetTypes.includes(c.type));
+      // Szafki dolne: te które wymagają blatu (requiresCountertop) + wolnostojące AGD (bez blatu, ale w strefie dolnej)
+      const bottomCabs = wall.cabinets.filter(c => requiresCountertop(c.type) || isFreestandingAppliance(c.type));
       const leftOverhangMm = bottomCabs.length > 0
         ? this.enclosureOuterWidthMm(bottomCabs[0], 'left') : 0;
       const rightOverhangMm = bottomCabs.length > 0
