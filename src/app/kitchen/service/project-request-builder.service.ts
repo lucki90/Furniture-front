@@ -209,7 +209,8 @@ export class ProjectRequestBuilderService {
           lowerFrontHeightMm: (cab as any).lowerFrontHeightMm ?? 0,
           fridgeFreestandingType: (cab as any).fridgeFreestandingType,
           isLiftUp: (cab as any).isLiftUp ?? false,
-          isFrontExtended: (cab as any).isFrontExtended ?? false
+          isFrontExtended: (cab as any).isFrontExtended ?? false,
+          drainerFrontType: (cab as any).drainerFrontType
         };
         return request;
       });

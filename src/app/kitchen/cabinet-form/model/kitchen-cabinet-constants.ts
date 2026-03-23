@@ -168,6 +168,13 @@ export const KitchenCabinetConstraints = {
     HEIGHT_MAX: 2600,
     DEPTH_MIN: 200,
     DEPTH_MAX: 1000
+  },
+  UPPER_DRAINER: {
+    // Sztywne szerokości: 400 / 500 / 600 / 800 / 900mm (standardowe rozmiary systemów ociekacza)
+    HEIGHT_MIN: 300,
+    HEIGHT_MAX: 900,
+    DEPTH_MIN: 280,
+    DEPTH_MAX: 320
   }
 } as const;
 

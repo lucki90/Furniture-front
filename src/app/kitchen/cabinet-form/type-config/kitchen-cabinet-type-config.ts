@@ -53,6 +53,9 @@ import {BaseFridgeRequestMapper} from "../types/base-fridge/base-fridge-request-
 import {BaseFridgeFreestandingCabinetPreparer} from "../types/base-fridge/base-fridge-freestanding-cabinet-preparer";
 import {BaseFridgeFreestandingCabinetValidator} from "../types/base-fridge/base-fridge-freestanding-cabinet-validator";
 import {BaseFridgeFreestandingRequestMapper} from "../types/base-fridge/base-fridge-freestanding-request-mapper";
+import {UpperDrainerCabinetPreparer} from "../types/upper-drainer/upper-drainer-cabinet-preparer";
+import {UpperDrainerCabinetValidator} from "../types/upper-drainer/upper-drainer-cabinet-validator";
+import {UpperDrainerRequestMapper} from "../types/upper-drainer/upper-drainer-request-mapper";
 
 export const KitchenCabinetTypeConfig = {
   [KitchenCabinetType.BASE_ONE_DOOR]: {
@@ -144,5 +147,10 @@ export const KitchenCabinetTypeConfig = {
     preparer: new BaseFridgeFreestandingCabinetPreparer(),
     validator: new BaseFridgeFreestandingCabinetValidator(),
     requestMapper: new BaseFridgeFreestandingRequestMapper()
+  },
+  [KitchenCabinetType.UPPER_DRAINER]: {
+    preparer: new UpperDrainerCabinetPreparer(),
+    validator: new UpperDrainerCabinetValidator(),
+    requestMapper: new UpperDrainerRequestMapper()
   }
 } as const;

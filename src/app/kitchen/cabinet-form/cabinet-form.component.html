@@ -29,6 +29,7 @@
               <option value="UPPER_OPEN_SHELF">Wisząca – otwarta półka</option>
               <option value="UPPER_CASCADE">Wisząca – kaskadowa</option>
               <option value="UPPER_HOOD">Wisząca – na okap</option>
+              <option value="UPPER_DRAINER">Szafka z ociekaczem</option>
             </optgroup>
             <optgroup label="Specjalne">
               <option value="TALL_CABINET">Słupek</option>
@@ -37,6 +38,25 @@
           </select>
         </div>
       </div>
+
+  <!-- Wiersz 2a: Wymiary UPPER_DRAINER — szerokość jako SELECT z 5 sztywnych wartości -->
+  <div class="form-row" *ngIf="visibility.drainerWidthSelect">
+    <app-form-field class="form-group" label="Szerokość" unit="mm" [errorMessage]="getFieldError('width')">
+      <select class="form-control" formControlName="width">
+        <option [ngValue]="400">400 mm</option>
+        <option [ngValue]="500">500 mm</option>
+        <option [ngValue]="600">600 mm</option>
+        <option [ngValue]="800">800 mm</option>
+        <option [ngValue]="900">900 mm</option>
+      </select>
+    </app-form-field>
+    <app-form-field class="form-group" label="Wysokość" unit="mm" [errorMessage]="getFieldError('height')">
+      <input type="number" class="form-control" formControlName="height">
+    </app-form-field>
+    <app-form-field class="form-group" label="Głębokość" unit="mm" [errorMessage]="getFieldError('depth')">
+      <input type="number" class="form-control" formControlName="depth">
+    </app-form-field>
+  </div>
 
   <!-- Wiersz 2: Wymiary (standardowe) -->
   <div class="form-row" *ngIf="visibility.width !== false">
@@ -60,7 +80,7 @@
   </div>
 
   <!-- Info: szafka wisząca (dla szafek UPPER_*) -->
-  <div *ngIf="isUpperCabinet && visibility.width !== false" class="countertop-info-bar upper-info-bar">
+  <div *ngIf="isUpperCabinet && (visibility.width !== false || visibility.drainerWidthSelect)" class="countertop-info-bar upper-info-bar">
     Szafka wisząca — montaż na szynie, bez cokołu i blatu.
     <span class="countertop-info-detail">
       Pozycja Y obliczana automatycznie z ustawień projektu.
@@ -237,6 +257,22 @@
 
   <!-- ============ Szafka wisząca na okap (UPPER_HOOD) ============ -->
   <app-hood-form *ngIf="visibility.hoodFrontType" [form]="form"></app-hood-form>
+
+  <!-- ============ Szafka wisząca z ociekaczem (UPPER_DRAINER) ============ -->
+  <div *ngIf="visibility.drainerFrontType" class="sink-section">
+    <h4 class="section-title">Konfiguracja ociekacza</h4>
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label" for="drainerFrontType">Typ frontu ociekacza</label>
+        <select id="drainerFrontType" class="form-control" formControlName="drainerFrontType">
+          <option value="OPEN">Otwarta (bez frontu)</option>
+          <option value="ONE_DOOR">1 drzwi</option>
+          <option value="TWO_DOORS">2 drzwi</option>
+        </select>
+        <span class="form-hint">Ociekacz montowany jest wewnątrz szafki. Wybierz wariant frontu — bez drzwi (otwarta) lub z drzwiami ochronnymi.</span>
+      </div>
+    </div>
+  </div>
 
   <!-- ============ Szafka na wbudowany piekarnik (BASE_OVEN) ============ -->
   <app-oven-form *ngIf="visibility.ovenHeightType" [form]="form"></app-oven-form>

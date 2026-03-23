@@ -355,7 +355,9 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       cornerFrontUchylnyWidthMm: (cabinet as any).cornerFrontUchylnyWidthMm ?? 500,
       // Szafki wiszące (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
       isLiftUp: (cabinet as any).isLiftUp ?? false,
-      isFrontExtended: (cabinet as any).isFrontExtended ?? false
+      isFrontExtended: (cabinet as any).isFrontExtended ?? false,
+      // Szafka wisząca z ociekaczem (UPPER_DRAINER)
+      drainerFrontType: (cabinet as any).drainerFrontType ?? 'OPEN'
     });
 
     this.onTypeChange(cabinet.type);
@@ -401,6 +403,8 @@ export class CabinetFormComponent implements OnChanges, OnInit {
       cornerFrontUchylnyWidth: false,
       liftUp: false,
       extendedFront: false,
+      drainerFrontType: false,
+      drainerWidthSelect: false,
       openingType: true   // domyślnie widoczny; preparery wolnostojących urządzeń ustawiają false
     };
 

@@ -37,7 +37,8 @@ export class KitchenCabinetListComponent {
       [KitchenCabinetType.BASE_OVEN]: 'Piekarnik (szafka)',
       [KitchenCabinetType.BASE_OVEN_FREESTANDING]: 'Piekarnik wolnostojący',
       [KitchenCabinetType.BASE_FRIDGE]: 'Szafka na lodówkę',
-      [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]: 'Lodówka wolnostojąca'
+      [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]: 'Lodówka wolnostojąca',
+      [KitchenCabinetType.UPPER_DRAINER]: 'Szafka z ociekaczem'
     };
     return typeNames[type] ?? type;
   }

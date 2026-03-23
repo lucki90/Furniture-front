@@ -82,7 +82,10 @@ export class DefaultKitchenFormFactory {
 
       // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
       isLiftUp:       [false],  // klapa lift-up zamiast drzwi obrotowych
-      isFrontExtended:[false]   // front wychodzi ponad górny wieniec o extendedFrontMm
+      isFrontExtended:[false],  // front wychodzi ponad górny wieniec o extendedFrontMm
+
+      // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
+      drainerFrontType: ['OPEN']  // OPEN | ONE_DOOR | TWO_DOORS
     });
   }
 }

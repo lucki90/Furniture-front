@@ -154,6 +154,9 @@ export interface KitchenCabinet {
   isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
   isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
 
+  // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
+  drainerFrontType?: string;   // OPEN | ONE_DOOR | TWO_DOORS
+
   calculatedResult?: CabinetCalculationResult;
 }
 
@@ -327,6 +330,9 @@ export interface CabinetFormData {
   // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
   isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
+
+  // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
+  drainerFrontType?: string;   // OPEN | ONE_DOOR | TWO_DOORS
 }
 
 export interface CabinetCalculatedEvent {

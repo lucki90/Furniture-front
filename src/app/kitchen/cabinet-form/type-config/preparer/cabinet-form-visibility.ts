@@ -56,6 +56,10 @@ export interface CabinetFormVisibility {
   // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
   fridgeFreestandingType: boolean;  // Selector: SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
 
+  // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
+  drainerFrontType: boolean;    // Selector: OPEN | ONE_DOOR | TWO_DOORS
+  drainerWidthSelect: boolean;  // SELECT z 5 sztywnych szerokości (zamiast wolnego inputa width)
+
   // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   liftUp: boolean;         // Checkbox: klapa lift-up zamiast drzwi obrotowych
   extendedFront: boolean;  // Checkbox: front wychodzi ponad korpus (isFrontExtended)

@@ -9,6 +9,7 @@ import { renderFridgeBuiltIn } from './renderers/fridge-builtin.renderer';
 import { renderFridgeFreestanding } from './renderers/fridge-freestanding.renderer';
 import { renderOven } from './renderers/oven.renderer';
 import { renderCascade } from './renderers/cascade.renderer';
+import { renderDrainer } from './renderers/drainer.renderer';
 
 /**
  * Rejestr strategii renderowania SVG per typ szafki.
@@ -46,4 +47,5 @@ export const CABINET_RENDER_REGISTRY: Partial<Record<KitchenCabinetType, Cabinet
   [KitchenCabinetType.UPPER_OPEN_SHELF]:             renderOpenShelf,
   [KitchenCabinetType.UPPER_CASCADE]:                renderCascade,
   [KitchenCabinetType.UPPER_HOOD]:                   renderSingleDoor,
+  [KitchenCabinetType.UPPER_DRAINER]:                renderDrainer,
 };

@@ -638,6 +638,9 @@ export class KitchenStateService {
       isLiftUp: (formData as any).isLiftUp ?? false,
       isFrontExtended: (formData as any).isFrontExtended ?? false,
 
+      // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
+      drainerFrontType: (formData as any).drainerFrontType ?? 'OPEN',
+
       calculatedResult: this.mapCalculationResult(calculatedResult)
     };
 
@@ -758,6 +761,9 @@ export class KitchenStateService {
             // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
             isLiftUp: (formData as any).isLiftUp ?? false,
             isFrontExtended: (formData as any).isFrontExtended ?? false,
+
+            // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
+            drainerFrontType: (formData as any).drainerFrontType ?? 'OPEN',
 
             calculatedResult: this.mapCalculationResult(calculatedResult)
           };
