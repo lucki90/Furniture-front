@@ -8,6 +8,8 @@ import {
   SegmentFrontType
 } from '../model/segment.model';
 import { KitchenCabinetConstraints } from '../model/kitchen-cabinet-constants';
+import { FormFieldComponent } from '../../../shared/form-field/form-field.component';
+import { getFormError } from '../../../shared/form-error.util';
 
 /**
  * Komponent formularza pojedynczego segmentu.
@@ -18,7 +20,7 @@ import { KitchenCabinetConstraints } from '../model/kitchen-cabinet-constants';
   templateUrl: './segment-form.component.html',
   styleUrls: ['./segment-form.component.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent]
 })
 export class SegmentFormComponent implements OnInit {
 
@@ -131,5 +133,9 @@ export class SegmentFormComponent implements OnInit {
 
   onRemove(): void {
     this.remove.emit();
+  }
+
+  getFieldError(controlName: string): string | null {
+    return getFormError(this.segmentForm.get(controlName));
   }
 }

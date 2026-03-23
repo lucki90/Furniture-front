@@ -18,19 +18,11 @@
     </div>
 
     <!-- Wysokość segmentu -->
-    <div class="form-group">
-      <label class="form-label">Wysokość</label>
-      <div class="input-with-unit">
-        <input type="number" class="form-control" formControlName="height"
-               [min]="constraints.SEGMENT_MIN_HEIGHT">
-        <span class="unit">mm</span>
-      </div>
-      <span class="form-error" *ngIf="segmentForm.get('height')?.touched && segmentForm.get('height')?.errors">
-        <ng-container *ngIf="segmentForm.get('height')?.errors?.['min']">
-          Min: {{ constraints.SEGMENT_MIN_HEIGHT }}mm
-        </ng-container>
-      </span>
-    </div>
+    <app-form-field class="form-group" label="Wysokość" unit="mm"
+        [errorMessage]="getFieldError('height')">
+      <input type="number" class="form-control" formControlName="height"
+             [min]="constraints.SEGMENT_MIN_HEIGHT">
+    </app-form-field>
 
     <!-- Informacja dla wnęk AGD (OVEN / MICROWAVE) -->
     <ng-container *ngIf="isApplianceSlot">

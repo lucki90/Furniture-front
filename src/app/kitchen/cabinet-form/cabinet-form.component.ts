@@ -24,6 +24,8 @@ import { FridgeFormComponent } from './sections/fridge-form/fridge-form.componen
 import { CascadeFormComponent } from './sections/cascade-form/cascade-form.component';
 import { CornerFormComponent } from './sections/corner-form/corner-form.component';
 import { EnclosureFormComponent } from './sections/enclosure-form/enclosure-form.component';
+import { FormFieldComponent } from '../../shared/form-field/form-field.component';
+import { getFormError } from '../../shared/form-error.util';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -32,7 +34,8 @@ import { EnclosureFormComponent } from './sections/enclosure-form/enclosure-form
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, SegmentFormComponent, SegmentVisualizerComponent,
     CooktopFormComponent, HoodFormComponent, SinkFormComponent, OvenFormComponent,
-    FridgeFormComponent, CascadeFormComponent, CornerFormComponent, EnclosureFormComponent]
+    FridgeFormComponent, CascadeFormComponent, CornerFormComponent, EnclosureFormComponent,
+    FormFieldComponent]
 })
 export class CabinetFormComponent implements OnChanges, OnInit {
 
@@ -103,6 +106,14 @@ export class CabinetFormComponent implements OnChanges, OnInit {
    */
   get activeSegmentTypeOptions() {
     return this.isFridgeCabinet ? this.fridgeSegmentTypeOptions : SEGMENT_TYPE_OPTIONS;
+  }
+
+  /**
+   * Zwraca komunikat błędu dla podanego pola formularza (po touched).
+   * Obsługuje standardowe błędy Angular: required, min, max, widthStep + custom message.
+   */
+  getFieldError(controlName: string): string | null {
+    return getFormError(this.form.get(controlName));
   }
 
   /**

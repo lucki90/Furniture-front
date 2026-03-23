@@ -128,36 +128,14 @@
   gap: 16px;
 }
 
-/* Form groups */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.form-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary, #64748b);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin: 0;
-}
-
-/* Inputs */
-.input-with-unit {
-  display: flex;
-  align-items: stretch;
-}
-
+/* Inputs projected into app-form-field — styling for .form-control inside settings */
 .form-control {
   flex: 1;
   min-width: 0;
   padding: 8px 10px;
   font-size: 13px;
   border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 6px 0 0 6px;
-  border-right: none;
+  border-radius: 6px;
   background: var(--bg-card, #fff);
   color: var(--text-primary, #1e293b);
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -177,25 +155,6 @@
 
 select.form-control {
   cursor: pointer;
-}
-
-.unit {
-  display: flex;
-  align-items: center;
-  padding: 0 8px;
-  background: var(--bg-hover, #f1f5f9);
-  border: 1px solid var(--border-color, #e2e8f0);
-  border-left: none;
-  border-radius: 0 6px 6px 0;
-  font-size: 11px;
-  color: var(--text-muted, #94a3b8);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.form-hint {
-  font-size: 10px;
-  color: var(--text-muted, #94a3b8);
 }
 
 /* Form actions */

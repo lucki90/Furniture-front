@@ -4,13 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { SettingsService } from './settings.service';
 import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
 import { UserSettings } from './settings.model';
+import { FormFieldComponent } from '../shared/form-field/form-field.component';
 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule, FormFieldComponent]
 })
 export class SettingsComponent implements OnInit {
 

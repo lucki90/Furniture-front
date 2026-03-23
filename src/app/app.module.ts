@@ -7,7 +7,6 @@ import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AloneCabinetComponent } from './alone-cabinet/alone-cabinet.component';
-import { SecretLockerComponent } from './secret-locker/secret-locker.component';
 import { CabinetFormComponent } from './kitchen/cabinet-form/cabinet-form.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,7 +24,6 @@ import { ToastContainerComponent } from "./core/error/toast-container.component"
   declarations: [
     AppComponent,
     AloneCabinetComponent,
-    SecretLockerComponent,
     PrintDocComponent,
     CabinetVisualizationComponent,
     RadioButtonComponent,

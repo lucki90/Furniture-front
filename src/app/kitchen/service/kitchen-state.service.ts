@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { ProjectRequestBuilderService } from './project-request-builder.service';
 import {
   KitchenCabinet,
   KitchenWallConfig,
@@ -23,24 +24,20 @@ import {
   CreateKitchenProjectRequest,
   ProjectWallRequest,
   MultiWallCalculateRequest,
-  DrawerRequest,
-  CornerCabinetRequest,
-  CascadeSegmentRequest,
   KitchenProjectDetailResponse,
   UpdateKitchenProjectRequest,
   ProjectStatus
 } from '../model/kitchen-project.model';
-import { CountertopRequest, DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
-import { PlinthRequest, DEFAULT_PLINTH_REQUEST } from '../model/plinth.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
-import { mapSegmentToRequest, SegmentRequest, SegmentFormData, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
+import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
-import { EnclosureConfig, EnclosureType } from '../cabinet-form/model/enclosure.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class KitchenStateService {
+
+  private requestBuilder = inject(ProjectRequestBuilderService);
 
   // ============ MULTI-WALL STATE ============
 
@@ -1073,366 +1070,28 @@ export class KitchenStateService {
   }
 
   /**
-   * Helper: buduje listę ścian z szafkami dla requestów.
+   * Delegates to ProjectRequestBuilderService — pure data mapping.
    */
   private buildProjectWalls(): ProjectWallRequest[] {
-    const walls = this._walls();
-
-    return walls.map(wall => {
-      // Osobne liczniki X dla strefy dolnej (BOTTOM + FULL) i górnej (TOP).
-      // Szafki wiszące startują od X=0 niezależnie od szafek dolnych — inaczej
-      // walidacja zgłasza błąd przekroczenia szerokości ściany.
-      let currentXBottom = 0;
-      let currentXTop = 0;
-
-      // Oblicz positionY dla szafek wiszących (tak samo jak cabinetPositions() dla SVG).
-      // positionY musi być poprawne, bo PlacementValidator sprawdza nakładanie w osi Y.
-      const wallPlinthH = this._plinthHeightMm();
-      const wallCountertopThickness = this._countertopThicknessMm();
-      const wallUpperFillerH = this._upperFillerHeightMm();
-      const wallH = wall.heightMm;
-      // Tylko szafki z blatem (requiresCountertop) — wyklucza TALL, BASE_FRIDGE, wolnostojące AGD (T1 fix)
-      const bottomCabsInWall = wall.cabinets.filter(c => requiresCountertop(c.type));
-      const maxBaseCorpusH = bottomCabsInWall.length > 0
-        ? Math.max(...bottomCabsInWall.map(c => c.height))
-        : 720;
-      const countertopH = wallPlinthH + maxBaseCorpusH + wallCountertopThickness;
-
-      const cabinets: ProjectCabinetRequest[] = wall.cabinets.map(cab => {
-        // Przygotuj drawerRequest dla szafek z szufladami
-        let drawerRequest: DrawerRequest | undefined;
-        if (cab.type === KitchenCabinetType.BASE_WITH_DRAWERS && cab.drawerQuantity && cab.drawerModel) {
-          drawerRequest = {
-            drawerQuantity: cab.drawerQuantity,
-            drawerModel: cab.drawerModel,
-            drawerBaseHdf: false,
-            drawerFrontDetails: null
-          };
-        }
-        // BASE_SINK z typem frontu DRAWER — przekazujemy drawer request z 1 szufladą
-        if (cab.type === KitchenCabinetType.BASE_SINK && (cab as any).sinkFrontType === 'DRAWER') {
-          drawerRequest = {
-            drawerQuantity: 1,
-            drawerModel: (cab as any).sinkDrawerModel ?? 'ANTARO_TANDEMBOX',
-            drawerBaseHdf: false,
-            drawerFrontDetails: null
-          };
-        }
-        // BASE_COOKTOP z typem frontu DRAWERS — przekazujemy drawer request
-        if (cab.type === KitchenCabinetType.BASE_COOKTOP && (cab as any).cooktopFrontType === 'DRAWERS') {
-          drawerRequest = {
-            drawerQuantity: cab.drawerQuantity ?? 3,
-            drawerModel: cab.drawerModel ?? 'ANTARO_TANDEMBOX',
-            drawerBaseHdf: false,
-            drawerFrontDetails: null
-          };
-        }
-        // BASE_OVEN z szufladą niską (LOW_DRAWER) — wyślij model prowadnicy do backendu
-        // drawerQuantity: 1 żeby przejść walidację @Min(1); backend ignoruje ilość dla tacy
-        // Warunek: tylko gdy drawerModel jest ustawiony — dla HINGED_DOOR/NONE drawerModel=null
-        if (cab.type === KitchenCabinetType.BASE_OVEN && cab.drawerModel) {
-          drawerRequest = {
-            drawerQuantity: 1,
-            drawerModel: cab.drawerModel,
-            drawerBaseHdf: false,
-            drawerFrontDetails: null
-          };
-        }
-
-        // Przygotuj segmenty dla TALL_CABINET i BASE_FRIDGE (sekcje nad lodówką)
-        let segments: SegmentRequest[] | undefined;
-        const needsSegments = hasSegments(cab.type);
-        if (needsSegments && cab.segments && cab.segments.length > 0) {
-          segments = cab.segments.map((segment, index) => {
-            const segmentWithIndex: SegmentFormData = {
-              ...segment,
-              orderIndex: index
-            };
-            return mapSegmentToRequest(segmentWithIndex);
-          });
-        }
-
-        // Przygotuj cascadeSegments dla UPPER_CASCADE
-        let cascadeSegments: CascadeSegmentRequest[] | undefined;
-        if (cab.type === KitchenCabinetType.UPPER_CASCADE &&
-            cab.cascadeLowerHeight && cab.cascadeLowerDepth &&
-            cab.cascadeUpperHeight && cab.cascadeUpperDepth) {
-          const lowerLiftUp = cab.cascadeLowerIsLiftUp ?? false;
-          const upperLiftUp = cab.cascadeUpperIsLiftUp ?? false;
-          cascadeSegments = [
-            {
-              orderIndex: 0, height: cab.cascadeLowerHeight, depth: cab.cascadeLowerDepth,
-              frontType: lowerLiftUp ? 'UPWARDS' : 'ONE_DOOR', shelfQuantity: 0,
-              isLiftUp: lowerLiftUp, isFrontExtended: cab.cascadeLowerIsFrontExtended ?? false
-            },
-            {
-              orderIndex: 1, height: cab.cascadeUpperHeight, depth: cab.cascadeUpperDepth,
-              frontType: upperLiftUp ? 'UPWARDS' : 'ONE_DOOR', shelfQuantity: 0,
-              isLiftUp: upperLiftUp, isFrontExtended: false
-            }
-          ];
-        }
-
-        // Przygotuj cornerRequest dla CORNER_CABINET
-        let cornerRequest: CornerCabinetRequest | undefined;
-        if (cab.type === KitchenCabinetType.CORNER_CABINET && cab.cornerWidthA && cab.cornerMechanism) {
-          cornerRequest = {
-            widthA: cab.cornerWidthA,
-            widthB: cab.cornerWidthB ?? null,
-            mechanism: cab.cornerMechanism,
-            shelfQuantity: cab.cornerShelfQuantity,
-            upperCabinet: cab.isUpperCorner ?? false,
-            cornerOpeningType: cab.cornerOpeningType,
-            frontUchylnyWidthMm: cab.cornerFrontUchylnyWidthMm
-          };
-        }
-
-        // Oblicz positionX osobno dla strefy dolnej i górnej — z uwzględnieniem enclosureWidths
-        const isTop = isUpperCabinetType(cab.type);
-        const leftEncW = this.enclosureOuterWidthMm(cab, 'left');
-        const rightEncW = this.enclosureOuterWidthMm(cab, 'right');
-        let posX: number;
-        if (isTop) {
-          posX = currentXTop + leftEncW;
-          currentXTop = posX + cab.width + rightEncW;
-        } else {
-          posX = currentXBottom + leftEncW;
-          currentXBottom = posX + cab.width + rightEncW;
-        }
-
-        // Oblicz positionY: górne szafki mają Y zależny od trybu pozycjonowania;
-        // dolne/słupki mają Y=0 (walidator sprawdza nakładanie w osi Y, więc musi być poprawne).
-        let computedPosY = 0;
-        if (isTop) {
-          if (cab.positioningMode === 'RELATIVE_TO_COUNTERTOP') {
-            computedPosY = countertopH + (cab.gapFromCountertopMm ?? 500);
-          } else {
-            // RELATIVE_TO_CEILING (domyślne)
-            computedPosY = wallH - wallUpperFillerH - cab.height;
-          }
-        }
-
-        const request: ProjectCabinetRequest = {
-          cabinetId: cab.name || cab.id, // użyj nazwy jeśli jest, inaczej ID
-          kitchenCabinetType: cab.type,
-          openingType: cab.openingType,
-          height: cab.height,
-          width: cab.width,
-          depth: cab.depth,
-          positionX: posX,
-          positionY: computedPosY,
-          shelfQuantity: cab.shelfQuantity,
-          varnishedFront: false,
-          materialRequest: {
-            boxMaterial: 'CHIPBOARD',
-            boxBoardThickness: 18,
-            boxColor: 'WHITE',
-            boxVeneerColor: 'WHITE',
-            frontMaterial: 'CHIPBOARD',
-            frontBoardThickness: 18,
-            frontColor: 'WHITE',
-            frontVeneerColor: 'WHITE'
-          },
-          drawerRequest,
-          segments,
-          cascadeSegments,
-          cornerRequest,
-          positioningMode: cab.positioningMode,
-          gapFromCountertopMm: cab.gapFromCountertopMm,
-
-          // Obudowa boczna — wysyłaj tylko jeśli typ nie jest NONE
-          leftEnclosure: (cab.leftEnclosureType && cab.leftEnclosureType !== 'NONE')
-            ? {
-                type: cab.leftEnclosureType as EnclosureType,
-                supportPlate: cab.leftSupportPlate ?? false,
-                fillerWidthOverrideMm: cab.leftFillerWidthOverrideMm ?? null
-              }
-            : undefined,
-          rightEnclosure: (cab.rightEnclosureType && cab.rightEnclosureType !== 'NONE')
-            ? {
-                type: cab.rightEnclosureType as EnclosureType,
-                supportPlate: cab.rightSupportPlate ?? false,
-                fillerWidthOverrideMm: cab.rightFillerWidthOverrideMm ?? null
-              }
-            : undefined,
-          distanceFromWallMm: cab.distanceFromWallMm ?? null,
-          bottomWreathOnFloor: cab.bottomWreathOnFloor ?? false,
-
-          // Pola szafki zlewowej (BASE_SINK)
-          sinkFrontType: (cab as any).sinkFrontType,
-          sinkApronEnabled: (cab as any).sinkApronEnabled ?? true,
-          sinkApronHeightMm: (cab as any).sinkApronHeightMm ?? 150,
-
-          // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
-          cooktopType: (cab as any).cooktopType,
-          cooktopFrontType: (cab as any).cooktopFrontType,
-
-          // Pola szafki wiszącej na okap (UPPER_HOOD)
-          hoodFrontType: (cab as any).hoodFrontType,
-          hoodScreenEnabled: (cab as any).hoodScreenEnabled ?? false,
-          hoodScreenHeightMm: (cab as any).hoodScreenHeightMm ?? 0,
-
-          // Pola szafki na piekarnik (BASE_OVEN)
-          ovenHeightType: (cab as any).ovenHeightType,
-          ovenLowerSectionType: (cab as any).ovenLowerSectionType,
-          ovenApronEnabled: (cab as any).ovenApronEnabled ?? false,
-          ovenApronHeightMm: (cab as any).ovenApronHeightMm ?? 0,
-
-          // Pola szafki na lodówkę (BASE_FRIDGE)
-          fridgeSectionType: (cab as any).fridgeSectionType,
-          lowerFrontHeightMm: (cab as any).lowerFrontHeightMm ?? 0,
-
-          // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
-          fridgeFreestandingType: (cab as any).fridgeFreestandingType,
-
-          // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
-          isLiftUp: (cab as any).isLiftUp ?? false,
-          isFrontExtended: (cab as any).isFrontExtended ?? false
-        };
-        return request;
-      });
-
-      // Oblicz czy blendy skrajne powinny rozszerzyć blat (leftOverhang / rightOverhang)
-      // Szafki dolne: te które wymagają blatu (requiresCountertop) + wolnostojące AGD (bez blatu, ale w strefie dolnej)
-      const bottomCabs = wall.cabinets.filter(c => requiresCountertop(c.type) || isFreestandingAppliance(c.type));
-      const leftOverhangMm = bottomCabs.length > 0
-        ? this.enclosureOuterWidthMm(bottomCabs[0], 'left') : 0;
-      const rightOverhangMm = bottomCabs.length > 0
-        ? this.enclosureOuterWidthMm(bottomCabs[bottomCabs.length - 1], 'right') : 0;
-
-      // Buduj konfigurację blatu
-      const countertop: CountertopRequest = this.buildCountertopRequest(wall, leftOverhangMm, rightOverhangMm);
-
-      // Buduj konfigurację cokołu
-      const plinth: PlinthRequest = this.buildPlinthRequest(wall);
-
-      return {
-        wallType: wall.type,
-        widthMm: wall.widthMm,
-        heightMm: wall.heightMm,
-        cabinets,
-        countertop,
-        plinth
-      };
+    return this.requestBuilder.buildProjectWalls(this._walls(), {
+      plinthHeightMm: this._plinthHeightMm(),
+      countertopThicknessMm: this._countertopThicknessMm(),
+      upperFillerHeightMm: this._upperFillerHeightMm(),
+      fillerWidthMm: this._fillerWidthMm()
     });
   }
 
-  /**
-   * Zwraca szerokość obudowy bocznej dla danej szafki i strony (w mm).
-   * Dla PARALLEL_FILLER_STRIP = fillerWidthOverride lub globalFillerWidth.
-   * Dla SIDE_PLATE_* = 18mm (grubość płyty).
-   * Dla NONE / brak = 0.
-   */
+  // ============ PRIVATE HELPERS (delegates to ProjectRequestBuilderService) ============
+
   private enclosureOuterWidthMm(cab: KitchenCabinet, side: 'left' | 'right'): number {
-    const type = side === 'left' ? cab.leftEnclosureType : cab.rightEnclosureType;
-    if (!type || type === 'NONE') return 0;
-    if (type === 'PARALLEL_FILLER_STRIP') {
-      const override = side === 'left' ? cab.leftFillerWidthOverrideMm : cab.rightFillerWidthOverrideMm;
-      return override ?? this._fillerWidthMm();
-    }
-    return 18; // SIDE_PLATE_WITH_PLINTH | SIDE_PLATE_TO_FLOOR
+    return this.requestBuilder.enclosureOuterWidthMm(cab, side, this._fillerWidthMm());
   }
-
-  /**
-   * Buduje CountertopRequest na podstawie konfiguracji ściany.
-   */
-  private buildCountertopRequest(
-    wall: WallWithCabinets,
-    leftOverhangMm = 0,
-    rightOverhangMm = 0
-  ): CountertopRequest {
-    const config = wall.countertopConfig;
-
-    if (!config || !config.enabled) {
-      return { ...DEFAULT_COUNTERTOP_REQUEST, enabled: false };
-    }
-
-    // Użyj jointType i edgeType z konfiguracji lub domyślne
-    const jointType = (config.jointType as any) ?? DEFAULT_COUNTERTOP_REQUEST.jointType;
-    const edgeType = (config.edgeType as any) ?? DEFAULT_COUNTERTOP_REQUEST.frontEdgeType;
-
-    // Naddatek boczny: per-ściana + domyślny 5mm (poza blendami bocznymi)
-    const sideExtra = config.sideOverhangExtraMm ?? 5;
-
-    return {
-      enabled: true,
-      materialType: (config.materialType as any) ?? DEFAULT_COUNTERTOP_REQUEST.materialType,
-      colorCode: config.colorCode,
-      thicknessMm: config.thicknessMm ?? DEFAULT_COUNTERTOP_REQUEST.thicknessMm,
-      manualLengthMm: config.manualLengthMm,
-      // Zawsze wysyłaj głębokość (domyślnie 600mm) — backend używa jej zamiast auto-kalkulacji
-      manualDepthMm: config.manualDepthMm ?? 600,
-      frontOverhangMm: config.frontOverhangMm ?? DEFAULT_COUNTERTOP_REQUEST.frontOverhangMm,
-      backOverhangMm: DEFAULT_COUNTERTOP_REQUEST.backOverhangMm,
-      leftOverhangMm: leftOverhangMm + sideExtra,   // blenda lewa + naddatek boczny
-      rightOverhangMm: rightOverhangMm + sideExtra, // blenda prawa + naddatek boczny
-      jointType,
-      frontEdgeType: edgeType,
-      leftEdgeType: DEFAULT_COUNTERTOP_REQUEST.leftEdgeType,
-      rightEdgeType: DEFAULT_COUNTERTOP_REQUEST.rightEdgeType,
-      backEdgeType: DEFAULT_COUNTERTOP_REQUEST.backEdgeType
-    };
-  }
-
-  /**
-   * Buduje PlinthRequest na podstawie konfiguracji ściany.
-   */
-  private buildPlinthRequest(wall: WallWithCabinets): PlinthRequest {
-    const config = wall.plinthConfig;
-
-    if (!config || !config.enabled) {
-      return { ...DEFAULT_PLINTH_REQUEST, enabled: false };
-    }
-
-    return {
-      enabled: true,
-      feetType: (config.feetType as any) ?? DEFAULT_PLINTH_REQUEST.feetType,
-      materialType: (config.materialType as any) ?? DEFAULT_PLINTH_REQUEST.materialType,
-      colorCode: config.colorCode,
-      setbackMm: config.setbackMm ?? DEFAULT_PLINTH_REQUEST.setbackMm
-    };
-  }
-
-  // ============ PRIVATE HELPERS ============
 
   private mapCalculationResult(result: any): CabinetCalculationResult | undefined {
-    if (!result) return undefined;
-
-    // CabinetResponse (/add endpoint) używa: summaryCosts, boardTotalCost, componentTotalCost, jobTotalCost
-    // CabinetPlacementResponse (projekt z bazy) używa: totalCost, boardsCost, componentsCost, jobsCost
-    // Obsługujemy oba formaty — priorytet: CabinetResponse (świeża kalkulacja)
-    return {
-      totalCost: result.summaryCosts ?? result.totalCost ?? 0,
-      boardCosts: result.boardTotalCost ?? result.boardsCost ?? result.boardCosts ?? 0,
-      componentCosts: result.componentTotalCost ?? result.componentsCost ?? result.componentCosts ?? 0,
-      jobCosts: result.jobTotalCost ?? result.jobsCost ?? result.jobCosts ?? 0
-    };
+    return this.requestBuilder.mapCalculationResult(result);
   }
 
-  /**
-   * Mapuje SegmentRequest (z API) na SegmentFormData (dla stanu aplikacji).
-   */
   private mapSegmentResponseToFormData(seg: any): SegmentFormData {
-    const formData: SegmentFormData = {
-      segmentType: seg.segmentType as SegmentType,
-      height: seg.height,
-      orderIndex: seg.orderIndex
-    };
-
-    // Mapuj dane szuflad
-    if (seg.drawerRequest) {
-      formData.drawerQuantity = seg.drawerRequest.drawerQuantity;
-      formData.drawerModel = seg.drawerRequest.drawerModel;
-    }
-
-    // Mapuj półki i typ frontu
-    if (seg.shelfQuantity !== null && seg.shelfQuantity !== undefined) {
-      formData.shelfQuantity = seg.shelfQuantity;
-    }
-    if (seg.frontType) {
-      formData.frontType = seg.frontType as SegmentFrontType;
-    }
-
-    return formData;
+    return this.requestBuilder.mapSegmentResponseToFormData(seg);
   }
 }

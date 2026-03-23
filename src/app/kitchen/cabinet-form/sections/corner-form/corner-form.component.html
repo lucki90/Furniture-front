@@ -32,21 +32,11 @@
 
   <!-- Szerokość frontu uchylnego (tylko Type B: Blind/Magic Corner/Le Mans) -->
   <div class="form-row" *ngIf="showCornerFrontUchylnyWidth">
-    <div class="form-group flex-2">
-      <label class="form-label">Szerokość frontu uchylnego</label>
-      <div class="input-with-unit">
-        <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm"
-               min="400" max="600" step="50">
-        <span class="unit">mm</span>
-      </div>
-      <span class="form-hint">400–600 mm (domyślnie 500 mm)</span>
-      <span class="form-error"
-            *ngIf="form.get('cornerFrontUchylnyWidthMm')?.touched && form.get('cornerFrontUchylnyWidthMm')?.errors">
-        <ng-container *ngIf="form.get('cornerFrontUchylnyWidthMm')?.errors?.['min']">Min: 400</ng-container>
-        <ng-container *ngIf="form.get('cornerFrontUchylnyWidthMm')?.errors?.['max']">Max: 600</ng-container>
-        <ng-container *ngIf="form.get('cornerFrontUchylnyWidthMm')?.errors?.['required']">Wymagane</ng-container>
-      </span>
-    </div>
+    <app-form-field class="form-group flex-2" label="Szerokość frontu uchylnego" unit="mm"
+        hint="400–600 mm (domyślnie 500 mm)"
+        [errorMessage]="getFieldError('cornerFrontUchylnyWidthMm')">
+      <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm" min="400" max="600" step="50">
+    </app-form-field>
     <div class="form-group flex-2">
       <span class="form-hint" style="display:block; margin-top: 28px;">
         ℹ Front uchylny zasłania przestrzeń narożną i umożliwia dostęp do mechanizmu.
@@ -56,56 +46,24 @@
 
   <!-- Wymiary narożnika -->
   <div class="form-row">
-    <div class="form-group">
-      <label class="form-label">Szerokość A</label>
-      <div class="input-with-unit">
-        <input type="number" class="form-control" formControlName="cornerWidthA"
-               [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
-               [step]="cornerConstraints.widthStep">
-        <span class="unit">mm</span>
-      </div>
-      <span class="form-hint">Ściana główna</span>
-      <span class="form-error" *ngIf="form.get('cornerWidthA')?.touched && form.get('cornerWidthA')?.errors">
-        <ng-container *ngIf="form.get('cornerWidthA')?.errors?.['min']">Min: {{ cornerConstraints.widthMin }}</ng-container>
-        <ng-container *ngIf="form.get('cornerWidthA')?.errors?.['max']">Max: {{ cornerConstraints.widthMax }}</ng-container>
-      </span>
-    </div>
-    <div class="form-group" *ngIf="showCornerWidthB">
-      <label class="form-label">Szerokość B</label>
-      <div class="input-with-unit">
-        <input type="number" class="form-control" formControlName="cornerWidthB"
-               [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
-               [step]="cornerConstraints.widthStep">
-        <span class="unit">mm</span>
-      </div>
-      <span class="form-hint">Ściana boczna</span>
-      <span class="form-error" *ngIf="form.get('cornerWidthB')?.touched && form.get('cornerWidthB')?.errors">
-        <ng-container *ngIf="form.get('cornerWidthB')?.errors?.['min']">Min: {{ cornerConstraints.widthMin }}</ng-container>
-        <ng-container *ngIf="form.get('cornerWidthB')?.errors?.['max']">Max: {{ cornerConstraints.widthMax }}</ng-container>
-      </span>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Wysokość</label>
-      <div class="input-with-unit">
-        <input type="number" class="form-control" formControlName="height">
-        <span class="unit">mm</span>
-      </div>
-      <span class="form-error" *ngIf="form.get('height')?.touched && form.get('height')?.errors">
-        <ng-container *ngIf="form.get('height')?.errors?.['min']">Min: {{ form.get('height')?.errors?.['min'].min }}</ng-container>
-        <ng-container *ngIf="form.get('height')?.errors?.['max']">Max: {{ form.get('height')?.errors?.['max'].max }}</ng-container>
-      </span>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Głębokość</label>
-      <div class="input-with-unit">
-        <input type="number" class="form-control" formControlName="depth">
-        <span class="unit">mm</span>
-      </div>
-      <span class="form-error" *ngIf="form.get('depth')?.touched && form.get('depth')?.errors">
-        <ng-container *ngIf="form.get('depth')?.errors?.['min']">Min: {{ form.get('depth')?.errors?.['min'].min }}</ng-container>
-        <ng-container *ngIf="form.get('depth')?.errors?.['max']">Max: {{ form.get('depth')?.errors?.['max'].max }}</ng-container>
-      </span>
-    </div>
+    <app-form-field class="form-group" label="Szerokość A" unit="mm" hint="Ściana główna"
+        [errorMessage]="getFieldError('cornerWidthA')">
+      <input type="number" class="form-control" formControlName="cornerWidthA"
+             [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
+             [step]="cornerConstraints.widthStep">
+    </app-form-field>
+    <app-form-field class="form-group" *ngIf="showCornerWidthB" label="Szerokość B" unit="mm" hint="Ściana boczna"
+        [errorMessage]="getFieldError('cornerWidthB')">
+      <input type="number" class="form-control" formControlName="cornerWidthB"
+             [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
+             [step]="cornerConstraints.widthStep">
+    </app-form-field>
+    <app-form-field class="form-group" label="Wysokość" unit="mm" [errorMessage]="getFieldError('height')">
+      <input type="number" class="form-control" formControlName="height">
+    </app-form-field>
+    <app-form-field class="form-group" label="Głębokość" unit="mm" [errorMessage]="getFieldError('depth')">
+      <input type="number" class="form-control" formControlName="depth">
+    </app-form-field>
   </div>
 
   <!-- Liczba półek (tylko dla FIXED_SHELVES) -->

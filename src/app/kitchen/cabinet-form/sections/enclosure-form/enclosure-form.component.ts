@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { getEnclosureTypeOptions, EnclosureType } from '../../model/enclosure.model';
 import { isUpperCabinetType } from '../../../model/kitchen-state.model';
 import { KitchenStateService } from '../../../service/kitchen-state.service';
+import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
 
 /**
  * Sekcja konfiguracji obudowy bocznej szafki.
@@ -14,7 +15,7 @@ import { KitchenStateService } from '../../../service/kitchen-state.service';
 @Component({
   selector: 'app-enclosure-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
   templateUrl: './enclosure-form.component.html',
   styleUrls: ['./enclosure-form.component.css']
 })

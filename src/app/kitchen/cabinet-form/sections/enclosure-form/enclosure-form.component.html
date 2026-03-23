@@ -18,16 +18,13 @@
           Podpora blendy
         </label>
       </div>
-      <div *ngIf="isLeftParallelFiller" class="form-group enclosure-distance-group">
-        <label class="form-label" for="leftFillerW">Szerokość blendy (override)</label>
-        <div class="input-with-unit">
-          <input id="leftFillerW" type="number" class="form-control form-control-sm"
-                 formControlName="leftFillerWidthOverrideMm"
-                 [placeholder]="'domyślnie ' + stateService.fillerWidthMm()"
-                 min="20" max="200" step="5" />
-          <span class="unit">mm</span>
-        </div>
-      </div>
+      <app-form-field *ngIf="isLeftParallelFiller" class="form-group enclosure-distance-group"
+          label="Szerokość blendy (override)" unit="mm">
+        <input id="leftFillerW" type="number" class="form-control form-control-sm"
+               formControlName="leftFillerWidthOverrideMm"
+               [placeholder]="'domyślnie ' + stateService.fillerWidthMm()"
+               min="20" max="200" step="5" />
+      </app-form-field>
     </div>
 
     <!-- Strona prawa -->
@@ -45,35 +42,24 @@
           Podpora blendy
         </label>
       </div>
-      <div *ngIf="isRightParallelFiller" class="form-group enclosure-distance-group">
-        <label class="form-label" for="rightFillerW">Szerokość blendy (override)</label>
-        <div class="input-with-unit">
-          <input id="rightFillerW" type="number" class="form-control form-control-sm"
-                 formControlName="rightFillerWidthOverrideMm"
-                 [placeholder]="'domyślnie ' + stateService.fillerWidthMm()"
-                 min="20" max="200" step="5" />
-          <span class="unit">mm</span>
-        </div>
-      </div>
+      <app-form-field *ngIf="isRightParallelFiller" class="form-group enclosure-distance-group"
+          label="Szerokość blendy (override)" unit="mm">
+        <input id="rightFillerW" type="number" class="form-control form-control-sm"
+               formControlName="rightFillerWidthOverrideMm"
+               [placeholder]="'domyślnie ' + stateService.fillerWidthMm()"
+               min="20" max="200" step="5" />
+      </app-form-field>
     </div>
 
   </div>
 
   <!-- Głębokość zabudowy (override) -->
-  <div class="form-group enclosure-distance-group">
-    <label class="form-label" for="distanceFromWallMm">Głębokość zabudowy (override)</label>
-    <div class="input-with-unit">
-      <input
-        id="distanceFromWallMm"
-        type="number"
-        class="form-control form-control-sm"
-        formControlName="distanceFromWallMm"
-        [placeholder]="'domyślnie ' + stateService.distanceFromWallMm()"
-        min="400"
-        max="700"
-        step="10" />
-      <span class="unit">mm</span>
-    </div>
-    <p class="form-hint">Puste = wartość z ustawień globalnych ({{ stateService.distanceFromWallMm() }} mm)</p>
-  </div>
+  <app-form-field class="form-group enclosure-distance-group"
+      label="Głębokość zabudowy (override)" unit="mm"
+      hint="Puste = wartość z ustawień globalnych ({{ stateService.distanceFromWallMm() }} mm)">
+    <input id="distanceFromWallMm" type="number" class="form-control form-control-sm"
+           formControlName="distanceFromWallMm"
+           [placeholder]="'domyślnie ' + stateService.distanceFromWallMm()"
+           min="400" max="700" step="10" />
+  </app-form-field>
 </div>

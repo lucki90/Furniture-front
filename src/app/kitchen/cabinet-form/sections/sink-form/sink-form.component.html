@@ -11,14 +11,10 @@
         <option value="DRAWER">Szuflada (Antaro / Tandembox)</option>
       </select>
     </div>
-    <div class="form-group flex-2">
-      <label class="form-label">Szerokość wnętrza korpusu</label>
-      <div class="input-with-unit">
-        <input type="text" class="form-control" [value]="innerCabinetWidth" readonly>
-        <span class="unit">mm</span>
-      </div>
-      <span class="form-hint">= szerokość − 2 × 18 mm boku</span>
-    </div>
+    <app-form-field class="form-group flex-2" label="Szerokość wnętrza korpusu" unit="mm"
+        hint="= szerokość − 2 × 18 mm boku">
+      <input type="text" class="form-control" [value]="innerCabinetWidth" readonly>
+    </app-form-field>
   </div>
 
   <!-- Blenda maskująca (apron) -->
@@ -30,19 +26,12 @@
         <span class="form-hint">fałszywy front nad zlewem</span>
       </label>
     </div>
-    <div class="form-group flex-2" *ngIf="showSinkApronHeight && isSinkApronEnabled">
-      <label class="form-label">Wysokość blendy</label>
-      <div class="input-with-unit">
-        <input type="number" class="form-control" formControlName="sinkApronHeightMm"
-               min="80" max="200" step="10">
-        <span class="unit">mm</span>
-      </div>
-      <span class="form-hint">80–200 mm (domyślnie 150)</span>
-      <span class="form-error" *ngIf="form.get('sinkApronHeightMm')?.touched && form.get('sinkApronHeightMm')?.errors">
-        <ng-container *ngIf="form.get('sinkApronHeightMm')?.errors?.['min']">Min: 80</ng-container>
-        <ng-container *ngIf="form.get('sinkApronHeightMm')?.errors?.['max']">Max: 200</ng-container>
-      </span>
-    </div>
+    <app-form-field class="form-group flex-2" *ngIf="showSinkApronHeight && isSinkApronEnabled"
+        label="Wysokość blendy" unit="mm"
+        hint="80–200 mm (domyślnie 150)"
+        [errorMessage]="getFieldError('sinkApronHeightMm')">
+      <input type="number" class="form-control" formControlName="sinkApronHeightMm" min="80" max="200" step="10">
+    </app-form-field>
   </div>
 
   <!-- System szuflad (widoczny gdy frontType=DRAWER) -->

@@ -2,6 +2,8 @@ import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
+import { getFormError } from '../../../../shared/form-error.util';
 
 /**
  * Sekcja konfiguracji szafki zlewowej (BASE_SINK).
@@ -11,7 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 @Component({
   selector: 'app-sink-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
   templateUrl: './sink-form.component.html',
   styleUrls: ['./sink-form.component.css']
 })
@@ -69,5 +71,9 @@ export class SinkFormComponent implements OnInit {
 
   private onSinkApronEnabledChange(enabled: boolean): void {
     this.showSinkApronHeight = enabled;
+  }
+
+  getFieldError(controlName: string): string | null {
+    return getFormError(this.form.get(controlName));
   }
 }

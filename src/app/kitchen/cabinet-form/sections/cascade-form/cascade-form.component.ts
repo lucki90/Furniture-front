@@ -5,6 +5,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { merge } from 'rxjs';
 import { UpperCascadeCabinetPreparer } from '../../types/upper-cascade/upper-cascade-cabinet-preparer';
 import { UpperCascadeCabinetValidator } from '../../types/upper-cascade/upper-cascade-cabinet-validator';
+import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
+import { getFormError } from '../../../../shared/form-error.util';
 
 /**
  * Sekcja konfiguracji szafki kaskadowej (UPPER_CASCADE).
@@ -14,7 +16,7 @@ import { UpperCascadeCabinetValidator } from '../../types/upper-cascade/upper-ca
 @Component({
   selector: 'app-cascade-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
   templateUrl: './cascade-form.component.html',
   styleUrls: ['./cascade-form.component.css']
 })
@@ -48,5 +50,9 @@ export class CascadeFormComponent implements OnInit {
   /** Błąd kolejności głębokości segmentów (dolny musi być płytszy niż górny). */
   get cascadeDepthError(): string | null {
     return this.cascadeValidator.getDepthOrderError(this.form);
+  }
+
+  getFieldError(controlName: string): string | null {
+    return getFormError(this.form.get(controlName));
   }
 }

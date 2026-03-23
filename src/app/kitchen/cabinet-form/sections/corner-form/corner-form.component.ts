@@ -15,6 +15,8 @@ import {
 } from '../../model/corner-cabinet.model';
 import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
 import { KitchenCabinetTypeConfig } from '../../type-config/kitchen-cabinet-type-config';
+import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
+import { getFormError } from '../../../../shared/form-error.util';
 
 /**
  * Sekcja konfiguracji szafki narożnej (CORNER_CABINET).
@@ -24,7 +26,7 @@ import { KitchenCabinetTypeConfig } from '../../type-config/kitchen-cabinet-type
 @Component({
   selector: 'app-corner-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
   templateUrl: './corner-form.component.html',
   styleUrls: ['./corner-form.component.css']
 })
@@ -198,5 +200,9 @@ export class CornerFormComponent implements OnInit {
       const config = KitchenCabinetTypeConfig[type];
       if (config) config.validator.validate(this.form);
     }
+  }
+
+  getFieldError(controlName: string): string | null {
+    return getFormError(this.form.get(controlName));
   }
 }
