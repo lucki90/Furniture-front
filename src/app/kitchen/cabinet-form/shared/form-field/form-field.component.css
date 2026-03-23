@@ -1,0 +1,60 @@
+/* ============================================
+   AppFormFieldComponent — BEM klasy form-field__*
+   Odpowiada stylom .form-group + .form-label + .form-error + .form-hint
+   z cabinet-form.component.css (nie koliduje dzięki prefixowi form-field__)
+   ============================================ */
+
+.form-field {
+  flex: 1;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-field__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+
+/* Wrapper inputa — z jednostką lub bez */
+.form-field__input-wrapper {
+  display: flex;
+  align-items: stretch;
+}
+
+/* Gdy jest jednostka: input traci prawy border-radius i border-right */
+.form-field__input-wrapper--with-unit > :first-child {
+  border-radius: 6px 0 0 6px !important;
+  border-right: none !important;
+}
+
+.form-field__unit {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  background: var(--bg-hover, #f1f5f9);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.form-field__error {
+  font-size: 10px;
+  color: var(--error-color, #ef4444);
+  margin-top: 2px;
+}
+
+.form-field__hint {
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 2px;
+}

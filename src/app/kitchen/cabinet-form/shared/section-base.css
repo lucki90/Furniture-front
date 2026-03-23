@@ -1,0 +1,139 @@
+/* ============================================
+   SECTION BASE — Kompaktowy styl pól sekcji szafki
+   Odpowiada .cabinet-form .form-control itd. z cabinet-form.component.css
+   Używany przez wszystkie sub-komponenty sekcji (sections/*).
+   ============================================ */
+
+/* Sekcja z linią oddzielającą */
+.sink-section {
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+  margin: 0 0 12px 0;
+}
+
+/* Wiersz pól */
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+/* Pole formularza */
+.form-group {
+  flex: 1;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-group.flex-1 { flex: 1; }
+.form-group.flex-2 { flex: 2; min-width: 120px; }
+
+/* Etykieta */
+.form-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+
+/* Input/select */
+.form-control {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 6px;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1e293b);
+  transition: all 0.2s ease;
+}
+.form-control:focus {
+  outline: none;
+  border-color: var(--accent-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+.form-control:disabled {
+  background: var(--bg-hover, #f1f5f9);
+  color: var(--text-muted, #94a3b8);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+select.form-control {
+  cursor: pointer;
+  padding-right: 28px;
+}
+
+/* Błąd / podpowiedź */
+.form-error {
+  font-size: 10px;
+  color: var(--error-color, #ef4444);
+  margin-top: 2px;
+}
+.form-hint {
+  font-size: 10px;
+  color: var(--text-muted, #94a3b8);
+  margin-top: 2px;
+}
+
+/* Input z jednostką */
+.input-with-unit {
+  display: flex;
+  align-items: stretch;
+}
+.input-with-unit .form-control {
+  border-radius: 6px 0 0 6px;
+  border-right: none;
+  width: 100%;
+}
+.unit {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  background: var(--bg-hover, #f1f5f9);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Checkbox w etykiecie */
+.enclosure-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.enclosure-checkbox {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* Blok błędów walidacji */
+.segments-error {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: var(--error-color, #ef4444);
+  font-size: 12px;
+}

@@ -1,0 +1,60 @@
+<div class="sink-section" [formGroup]="form">
+  <h4 class="section-title">Konfiguracja szafki na piekarnik</h4>
+
+  <!-- Typ wysokości piekarnika + sekcja dolna -->
+  <div class="form-row">
+    <div class="form-group flex-2">
+      <label class="form-label">Wysokość wnęki piekarnika</label>
+      <select class="form-control" formControlName="ovenHeightType">
+        <option value="STANDARD">Standardowy (595 mm)</option>
+        <option value="COMPACT">Compact (455 mm)</option>
+      </select>
+      <span class="form-hint">Standardowy AGD: 595 mm; kompaktowy: 455 mm</span>
+    </div>
+    <div class="form-group flex-2">
+      <label class="form-label">Sekcja dolna</label>
+      <select class="form-control" formControlName="ovenLowerSectionType">
+        <option value="LOW_DRAWER">Szuflada niska</option>
+        <option value="HINGED_DOOR">Drzwi uchylne</option>
+        <option value="NONE">Brak (wolna przestrzeń)</option>
+      </select>
+      <span class="form-hint">Przestrzeń poniżej wnęki piekarnika</span>
+    </div>
+  </div>
+
+  <!-- System szuflady niskiej — widoczny gdy LOW_DRAWER -->
+  <div class="form-row" *ngIf="showOvenDrawerModel">
+    <div class="form-group flex-2">
+      <label class="form-label">System szuflady niskiej</label>
+      <select class="form-control" formControlName="drawerModel">
+        <option value="ANTARO_TANDEMBOX">Blum Antaro Tandembox</option>
+        <option value="SEVROLL_BALL">Sevroll kulkowe</option>
+      </select>
+      <span class="form-hint">Prowadnica szuflady szybowej pod piekarnikiem</span>
+    </div>
+  </div>
+
+  <!-- Blenda dekoracyjna nad piekarnikiem -->
+  <div class="form-row">
+    <div class="form-group flex-2">
+      <label class="form-label enclosure-checkbox-label">
+        <input type="checkbox" formControlName="ovenApronEnabled" class="enclosure-checkbox">
+        Blenda dekoracyjna nad piekarnikiem
+      </label>
+      <span class="form-hint">Pasek maskujący szczelinę między piekarnikiem a wieńcem górnym</span>
+    </div>
+  </div>
+
+  <!-- Wysokość blendy — widoczna gdy blenda włączona -->
+  <div class="form-row" *ngIf="showOvenApronHeight">
+    <div class="form-group flex-1">
+      <label class="form-label">Wysokość blendy (mm)</label>
+      <input type="number" class="form-control" formControlName="ovenApronHeightMm"
+             min="30" max="150" step="5">
+      <span class="form-hint">30–150 mm (domyślnie 60 mm)</span>
+      <span class="form-error" *ngIf="form.get('ovenApronHeightMm')?.errors?.['outOfRange']">
+        Wysokość blendy musi mieścić się w zakresie 30–150 mm
+      </span>
+    </div>
+  </div>
+</div>

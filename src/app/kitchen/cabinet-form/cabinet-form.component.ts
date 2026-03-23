@@ -1,12 +1,12 @@
 import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, OnInit, inject } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { KitchenService } from '../service/kitchen.service';
 import { ToastService } from '../../core/error/toast.service';
 import { DictionaryService, DictionaryItem } from '../service/dictionary.service';
 import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
-import { OPENING_TYPES, KitchenCabinetConstraints } from './model/kitchen-cabinet-constants';
+import { OPENING_TYPES } from './model/kitchen-cabinet-constants';
 import { CommonModule } from "@angular/common";
 import { CabinetCalculatedEvent, KitchenCabinet, CabinetZone, isBaseCabinetType, isUpperCabinetType, isFreestandingAppliance } from '../model/kitchen-state.model';
 import { KitchenStateService } from '../service/kitchen-state.service';
@@ -15,27 +15,24 @@ import { SegmentVisualizerComponent } from './segment-visualizer/segment-visuali
 import { SegmentType, SEGMENT_TYPE_OPTIONS } from './model/segment.model';
 import { TallCabinetValidator } from './types/tall-cabinet/tall-cabinet-validator';
 import { BaseFridgeCabinetValidator } from './types/base-fridge/base-fridge-cabinet-validator';
-import { UpperCascadeCabinetPreparer } from './types/upper-cascade/upper-cascade-cabinet-preparer';
-import { UpperCascadeCabinetValidator } from './types/upper-cascade/upper-cascade-cabinet-validator';
-import {
-  CornerMechanismType,
-  CORNER_MECHANISM_LABELS,
-  BASE_CORNER_MECHANISMS,
-  UPPER_CORNER_MECHANISMS,
-  BASE_CORNER_CONSTRAINTS,
-  UPPER_CORNER_CONSTRAINTS,
-  BLIND_CORNER_CONSTRAINTS,
-  mechanismRequiresShelves,
-  isBlindType
-} from './model/corner-cabinet.model';
-import { ENCLOSURE_TYPE_OPTIONS, EnclosureType, getEnclosureTypeOptions } from './model/enclosure.model';
+// Sub-komponenty sekcji formularza
+import { CooktopFormComponent } from './sections/cooktop-form/cooktop-form.component';
+import { HoodFormComponent } from './sections/hood-form/hood-form.component';
+import { SinkFormComponent } from './sections/sink-form/sink-form.component';
+import { OvenFormComponent } from './sections/oven-form/oven-form.component';
+import { FridgeFormComponent } from './sections/fridge-form/fridge-form.component';
+import { CascadeFormComponent } from './sections/cascade-form/cascade-form.component';
+import { CornerFormComponent } from './sections/corner-form/corner-form.component';
+import { EnclosureFormComponent } from './sections/enclosure-form/enclosure-form.component';
 
 @Component({
   selector: 'app-cabinet-form',
   templateUrl: './cabinet-form.component.html',
   styleUrls: ['./cabinet-form.component.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SegmentFormComponent, SegmentVisualizerComponent]
+  imports: [CommonModule, ReactiveFormsModule, SegmentFormComponent, SegmentVisualizerComponent,
+    CooktopFormComponent, HoodFormComponent, SinkFormComponent, OvenFormComponent,
+    FridgeFormComponent, CascadeFormComponent, CornerFormComponent, EnclosureFormComponent]
 })
 export class CabinetFormComponent implements OnChanges, OnInit {
 
@@ -63,39 +60,6 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   selectedSegmentIndex = -1;
   private tallCabinetValidator = new TallCabinetValidator();
   readonly baseFridgeValidator = new BaseFridgeCabinetValidator();
-  private cascadeValidator = new UpperCascadeCabinetValidator();
-  private cascadePreparer = new UpperCascadeCabinetPreparer();
-
-  // Dla szafki narożnej
-  cornerMechanismLabels = CORNER_MECHANISM_LABELS;
-  availableCornerMechanisms: { value: CornerMechanismType; label: string }[] = [];
-  cornerConstraints = BASE_CORNER_CONSTRAINTS;
-
-  // Opcje obudowy bocznej — aktualizowane przy zmianie typu szafki (nie tablica tworzona na każdy cykl CD)
-  enclosureOptions = getEnclosureTypeOptions(false);
-
-  /**
-   * Zwraca aktualnie wybrany mechanizm narożnika.
-   */
-  get currentCornerMechanism(): CornerMechanismType {
-    return this.form.get('cornerMechanism')?.value ?? CornerMechanismType.FIXED_SHELVES;
-  }
-
-  /**
-   * Zwraca etykietę aktualnego mechanizmu narożnika.
-   */
-  get currentCornerMechanismLabel(): string {
-    return this.cornerMechanismLabels[this.currentCornerMechanism] ?? '';
-  }
-
-  /**
-   * Czy aktualnie wybrany mechanizm to Type B (Blind/Rectangular).
-   * Type B: BLIND_CORNER, MAGIC_CORNER, LE_MANS
-   */
-  get isCornerTypeB(): boolean {
-    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
-    return mechanism ? isBlindType(mechanism) : false;
-  }
 
   get isEditMode(): boolean {
     return this.editingCabinet !== null;
@@ -275,218 +239,11 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   }
 
   /**
-   * Czy aktualny typ to szafka kaskadowa (UPPER_CASCADE).
-   */
-  get isCascadeCabinet(): boolean {
-    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.UPPER_CASCADE;
-  }
-
-  /**
-   * Całkowita wysokość szafki kaskadowej (suma segmentów).
-   */
-  get cascadeTotalHeight(): number {
-    const lower = this.form.get('cascadeLowerHeight')?.value ?? 0;
-    const upper = this.form.get('cascadeUpperHeight')?.value ?? 0;
-    return lower + upper;
-  }
-
-  /** Czy lewa obudowa to blenda równoległa (wymaga checkboxa supportPlate). */
-  get isLeftParallelFiller(): boolean {
-    return this.form.get('leftEnclosureType')?.value === 'PARALLEL_FILLER_STRIP';
-  }
-
-  /** Czy prawa obudowa to blenda równoległa (wymaga checkboxa supportPlate). */
-  get isRightParallelFiller(): boolean {
-    return this.form.get('rightEnclosureType')?.value === 'PARALLEL_FILLER_STRIP';
-  }
-
-  /**
-   * Dynamiczne opcje selecta obudowy — zależne od strefy szafki.
-   * Dla szafek wiszących (UPPER_*) etykiety SIDE_PLATE_WITH_PLINTH i SIDE_PLATE_TO_FLOOR są inne.
-   */
-  getEnclosureOptions() {
-    return getEnclosureTypeOptions(this.isUpperCabinet);
-  }
-
-  /**
-   * Czy aktualny typ to szafka zlewowa (BASE_SINK).
-   */
-  get isSinkCabinet(): boolean {
-    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_SINK;
-  }
-
-  /**
    * Czy aktualny typ to szafka na lodówkę w zabudowie (BASE_FRIDGE).
    * Używany do przełączania UI sekcji segmentów między TALL_CABINET a BASE_FRIDGE.
    */
   get isFridgeCabinet(): boolean {
     return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_FRIDGE;
-  }
-
-  /**
-   * Czy wybrany front zlewowy to szuflada — wpływa na widoczność pól szuflad.
-   */
-  get isSinkDrawer(): boolean {
-    return this.form.get('sinkFrontType')?.value === 'DRAWER';
-  }
-
-  /**
-   * Szerokość wnętrza korpusu (display only): width - 2×grubość boku (18mm).
-   */
-  get innerCabinetWidth(): number {
-    const w = this.form.get('width')?.value ?? 0;
-    return w - 2 * 18;
-  }
-
-  /**
-   * Czy blenda maskująca (apron) jest włączona.
-   */
-  get isSinkApronEnabled(): boolean {
-    return this.form.get('sinkApronEnabled')?.value === true;
-  }
-
-  /**
-   * Reaguje na zmianę typu frontu zlewowego — aktualizuje widoczność sekcji szuflad.
-   */
-  onSinkFrontTypeChange(frontType: string): void {
-    const isDrawer = frontType === 'DRAWER';
-    this.visibility.sinkDrawerModel = isDrawer;
-    const ctrl = this.form.get('sinkDrawerModel');
-    if (ctrl) {
-      isDrawer ? ctrl.enable() : ctrl.disable();
-    }
-  }
-
-  /**
-   * Reaguje na zmianę checkboxa blendy — aktualizuje widoczność pola wysokości blendy.
-   */
-  onSinkApronEnabledChange(enabled: boolean): void {
-    this.visibility.sinkApronHeight = enabled;
-  }
-
-  /**
-   * Czy aktualny typ to szafka pod płytę grzewczą (BASE_COOKTOP).
-   */
-  get isCooktopCabinet(): boolean {
-    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_COOKTOP;
-  }
-
-  /**
-   * Czy wybrany front dla cooktop to szuflady — wpływa na widoczność pól szuflad.
-   */
-  get isCooktopDrawers(): boolean {
-    return this.form.get('cooktopFrontType')?.value === 'DRAWERS';
-  }
-
-  /**
-   * Reaguje na zmianę typu frontu szafki pod płytę — aktualizuje widoczność szuflad.
-   */
-  onCooktopFrontTypeChange(frontType: string): void {
-    const isDrawers = frontType === 'DRAWERS';
-    this.visibility.drawerQuantity = isDrawers;
-    this.visibility.drawerModel = isDrawers;
-    const qtyCtrl = this.form.get('drawerQuantity');
-    const modelCtrl = this.form.get('drawerModel');
-    if (qtyCtrl) isDrawers ? qtyCtrl.enable() : qtyCtrl.disable();
-    if (modelCtrl) isDrawers ? modelCtrl.enable() : modelCtrl.disable();
-  }
-
-  /**
-   * Czy aktualny typ to szafka wisząca na okap (UPPER_HOOD).
-   */
-  get isHoodCabinet(): boolean {
-    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.UPPER_HOOD;
-  }
-
-  /**
-   * Reaguje na zmianę checkboxa blendy wewnętrznej okapu.
-   * Pokazuje/ukrywa pole wysokości blendy.
-   */
-  onHoodScreenEnabledChange(enabled: boolean): void {
-    this.visibility.hoodScreenHeight = enabled;
-    const ctrl = this.form.get('hoodScreenHeightMm');
-    if (ctrl) enabled ? ctrl.enable() : ctrl.disable();
-  }
-
-  /**
-   * Czy aktualny typ to szafka na wbudowany piekarnik (BASE_OVEN).
-   */
-  get isOvenCabinet(): boolean {
-    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_OVEN;
-  }
-
-  /**
-   * Czy blenda dekoracyjna nad piekarnikiem jest włączona.
-   */
-  get isOvenApronEnabled(): boolean {
-    return this.form.get('ovenApronEnabled')?.value === true;
-  }
-
-  /**
-   * Reaguje na zmianę checkboxa blendy piekarnika — aktualizuje widoczność pola wysokości blendy.
-   */
-  onOvenApronEnabledChange(enabled: boolean): void {
-    this.visibility.ovenApronHeight = enabled;
-    const ctrl = this.form.get('ovenApronHeightMm');
-    if (ctrl) enabled ? ctrl.enable() : ctrl.disable();
-  }
-
-  /**
-   * Reaguje na zmianę sekcji dolnej piekarnika — pokaż/ukryj selector systemu szuflad.
-   */
-  onOvenLowerSectionTypeChange(sectionType: string): void {
-    const isLowDrawer = sectionType === 'LOW_DRAWER';
-    this.visibility.ovenDrawerModel = isLowDrawer;
-    const ctrl = this.form.get('drawerModel');
-    if (ctrl) {
-      if (isLowDrawer) {
-        ctrl.enable();
-        if (!ctrl.value) ctrl.setValue('ANTARO_TANDEMBOX');
-      } else {
-        ctrl.setValue(null);
-        ctrl.disable();
-      }
-    }
-  }
-
-  onFridgeSectionTypeChange(sectionType: string): void {
-    // lowerFrontHeightMm jest widoczne, ale aktywne tylko dla TWO_DOORS
-    const isTwoDoors = sectionType === 'TWO_DOORS';
-    const ctrl = this.form.get('lowerFrontHeightMm');
-    const c = KitchenCabinetConstraints.BASE_FRIDGE;
-    if (ctrl) {
-      if (isTwoDoors) {
-        ctrl.enable();
-        if (!ctrl.value) ctrl.setValue(713);
-        // Ustaw walidatory Angular — będą działać reaktywnie przy każdej zmianie wartości
-        ctrl.setValidators([Validators.required, Validators.min(c.LOWER_FRONT_MIN), Validators.max(c.LOWER_FRONT_MAX)]);
-      } else {
-        ctrl.disable();
-        ctrl.clearValidators();
-        ctrl.setErrors(null);
-      }
-      ctrl.updateValueAndValidity({ emitEvent: false });
-    }
-    // Przetriggeruj walidację niestandardową
-    const config = KitchenCabinetTypeConfig[this.form.value.kitchenCabinetType as KitchenCabinetType];
-    if (config) config.validator.validate(this.form);
-  }
-
-  /**
-   * Błąd kolejności głębokości segmentów kaskadowych.
-   */
-  get cascadeDepthError(): string | null {
-    if (!this.isCascadeCabinet) return null;
-    return this.cascadeValidator.getDepthOrderError(this.form);
-  }
-
-  /**
-   * Reaguje na zmianę wymiarów segmentów kaskadowych — przelicza height i depth.
-   */
-  onCascadeSegmentChange(): void {
-    if (this.isCascadeCabinet) {
-      this.cascadePreparer.recalculateDimensions(this.form);
-    }
   }
 
   private readonly toastService = inject(ToastService);
@@ -502,15 +259,6 @@ export class CabinetFormComponent implements OnChanges, OnInit {
     this.form.get('kitchenCabinetType')!
       .valueChanges
       .subscribe(type => this.onTypeChange(type as KitchenCabinetType));
-
-    // Nasłuchiwanie zmian pól narożnika
-    this.form.get('isUpperCorner')!
-      .valueChanges
-      .subscribe(isUpper => this.onCornerTypeChange(isUpper));
-
-    this.form.get('cornerMechanism')!
-      .valueChanges
-      .subscribe(mechanism => this.onCornerMechanismChange(mechanism));
   }
 
   ngOnInit(): void {
@@ -649,14 +397,6 @@ export class CabinetFormComponent implements OnChanges, OnInit {
     config.preparer.prepare(this.form, this.visibility);
     config.validator.validate(this.form);
 
-    // Aktualizuj opcje obudowy — etykiety różnią się dla szafek wiszących (UPPER_*)
-    this.enclosureOptions = getEnclosureTypeOptions(isUpperCabinetType(type));
-
-    // Inicjalizuj opcje narożnika, jeśli to CORNER_CABINET
-    if (type === KitchenCabinetType.CORNER_CABINET) {
-      this.initCornerOptions();
-    }
-
     // Jeśli edytujemy, przywróć wartości po przygotowaniu
     if (this.editingCabinet && this.editingCabinet.type === type) {
       this.form.patchValue({
@@ -694,7 +434,7 @@ export class CabinetFormComponent implements OnChanges, OnInit {
           cascadeUpperHeight: this.editingCabinet.cascadeUpperHeight ?? 320,
           cascadeUpperDepth: this.editingCabinet.cascadeUpperDepth ?? 300
         });
-        this.cascadePreparer.recalculateDimensions(this.form);
+        // CascadeFormComponent obsłuży przeliczenie przez valueChanges
       }
 
       // Przywróć pola obudowy przy edycji
@@ -717,8 +457,7 @@ export class CabinetFormComponent implements OnChanges, OnInit {
           lowerFrontHeightMm: (this.editingCabinet as any).lowerFrontHeightMm ?? 713,
           shelfQuantity: this.editingCabinet.shelfQuantity ?? 0
         });
-        // Zaktualizuj stan (enable/disable) pola lowerFrontHeightMm i walidatory
-        this.onFridgeSectionTypeChange(fridgeSectionType);
+        // FridgeFormComponent obsłuży enable/disable lowerFrontHeightMm przez ngOnInit → valueChanges
       }
 
       // Przywróć pola wolnostojącej lodówki przy edycji
@@ -808,115 +547,6 @@ export class CabinetFormComponent implements OnChanges, OnInit {
 
   onCancel(): void {
     this.cancelEdit.emit();
-  }
-
-  // ====== Metody dla szafki narożnej ======
-
-  /**
-   * Reaguje na zmianę typu narożnika (dolna/górna).
-   * Dla Type B (Blind) mechanizm zarządza wyświetlaniem — isUpperCorner jest niewidoczny.
-   */
-  private onCornerTypeChange(isUpper: boolean): void {
-    // Type B (blind) zawsze dolna — zignoruj zmianę isUpperCorner
-    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
-    if (mechanism && isBlindType(mechanism)) {
-      return;
-    }
-
-    if (isUpper) {
-      this.cornerConstraints = UPPER_CORNER_CONSTRAINTS;
-      this.availableCornerMechanisms = UPPER_CORNER_MECHANISMS.map(m => ({
-        value: m,
-        label: CORNER_MECHANISM_LABELS[m]
-      }));
-
-      // Jeśli aktualny mechanizm nie jest dozwolony dla górnej, zmień na FIXED_SHELVES
-      const currentMechanism = this.form.get('cornerMechanism')?.value;
-      if (!UPPER_CORNER_MECHANISMS.includes(currentMechanism)) {
-        this.form.patchValue({ cornerMechanism: CornerMechanismType.FIXED_SHELVES });
-      }
-
-      // Ustaw domyślne wartości dla górnej
-      this.form.patchValue({
-        cornerWidthA: Math.max(UPPER_CORNER_CONSTRAINTS.widthMin,
-          Math.min(this.form.get('cornerWidthA')?.value || 700, UPPER_CORNER_CONSTRAINTS.widthMax)),
-        cornerWidthB: Math.max(UPPER_CORNER_CONSTRAINTS.widthMin,
-          Math.min(this.form.get('cornerWidthB')?.value || 700, UPPER_CORNER_CONSTRAINTS.widthMax)),
-        height: 720,
-        depth: 320
-      });
-    } else {
-      this.cornerConstraints = BASE_CORNER_CONSTRAINTS;
-      this.availableCornerMechanisms = BASE_CORNER_MECHANISMS.map(m => ({
-        value: m,
-        label: CORNER_MECHANISM_LABELS[m]
-      }));
-
-      // Ustaw domyślne wartości dla dolnej (wysokość = korpus, bez cokołu/blatu)
-      this.form.patchValue({
-        cornerWidthA: Math.max(BASE_CORNER_CONSTRAINTS.widthMin,
-          Math.min(this.form.get('cornerWidthA')?.value || 900, BASE_CORNER_CONSTRAINTS.widthMax)),
-        cornerWidthB: Math.max(BASE_CORNER_CONSTRAINTS.widthMin,
-          Math.min(this.form.get('cornerWidthB')?.value || 900, BASE_CORNER_CONSTRAINTS.widthMax)),
-        height: 720,
-        depth: BASE_CORNER_CONSTRAINTS.depth
-      });
-    }
-
-    // Aktualizuj widoczność pól zależnych od isUpper (Type A only)
-    this.visibility.cornerWidthB = !isUpper;
-    this.visibility.cornerOpeningType = !isUpper;
-    this.visibility.cornerFrontUchylnyWidth = false; // Type A never shows this
-
-    // Rewaliduj formularz
-    const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;
-    if (type === KitchenCabinetType.CORNER_CABINET) {
-      const config = KitchenCabinetTypeConfig[type];
-      config.validator.validate(this.form);
-    }
-  }
-
-  /**
-   * Reaguje na zmianę mechanizmu narożnika.
-   * Przełącza między Type A (L-shaped) a Type B (Blind/Rectangular) z pełnym update visibility.
-   */
-  private onCornerMechanismChange(mechanism: CornerMechanismType): void {
-    const typeB = mechanism ? isBlindType(mechanism) : false;
-    const isUpper = !typeB && (this.form.get('isUpperCorner')?.value ?? false);
-
-    // Aktualizuj constraints na podstawie typu
-    if (typeB) {
-      this.cornerConstraints = BLIND_CORNER_CONSTRAINTS;
-    } else if (isUpper) {
-      this.cornerConstraints = UPPER_CORNER_CONSTRAINTS;
-    } else {
-      this.cornerConstraints = BASE_CORNER_CONSTRAINTS;
-    }
-
-    // Widoczność pól specyficznych dla Type A / Type B
-    this.visibility.cornerWidthB = !typeB && !isUpper;
-    this.visibility.isUpperCorner = !typeB;
-    this.visibility.cornerOpeningType = !typeB && !isUpper;
-    this.visibility.cornerFrontUchylnyWidth = typeB;
-
-    // Pokaż/ukryj pole półek w zależności od mechanizmu
-    this.visibility.cornerShelfQuantity = mechanismRequiresShelves(mechanism);
-
-    // Rewaliduj formularz
-    const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;
-    if (type === KitchenCabinetType.CORNER_CABINET) {
-      const config = KitchenCabinetTypeConfig[type];
-      config.validator.validate(this.form);
-    }
-  }
-
-  /**
-   * Inicjalizuje opcje narożnika przy wyborze typu CORNER_CABINET.
-   */
-  private initCornerOptions(): void {
-    const isUpper = this.form.get('isUpperCorner')?.value ?? false;
-    this.onCornerTypeChange(isUpper);
-    this.onCornerMechanismChange(this.form.get('cornerMechanism')?.value);
   }
 
   // ====== Metody dla segmentów ======

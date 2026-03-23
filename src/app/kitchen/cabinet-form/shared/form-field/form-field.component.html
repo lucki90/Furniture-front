@@ -1,0 +1,9 @@
+<div class="form-field">
+  <label class="form-field__label" *ngIf="label">{{ label }}</label>
+  <div class="form-field__input-wrapper" [class.form-field__input-wrapper--with-unit]="unit">
+    <ng-content></ng-content>
+    <span class="form-field__unit" *ngIf="unit">{{ unit }}</span>
+  </div>
+  <div class="form-field__error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="form-field__hint" *ngIf="hint && !errorMessage">{{ hint }}</div>
+</div>

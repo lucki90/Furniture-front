@@ -1,0 +1,121 @@
+<div class="cascade-section" [formGroup]="form">
+  <h4 class="section-title">Segmenty kaskadowe</h4>
+  <div class="cascade-info">
+    ℹ Szafka kaskadowa składa się z 2 segmentów o różnych głębokościach.
+    Całkowita wysokość: <strong>{{ cascadeTotalHeight }} mm</strong>
+    | Głębokość do kalkulacji: <strong>{{ form.get('cascadeUpperDepth')?.value }} mm</strong>
+    (głębszy górny segment)
+  </div>
+
+  <!-- Segment dolny (płytszy, bliżej blatu) -->
+  <div class="cascade-segment-card">
+    <div class="cascade-segment-header lower-header">
+      <span class="cascade-segment-icon">⬇</span>
+      <span class="cascade-segment-title">Segment dolny — płytszy</span>
+      <span class="cascade-segment-badge">bliżej blatu roboczego</span>
+    </div>
+    <div class="cascade-segment-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Wysokość</label>
+          <div class="input-with-unit">
+            <input type="number" class="form-control" formControlName="cascadeLowerHeight"
+                   min="100" max="900" step="10">
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">100–900 mm</span>
+          <span class="form-error" *ngIf="form.get('cascadeLowerHeight')?.touched && form.get('cascadeLowerHeight')?.errors">
+            <ng-container *ngIf="form.get('cascadeLowerHeight')?.errors?.['min']">Min: 100</ng-container>
+            <ng-container *ngIf="form.get('cascadeLowerHeight')?.errors?.['max']">Max: 900</ng-container>
+          </span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Głębokość</label>
+          <div class="input-with-unit">
+            <input type="number" class="form-control" formControlName="cascadeLowerDepth"
+                   min="250" max="400" step="10">
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">250–400 mm</span>
+          <span class="form-error" *ngIf="form.get('cascadeLowerDepth')?.touched && form.get('cascadeLowerDepth')?.errors">
+            <ng-container *ngIf="form.get('cascadeLowerDepth')?.errors?.['min']">Min: 250</ng-container>
+            <ng-container *ngIf="form.get('cascadeLowerDepth')?.errors?.['max']">Max: 400</ng-container>
+          </span>
+        </div>
+      </div>
+      <!-- Opcje frontu segmentu dolnego -->
+      <div class="form-row">
+        <div class="form-group flex-2">
+          <label class="form-label enclosure-checkbox-label">
+            <input type="checkbox" formControlName="cascadeLowerIsLiftUp" class="enclosure-checkbox">
+            Klapa lift-up (otwieranie do góry)
+          </label>
+          <span class="form-hint">Front unoszony ku górze — siłowniki gazowe zamiast zawiasów.</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group flex-2">
+          <label class="form-label enclosure-checkbox-label">
+            <input type="checkbox" formControlName="cascadeLowerIsFrontExtended" class="enclosure-checkbox">
+            Przedłużony front (wychodzi ponad korpus)
+          </label>
+          <span class="form-hint">Front wysunięty ponad górny wieniec segmentu (wg ustawień technicznych, domyślnie 23 mm).</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Segment górny (głębszy, bliżej sufitu) -->
+  <div class="cascade-segment-card">
+    <div class="cascade-segment-header upper-header">
+      <span class="cascade-segment-icon">⬆</span>
+      <span class="cascade-segment-title">Segment górny — głębszy</span>
+      <span class="cascade-segment-badge">bliżej sufitu · decyduje o głębokości kalkulacji</span>
+    </div>
+    <div class="cascade-segment-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Wysokość</label>
+          <div class="input-with-unit">
+            <input type="number" class="form-control" formControlName="cascadeUpperHeight"
+                   min="100" max="900" step="10">
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">100–900 mm</span>
+          <span class="form-error" *ngIf="form.get('cascadeUpperHeight')?.touched && form.get('cascadeUpperHeight')?.errors">
+            <ng-container *ngIf="form.get('cascadeUpperHeight')?.errors?.['min']">Min: 100</ng-container>
+            <ng-container *ngIf="form.get('cascadeUpperHeight')?.errors?.['max']">Max: 900</ng-container>
+          </span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Głębokość</label>
+          <div class="input-with-unit">
+            <input type="number" class="form-control" formControlName="cascadeUpperDepth"
+                   min="300" max="560" step="10">
+            <span class="unit">mm</span>
+          </div>
+          <span class="form-hint">300–560 mm (więcej niż dolny)</span>
+          <span class="form-error" *ngIf="form.get('cascadeUpperDepth')?.touched && form.get('cascadeUpperDepth')?.errors">
+            <ng-container *ngIf="form.get('cascadeUpperDepth')?.errors?.['min']">Min: 300</ng-container>
+            <ng-container *ngIf="form.get('cascadeUpperDepth')?.errors?.['max']">Max: 560</ng-container>
+          </span>
+        </div>
+      </div>
+      <!-- Opcja frontu segmentu górnego -->
+      <div class="form-row">
+        <div class="form-group flex-2">
+          <label class="form-label enclosure-checkbox-label">
+            <input type="checkbox" formControlName="cascadeUpperIsLiftUp" class="enclosure-checkbox">
+            Klapa lift-up (otwieranie do góry)
+          </label>
+          <span class="form-hint">Front unoszony ku górze — siłowniki gazowe zamiast zawiasów.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Błąd głębokości -->
+  <div *ngIf="cascadeDepthError" class="segments-error">
+    ⚠ {{ cascadeDepthError }}
+  </div>
+</div>

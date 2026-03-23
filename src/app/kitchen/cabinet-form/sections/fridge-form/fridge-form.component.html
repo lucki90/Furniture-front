@@ -1,0 +1,54 @@
+<ng-container [formGroup]="form">
+
+  <!-- ============ Szafka na wbudowaną lodówkę (BASE_FRIDGE) ============ -->
+  <div *ngIf="isBuiltInFridge" class="sink-section">
+    <h4 class="section-title">Konfiguracja szafki na lodówkę</h4>
+
+    <!-- Typ sekcji: 1-drzwiowa / 2-drzwiowa -->
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Typ sekcji</label>
+        <select class="form-control" formControlName="fridgeSectionType">
+          <option value="ONE_DOOR">Jednodrzwiowa (lodówka)</option>
+          <option value="TWO_DOORS">Dwudrzwiowa (lodówka + zamrażarka)</option>
+        </select>
+        <span class="form-hint">
+          ONE_DOOR = 1 front na całą wysokość; TWO_DOORS = front górny (lodówka) + dolny (zamrażarka)
+        </span>
+      </div>
+      <div class="form-group flex-2" *ngIf="showLowerFrontHeight">
+        <label class="form-label">Wysokość frontu zamrażarki (mm)</label>
+        <input type="number" class="form-control" formControlName="lowerFrontHeightMm"
+               min="500" max="900" step="10">
+        <span class="form-hint">500–900 mm (domyślnie 713 mm)</span>
+        <span class="form-error" *ngIf="form.get('lowerFrontHeightMm')?.errors?.['min']">
+          Wysokość frontu zamrażarki min {{ form.get('lowerFrontHeightMm')?.errors?.['min']?.min }} mm
+        </span>
+        <span class="form-error" *ngIf="form.get('lowerFrontHeightMm')?.errors?.['max']">
+          Wysokość frontu zamrażarki max {{ form.get('lowerFrontHeightMm')?.errors?.['max']?.max }} mm
+        </span>
+        <span class="form-error" *ngIf="form.get('lowerFrontHeightMm')?.errors?.['outOfRange']">
+          Wysokość frontu zamrażarki musi mieścić się w zakresie 500–900 mm
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Lodówka wolnostojąca (BASE_FRIDGE_FREESTANDING) ============ -->
+  <div *ngIf="isFreestandingFridge" class="sink-section">
+    <h4 class="section-title">Konfiguracja lodówki wolnostojącej</h4>
+
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Typ wizualizacji</label>
+        <select class="form-control" formControlName="fridgeFreestandingType">
+          <option value="SINGLE_DOOR">Jednodrzwiowa</option>
+          <option value="TWO_DOORS">Dwudrzwiowa (zamrażarka u dołu)</option>
+          <option value="SIDE_BY_SIDE">Side-by-side (obok siebie)</option>
+        </select>
+        <span class="form-hint">Tylko wizualizacja SVG – lodówka wolnostojąca nie generuje płyt</span>
+      </div>
+    </div>
+  </div>
+
+</ng-container>
