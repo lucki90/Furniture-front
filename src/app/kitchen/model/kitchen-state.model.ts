@@ -71,94 +71,192 @@ export function hasSegments(type: KitchenCabinetType): boolean {
       || type === KitchenCabinetType.BASE_FRIDGE;
 }
 
-export interface KitchenCabinet {
+/**
+ * Type guard — zawęża KitchenCabinet do typów posiadających pole `segments`.
+ * Użyj zamiast hasSegments(cab.type) gdy potrzebujesz dostępu do cab.segments.
+ */
+export function cabinetHasSegments(cab: KitchenCabinet): cab is KCabinetTall | KCabinetFridge {
+  return hasSegments(cab.type);
+}
+
+/**
+ * Pola wspólne dla WSZYSTKICH typów szafek.
+ * Nie zawiera żadnych pól type-specific — te są w dedykowanych interfejsach poniżej.
+ */
+export interface KitchenCabinetBase {
   id: string;
-  name?: string; // opcjonalna nazwa szafki
-  type: KitchenCabinetType;
+  name?: string;
   openingType: OpeningType;
   width: number;
   height: number;
   depth: number;
   positionY: number; // wysokość od podłogi (0 = dolna, np. 1400 = wisząca)
   shelfQuantity: number;
-  drawerQuantity?: number; // ilość szuflad (dla typu BASE_WITH_DRAWERS)
-  drawerModel?: string; // system szuflad (ANTARO_TANDEMBOX, SEVROLL_BALL)
-  segments?: SegmentFormData[]; // segmenty (dla typu TALL_CABINET)
 
-  // Pola kaskadowe (dla UPPER_CASCADE)
-  cascadeLowerHeight?: number;
-  cascadeLowerDepth?: number;
-  cascadeUpperHeight?: number;
-  cascadeUpperDepth?: number;
-  cascadeLowerIsLiftUp?: boolean;         // klapa lift-up segmentu dolnego
-  cascadeLowerIsFrontExtended?: boolean;  // przedłużony front segmentu dolnego
-  cascadeUpperIsLiftUp?: boolean;         // klapa lift-up segmentu górnego
+  // Pozycjonowanie szafek wiszących (ignorowane dla dolnych/FULL)
+  positioningMode?: PositioningMode;
+  gapFromCountertopMm?: number;
 
-  // Pola dla szafki narożnej (CORNER_CABINET)
-  cornerWidthA?: number;  // Szerokość na ścianie A (głównej)
-  cornerWidthB?: number;  // Szerokość na ścianie B (bocznej) — Type A only
-  cornerMechanism?: CornerMechanismType;  // Typ mechanizmu (Magic Corner, karuzela, itp.)
-  cornerShelfQuantity?: number;  // Liczba półek (dla FIXED_SHELVES lub BLIND_CORNER)
-  isUpperCorner?: boolean;  // true = górna wisząca, false = dolna (Type A only)
-  cornerOpeningType?: string;  // Type A base: TWO_DOORS | BIFOLD
-  cornerFrontUchylnyWidthMm?: number;  // Type B: szerokość frontu uchylnego 400-600mm
-
-  // Pozycjonowanie szafek wiszących
-  positioningMode?: PositioningMode;  // tryb pozycjonowania (dla UPPER_*)
-  gapFromCountertopMm?: number;       // odstęp od blatu (dla RELATIVE_TO_COUNTERTOP)
-
-  // Obudowa boczna
-  leftEnclosureType?: string;   // EnclosureType ('NONE' | 'SIDE_PLATE_WITH_PLINTH' | ...)
+  // Obudowa boczna (wszystkie typy mogą mieć obudowę)
+  leftEnclosureType?: string;   // 'NONE' | 'SIDE_PLATE_WITH_PLINTH' | 'SIDE_PLATE_TO_FLOOR' | 'PARALLEL_FILLER_STRIP'
   rightEnclosureType?: string;
-  leftSupportPlate?: boolean;   // podpora blendy (tylko PARALLEL_FILLER_STRIP)
+  leftSupportPlate?: boolean;
   rightSupportPlate?: boolean;
-  distanceFromWallMm?: number | null; // null = użyj globalnych ustawień
-  leftFillerWidthOverrideMm?: number | null;   // override szerokości lewej blendy (null = globalny)
-  rightFillerWidthOverrideMm?: number | null;  // override szerokości prawej blendy (null = globalny)
+  distanceFromWallMm?: number | null;
+  leftFillerWidthOverrideMm?: number | null;
+  rightFillerWidthOverrideMm?: number | null;
 
-  // Konfiguracja wizualna (cokoły, nóżki, uchwyty, fronty)
+  // Konfiguracja wizualna i inne wspólne opcje
   visualConfig?: CabinetVisualConfig;
-
-  // Nowy sposób liczenia dolnych: dolny wieniec na podłodze, boki oparte na wieńcu
   bottomWreathOnFloor?: boolean;
-
-  // Pola szafki zlewowej (BASE_SINK)
-  sinkFrontType?: string;      // ONE_DOOR | TWO_DOORS | DRAWER
-  sinkApronEnabled?: boolean;  // blenda maskująca ON/OFF
-  sinkApronHeightMm?: number;  // wysokość blendy (50–200mm)
-  sinkDrawerModel?: string;    // system szuflad (gdy DRAWER)
-
-  // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
-  cooktopType?: string;        // GAS | INDUCTION
-  cooktopFrontType?: string;   // DRAWERS | TWO_DOORS | ONE_DOOR
-
-  // Pola szafki wiszącej na okap (UPPER_HOOD)
-  hoodFrontType?: string;      // FLAP | TWO_DOORS | OPEN
-  hoodScreenEnabled?: boolean; // blenda wewnętrzna maskująca mechanizm okapu
-  hoodScreenHeightMm?: number; // wysokość blendy wewnętrznej (50–200mm)
-
-  // Pola szafki na piekarnik (BASE_OVEN)
-  ovenHeightType?: string;         // STANDARD (595mm) | COMPACT (455mm)
-  ovenLowerSectionType?: string;   // LOW_DRAWER | HINGED_DOOR | NONE
-  ovenApronEnabled?: boolean;      // blenda dekoracyjna nad piekarnikiem
-  ovenApronHeightMm?: number;      // wysokość blendy (30–150mm)
-
-  // Pola szafki na lodówkę (BASE_FRIDGE)
-  fridgeSectionType?: string;      // ONE_DOOR | TWO_DOORS
-  lowerFrontHeightMm?: number;     // wysokość dolnego frontu zamrażarki (500–900mm, tylko TWO_DOORS)
-
-  // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
-  fridgeFreestandingType?: string; // SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
-
-  // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
-  isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
-  isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
-
-  // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
-  drainerFrontType?: string;   // OPEN | ONE_DOOR | TWO_DOORS
 
   calculatedResult?: CabinetCalculationResult;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Typy szafek dolnych (BASE_*)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface KCabinetOneDoor extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_ONE_DOOR;
+}
+
+export interface KCabinetTwoDoor extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_TWO_DOOR;
+}
+
+export interface KCabinetWithDrawers extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_WITH_DRAWERS;
+  drawerQuantity: number;
+  drawerModel: string;
+}
+
+export interface KCabinetSink extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_SINK;
+  sinkFrontType: string;      // ONE_DOOR | TWO_DOORS | DRAWER
+  sinkApronEnabled: boolean;  // blenda maskująca ON/OFF
+  sinkApronHeightMm: number;  // wysokość blendy (50–200mm)
+  sinkDrawerModel?: string;   // system szuflad (gdy DRAWER)
+}
+
+export interface KCabinetCooktop extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_COOKTOP;
+  cooktopType: string;        // GAS | INDUCTION
+  cooktopFrontType: string;   // DRAWERS | TWO_DOORS | ONE_DOOR
+  drawerQuantity?: number;    // ilość szuflad (gdy DRAWERS)
+  drawerModel?: string;       // system szuflad (gdy DRAWERS)
+}
+
+export interface KCabinetDishwasher extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_DISHWASHER;
+}
+
+export interface KCabinetDishwasherFreestanding extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_DISHWASHER_FREESTANDING;
+}
+
+export interface KCabinetOven extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_OVEN;
+  ovenHeightType: string;        // STANDARD (595mm) | COMPACT (455mm)
+  ovenLowerSectionType: string;  // LOW_DRAWER | HINGED_DOOR | NONE
+  ovenApronEnabled: boolean;     // blenda dekoracyjna nad piekarnikiem
+  ovenApronHeightMm: number;     // wysokość blendy (30–150mm)
+  drawerModel?: string;          // system szuflad (gdy LOW_DRAWER)
+}
+
+export interface KCabinetOvenFreestanding extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_OVEN_FREESTANDING;
+}
+
+export interface KCabinetFridge extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_FRIDGE;
+  fridgeSectionType: string;   // ONE_DOOR | TWO_DOORS
+  lowerFrontHeightMm: number;  // wysokość frontu zamrażarki (500–900mm, dla TWO_DOORS)
+  segments?: SegmentFormData[]; // opcjonalne sekcje górne (DOOR/OPEN_SHELF)
+}
+
+export interface KCabinetFridgeFreestanding extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_FRIDGE_FREESTANDING;
+  fridgeFreestandingType: string; // SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Słupek i narożna
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface KCabinetTall extends KitchenCabinetBase {
+  type: KitchenCabinetType.TALL_CABINET;
+  segments?: SegmentFormData[];
+}
+
+export interface KCabinetCorner extends KitchenCabinetBase {
+  type: KitchenCabinetType.CORNER_CABINET;
+  cornerWidthA: number;
+  cornerWidthB?: number;               // ściana B (tylko Type A)
+  cornerMechanism: CornerMechanismType;
+  cornerShelfQuantity?: number;
+  isUpperCorner: boolean;
+  cornerOpeningType?: string;          // TWO_DOORS | BIFOLD (Type A dolna)
+  cornerFrontUchylnyWidthMm?: number;  // szerokość frontu uchylnego (Type B)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Typy szafek wiszących (UPPER_*)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface KCabinetUpperOneDoor extends KitchenCabinetBase {
+  type: KitchenCabinetType.UPPER_ONE_DOOR;
+  isLiftUp: boolean;
+  isFrontExtended: boolean;
+}
+
+export interface KCabinetUpperTwoDoor extends KitchenCabinetBase {
+  type: KitchenCabinetType.UPPER_TWO_DOOR;
+  isLiftUp: boolean;
+  isFrontExtended: boolean;
+}
+
+export interface KCabinetUpperOpenShelf extends KitchenCabinetBase {
+  type: KitchenCabinetType.UPPER_OPEN_SHELF;
+}
+
+export interface KCabinetCascade extends KitchenCabinetBase {
+  type: KitchenCabinetType.UPPER_CASCADE;
+  cascadeLowerHeight: number;
+  cascadeLowerDepth: number;
+  cascadeUpperHeight: number;
+  cascadeUpperDepth: number;
+  cascadeLowerIsLiftUp: boolean;
+  cascadeLowerIsFrontExtended: boolean;
+  cascadeUpperIsLiftUp: boolean;
+}
+
+export interface KCabinetHood extends KitchenCabinetBase {
+  type: KitchenCabinetType.UPPER_HOOD;
+  hoodFrontType: string;      // FLAP | TWO_DOORS | OPEN
+  hoodScreenEnabled: boolean; // blenda wewnętrzna okapu ON/OFF
+  hoodScreenHeightMm: number; // wysokość blendy (50–200mm)
+}
+
+export interface KCabinetDrainer extends KitchenCabinetBase {
+  type: KitchenCabinetType.UPPER_DRAINER;
+  drainerFrontType: string;   // OPEN | ONE_DOOR | TWO_DOORS
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Główny discriminated union — jedyna publiczna forma KitchenCabinet.
+// Dodanie nowego typu szafki = nowy interfejs powyżej + nowa gałąź unii poniżej.
+// TypeScript wymusi obsługę nowego case'u we WSZYSTKICH switch-ach (exhaustive check).
+// ─────────────────────────────────────────────────────────────────────────────
+export type KitchenCabinet =
+  | KCabinetOneDoor | KCabinetTwoDoor | KCabinetWithDrawers
+  | KCabinetSink | KCabinetCooktop
+  | KCabinetDishwasher | KCabinetDishwasherFreestanding
+  | KCabinetOven | KCabinetOvenFreestanding
+  | KCabinetFridge | KCabinetFridgeFreestanding
+  | KCabinetTall | KCabinetCorner
+  | KCabinetUpperOneDoor | KCabinetUpperTwoDoor | KCabinetUpperOpenShelf
+  | KCabinetCascade | KCabinetHood | KCabinetDrainer;
 
 /**
  * Określa strefę szafki na podstawie typu (zamiast positionY/height).
@@ -176,7 +274,7 @@ export function getCabinetZone(cabinet: KitchenCabinet): CabinetZone {
   if (isUpperCabinetType(cabinet.type)) {
     return 'TOP';
   }
-  // Narożna górna → TOP
+  // Narożna górna → TypeScript zawęża do KCabinetCorner po sprawdzeniu type
   if (cabinet.type === KitchenCabinetType.CORNER_CABINET && cabinet.isUpperCorner) {
     return 'TOP';
   }
@@ -308,6 +406,10 @@ export interface CabinetFormData {
   sinkApronEnabled?: boolean;  // blenda maskująca ON/OFF
   sinkApronHeightMm?: number;  // wysokość blendy (50–200mm)
   sinkDrawerModel?: string;    // system szuflad (gdy DRAWER)
+
+  // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
+  cooktopType?: string;        // GAS | INDUCTION
+  cooktopFrontType?: string;   // DRAWERS | TWO_DOORS | ONE_DOOR
 
   // Pola szafki wiszącej na okap (UPPER_HOOD)
   hoodFrontType?: string;      // FLAP | TWO_DOORS | OPEN

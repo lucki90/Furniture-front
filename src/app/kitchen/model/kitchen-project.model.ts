@@ -428,12 +428,45 @@ export interface CabinetPlacementResponse {
   cornerOpeningType?: string;
   cornerFrontUchylnyWidthMm?: number;
 
-  // Additional configuration - tall cabinet segments
+  // Additional configuration - tall cabinet and fridge segments
   segments?: SegmentRequest[];
 
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;
   gapFromCountertopMm?: number;
+
+  // Type-specific fields — opcjonalne, zwracane przez backend gdy dostępne.
+  // TODO [loadProject type-specific]: backend (ProjectCabinetResponse/CabinetPlacementResponse)
+  // nie persystuje/zwraca tych pól. Po załadowaniu projektu szafki otrzymują defaults
+  // zamiast wartości zapisanych przez użytkownika (np. sinkFrontType zawsze='ONE_DOOR').
+  // Żeby to naprawić: rozszerzyć CabinetPlacementResponse w backendzie i wypełniać te pola
+  // w CabinetPlacementMapper.java na podstawie projektowej konfiguracji szafki.
+  sinkFrontType?: string;
+  sinkApronEnabled?: boolean;
+  sinkApronHeightMm?: number;
+  sinkDrawerModel?: string;
+  cooktopType?: string;
+  cooktopFrontType?: string;
+  hoodFrontType?: string;
+  hoodScreenEnabled?: boolean;
+  hoodScreenHeightMm?: number;
+  ovenHeightType?: string;
+  ovenLowerSectionType?: string;
+  ovenApronEnabled?: boolean;
+  ovenApronHeightMm?: number;
+  fridgeSectionType?: string;
+  lowerFrontHeightMm?: number;
+  fridgeFreestandingType?: string;
+  isLiftUp?: boolean;
+  isFrontExtended?: boolean;
+  drainerFrontType?: string;
+  cascadeLowerHeight?: number;
+  cascadeLowerDepth?: number;
+  cascadeUpperHeight?: number;
+  cascadeUpperDepth?: number;
+  cascadeLowerIsLiftUp?: boolean;
+  cascadeLowerIsFrontExtended?: boolean;
+  cascadeUpperIsLiftUp?: boolean;
 
   boardsCost: number;
   componentsCost: number;

@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { ProjectRequestBuilderService } from './project-request-builder.service';
 import {
   KitchenCabinet,
+  KitchenCabinetBase,
   KitchenWallConfig,
   CabinetPosition,
   CabinetFormData,
@@ -29,6 +30,7 @@ import {
   ProjectStatus
 } from '../model/kitchen-project.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 
@@ -554,96 +556,7 @@ export class KitchenStateService {
   }
 
   addCabinet(formData: CabinetFormData, calculatedResult: any): void {
-    // Dla szafki narożnej: width = cornerWidthA (główna szerokość)
-    const isCorner = formData.kitchenCabinetType === KitchenCabinetType.CORNER_CABINET;
-    const effectiveWidth = isCorner ? (formData.cornerWidthA ?? formData.width) : formData.width;
-
-    const newCabinet: KitchenCabinet = {
-      id: this.generateCabinetId(),
-      name: formData.name,
-      type: formData.kitchenCabinetType,
-      openingType: formData.openingType,
-      width: effectiveWidth,
-      height: formData.height,
-      depth: formData.depth,
-      positionY: formData.positionY ?? 0,
-      shelfQuantity: formData.shelfQuantity,
-      drawerQuantity: formData.drawerQuantity,
-      drawerModel: formData.drawerModel ?? undefined,
-      segments: formData.segments,  // dla TALL_CABINET
-
-      // Pola kaskadowe (dla UPPER_CASCADE)
-      cascadeLowerHeight: formData.cascadeLowerHeight,
-      cascadeLowerDepth: formData.cascadeLowerDepth,
-      cascadeUpperHeight: formData.cascadeUpperHeight,
-      cascadeUpperDepth: formData.cascadeUpperDepth,
-      cascadeLowerIsLiftUp: formData.cascadeLowerIsLiftUp ?? false,
-      cascadeLowerIsFrontExtended: formData.cascadeLowerIsFrontExtended ?? false,
-      cascadeUpperIsLiftUp: formData.cascadeUpperIsLiftUp ?? false,
-
-      // Pola dla szafki narożnej (CORNER_CABINET)
-      cornerWidthA: isCorner ? formData.cornerWidthA : undefined,
-      cornerWidthB: isCorner ? formData.cornerWidthB : undefined,
-      cornerMechanism: isCorner ? formData.cornerMechanism : undefined,
-      cornerShelfQuantity: isCorner ? formData.cornerShelfQuantity : undefined,
-      isUpperCorner: isCorner ? formData.isUpperCorner : undefined,
-      cornerOpeningType: isCorner ? formData.cornerOpeningType : undefined,
-      cornerFrontUchylnyWidthMm: isCorner ? formData.cornerFrontUchylnyWidthMm : undefined,
-
-      // Pozycjonowanie szafek wiszących
-      positioningMode: formData.positioningMode,
-      gapFromCountertopMm: formData.gapFromCountertopMm,
-
-      // Obudowa boczna
-      leftEnclosureType: formData.leftEnclosureType,
-      rightEnclosureType: formData.rightEnclosureType,
-      leftSupportPlate: formData.leftSupportPlate,
-      rightSupportPlate: formData.rightSupportPlate,
-      distanceFromWallMm: formData.distanceFromWallMm,
-      leftFillerWidthOverrideMm: formData.leftFillerWidthOverrideMm,
-      rightFillerWidthOverrideMm: formData.rightFillerWidthOverrideMm,
-
-      // Nowy sposób liczenia dolnych
-      bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
-
-      // Pola szafki zlewowej (BASE_SINK)
-      sinkFrontType: formData.sinkFrontType,
-      sinkApronEnabled: (formData as any).sinkApronEnabled ?? true,
-      sinkApronHeightMm: (formData as any).sinkApronHeightMm ?? 150,
-      sinkDrawerModel: (formData as any).sinkDrawerModel,
-
-      // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
-      cooktopType: (formData as any).cooktopType ?? 'INDUCTION',
-      cooktopFrontType: (formData as any).cooktopFrontType ?? 'DRAWERS',
-
-      // Pola szafki wiszącej na okap (UPPER_HOOD)
-      hoodFrontType: (formData as any).hoodFrontType ?? 'FLAP',
-      hoodScreenEnabled: (formData as any).hoodScreenEnabled ?? false,
-      hoodScreenHeightMm: (formData as any).hoodScreenHeightMm ?? 100,
-
-      // Pola szafki na piekarnik (BASE_OVEN)
-      ovenHeightType: (formData as any).ovenHeightType ?? 'STANDARD',
-      ovenLowerSectionType: (formData as any).ovenLowerSectionType ?? 'LOW_DRAWER',
-      ovenApronEnabled: (formData as any).ovenApronEnabled ?? false,
-      ovenApronHeightMm: (formData as any).ovenApronHeightMm ?? 60,
-
-      // Pola szafki na lodówkę (BASE_FRIDGE)
-      fridgeSectionType: (formData as any).fridgeSectionType ?? 'TWO_DOORS',
-      lowerFrontHeightMm: (formData as any).lowerFrontHeightMm ?? 713,
-
-      // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
-      fridgeFreestandingType: (formData as any).fridgeFreestandingType ?? 'TWO_DOORS',
-
-      // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
-      isLiftUp: (formData as any).isLiftUp ?? false,
-      isFrontExtended: (formData as any).isFrontExtended ?? false,
-
-      // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
-      drainerFrontType: (formData as any).drainerFrontType ?? 'OPEN',
-
-      calculatedResult: this.mapCalculationResult(calculatedResult)
-    };
-
+    const newCabinet = this.buildCabinetFromFormData(formData, this.generateCabinetId(), calculatedResult);
     const selectedWallId = this._selectedWallId();
 
     this._walls.update(walls =>
@@ -655,6 +568,124 @@ export class KitchenStateService {
         };
       })
     );
+  }
+
+  /**
+   * Factory tworząca typowany KitchenCabinet z danych formularza.
+   * Każdy case dostarcza TYLKO pola należące do danego typu — bez (formData as any).
+   * Dodanie nowego typu = nowy case w tym switch (TypeScript wymusi obsługę).
+   */
+  private buildCabinetFromFormData(formData: CabinetFormData, id: string, calculatedResult: any): KitchenCabinet {
+    const base: KitchenCabinetBase = {
+      id,
+      name: formData.name,
+      openingType: formData.openingType,
+      width: formData.width,
+      height: formData.height,
+      depth: formData.depth,
+      positionY: formData.positionY ?? 0,
+      shelfQuantity: formData.shelfQuantity,
+      positioningMode: formData.positioningMode,
+      gapFromCountertopMm: formData.gapFromCountertopMm,
+      leftEnclosureType: formData.leftEnclosureType,
+      rightEnclosureType: formData.rightEnclosureType,
+      leftSupportPlate: formData.leftSupportPlate,
+      rightSupportPlate: formData.rightSupportPlate,
+      distanceFromWallMm: formData.distanceFromWallMm,
+      leftFillerWidthOverrideMm: formData.leftFillerWidthOverrideMm,
+      rightFillerWidthOverrideMm: formData.rightFillerWidthOverrideMm,
+      bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
+      calculatedResult: this.mapCalculationResult(calculatedResult)
+    };
+
+    switch (formData.kitchenCabinetType) {
+      case KitchenCabinetType.BASE_ONE_DOOR:
+        return { ...base, type: KitchenCabinetType.BASE_ONE_DOOR };
+      case KitchenCabinetType.BASE_TWO_DOOR:
+        return { ...base, type: KitchenCabinetType.BASE_TWO_DOOR };
+      case KitchenCabinetType.BASE_WITH_DRAWERS:
+        return { ...base, type: KitchenCabinetType.BASE_WITH_DRAWERS,
+          drawerQuantity: formData.drawerQuantity ?? 3,
+          drawerModel: formData.drawerModel ?? 'ANTARO_TANDEMBOX' };
+      case KitchenCabinetType.BASE_SINK:
+        return { ...base, type: KitchenCabinetType.BASE_SINK,
+          sinkFrontType: formData.sinkFrontType ?? 'ONE_DOOR',
+          sinkApronEnabled: formData.sinkApronEnabled ?? true,
+          sinkApronHeightMm: formData.sinkApronHeightMm ?? 150,
+          sinkDrawerModel: formData.sinkDrawerModel };
+      case KitchenCabinetType.BASE_COOKTOP:
+        return { ...base, type: KitchenCabinetType.BASE_COOKTOP,
+          cooktopType: formData.cooktopType ?? 'INDUCTION',
+          cooktopFrontType: formData.cooktopFrontType ?? 'DRAWERS',
+          drawerQuantity: formData.drawerQuantity,
+          drawerModel: formData.drawerModel ?? undefined };
+      case KitchenCabinetType.BASE_DISHWASHER:
+        return { ...base, type: KitchenCabinetType.BASE_DISHWASHER };
+      case KitchenCabinetType.BASE_DISHWASHER_FREESTANDING:
+        return { ...base, type: KitchenCabinetType.BASE_DISHWASHER_FREESTANDING };
+      case KitchenCabinetType.BASE_OVEN:
+        return { ...base, type: KitchenCabinetType.BASE_OVEN,
+          ovenHeightType: formData.ovenHeightType ?? 'STANDARD',
+          ovenLowerSectionType: formData.ovenLowerSectionType ?? 'LOW_DRAWER',
+          ovenApronEnabled: formData.ovenApronEnabled ?? false,
+          ovenApronHeightMm: formData.ovenApronHeightMm ?? 60,
+          drawerModel: formData.drawerModel ?? undefined };
+      case KitchenCabinetType.BASE_OVEN_FREESTANDING:
+        return { ...base, type: KitchenCabinetType.BASE_OVEN_FREESTANDING };
+      case KitchenCabinetType.BASE_FRIDGE:
+        return { ...base, type: KitchenCabinetType.BASE_FRIDGE,
+          fridgeSectionType: formData.fridgeSectionType ?? 'TWO_DOORS',
+          lowerFrontHeightMm: formData.lowerFrontHeightMm ?? 713,
+          segments: formData.segments };
+      case KitchenCabinetType.BASE_FRIDGE_FREESTANDING:
+        return { ...base, type: KitchenCabinetType.BASE_FRIDGE_FREESTANDING,
+          fridgeFreestandingType: formData.fridgeFreestandingType ?? 'TWO_DOORS' };
+      case KitchenCabinetType.TALL_CABINET:
+        return { ...base, type: KitchenCabinetType.TALL_CABINET,
+          segments: formData.segments };
+      case KitchenCabinetType.CORNER_CABINET:
+        return { ...base,
+          width: formData.cornerWidthA ?? formData.width, // główna szerokość narożnej
+          type: KitchenCabinetType.CORNER_CABINET,
+          cornerWidthA: formData.cornerWidthA ?? formData.width,
+          cornerWidthB: formData.cornerWidthB,
+          cornerMechanism: formData.cornerMechanism!,
+          cornerShelfQuantity: formData.cornerShelfQuantity,
+          isUpperCorner: formData.isUpperCorner ?? false,
+          cornerOpeningType: formData.cornerOpeningType,
+          cornerFrontUchylnyWidthMm: formData.cornerFrontUchylnyWidthMm };
+      case KitchenCabinetType.UPPER_ONE_DOOR:
+        return { ...base, type: KitchenCabinetType.UPPER_ONE_DOOR,
+          isLiftUp: formData.isLiftUp ?? false,
+          isFrontExtended: formData.isFrontExtended ?? false };
+      case KitchenCabinetType.UPPER_TWO_DOOR:
+        return { ...base, type: KitchenCabinetType.UPPER_TWO_DOOR,
+          isLiftUp: formData.isLiftUp ?? false,
+          isFrontExtended: formData.isFrontExtended ?? false };
+      case KitchenCabinetType.UPPER_OPEN_SHELF:
+        return { ...base, type: KitchenCabinetType.UPPER_OPEN_SHELF };
+      case KitchenCabinetType.UPPER_CASCADE:
+        return { ...base, type: KitchenCabinetType.UPPER_CASCADE,
+          cascadeLowerHeight: formData.cascadeLowerHeight ?? 400,
+          cascadeLowerDepth: formData.cascadeLowerDepth ?? 400,
+          cascadeUpperHeight: formData.cascadeUpperHeight ?? 320,
+          cascadeUpperDepth: formData.cascadeUpperDepth ?? 300,
+          cascadeLowerIsLiftUp: formData.cascadeLowerIsLiftUp ?? false,
+          cascadeLowerIsFrontExtended: formData.cascadeLowerIsFrontExtended ?? false,
+          cascadeUpperIsLiftUp: formData.cascadeUpperIsLiftUp ?? false };
+      case KitchenCabinetType.UPPER_HOOD:
+        return { ...base, type: KitchenCabinetType.UPPER_HOOD,
+          hoodFrontType: formData.hoodFrontType ?? 'FLAP',
+          hoodScreenEnabled: formData.hoodScreenEnabled ?? false,
+          hoodScreenHeightMm: formData.hoodScreenHeightMm ?? 100 };
+      case KitchenCabinetType.UPPER_DRAINER:
+        return { ...base, type: KitchenCabinetType.UPPER_DRAINER,
+          drainerFrontType: formData.drainerFrontType ?? 'OPEN' };
+      default:
+        // Exhaustive check — TypeScript zasygnalizuje błąd gdy brakuje case'u
+        const _exhaustive: never = formData.kitchenCabinetType;
+        throw new Error(`Nieobsługiwany typ szafki: ${_exhaustive}`);
+    }
   }
 
   removeCabinet(cabinetId: string): void {
@@ -675,99 +706,11 @@ export class KitchenStateService {
   }
 
   updateCabinet(cabinetId: string, formData: CabinetFormData, calculatedResult: any): void {
+    const updatedCabinet = this.buildCabinetFromFormData(formData, cabinetId, calculatedResult);
     this._walls.update(walls =>
       walls.map(wall => ({
         ...wall,
-        cabinets: wall.cabinets.map(cab => {
-          if (cab.id !== cabinetId) return cab;
-
-          // Dla szafki narożnej: width = cornerWidthA (główna szerokość)
-          const isCorner = formData.kitchenCabinetType === KitchenCabinetType.CORNER_CABINET;
-          const effectiveWidth = isCorner ? (formData.cornerWidthA ?? formData.width) : formData.width;
-
-          return {
-            ...cab,
-            name: formData.name,
-            type: formData.kitchenCabinetType,
-            openingType: formData.openingType,
-            width: effectiveWidth,
-            height: formData.height,
-            depth: formData.depth,
-            positionY: formData.positionY ?? 0,
-            shelfQuantity: formData.shelfQuantity,
-            drawerQuantity: formData.drawerQuantity,
-            drawerModel: formData.drawerModel ?? undefined,
-            segments: formData.segments,  // dla TALL_CABINET
-
-            // Pola kaskadowe (dla UPPER_CASCADE)
-            cascadeLowerHeight: formData.cascadeLowerHeight,
-            cascadeLowerDepth: formData.cascadeLowerDepth,
-            cascadeUpperHeight: formData.cascadeUpperHeight,
-            cascadeUpperDepth: formData.cascadeUpperDepth,
-
-            // Pola dla szafki narożnej (CORNER_CABINET)
-            cornerWidthA: isCorner ? formData.cornerWidthA : undefined,
-            cornerWidthB: isCorner ? formData.cornerWidthB : undefined,
-            cornerMechanism: isCorner ? formData.cornerMechanism : undefined,
-            cornerShelfQuantity: isCorner ? formData.cornerShelfQuantity : undefined,
-            isUpperCorner: isCorner ? formData.isUpperCorner : undefined,
-            cornerOpeningType: isCorner ? formData.cornerOpeningType : undefined,
-            cornerFrontUchylnyWidthMm: isCorner ? formData.cornerFrontUchylnyWidthMm : undefined,
-
-            // Pozycjonowanie szafek wiszących
-            positioningMode: formData.positioningMode,
-            gapFromCountertopMm: formData.gapFromCountertopMm,
-
-            // Obudowa boczna
-            leftEnclosureType: formData.leftEnclosureType,
-            rightEnclosureType: formData.rightEnclosureType,
-            leftSupportPlate: formData.leftSupportPlate,
-            rightSupportPlate: formData.rightSupportPlate,
-            distanceFromWallMm: formData.distanceFromWallMm,
-            leftFillerWidthOverrideMm: formData.leftFillerWidthOverrideMm,
-            rightFillerWidthOverrideMm: formData.rightFillerWidthOverrideMm,
-
-            // Nowy sposób liczenia dolnych
-            bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
-
-            // Pola szafki zlewowej (BASE_SINK)
-            sinkFrontType: (formData as any).sinkFrontType,
-            sinkApronEnabled: (formData as any).sinkApronEnabled ?? true,
-            sinkApronHeightMm: (formData as any).sinkApronHeightMm ?? 150,
-            sinkDrawerModel: (formData as any).sinkDrawerModel,
-
-            // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
-            cooktopType: (formData as any).cooktopType ?? 'INDUCTION',
-            cooktopFrontType: (formData as any).cooktopFrontType ?? 'DRAWERS',
-
-            // Pola szafki wiszącej na okap (UPPER_HOOD)
-            hoodFrontType: (formData as any).hoodFrontType ?? 'FLAP',
-            hoodScreenEnabled: (formData as any).hoodScreenEnabled ?? false,
-            hoodScreenHeightMm: (formData as any).hoodScreenHeightMm ?? 100,
-
-            // Pola szafki na piekarnik (BASE_OVEN)
-            ovenHeightType: (formData as any).ovenHeightType ?? 'STANDARD',
-            ovenLowerSectionType: (formData as any).ovenLowerSectionType ?? 'LOW_DRAWER',
-            ovenApronEnabled: (formData as any).ovenApronEnabled ?? false,
-            ovenApronHeightMm: (formData as any).ovenApronHeightMm ?? 60,
-
-            // Pola szafki na lodówkę (BASE_FRIDGE)
-            fridgeSectionType: (formData as any).fridgeSectionType ?? 'TWO_DOORS',
-            lowerFrontHeightMm: (formData as any).lowerFrontHeightMm ?? 713,
-
-            // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
-            fridgeFreestandingType: (formData as any).fridgeFreestandingType ?? 'TWO_DOORS',
-
-            // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
-            isLiftUp: (formData as any).isLiftUp ?? false,
-            isFrontExtended: (formData as any).isFrontExtended ?? false,
-
-            // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
-            drainerFrontType: (formData as any).drainerFrontType ?? 'OPEN',
-
-            calculatedResult: this.mapCalculationResult(calculatedResult)
-          };
-        })
+        cabinets: wall.cabinets.map(cab => cab.id !== cabinetId ? cab : updatedCabinet)
       }))
     );
   }
@@ -852,39 +795,23 @@ export class KitchenStateService {
           ? cabResp.cornerWidthA
           : cabResp.widthMm;
 
-        // Mapuj segmenty (dla TALL_CABINET)
+        // Mapuj segmenty (dla TALL_CABINET i BASE_FRIDGE)
         let segments: SegmentFormData[] | undefined;
         if (cabResp.segments && cabResp.segments.length > 0) {
-          segments = cabResp.segments.map(seg => this.mapSegmentResponseToFormData(seg));
+          segments = cabResp.segments.map((seg: any) => this.mapSegmentResponseToFormData(seg));
         }
 
-        return {
+        const baseFromResp: KitchenCabinetBase = {
           id: cabResp.cabinetId || `cabinet-${this._cabinetIdCounter}`,
           name: cabResp.cabinetId,
-          type: cabResp.cabinetType,
-          openingType: cabResp.openingType as any ?? 'LEFT',
+          openingType: (cabResp.openingType ?? 'LEFT') as OpeningType,
           width: effectiveWidth,
           height: cabResp.heightMm,
           depth: cabResp.depthMm,
           positionY: cabResp.positionY ?? 0,
           shelfQuantity: cabResp.shelfQuantity ?? 1,
-          drawerQuantity: cabResp.drawerQuantity,
-          drawerModel: cabResp.drawerModel,
-
-          // Segmenty (dla TALL_CABINET)
-          segments,
-
-          // Pola dla szafki narożnej (CORNER_CABINET)
-          cornerWidthA: cabResp.cornerWidthA,
-          cornerWidthB: cabResp.cornerWidthB,
-          cornerMechanism: cabResp.cornerMechanism as CornerMechanismType | undefined,
-          cornerShelfQuantity: cabResp.cornerShelfQuantity,
-          isUpperCorner: cabResp.isUpperCorner,
-
-          // Pozycjonowanie szafek wiszących
           positioningMode: cabResp.positioningMode,
           gapFromCountertopMm: cabResp.gapFromCountertopMm,
-
           calculatedResult: {
             totalCost: cabResp.totalCost,
             boardCosts: cabResp.boardsCost,
@@ -892,6 +819,98 @@ export class KitchenStateService {
             jobCosts: cabResp.jobsCost
           }
         };
+
+        // Twórz poprawnie typowany KitchenCabinet per typ — pola type-specific odczytane
+        // z API response (jeśli backend je zwraca) lub ustawione na sensowne defaults.
+        // Uwaga: backend obecnie nie persystuje wszystkich pól type-specific (np. sinkFrontType).
+        // TODO: rozszerzyć ProjectCabinetResponse o brakujące pola type-specific.
+        const cabinetType: KitchenCabinetType = cabResp.cabinetType;
+        switch (cabinetType) {
+          case KitchenCabinetType.BASE_ONE_DOOR:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_ONE_DOOR };
+          case KitchenCabinetType.BASE_TWO_DOOR:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_TWO_DOOR };
+          case KitchenCabinetType.BASE_WITH_DRAWERS:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_WITH_DRAWERS,
+              drawerQuantity: cabResp.drawerQuantity ?? 3,
+              drawerModel: cabResp.drawerModel ?? 'ANTARO_TANDEMBOX' };
+          case KitchenCabinetType.BASE_SINK:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_SINK,
+              sinkFrontType: cabResp.sinkFrontType ?? 'ONE_DOOR',
+              sinkApronEnabled: cabResp.sinkApronEnabled ?? true,
+              sinkApronHeightMm: cabResp.sinkApronHeightMm ?? 150,
+              sinkDrawerModel: cabResp.sinkDrawerModel };
+          case KitchenCabinetType.BASE_COOKTOP:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_COOKTOP,
+              cooktopType: cabResp.cooktopType ?? 'INDUCTION',
+              cooktopFrontType: cabResp.cooktopFrontType ?? 'DRAWERS',
+              drawerQuantity: cabResp.drawerQuantity,
+              drawerModel: cabResp.drawerModel };
+          case KitchenCabinetType.BASE_DISHWASHER:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_DISHWASHER };
+          case KitchenCabinetType.BASE_DISHWASHER_FREESTANDING:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_DISHWASHER_FREESTANDING };
+          case KitchenCabinetType.BASE_OVEN:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_OVEN,
+              ovenHeightType: cabResp.ovenHeightType ?? 'STANDARD',
+              ovenLowerSectionType: cabResp.ovenLowerSectionType ?? 'LOW_DRAWER',
+              ovenApronEnabled: cabResp.ovenApronEnabled ?? false,
+              ovenApronHeightMm: cabResp.ovenApronHeightMm ?? 60,
+              drawerModel: cabResp.drawerModel };
+          case KitchenCabinetType.BASE_OVEN_FREESTANDING:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_OVEN_FREESTANDING };
+          case KitchenCabinetType.BASE_FRIDGE:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_FRIDGE,
+              fridgeSectionType: cabResp.fridgeSectionType ?? 'TWO_DOORS',
+              lowerFrontHeightMm: cabResp.lowerFrontHeightMm ?? 713,
+              segments };
+          case KitchenCabinetType.BASE_FRIDGE_FREESTANDING:
+            return { ...baseFromResp, type: KitchenCabinetType.BASE_FRIDGE_FREESTANDING,
+              fridgeFreestandingType: cabResp.fridgeFreestandingType ?? 'TWO_DOORS' };
+          case KitchenCabinetType.TALL_CABINET:
+            return { ...baseFromResp, type: KitchenCabinetType.TALL_CABINET, segments };
+          case KitchenCabinetType.CORNER_CABINET:
+            return { ...baseFromResp,
+              width: cabResp.cornerWidthA ?? effectiveWidth,
+              type: KitchenCabinetType.CORNER_CABINET,
+              cornerWidthA: cabResp.cornerWidthA ?? effectiveWidth,
+              cornerWidthB: cabResp.cornerWidthB,
+              cornerMechanism: (cabResp.cornerMechanism as CornerMechanismType) ?? 'FIXED_SHELVES',
+              cornerShelfQuantity: cabResp.cornerShelfQuantity,
+              isUpperCorner: cabResp.isUpperCorner ?? false,
+              cornerOpeningType: cabResp.cornerOpeningType,
+              cornerFrontUchylnyWidthMm: cabResp.cornerFrontUchylnyWidthMm };
+          case KitchenCabinetType.UPPER_ONE_DOOR:
+            return { ...baseFromResp, type: KitchenCabinetType.UPPER_ONE_DOOR,
+              isLiftUp: cabResp.isLiftUp ?? false,
+              isFrontExtended: cabResp.isFrontExtended ?? false };
+          case KitchenCabinetType.UPPER_TWO_DOOR:
+            return { ...baseFromResp, type: KitchenCabinetType.UPPER_TWO_DOOR,
+              isLiftUp: cabResp.isLiftUp ?? false,
+              isFrontExtended: cabResp.isFrontExtended ?? false };
+          case KitchenCabinetType.UPPER_OPEN_SHELF:
+            return { ...baseFromResp, type: KitchenCabinetType.UPPER_OPEN_SHELF };
+          case KitchenCabinetType.UPPER_CASCADE:
+            return { ...baseFromResp, type: KitchenCabinetType.UPPER_CASCADE,
+              cascadeLowerHeight: cabResp.cascadeLowerHeight ?? 400,
+              cascadeLowerDepth: cabResp.cascadeLowerDepth ?? 400,
+              cascadeUpperHeight: cabResp.cascadeUpperHeight ?? 320,
+              cascadeUpperDepth: cabResp.cascadeUpperDepth ?? 300,
+              cascadeLowerIsLiftUp: cabResp.cascadeLowerIsLiftUp ?? false,
+              cascadeLowerIsFrontExtended: cabResp.cascadeLowerIsFrontExtended ?? false,
+              cascadeUpperIsLiftUp: cabResp.cascadeUpperIsLiftUp ?? false };
+          case KitchenCabinetType.UPPER_HOOD:
+            return { ...baseFromResp, type: KitchenCabinetType.UPPER_HOOD,
+              hoodFrontType: cabResp.hoodFrontType ?? 'FLAP',
+              hoodScreenEnabled: cabResp.hoodScreenEnabled ?? false,
+              hoodScreenHeightMm: cabResp.hoodScreenHeightMm ?? 100 };
+          case KitchenCabinetType.UPPER_DRAINER:
+            return { ...baseFromResp, type: KitchenCabinetType.UPPER_DRAINER,
+              drainerFrontType: cabResp.drainerFrontType ?? 'OPEN' };
+          default:
+            // Fallback dla nieznanych typów z przyszłych wersji backendu
+            return { ...baseFromResp, type: cabinetType } as KitchenCabinet;
+        }
       });
 
       // Wczytaj konfigurację blatu z response (CountertopResponse)

@@ -6,7 +6,8 @@ import {
   isUpperCabinetType,
   requiresCountertop,
   isFreestandingAppliance,
-  hasSegments
+  hasSegments,
+  cabinetHasSegments
 } from '../model/kitchen-state.model';
 import {
   ProjectCabinetRequest,
@@ -63,7 +64,7 @@ export class ProjectRequestBuilderService {
 
       const cabinets: ProjectCabinetRequest[] = wall.cabinets.map(cab => {
         let drawerRequest: DrawerRequest | undefined;
-        if (cab.type === KitchenCabinetType.BASE_WITH_DRAWERS && cab.drawerQuantity && cab.drawerModel) {
+        if (cab.type === KitchenCabinetType.BASE_WITH_DRAWERS) {
           drawerRequest = {
             drawerQuantity: cab.drawerQuantity,
             drawerModel: cab.drawerModel,
@@ -71,15 +72,15 @@ export class ProjectRequestBuilderService {
             drawerFrontDetails: null
           };
         }
-        if (cab.type === KitchenCabinetType.BASE_SINK && (cab as any).sinkFrontType === 'DRAWER') {
+        if (cab.type === KitchenCabinetType.BASE_SINK && cab.sinkFrontType === 'DRAWER') {
           drawerRequest = {
             drawerQuantity: 1,
-            drawerModel: (cab as any).sinkDrawerModel ?? 'ANTARO_TANDEMBOX',
+            drawerModel: cab.sinkDrawerModel ?? 'ANTARO_TANDEMBOX',
             drawerBaseHdf: false,
             drawerFrontDetails: null
           };
         }
-        if (cab.type === KitchenCabinetType.BASE_COOKTOP && (cab as any).cooktopFrontType === 'DRAWERS') {
+        if (cab.type === KitchenCabinetType.BASE_COOKTOP && cab.cooktopFrontType === 'DRAWERS') {
           drawerRequest = {
             drawerQuantity: cab.drawerQuantity ?? 3,
             drawerModel: cab.drawerModel ?? 'ANTARO_TANDEMBOX',
@@ -97,8 +98,8 @@ export class ProjectRequestBuilderService {
         }
 
         let segments = undefined;
-        if (hasSegments(cab.type) && cab.segments && cab.segments.length > 0) {
-          segments = cab.segments.map((segment, index) => {
+        if (cabinetHasSegments(cab) && cab.segments && cab.segments.length > 0) {
+          segments = cab.segments.map((segment: SegmentFormData, index: number) => {
             const segmentWithIndex: SegmentFormData = { ...segment, orderIndex: index };
             return mapSegmentToRequest(segmentWithIndex);
           });
@@ -193,24 +194,7 @@ export class ProjectRequestBuilderService {
             : undefined,
           distanceFromWallMm: cab.distanceFromWallMm ?? null,
           bottomWreathOnFloor: cab.bottomWreathOnFloor ?? false,
-          sinkFrontType: (cab as any).sinkFrontType,
-          sinkApronEnabled: (cab as any).sinkApronEnabled ?? true,
-          sinkApronHeightMm: (cab as any).sinkApronHeightMm ?? 150,
-          cooktopType: (cab as any).cooktopType,
-          cooktopFrontType: (cab as any).cooktopFrontType,
-          hoodFrontType: (cab as any).hoodFrontType,
-          hoodScreenEnabled: (cab as any).hoodScreenEnabled ?? false,
-          hoodScreenHeightMm: (cab as any).hoodScreenHeightMm ?? 0,
-          ovenHeightType: (cab as any).ovenHeightType,
-          ovenLowerSectionType: (cab as any).ovenLowerSectionType,
-          ovenApronEnabled: (cab as any).ovenApronEnabled ?? false,
-          ovenApronHeightMm: (cab as any).ovenApronHeightMm ?? 0,
-          fridgeSectionType: (cab as any).fridgeSectionType,
-          lowerFrontHeightMm: (cab as any).lowerFrontHeightMm ?? 0,
-          fridgeFreestandingType: (cab as any).fridgeFreestandingType,
-          isLiftUp: (cab as any).isLiftUp ?? false,
-          isFrontExtended: (cab as any).isFrontExtended ?? false,
-          drainerFrontType: (cab as any).drainerFrontType
+          ...this.buildTypeSpecificFields(cab)
         };
         return request;
       });
@@ -288,6 +272,57 @@ export class ProjectRequestBuilderService {
       componentCosts: result.componentTotalCost ?? result.componentsCost ?? result.componentCosts ?? 0,
       jobCosts: result.jobTotalCost ?? result.jobsCost ?? result.jobCosts ?? 0
     };
+  }
+
+  /**
+   * Zwraca pola specyficzne dla danego typu szafki bez rzutowań (cab as any).
+   * TypeScript zawęża typ w każdym case — dostęp do pól jest type-safe.
+   * Dodanie nowego typu szafki = nowy case tutaj (kompilator wymusi obsługę).
+   */
+  private buildTypeSpecificFields(cab: KitchenCabinet): Partial<ProjectCabinetRequest> {
+    switch (cab.type) {
+      case KitchenCabinetType.BASE_SINK:
+        return {
+          sinkFrontType: cab.sinkFrontType,
+          sinkApronEnabled: cab.sinkApronEnabled,
+          sinkApronHeightMm: cab.sinkApronHeightMm
+        };
+      case KitchenCabinetType.BASE_COOKTOP:
+        return {
+          cooktopType: cab.cooktopType,
+          cooktopFrontType: cab.cooktopFrontType
+        };
+      case KitchenCabinetType.UPPER_HOOD:
+        return {
+          hoodFrontType: cab.hoodFrontType,
+          hoodScreenEnabled: cab.hoodScreenEnabled,
+          hoodScreenHeightMm: cab.hoodScreenHeightMm
+        };
+      case KitchenCabinetType.BASE_OVEN:
+        return {
+          ovenHeightType: cab.ovenHeightType,
+          ovenLowerSectionType: cab.ovenLowerSectionType,
+          ovenApronEnabled: cab.ovenApronEnabled,
+          ovenApronHeightMm: cab.ovenApronHeightMm
+        };
+      case KitchenCabinetType.BASE_FRIDGE:
+        return {
+          fridgeSectionType: cab.fridgeSectionType,
+          lowerFrontHeightMm: cab.lowerFrontHeightMm
+        };
+      case KitchenCabinetType.BASE_FRIDGE_FREESTANDING:
+        return { fridgeFreestandingType: cab.fridgeFreestandingType };
+      case KitchenCabinetType.UPPER_ONE_DOOR:
+      case KitchenCabinetType.UPPER_TWO_DOOR:
+        return {
+          isLiftUp: cab.isLiftUp,
+          isFrontExtended: cab.isFrontExtended
+        };
+      case KitchenCabinetType.UPPER_DRAINER:
+        return { drainerFrontType: cab.drainerFrontType };
+      default:
+        return {};
+    }
   }
 
   /**

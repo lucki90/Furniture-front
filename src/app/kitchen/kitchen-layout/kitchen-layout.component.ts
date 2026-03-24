@@ -229,14 +229,17 @@ export class KitchenLayoutComponent {
       const zone: CabinetZone = originalCabinet ? getCabinetZone(originalCabinet) : 'BOTTOM';
       const cabinetType = originalCabinet?.type || KitchenCabinetType.BASE_ONE_DOOR;
       const depth = originalCabinet?.depth || 560;
+      // Rzut na any dla pól specyficznych per typ — SVG renderer czyta je jako optional config.
+      // Typowana fabryka buildCabinetFromFormData() gwarantuje poprawność danych w state.
+      const origCabAny = originalCabinet as any;
 
       const isCorner = cabinetType === KitchenCabinetType.CORNER_CABINET;
-      const cornerWidthB = isCorner ? originalCabinet?.cornerWidthB : undefined;
-      const drawerQuantity = originalCabinet?.drawerQuantity;
+      const cornerWidthB = isCorner ? origCabAny?.cornerWidthB : undefined;
+      const drawerQuantity = origCabAny?.drawerQuantity;
       const shelfQuantity = originalCabinet?.shelfQuantity;
-      const segments = originalCabinet?.segments;
-      const cascadeLowerHeight = originalCabinet?.cascadeLowerHeight;
-      const cascadeUpperHeight = originalCabinet?.cascadeUpperHeight;
+      const segments = origCabAny?.segments;
+      const cascadeLowerHeight = origCabAny?.cascadeLowerHeight;
+      const cascadeUpperHeight = origCabAny?.cascadeUpperHeight;
 
       const displayX = cab.x * scale;
       const displayWidth = cab.width * scale;
@@ -283,19 +286,19 @@ export class KitchenLayoutComponent {
 
       // Dane piekarnika wbudowanego (dla wizualizacji i separatora)
       const ovenConfig = cabinetType === KitchenCabinetType.BASE_OVEN ? {
-        ovenHeightType: originalCabinet?.ovenHeightType,
-        ovenLowerSectionType: originalCabinet?.ovenLowerSectionType,
-        ovenApronEnabled: originalCabinet?.ovenApronEnabled,
-        ovenApronHeightMm: originalCabinet?.ovenApronHeightMm
+        ovenHeightType: origCabAny?.ovenHeightType,
+        ovenLowerSectionType: origCabAny?.ovenLowerSectionType,
+        ovenApronEnabled: origCabAny?.ovenApronEnabled,
+        ovenApronHeightMm: origCabAny?.ovenApronHeightMm
       } : undefined;
 
       // Dane lodówki (dla wizualizacji podziału na strefy)
       const fridgeConfig = (cabinetType === KitchenCabinetType.BASE_FRIDGE || cabinetType === KitchenCabinetType.BASE_FRIDGE_FREESTANDING) ? {
-        fridgeSectionType: originalCabinet?.fridgeSectionType,
-        lowerFrontHeightMm: originalCabinet?.lowerFrontHeightMm,
-        fridgeFreestandingType: originalCabinet?.fridgeFreestandingType,
+        fridgeSectionType: origCabAny?.fridgeSectionType,
+        lowerFrontHeightMm: origCabAny?.lowerFrontHeightMm,
+        fridgeFreestandingType: origCabAny?.fridgeFreestandingType,
         heightMm: originalCabinet?.height,
-        upperSections: originalCabinet?.segments  // sekcje nad lodówką (opcjonalne)
+        upperSections: origCabAny?.segments  // sekcje nad lodówką (opcjonalne)
       } : undefined;
 
       // Generuj fronty i uchwyty
