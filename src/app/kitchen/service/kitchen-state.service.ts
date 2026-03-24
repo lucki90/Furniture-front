@@ -812,6 +812,14 @@ export class KitchenStateService {
           shelfQuantity: cabResp.shelfQuantity ?? 1,
           positioningMode: cabResp.positioningMode,
           gapFromCountertopMm: cabResp.gapFromCountertopMm,
+          leftEnclosureType: cabResp.leftEnclosure?.type,
+          rightEnclosureType: cabResp.rightEnclosure?.type,
+          leftSupportPlate: cabResp.leftEnclosure?.supportPlate,
+          rightSupportPlate: cabResp.rightEnclosure?.supportPlate,
+          leftFillerWidthOverrideMm: cabResp.leftEnclosure?.fillerWidthOverrideMm,
+          rightFillerWidthOverrideMm: cabResp.rightEnclosure?.fillerWidthOverrideMm,
+          distanceFromWallMm: cabResp.distanceFromWallMm,
+          bottomWreathOnFloor: cabResp.bottomWreathOnFloor ?? false,
           calculatedResult: {
             totalCost: cabResp.totalCost,
             boardCosts: cabResp.boardsCost,
@@ -839,7 +847,7 @@ export class KitchenStateService {
               sinkFrontType: cabResp.sinkFrontType ?? 'ONE_DOOR',
               sinkApronEnabled: cabResp.sinkApronEnabled ?? true,
               sinkApronHeightMm: cabResp.sinkApronHeightMm ?? 150,
-              sinkDrawerModel: cabResp.sinkDrawerModel };
+              sinkDrawerModel: cabResp.drawerModel };
           case KitchenCabinetType.BASE_COOKTOP:
             return { ...baseFromResp, type: KitchenCabinetType.BASE_COOKTOP,
               cooktopType: cabResp.cooktopType ?? 'INDUCTION',
@@ -890,15 +898,18 @@ export class KitchenStateService {
               isFrontExtended: cabResp.isFrontExtended ?? false };
           case KitchenCabinetType.UPPER_OPEN_SHELF:
             return { ...baseFromResp, type: KitchenCabinetType.UPPER_OPEN_SHELF };
-          case KitchenCabinetType.UPPER_CASCADE:
+          case KitchenCabinetType.UPPER_CASCADE: {
+            const lower = cabResp.cascadeSegments?.find(s => s.orderIndex === 0);
+            const upper = cabResp.cascadeSegments?.find(s => s.orderIndex === 1);
             return { ...baseFromResp, type: KitchenCabinetType.UPPER_CASCADE,
-              cascadeLowerHeight: cabResp.cascadeLowerHeight ?? 400,
-              cascadeLowerDepth: cabResp.cascadeLowerDepth ?? 400,
-              cascadeUpperHeight: cabResp.cascadeUpperHeight ?? 320,
-              cascadeUpperDepth: cabResp.cascadeUpperDepth ?? 300,
-              cascadeLowerIsLiftUp: cabResp.cascadeLowerIsLiftUp ?? false,
-              cascadeLowerIsFrontExtended: cabResp.cascadeLowerIsFrontExtended ?? false,
-              cascadeUpperIsLiftUp: cabResp.cascadeUpperIsLiftUp ?? false };
+              cascadeLowerHeight: lower?.height ?? 400,
+              cascadeLowerDepth: lower?.depth ?? 400,
+              cascadeUpperHeight: upper?.height ?? 320,
+              cascadeUpperDepth: upper?.depth ?? 300,
+              cascadeLowerIsLiftUp: lower?.isLiftUp ?? false,
+              cascadeLowerIsFrontExtended: lower?.isFrontExtended ?? false,
+              cascadeUpperIsLiftUp: upper?.isLiftUp ?? false };
+          }
           case KitchenCabinetType.UPPER_HOOD:
             return { ...baseFromResp, type: KitchenCabinetType.UPPER_HOOD,
               hoodFrontType: cabResp.hoodFrontType ?? 'FLAP',
