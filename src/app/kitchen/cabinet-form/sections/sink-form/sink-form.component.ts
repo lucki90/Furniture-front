@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
 import { getFormError } from '../../../../shared/form-error.util';
+import { DictionaryService } from '../../../service/dictionary.service';
 
 /**
  * Sekcja konfiguracji szafki zlewowej (BASE_SINK).
@@ -29,6 +30,8 @@ export class SinkFormComponent implements OnInit {
   showSinkDrawerModel = false;
 
   private destroyRef = inject(DestroyRef);
+
+  constructor(readonly dictionaryService: DictionaryService) {}
 
   ngOnInit(): void {
     // Inicjalizacja na podstawie aktualnego stanu kontrolek

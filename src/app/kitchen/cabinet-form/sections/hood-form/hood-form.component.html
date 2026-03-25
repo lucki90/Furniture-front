@@ -6,9 +6,7 @@
     <div class="form-group flex-2">
       <label class="form-label">Typ frontu</label>
       <select class="form-control" formControlName="hoodFrontType">
-        <option value="FLAP">Klapa (lift-up) — zalecane</option>
-        <option value="TWO_DOORS">2 drzwi</option>
-        <option value="OPEN">Otwarta (bez frontu)</option>
+        <option *ngFor="let o of dictionaryService.data().hoodFrontTypes" [value]="o.code">{{ o.label }}</option>
       </select>
     </div>
   </div>

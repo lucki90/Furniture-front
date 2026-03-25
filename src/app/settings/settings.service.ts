@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UserSettings } from './settings.model';
+import { SettingsOptions, UserSettings } from './settings.model';
 
 @Injectable({
   providedIn: 'root'
@@ -24,5 +24,13 @@ export class SettingsService {
    */
   updateSettings(settings: UserSettings): Observable<UserSettings> {
     return this.http.put<UserSettings>(this.apiUrl, settings);
+  }
+
+  /**
+   * Returns available option values for settings dropdowns (plinth heights, countertop thicknesses etc.).
+   * Frontend uses this instead of hardcoded arrays.
+   */
+  getOptions(): Observable<SettingsOptions> {
+    return this.http.get<SettingsOptions>(`${this.apiUrl}/options`);
   }
 }

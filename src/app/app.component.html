@@ -61,6 +61,17 @@
       </div>
     </nav>
 
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+      <select
+        [value]="languageService.lang()"
+        (change)="onLanguageChange($event)"
+        class="lang-select"
+        title="Język / Language">
+        <option *ngFor="let l of languageService.supportedLanguages" [value]="l.code">{{ l.label }}</option>
+      </select>
+    </div>
+
     <!-- Toggle Button -->
     <div class="sidebar-toggle">
       <button class="toggle-btn" (click)="toggleSidebar()" [title]="sidebarCollapsed ? 'Rozwiń menu' : 'Zwiń menu'">

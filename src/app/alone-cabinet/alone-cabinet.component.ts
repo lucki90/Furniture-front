@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild, effect, inject} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {AloneCabinetService} from './service/alone-cabinet.service';
 import {TranslationService} from '../translation/translation.service';
@@ -7,6 +7,7 @@ import {CabinetVisualizationComponent} from '../cabinet-visualization/cabinet-vi
 import {CabinetConstants} from "./model/cabinet-constants";
 import {catchError, finalize, retry, takeUntil, throttleTime} from 'rxjs/operators';
 import {of, Subject} from 'rxjs';
+import {LanguageService} from '../service/language.service';
 import {HttpErrorResponse} from "@angular/common/http";
 import {Board, CabinetRequest, CabinetResponse, PrintDocRequest} from "./model/cabinet-form.model";
 
@@ -50,7 +51,11 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   /// zmienne
   translationLoading: boolean = true;
   translations: { [key: string]: string } = {};
-  selectedLanguage: string = 'pl'; // Default language
+
+  /** Język pochodzi z globalnego LanguageService (wykrycie przeglądarki + localStorage) */
+  private readonly languageService = inject(LanguageService);
+  /** Skrót dla szablonu i prepareRequestBody */
+  get selectedLanguage(): string { return this.languageService.lang(); }
 
   loading = false;
   /** zarządzania subskrypcjami, np:
@@ -101,13 +106,15 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     private cabinetService: AloneCabinetService,
     private translationService: TranslationService,
     private fb: FormBuilder
-    // private printDocComponent: PrintDocComponent,
   ) {
+    // Przeładuj tłumaczenia gdy globalny język się zmieni (przełącznik w sidebarze)
+    effect(() => {
+      const lang = this.languageService.lang();
+      this.loadTranslations(lang);
+    });
   }
 
   ngOnInit(): void {
-    const browserLanguage = this.getBrowserLanguage();
-    this.loadTranslations(browserLanguage);
 
     this.form.get('frontType')?.valueChanges
     .pipe(takeUntil(this.destroy$))
@@ -349,17 +356,6 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
 
   /// Sekcja tlumaczen ------------------------------------------------------------------------------------------------
   /**
-   * Pobiera język przeglądarki użytkownika w formacie skróconym (np. 'en' z 'en-US').
-   * Jeśli nie można określić języka, zwraca aktualnie wybraną wartość `this.selectedLanguage`.
-   *
-   * @returns {string} Skrócony kod języka (np. 'pl', 'en').
-   */
-  getBrowserLanguage(): string {
-    const lang = navigator.language || navigator.languages[0];
-    return lang ? lang.split('-')[0] : this.selectedLanguage; // np. 'en-US' → 'en'
-  }
-
-  /**
    * Ładuje tłumaczenia dla danego języka na podstawie predefiniowanych prefiksów.
    * Ustawia język jako aktualnie wybrany i aktualizuje mapę tłumaczeń po otrzymaniu danych z serwisu.
    * W przypadku błędu wyświetla komunikat w konsoli i ustawia wiadomość o błędzie.
@@ -368,8 +364,8 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
    */
 
   loadTranslations(lang: string): void {
-    this.selectedLanguage = lang || 'pl';
-    this.translationService.getByCategories(CabinetConstants.TRANSLATION_CATEGORIES)
+    this.translationLoading = true;
+    this.translationService.getByCategories(CabinetConstants.TRANSLATION_CATEGORIES, lang)
     .pipe(
       takeUntil(this.destroy$),
       catchError(() => of(this.translationService.getDefaultTranslations())))
@@ -450,9 +446,9 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
    * @param lang - Kod języka, np. 'en', 'pl'.
    */
   onLanguageChange(lang: string) {
-    this.selectedLanguage = lang;
-    this.selectedLanguage ??= 'pl';
-    this.loadTranslations(this.selectedLanguage);
+    // Deleguje do globalnego LanguageService — zmiana widoczna w całej aplikacji
+    this.languageService.setLanguage((lang || 'pl') as 'pl' | 'en');
+    // effect() w konstruktorze automatycznie wywoła loadTranslations(lang)
   }
 
 }

@@ -1,3 +1,6 @@
+// Uwaga: opcje poniżej są zachowane jako fallback.
+// Docelowo opcje ładowane są z backendu przez DictionaryService (GET /dictionaries/all-options).
+
 /**
  * Model dla cokołów i nóżek kuchennych.
  */

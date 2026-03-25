@@ -2,7 +2,16 @@ import { Injectable } from '@angular/core';
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 
-// Tłumaczenia nazw płyt z backendu (BoardNameEnum) na język polski
+// TODO i18n — BOARD_NAME: zastąpić TranslationService.getByCategory('BOARD_NAME', lang)
+// Klucze już są w DB (10-insert-translations.sql, PL+EN), ale brakuje nowszych typów płyt
+// dodanych w Fazie 2 (SEGMENT_DIVIDER_NAME, SINK_APRON, HOOD_SCREEN, CORNER_PANEL,
+// BLIND_PANEL, BIFOLD_INNER_FRONT, OVEN_APRON, OVEN_TRAY_FRONT) — dodać do migracji SQL.
+// Wymagana zmiana: aggregate() musi przyjmować boardTranslations: Record<string,string>
+// jako parametr (pre-loaded przed wywołaniem), bo metoda jest synchroniczna.
+// Wzorzec wywołania w kitchen-page.component.ts:
+//   translationService.getByCategory('BOARD_NAME', lang).subscribe(translations => {
+//     const result = aggregatorService.aggregate(response, walls, translations);
+//   });
 const BOARD_NAME_PL: Record<string, string> = {
   'SIDE_NAME': 'Bok',
   'WREATH_NAME': 'Wieniec',
@@ -118,8 +127,10 @@ export class ProjectDetailsAggregatorService {
             let boardRemarks = '';
             if (board.boardName === 'FRONT_NAME' && hingeMilling) {
               const hingeCount = Math.round(hingeMilling.quantity);
+              // TODO i18n — remarks: "puszka/puszki/puszek" hardcoded PL; po refaktorze użyj translations['UI.REMARKS_HINGES']
               boardRemarks = `${hingeCount} ${hingeCount === 1 ? 'puszka' : hingeCount < 5 ? 'puszki' : 'puszek'} na długość ${board.sideY}mm`;
             } else if (board.boardName === 'SIDE_NAME' && grooveForHdf) {
+              // TODO i18n — remarks: "Frezowanie nutu..." hardcoded PL; po refaktorze użyj translations['UI.REMARKS_HDF_GROOVE']
               boardRemarks = `Frezowanie nutu pod HDF na boku ${board.sideY}mm`;
             }
 

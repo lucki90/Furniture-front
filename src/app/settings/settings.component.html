@@ -39,18 +39,20 @@
 
       <app-form-field label="Cokół" unit="mm" hint="Wysokość cokołu pod szafkami dolnymi">
         <select class="form-control" [(ngModel)]="plinthHeightMm" [disabled]="saving">
-          <option *ngFor="let opt of plinthOptions" [value]="opt">{{ opt }}</option>
+          <option *ngFor="let opt of plinthOptions" [ngValue]="opt">{{ opt }}</option>
         </select>
       </app-form-field>
 
       <app-form-field label="Blat" unit="mm" hint="Grubość blatu roboczego">
         <select class="form-control" [(ngModel)]="countertopThicknessMm" [disabled]="saving">
-          <option *ngFor="let opt of countertopOptions" [value]="opt">{{ opt }}</option>
+          <option *ngFor="let opt of countertopOptions" [ngValue]="opt">{{ opt }}</option>
         </select>
       </app-form-field>
 
       <app-form-field label="Blenda górna" unit="mm" hint="Przestrzeń nad szafkami wiszącymi (0–150 mm)">
-        <input type="number" class="form-control" [(ngModel)]="upperFillerHeightMm" [disabled]="saving" min="0" max="150" step="5" />
+        <select class="form-control" [(ngModel)]="upperFillerHeightMm" [disabled]="saving">
+          <option *ngFor="let opt of upperFillerHeightOptions" [ngValue]="opt">{{ opt }}</option>
+        </select>
       </app-form-field>
 
     </div>
@@ -159,6 +161,44 @@
         </app-form-field>
 
       </div>
+    </div>
+
+    <!-- SEKCJA: Kalkulacja odpadu i kierunek słoi -->
+    <div class="card-section-title" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-color, #e2e8f0);">Kalkulacja odpadu i kierunek słoi</div>
+    <p style="font-size: 12px; color: #888; margin: 4px 0 12px 0;">
+      Odpad jest liczony per materiał — hurtownie odpadów HDF/MDF zazwyczaj nie wliczają. Ciągłość słoi zachowuje kierunek słojów na frontach i widocznych płytach (może zwiększyć odpad o 5–15%).
+    </p>
+
+    <div class="form-grid">
+
+      <app-form-field label="Odpad — płyta wiórowa" hint="Obliczaj odpad z arkuszy płyty wiórowej (chipboard)">
+        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" [(ngModel)]="wasteChipboardEnabled" [disabled]="saving" />
+          <span>{{ wasteChipboardEnabled ? 'Włączony' : 'Wyłączony' }}</span>
+        </label>
+      </app-form-field>
+
+      <app-form-field label="Odpad — HDF (tył)" hint="Obliczaj odpad z arkuszy HDF (zazwyczaj wyłączone)">
+        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" [(ngModel)]="wasteHdfEnabled" [disabled]="saving" />
+          <span>{{ wasteHdfEnabled ? 'Włączony' : 'Wyłączony' }}</span>
+        </label>
+      </app-form-field>
+
+      <app-form-field label="Odpad — MDF" hint="Obliczaj odpad z arkuszy MDF (zazwyczaj wyłączone)">
+        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" [(ngModel)]="wasteMdfEnabled" [disabled]="saving" />
+          <span>{{ wasteMdfEnabled ? 'Włączony' : 'Wyłączony' }}</span>
+        </label>
+      </app-form-field>
+
+      <app-form-field label="Ciągłość słoi" hint="Zachowaj kierunek słojów na frontach i widocznych płytach (zwiększa odpad)">
+        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" [(ngModel)]="grainContinuityEnabled" [disabled]="saving" />
+          <span>{{ grainContinuityEnabled ? 'Włączona' : 'Wyłączona' }}</span>
+        </label>
+      </app-form-field>
+
     </div>
 
     <!-- Actions -->

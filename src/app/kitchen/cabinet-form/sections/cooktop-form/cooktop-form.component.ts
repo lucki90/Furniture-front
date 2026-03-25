@@ -2,6 +2,7 @@ import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DictionaryService } from '../../../service/dictionary.service';
 
 /**
  * Sekcja konfiguracji szafki pod płytę grzewczą (BASE_COOKTOP).
@@ -23,6 +24,8 @@ export class CooktopFormComponent implements OnInit {
   showDrawerOptions = false;
 
   private destroyRef = inject(DestroyRef);
+
+  constructor(readonly dictionaryService: DictionaryService) {}
 
   ngOnInit(): void {
     // Inicjalizacja — szuflady widoczne gdy drawerQuantity enabled

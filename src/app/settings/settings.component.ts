@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SettingsService } from './settings.service';
 import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
-import { UserSettings } from './settings.model';
+import { SettingsOptions, UserSettings } from './settings.model';
 import { FormFieldComponent } from '../shared/form-field/form-field.component';
 
 @Component({
@@ -50,6 +50,12 @@ export class SettingsComponent implements OnInit {
   shelfCutoutWidthMm = 1;
   shelfCutoutDepthMm = 2;
 
+  // Form values — kalkulacja odpadu i kierunek słoi
+  wasteChipboardEnabled = true;
+  wasteHdfEnabled = false;
+  wasteMdfEnabled = false;
+  grainContinuityEnabled = false;
+
   // UI states
   loading = false;
   saving = false;
@@ -59,12 +65,29 @@ export class SettingsComponent implements OnInit {
   // UI — sekcja techniczna zwinięta domyślnie
   techSectionExpanded = false;
 
-  // Options for select fields
-  readonly plinthOptions = [80, 100, 150];
-  readonly countertopOptions = [18, 28, 38, 40, 60];
+  // Options for select fields — loaded from backend
+  plinthOptions: number[] = [80, 100, 150];
+  countertopOptions: number[] = [18, 28, 38, 40, 60];
+  upperFillerHeightOptions: number[] = [0, 50, 80, 100, 120, 150];
+  distanceFromWallSelectOptions: number[] = [400, 450, 480, 510, 540, 560, 600, 650, 700];
 
   ngOnInit(): void {
+    this.loadOptions();
     this.loadSettings();
+  }
+
+  loadOptions(): void {
+    this.settingsService.getOptions().subscribe({
+      next: (options: SettingsOptions) => {
+        this.plinthOptions = options.plinthHeights;
+        this.countertopOptions = options.countertopThicknesses;
+        this.upperFillerHeightOptions = options.upperFillerHeights;
+        this.distanceFromWallSelectOptions = options.distanceFromWallOptions;
+      },
+      error: () => {
+        // Keep hardcoded fallback values — non-critical
+      }
+    });
   }
 
   loadSettings(): void {
@@ -98,6 +121,11 @@ export class SettingsComponent implements OnInit {
         this.shelfCutoutDepthMm = settings.shelfCutoutDepthMm ?? 2;
         this.ballSlideSevrollDrawerThicknessMm = settings.ballSlideSevrollDrawerThicknessMm ?? 18;
         this.antaroTandemboxDrawerThicknessMm = settings.antaroTandemboxDrawerThicknessMm ?? 16;
+        // Kalkulacja odpadu i kierunek słoi
+        this.wasteChipboardEnabled = settings.wasteChipboardEnabled ?? true;
+        this.wasteHdfEnabled = settings.wasteHdfEnabled ?? false;
+        this.wasteMdfEnabled = settings.wasteMdfEnabled ?? false;
+        this.grainContinuityEnabled = settings.grainContinuityEnabled ?? false;
         this.loading = false;
       },
       error: (err) => {
@@ -136,7 +164,11 @@ export class SettingsComponent implements OnInit {
       horizontallySpaceBetweenTwoFrontsMm: this.horizontallySpaceBetweenTwoFrontsMm,
       shelfCutoutWidthMm: this.shelfCutoutWidthMm,
       shelfCutoutDepthMm: this.shelfCutoutDepthMm,
-      ballSlideSevrollDrawerThicknessMm: this.ballSlideSevrollDrawerThicknessMm
+      ballSlideSevrollDrawerThicknessMm: this.ballSlideSevrollDrawerThicknessMm,
+      wasteChipboardEnabled: this.wasteChipboardEnabled,
+      wasteHdfEnabled: this.wasteHdfEnabled,
+      wasteMdfEnabled: this.wasteMdfEnabled,
+      grainContinuityEnabled: this.grainContinuityEnabled
     };
 
     this.settingsService.updateSettings(request).subscribe({

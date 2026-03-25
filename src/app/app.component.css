@@ -1,1 +1,30 @@
 /* Puste - style są w globalnym styles.css */
+
+/* ─── Language Switcher (sidebar) ─────────────────────────────────────────── */
+.language-switcher {
+  padding: 8px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 4px;
+}
+
+.lang-select {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.lang-select:focus,
+.lang-select:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.sidebar.collapsed .language-switcher {
+  display: none;
+}

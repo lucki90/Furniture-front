@@ -34,6 +34,24 @@ import {
 import { ToastService } from '../core/error/toast.service';
 import { ExcelService, ExcelRowRequest } from './service/excel.service';
 
+// TODO i18n — MATERIAL_NAMES: zastąpić TranslationService.getByCategory('MATERIAL', lang)
+// Klucze MATERIAL.* już są w DB (10-insert-translations.sql, PL+EN).
+// Uwaga: część kluczy różni się od kodu enum (np. MDF_LAMINATED nie ma MATERIAL.MDF_LAMINATED w DB —
+// dodać w migracji SQL; podobnie OSB, ACRYLIC, SOLID_WOOD).
+// Wymagana zmiana: preload przed downloadExcel() lub jako computed na podstawie sygnału języka.
+/** Polish translations for raw material codes used as fallback in the Excel Symbol column. */
+const MATERIAL_NAMES_PL: Record<string, string> = {
+  CHIPBOARD: 'Płyta wiórowa',
+  MDF_LAMINATED: 'MDF laminowany',
+  MDF: 'MDF',
+  HDF: 'HDF',
+  SOLID_WOOD: 'Drewno lite',
+  PLYWOOD: 'Sklejka',
+  OSB: 'OSB',
+  ACRYLIC: 'Akryl',
+  GLASS: 'Szkło',
+};
+
 @Component({
   selector: 'app-kitchen-page',
   templateUrl: './kitchen-page.component.html',
@@ -716,8 +734,8 @@ export class KitchenPageComponent {
       return {
         lp: index + 1,
         quantity: board.quantity,
-        // Symbol = kolor płyty (np. "RAL 9016", "Dąb"); fallback: material/boardName
-        symbol: board.color || board.material,
+        // Symbol = kolor płyty (np. "RAL 9016", "Dąb"); fallback: polska nazwa materiału
+        symbol: board.color || (board.material ? (MATERIAL_NAMES_PL[board.material] ?? board.material) : ''),
         thickness: board.thickness,
         // sideY = wysokość płyty = kierunek słoja (długość)
         length: board.height,

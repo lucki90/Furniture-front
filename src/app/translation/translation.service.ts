@@ -1,8 +1,8 @@
-import {Injectable} from '@angular/core';
-import {HttpClient, HttpParams} from '@angular/common/http';
-import {Observable, of, shareReplay} from 'rxjs';
-import {tap} from 'rxjs/operators';
-import {DEFAULT_TRANSLATIONS} from "./default-translations";
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, of, shareReplay } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { DEFAULT_TRANSLATIONS } from "./default-translations";
 
 interface TranslationCache {
   [key: string]: string;
@@ -30,16 +30,20 @@ export class TranslationService {
   constructor(private readonly http: HttpClient) {
   }
 
-  getByCategory(category: string): Observable<TranslationCache> {
-    const cacheKey = this.getCacheKey([category]);
+  /**
+   * Pobiera tłumaczenia dla jednej kategorii.
+   * @param category Kategoria (np. "MATERIAL", "BOARD_NAME")
+   * @param lang Język ("pl" lub "en"), domyślnie "pl"
+   */
+  getByCategory(category: string, lang = 'pl'): Observable<TranslationCache> {
+    const cacheKey = this.getCacheKey([category], lang);
 
     if (this.cache.single.has(cacheKey)) {
       return of(this.cache.single.get(cacheKey)!);
     }
 
-    return this.http.get<TranslationCache>(
-      `${this.translationUrl}?category=${category}`
-    ).pipe(
+    const params = new HttpParams().set('category', category).set('lang', lang);
+    return this.http.get<TranslationCache>(this.translationUrl, { params }).pipe(
       tap(translations => {
         this.cache.single.set(cacheKey, translations);
         this.setCacheTimer(cacheKey);
@@ -48,20 +52,23 @@ export class TranslationService {
     );
   }
 
-  getByCategories(categories: string[]): Observable<TranslationCache> {
-    const cacheKey = this.getCacheKey(categories);
+  /**
+   * Pobiera tłumaczenia dla wielu kategorii naraz.
+   * @param categories Lista kategorii
+   * @param lang Język ("pl" lub "en"), domyślnie "pl"
+   */
+  getByCategories(categories: string[], lang = 'pl'): Observable<TranslationCache> {
+    const cacheKey = this.getCacheKey(categories, lang);
 
     if (this.cache.multi.has(cacheKey)) {
       return of(this.cache.multi.get(cacheKey)!);
     }
 
     const params = new HttpParams()
-      .set('categories', categories.join(','));
+      .set('categories', categories.join(','))
+      .set('lang', lang);
 
-    return this.http.get<TranslationCache>(
-      this.translationBatchUrl,
-      {params}
-    ).pipe(
+    return this.http.get<TranslationCache>(this.translationBatchUrl, { params }).pipe(
       tap(translations => {
         this.cache.multi.set(cacheKey, translations);
         this.setCacheTimer(cacheKey);
@@ -70,14 +77,19 @@ export class TranslationService {
     );
   }
 
-  getAll(): Observable<TranslationCache> {
-    const cacheKey = 'ALL';
+  /**
+   * Pobiera wszystkie tłumaczenia.
+   * @param lang Język ("pl" lub "en"), domyślnie "pl"
+   */
+  getAll(lang = 'pl'): Observable<TranslationCache> {
+    const cacheKey = `ALL_${lang.toUpperCase()}`;
 
     if (this.cache.multi.has(cacheKey)) {
       return of(this.cache.multi.get(cacheKey)!);
     }
 
-    return this.http.get<TranslationCache>(this.translationAllUrl).pipe(
+    const params = new HttpParams().set('lang', lang);
+    return this.http.get<TranslationCache>(this.translationAllUrl, { params }).pipe(
       tap(translations => {
         this.cache.multi.set(cacheKey, translations);
         this.setCacheTimer(cacheKey);
@@ -103,8 +115,8 @@ export class TranslationService {
     }
   }
 
-  private getCacheKey(categories: string[]): string {
-    return [...categories].sort().join('_');
+  private getCacheKey(categories: string[], lang = 'pl'): string {
+    return `${lang.toUpperCase()}_${[...categories].sort().join('_')}`;
   }
 
   private setCacheTimer(cacheKey: string): void {

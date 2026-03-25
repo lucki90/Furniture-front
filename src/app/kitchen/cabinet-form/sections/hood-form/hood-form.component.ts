@@ -2,6 +2,7 @@ import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DictionaryService } from '../../../service/dictionary.service';
 
 /**
  * Sekcja konfiguracji szafki wiszącej na okap (UPPER_HOOD).
@@ -23,6 +24,8 @@ export class HoodFormComponent implements OnInit {
   showHoodScreenHeight = false;
 
   private destroyRef = inject(DestroyRef);
+
+  constructor(readonly dictionaryService: DictionaryService) {}
 
   ngOnInit(): void {
     // Inicjalizacja na podstawie aktualnego stanu kontrolki

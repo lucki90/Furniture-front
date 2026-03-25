@@ -1,12 +1,11 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { KitchenService } from '../service/kitchen.service';
 import { ToastService } from '../../core/error/toast.service';
-import { DictionaryService, DictionaryItem } from '../service/dictionary.service';
+import { DictionaryService } from '../service/dictionary.service';
 import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
-import { OPENING_TYPES } from './model/kitchen-cabinet-constants';
 import { CommonModule } from "@angular/common";
 import { CabinetCalculatedEvent, KitchenCabinet, KCabinetFridge, KCabinetFridgeFreestanding, KCabinetCorner, KCabinetCascade, KCabinetTall, cabinetHasSegments, CabinetZone, isBaseCabinetType, isUpperCabinetType, isFreestandingAppliance } from '../model/kitchen-state.model';
 import { KitchenStateService } from '../service/kitchen-state.service';
@@ -37,7 +36,7 @@ import { getFormError } from '../../shared/form-error.util';
     FridgeFormComponent, CascadeFormComponent, CornerFormComponent, EnclosureFormComponent,
     FormFieldComponent]
 })
-export class CabinetFormComponent implements OnChanges, OnInit {
+export class CabinetFormComponent implements OnChanges {
 
   @Input()
   editingCabinet: KitchenCabinet | null = null;
@@ -54,10 +53,13 @@ export class CabinetFormComponent implements OnChanges, OnInit {
   form: FormGroup;
   visibility: any = {};
   loading = false;
-  loadingDictionaries = false;
-
-  // Fallback na stałe wartości, nadpisywane przez dane z backendu
-  openingTypes: { value: string; label: string }[] = [...OPENING_TYPES];
+  /** Typy otwarcia z DictionaryService (reaktywnie aktualizowane przy zmianie języka) */
+  get openingTypes(): { value: string; label: string }[] {
+    return this.dictionaryService.data().openingTypes.map(item => ({
+      value: item.code,
+      label: item.label
+    }));
+  }
 
   // Dla segmentów
   selectedSegmentIndex = -1;
@@ -270,29 +272,6 @@ export class CabinetFormComponent implements OnChanges, OnInit {
     this.form.get('kitchenCabinetType')!
       .valueChanges
       .subscribe(type => this.onTypeChange(type as KitchenCabinetType));
-  }
-
-  ngOnInit(): void {
-    this.loadDictionaries();
-  }
-
-  private loadDictionaries(): void {
-    this.loadingDictionaries = true;
-
-    this.dictionaryService.getOpeningTypes().subscribe({
-      next: (items: DictionaryItem[]) => {
-        this.openingTypes = items.map(item => ({
-          value: item.code,
-          label: item.label
-        }));
-        this.loadingDictionaries = false;
-      },
-      error: (err) => {
-        console.warn('Failed to load opening types from backend, using fallback', err);
-        // Zachowaj fallback wartości
-        this.loadingDictionaries = false;
-      }
-    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {

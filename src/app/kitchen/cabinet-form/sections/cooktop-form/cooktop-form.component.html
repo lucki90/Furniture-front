@@ -6,8 +6,7 @@
     <div class="form-group flex-2">
       <label class="form-label">Typ płyty grzewczej</label>
       <select class="form-control" formControlName="cooktopType">
-        <option value="INDUCTION">Indukcyjna / elektryczna (standardowy tył)</option>
-        <option value="GAS">Gazowa (bez tylnej ścianki HDF — wentylacja)</option>
+        <option *ngFor="let o of dictionaryService.data().cooktopTypes" [value]="o.code">{{ o.label }}</option>
       </select>
       <span class="form-hint" *ngIf="isGasCooktop">
         ⚠️ Wymagana wentylacja wg PN-83/B-03430 — brak tylnej ścianki HDF w BOM
@@ -20,9 +19,7 @@
     <div class="form-group flex-2">
       <label class="form-label">Konfiguracja frontu</label>
       <select class="form-control" formControlName="cooktopFrontType">
-        <option value="DRAWERS">Szuflady (2–3 szt. — zalecane)</option>
-        <option value="TWO_DOORS">2 drzwi</option>
-        <option value="ONE_DOOR">1 drzwi</option>
+        <option *ngFor="let o of dictionaryService.data().cooktopFrontTypes" [value]="o.code">{{ o.label }}</option>
       </select>
     </div>
   </div>
@@ -38,8 +35,7 @@
     <div class="form-group flex-2">
       <label class="form-label">System szuflad</label>
       <select class="form-control" formControlName="drawerModel">
-        <option value="ANTARO_TANDEMBOX">Blum Antaro / Tandembox (zalecany)</option>
-        <option value="SEVROLL_BALL">Sevroll kulkowe</option>
+        <option *ngFor="let o of dictionaryService.data().drawerModels" [value]="o.code">{{ o.label }}</option>
       </select>
     </div>
   </div>

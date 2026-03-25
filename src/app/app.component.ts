@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, effect } from '@angular/core';
 import { SettingsService } from './settings/settings.service';
 import { KitchenStateService } from './kitchen/service/kitchen-state.service';
+import { DictionaryService } from './kitchen/service/dictionary.service';
+import { LanguageService, AppLanguage } from './service/language.service';
+import { TranslationService } from './translation/translation.service';
 
 @Component({
   selector: 'app-root',
@@ -14,12 +17,22 @@ export class AppComponent implements OnInit {
 
   constructor(
     private readonly settingsService: SettingsService,
-    private readonly kitchenStateService: KitchenStateService
-  ) {}
+    private readonly kitchenStateService: KitchenStateService,
+    private readonly dictionaryService: DictionaryService,
+    private readonly translationService: TranslationService,
+    readonly languageService: LanguageService
+  ) {
+    // Przy każdej zmianie języka:
+    // 1. Wyczyść cache tłumaczeń (aby komponenty pobrały nowe dane w nowym języku)
+    // 2. Przeładuj słowniki (opcje dropdownów w formularzu szafek)
+    effect(() => {
+      const lang = this.languageService.lang();
+      this.translationService.clearCache();
+      this.dictionaryService.reload(lang);
+    });
+  }
 
   ngOnInit(): void {
-    // Load global user settings from DB — zapisz jako globalne defaults
-    // (używane przez clearAll/addWall przy tworzeniu nowych projektów)
     this.settingsService.getSettings().subscribe({
       next: (settings) => {
         this.kitchenStateService.setGlobalDefaults({
@@ -29,7 +42,6 @@ export class AppComponent implements OnInit {
         });
       },
       error: (err) => {
-        // Non-critical: app still works with Angular signal defaults (100/38/100)
         console.warn('Could not load user settings from server, using defaults.', err);
       }
     });
@@ -37,5 +49,10 @@ export class AppComponent implements OnInit {
 
   toggleSidebar(): void {
     this.sidebarCollapsed = !this.sidebarCollapsed;
+  }
+
+  onLanguageChange(event: Event): void {
+    const lang = (event.target as HTMLSelectElement).value as AppLanguage;
+    this.languageService.setLanguage(lang);
   }
 }

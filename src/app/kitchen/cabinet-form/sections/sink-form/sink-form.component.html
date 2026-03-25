@@ -6,9 +6,7 @@
     <div class="form-group flex-2">
       <label class="form-label">Typ frontu</label>
       <select class="form-control" formControlName="sinkFrontType">
-        <option value="ONE_DOOR">1 drzwi</option>
-        <option value="TWO_DOORS">2 drzwi</option>
-        <option value="DRAWER">Szuflada (Antaro / Tandembox)</option>
+        <option *ngFor="let o of dictionaryService.data().sinkFrontTypes" [value]="o.code">{{ o.label }}</option>
       </select>
     </div>
     <app-form-field class="form-group flex-2" label="Szerokość wnętrza korpusu" unit="mm"
@@ -39,8 +37,7 @@
     <div class="form-group flex-2">
       <label class="form-label">System szuflad</label>
       <select class="form-control" formControlName="sinkDrawerModel">
-        <option value="ANTARO_TANDEMBOX">Blum Antaro / Tandembox (zalecany)</option>
-        <option value="SEVROLL_BALL">Sevroll kulkowe</option>
+        <option *ngFor="let o of dictionaryService.data().drawerModels" [value]="o.code">{{ o.label }}</option>
       </select>
     </div>
   </div>

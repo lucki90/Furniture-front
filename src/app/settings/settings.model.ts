@@ -31,6 +31,20 @@ export interface UserSettings {
   ballSlideSevrollDrawerThicknessMm: number;
   /** Stała grubość płyt Blum Antaro / Tandembox (16mm). Tylko odczyt z GET. */
   antaroTandemboxDrawerThicknessMm?: number;
+
+  // Ustawienia kalkulacji odpadu i kierunku słoi
+  wasteChipboardEnabled: boolean;
+  wasteHdfEnabled: boolean;
+  wasteMdfEnabled: boolean;
+  grainContinuityEnabled: boolean;
+}
+
+/** Available option values returned by GET /settings/options. */
+export interface SettingsOptions {
+  plinthHeights: number[];
+  countertopThicknesses: number[];
+  upperFillerHeights: number[];
+  distanceFromWallOptions: number[];
 }
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
@@ -56,5 +70,9 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   horizontallySpaceBetweenTwoFrontsMm: 3,
   shelfCutoutWidthMm: 1,
   shelfCutoutDepthMm: 2,
-  ballSlideSevrollDrawerThicknessMm: 18
+  ballSlideSevrollDrawerThicknessMm: 18,
+  wasteChipboardEnabled: true,
+  wasteHdfEnabled: false,
+  wasteMdfEnabled: false,
+  grainContinuityEnabled: false
 };

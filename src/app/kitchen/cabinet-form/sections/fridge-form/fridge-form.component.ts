@@ -3,6 +3,7 @@ import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
+import { DictionaryService } from '../../../service/dictionary.service';
 
 /**
  * Sekcja konfiguracji szafki na lodówkę (BASE_FRIDGE i BASE_FRIDGE_FREESTANDING).
@@ -24,6 +25,8 @@ export class FridgeFormComponent implements OnInit {
   showLowerFrontHeight = false;
 
   private destroyRef = inject(DestroyRef);
+
+  constructor(readonly dictionaryService: DictionaryService) {}
 
   ngOnInit(): void {
     // Inicjalizacja ze stanu aktualnej wartości formularza
