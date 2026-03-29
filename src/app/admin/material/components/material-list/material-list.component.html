@@ -1,0 +1,47 @@
+<div class="variant-list-container">
+  <div class="header">
+    <h2>Materiały</h2>
+    <p class="subtitle">Zarządzaj dostępnością materiałów w aplikacji. Nieaktywne materiały nie będą widoczne w formularzach.</p>
+  </div>
+
+  <div class="table-container" [class.loading]="loading()">
+    @if (loading()) {
+      <mat-spinner class="spinner" diameter="40"></mat-spinner>
+    }
+
+    @if (materials().length > 0) {
+      <table mat-table [dataSource]="materials()" class="variant-table">
+
+        <ng-container matColumnDef="code">
+          <th mat-header-cell *matHeaderCellDef>Kod materiału</th>
+          <td mat-cell *matCellDef="let m">{{ m.code }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="translationKey">
+          <th mat-header-cell *matHeaderCellDef>Klucz tłumaczenia</th>
+          <td mat-cell *matCellDef="let m">{{ m.translationKey || '-' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="active">
+          <th mat-header-cell *matHeaderCellDef>Aktywny</th>
+          <td mat-cell *matCellDef="let m">
+            <mat-slide-toggle
+              [checked]="m.active"
+              (change)="onToggleActive(m)"
+              color="primary"
+              matTooltip="Kliknij aby zmienić dostępność materiału">
+            </mat-slide-toggle>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.inactive-row]="!row.active"></tr>
+      </table>
+    } @else if (!loading()) {
+      <div class="empty-state">
+        <mat-icon>layers</mat-icon>
+        <p>Brak materiałów w bazie danych</p>
+      </div>
+    }
+  </div>
+</div>

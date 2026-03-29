@@ -1,0 +1,80 @@
+.variant-list-container {
+  padding: 16px 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary, #666);
+}
+
+.table-container {
+  position: relative;
+  min-height: 100px;
+}
+
+.table-container.loading {
+  opacity: 0.5;
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.variant-table {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm, 8px);
+  overflow: hidden;
+}
+
+::ng-deep .variant-table .mat-mdc-header-cell {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #666);
+  background: var(--bg-hover, #fafafa);
+}
+
+::ng-deep .variant-table .mat-mdc-cell {
+  font-size: 13px;
+}
+
+.inactive-row {
+  opacity: 0.55;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  color: var(--text-secondary, #999);
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+}

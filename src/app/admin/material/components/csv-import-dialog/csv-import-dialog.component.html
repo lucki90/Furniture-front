@@ -1,0 +1,113 @@
+<h2 mat-dialog-title>Import wariantów płyt z CSV</h2>
+
+<mat-dialog-content>
+  <!-- File selection -->
+  @if (!importResult && !importing) {
+    <div class="drop-zone"
+         (dragover)="onDragOver($event)"
+         (drop)="onDrop($event)"
+         [class.has-file]="selectedFile">
+
+      <input type="file" #fileInput hidden [accept]="acceptedTypes"
+             (change)="onFileSelected($event)">
+
+      @if (!selectedFile) {
+        <div class="drop-content" (click)="fileInput.click()">
+          <mat-icon>cloud_upload</mat-icon>
+          <p>Przeciągnij plik CSV lub kliknij aby wybrać</p>
+          <span class="hint">Format: średnik jako separator, kodowanie UTF-8</span>
+        </div>
+      } @else {
+        <div class="file-info">
+          <mat-icon class="file-icon">description</mat-icon>
+          <div class="file-details">
+            <span class="file-name">{{ selectedFile.name }}</span>
+            <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+          </div>
+          <button mat-icon-button (click)="removeFile(fileInput)">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Format hint -->
+    <div class="format-hint">
+      <h4>Format pliku CSV (9 kolumn):</h4>
+      <code>materialCode;thicknessMm;colorCode;colorName;colorHex;varnished;pricePerM2;namePL;nameEN</code>
+      <p>Kolumny namePL i nameEN są opcjonalne (7 kolumn też jest akceptowane).</p>
+      <p>Pierwszy wiersz (nagłówek) zostanie automatycznie pominięty.</p>
+      <button mat-stroked-button class="template-btn" (click)="onDownloadTemplate()">
+        <mat-icon>download</mat-icon>
+        Pobierz szablon CSV
+      </button>
+    </div>
+  }
+
+  <!-- Import progress -->
+  @if (importing) {
+    <div class="import-progress">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Importowanie pliku...</p>
+    </div>
+  }
+
+  <!-- Import result -->
+  @if (importResult) {
+    <div class="import-result">
+      <div class="result-summary"
+           [class.success]="!hasErrors"
+           [class.partial]="hasErrors && successCount > 0"
+           [class.failed]="successCount === 0 && hasErrors">
+
+        <mat-icon>{{ hasErrors ? 'warning' : 'check_circle' }}</mat-icon>
+
+        <div class="summary-text">
+          <h3>Import zakończony</h3>
+          <p>
+            Dodano: <strong>{{ importResult.added }}</strong>,
+            zaktualizowano: <strong>{{ importResult.updated }}</strong>
+            @if (hasErrors) {
+              , błędów: <strong>{{ importResult.errors!.length }}</strong>
+            }
+          </p>
+        </div>
+      </div>
+
+      <mat-progress-bar mode="determinate" [value]="successRate"></mat-progress-bar>
+
+      @if (hasErrors) {
+        <div class="errors-section">
+          <h4>Błędy importu ({{ importResult.errors!.length }})</h4>
+          @for (err of importResult.errors; track err.lineNumber) {
+            <div class="error-row">
+              <span class="error-line">Wiersz {{ err.lineNumber }}:</span>
+              <span class="error-msg">{{ err.message }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Error message -->
+  @if (error) {
+    <div class="error-message">
+      <mat-icon>error</mat-icon>
+      <span>{{ error }}</span>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onClose()" [disabled]="importing">
+    {{ importResult ? 'Zamknij' : 'Anuluj' }}
+  </button>
+  @if (!importResult) {
+    <button mat-raised-button color="primary"
+            (click)="onImport()"
+            [disabled]="!selectedFile || importing">
+      Importuj
+    </button>
+  }
+</mat-dialog-actions>

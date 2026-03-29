@@ -8,8 +8,9 @@
 .variant-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 400px;
+  gap: 4px;
+  min-width: 450px;
+  padding-top: 8px;
 }
 
 .full-width {
@@ -28,13 +29,119 @@
 .checkbox-row {
   display: flex;
   gap: 24px;
-  padding: 8px 0;
+  padding: 8px 0 4px;
 }
 
-mat-dialog-content {
-  padding-top: 16px;
+/* Dialog title */
+::ng-deep .mat-mdc-dialog-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding-bottom: 8px;
 }
 
+/* Dialog content */
+::ng-deep .mat-mdc-dialog-content {
+  padding-top: 8px;
+}
+
+/* Dialog actions */
+::ng-deep .mat-mdc-dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Spinner in save button */
 mat-dialog-actions button mat-spinner {
   display: inline-block;
+}
+
+/* Form field backgrounds */
+::ng-deep .variant-form .mat-mdc-text-field-wrapper {
+  background: var(--bg-card);
+}
+
+/* Invalid fields — red outline after submit attempt */
+::ng-deep .variant-form .mat-mdc-form-field.ng-invalid.ng-touched .mdc-notched-outline__leading,
+::ng-deep .variant-form .mat-mdc-form-field.ng-invalid.ng-touched .mdc-notched-outline__notch,
+::ng-deep .variant-form .mat-mdc-form-field.ng-invalid.ng-touched .mdc-notched-outline__trailing {
+  border-color: var(--error-color, #ef4444) !important;
+}
+
+::ng-deep .variant-form .mat-mdc-form-field.ng-invalid.ng-touched .mat-mdc-floating-label {
+  color: var(--error-color, #ef4444) !important;
+}
+
+/* Job info (read-only fields) */
+.job-info {
+  padding: 8px 14px;
+  background: var(--bg-hover, #f5f5f5);
+  border-radius: var(--border-radius-sm, 8px);
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.job-info p {
+  margin: 0;
+}
+
+/* Translation edit section */
+.translation-edit-section {
+  padding: 10px 14px;
+  background: var(--bg-hover, #f5f5f5);
+  border-radius: var(--border-radius-sm, 6px);
+  border: 1px solid var(--border-color, #e0e0e0);
+  margin-bottom: 4px;
+}
+
+.translation-edit-header {
+  margin-bottom: 8px;
+}
+
+.translation-status {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-muted, #888);
+}
+
+.translation-status.exists {
+  color: #1976d2;
+}
+
+.translation-status.new {
+  color: #388e3c;
+}
+
+.translation-edit-section .form-row {
+  margin-bottom: 0;
+}
+
+::ng-deep .translation-edit-section .mat-mdc-text-field-wrapper {
+  background: var(--bg-card, #fff);
+}
+
+/* Native color picker */
+.color-picker-native {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px;
+  background: none;
+  flex-shrink: 0;
+  align-self: center;
+  margin-top: -8px;
+}
+
+/* Error banner */
+.error-banner {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--error-bg, #fef2f2);
+  border: 1px solid var(--error-color, #ef4444);
+  border-radius: var(--border-radius-sm, 8px);
+  color: var(--error-color, #ef4444);
+  font-size: 13px;
 }

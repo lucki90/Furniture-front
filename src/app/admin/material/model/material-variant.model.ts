@@ -9,8 +9,11 @@ export interface BoardVariantAdminResponse {
   materialName: string;
   thicknessMm: number;
   colorCode: string;
+  colorName: string | null;
+  colorHex: string | null;
   varnished: boolean;
   densityKgDm3: number | null;
+  materialActive: boolean;
   priceEntryId: number;
   currentPrice: number | null;
   translationKey: string | null;
@@ -25,18 +28,22 @@ export interface BoardVariantCreateRequest {
   materialId: number;
   thicknessMm: number;
   colorCode: string;
+  colorName?: string;
+  colorHex?: string;
   varnished?: boolean;
   densityKgDm3?: number;
-  priceEntryId: number;
+  currentPrice: number;
   translationKey?: string;
 }
 
 export interface BoardVariantUpdateRequest {
   thicknessMm?: number;
   colorCode?: string;
+  colorName?: string;
+  colorHex?: string;
   varnished?: boolean;
   densityKgDm3?: number;
-  priceEntryId?: number;
+  currentPrice?: number;
   translationKey?: string;
   active?: boolean;
 }
@@ -62,14 +69,14 @@ export interface ComponentVariantCreateRequest {
   componentId: number;
   modelCode: string;
   additionalInfo?: string;
-  priceEntryId: number;
+  currentPrice: number;
   translationKey?: string;
 }
 
 export interface ComponentVariantUpdateRequest {
   modelCode?: string;
   additionalInfo?: string;
-  priceEntryId?: number;
+  currentPrice?: number;
   translationKey?: string;
   active?: boolean;
 }
@@ -104,13 +111,7 @@ export interface JobVariantCreateRequest {
 }
 
 export interface JobVariantUpdateRequest {
-  variantCode?: string;
-  unit?: string;
-  materialId?: number;
-  thicknessThresholdMm?: number;
-  priceEntryId?: number;
-  translationKey?: string;
-  active?: boolean;
+  currentPrice?: number;
 }
 
 // ============ Options (for dropdowns) ============
@@ -119,6 +120,7 @@ export interface MaterialOption {
   id: number;
   code: string;
   translationKey: string;
+  active?: boolean;
 }
 
 export interface ComponentOption {
@@ -160,6 +162,20 @@ export interface BulkPriceUpdateResponse {
 
 export interface UpdateError {
   priceEntryId: number;
+  message: string;
+}
+
+// ============ CSV Import ============
+
+export interface CsvImportResultResponse {
+  added: number;
+  updated: number;
+  errors: CsvLineError[] | null;
+}
+
+export interface CsvLineError {
+  lineNumber: number;
+  line: string;
   message: string;
 }
 

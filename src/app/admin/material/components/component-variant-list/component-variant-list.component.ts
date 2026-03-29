@@ -12,6 +12,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MaterialAdminService } from '../../service/material-admin.service';
 import { ComponentVariantAdminResponse } from '../../model/material-variant.model';
 import { VariantDialogComponent, VariantDialogData } from '../variant-dialog/variant-dialog.component';
@@ -32,7 +33,8 @@ import { VariantDialogComponent, VariantDialogData } from '../variant-dialog/var
     MatChipsModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatTooltipModule
   ],
   templateUrl: './component-variant-list.component.html',
   styleUrl: './component-variant-list.component.css'

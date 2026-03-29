@@ -1,5 +1,5 @@
 .material-management-container {
-  padding: 24px;
+  padding: var(--spacing-lg);
   max-width: 1400px;
   margin: 0 auto;
 }
@@ -8,20 +8,32 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .page-header h1 {
   margin: 0;
   font-size: 24px;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .tab-icon {
   margin-right: 8px;
+  font-size: 20px;
 }
 
 ::ng-deep .mat-mdc-tab-body-wrapper {
-  padding-top: 16px;
+  padding-top: var(--spacing-md);
+}
+
+::ng-deep .mat-mdc-tab-group {
+  --mdc-tab-indicator-active-indicator-color: var(--accent-color);
+  --mat-tab-header-active-label-text-color: var(--accent-color);
+  --mat-tab-header-active-focus-label-text-color: var(--accent-color);
+  --mat-tab-header-active-hover-label-text-color: var(--accent-color);
+}
+
+::ng-deep .mat-mdc-tab-header {
+  border-bottom: 1px solid var(--border-color);
 }

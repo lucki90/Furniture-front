@@ -16,7 +16,8 @@ import {
   ComponentOption,
   JobOption,
   BulkPriceUpdateRequest,
-  BulkPriceUpdateResponse
+  BulkPriceUpdateResponse,
+  CsvImportResultResponse
 } from '../model/material-variant.model';
 
 @Injectable({
@@ -27,6 +28,16 @@ export class MaterialAdminService {
   private readonly baseUrl = 'http://localhost:8080/api/furniture/admin/materials';
 
   constructor(private readonly http: HttpClient) {}
+
+  // ============ MATERIALS ============
+
+  getAllMaterials(): Observable<MaterialOption[]> {
+    return this.http.get<MaterialOption[]>(`${this.baseUrl}/materials`);
+  }
+
+  toggleMaterialActive(id: number): Observable<MaterialOption> {
+    return this.http.put<MaterialOption>(`${this.baseUrl}/materials/${id}/toggle-active`, {});
+  }
 
   // ============ OPTIONS ============
 
@@ -139,5 +150,20 @@ export class MaterialAdminService {
 
   bulkPriceUpdate(request: BulkPriceUpdateRequest): Observable<BulkPriceUpdateResponse> {
     return this.http.post<BulkPriceUpdateResponse>(`${this.baseUrl}/bulk-price-update`, request);
+  }
+
+  // ============ CSV IMPORT ============
+
+  importBoardVariantsCsv(file: File): Observable<CsvImportResultResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<CsvImportResultResponse>(
+      'http://localhost:8080/api/furniture/prices/boards/import', formData);
+  }
+
+  downloadCsvTemplate(): Observable<Blob> {
+    return this.http.get('http://localhost:8080/api/furniture/prices/boards/template', {
+      responseType: 'blob'
+    });
   }
 }

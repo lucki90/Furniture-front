@@ -1,109 +1,132 @@
 <div class="variant-list-container">
-  <header class="header">
+  <div class="header">
     <h2>Warianty płyt</h2>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Dodaj wariant
-    </button>
-  </header>
+    <div class="header-actions">
+      <button mat-stroked-button color="primary" (click)="openImportDialog()">
+        <mat-icon>upload_file</mat-icon>
+        Import CSV
+      </button>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Dodaj wariant
+      </button>
+    </div>
+  </div>
 
   <div class="filters">
     <mat-form-field appearance="outline" class="search-field">
-      <mat-label>Szukaj po kodzie materiału</mat-label>
-      <input matInput [(ngModel)]="searchMaterialCode" (keyup.enter)="onSearch()">
-      <button mat-icon-button matSuffix *ngIf="searchMaterialCode" (click)="onClearSearch()">
-        <mat-icon>clear</mat-icon>
-      </button>
+      <mat-label>Szukaj</mat-label>
+      <input matInput [(ngModel)]="searchMaterialCode" (keyup.enter)="onSearch()" placeholder="Kod materiału lub koloru...">
+      <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
-    <mat-checkbox [(ngModel)]="activeOnly" (change)="onSearch()">
-      Tylko aktywne
-    </mat-checkbox>
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select [(ngModel)]="activeOnly" (selectionChange)="onSearch()">
+        <mat-option [value]="false">Wszystkie</mat-option>
+        <mat-option [value]="true">Tylko aktywne</mat-option>
+      </mat-select>
+    </mat-form-field>
 
-    <button mat-icon-button (click)="onSearch()" matTooltip="Szukaj">
+    <button mat-stroked-button (click)="onSearch()" matTooltip="Wyszukaj z aktualnymi filtrami">
       <mat-icon>search</mat-icon>
+      Szukaj
     </button>
   </div>
 
   <div class="table-container" [class.loading]="loading()">
-    <mat-spinner *ngIf="loading()" diameter="50" class="spinner"></mat-spinner>
+    @if (loading()) {
+      <mat-spinner class="spinner" diameter="40"></mat-spinner>
+    }
 
-    <table mat-table [dataSource]="variants()" class="variant-table">
+    @if (variants().length > 0) {
+      <table mat-table [dataSource]="variants()" class="variant-table">
 
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef>ID</th>
-        <td mat-cell *matCellDef="let v">{{ v.id }}</td>
-      </ng-container>
+        <ng-container matColumnDef="materialCode">
+          <th mat-header-cell *matHeaderCellDef>Materiał</th>
+          <td mat-cell *matCellDef="let v">
+            @if (!v.materialActive) {
+              <mat-icon class="material-inactive-icon" matTooltip="Materiał nieaktywny">warning</mat-icon>
+            }
+            {{ getMaterialDisplay(v) }}
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="materialCode">
-        <th mat-header-cell *matHeaderCellDef>Materiał</th>
-        <td mat-cell *matCellDef="let v">{{ v.materialCode }}</td>
-      </ng-container>
+        <ng-container matColumnDef="thicknessMm">
+          <th mat-header-cell *matHeaderCellDef>Grubość</th>
+          <td mat-cell *matCellDef="let v">{{ v.thicknessMm }} mm</td>
+        </ng-container>
 
-      <ng-container matColumnDef="thicknessMm">
-        <th mat-header-cell *matHeaderCellDef>Grubość</th>
-        <td mat-cell *matCellDef="let v">{{ v.thicknessMm }} mm</td>
-      </ng-container>
+        <ng-container matColumnDef="colorCode">
+          <th mat-header-cell *matHeaderCellDef>Kolor</th>
+          <td mat-cell *matCellDef="let v">
+            <div class="color-cell">
+              @if (v.colorHex) {
+                <span class="color-swatch" [style.background-color]="v.colorHex"></span>
+              }
+              {{ getColorDisplay(v) }}
+            </div>
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="colorCode">
-        <th mat-header-cell *matHeaderCellDef>Kolor</th>
-        <td mat-cell *matCellDef="let v">{{ v.colorCode }}</td>
-      </ng-container>
+        <ng-container matColumnDef="varnished">
+          <th mat-header-cell *matHeaderCellDef>Lakier</th>
+          <td mat-cell *matCellDef="let v">
+            <mat-icon [color]="v.varnished ? 'primary' : 'warn'">
+              {{ v.varnished ? 'check' : 'close' }}
+            </mat-icon>
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="varnished">
-        <th mat-header-cell *matHeaderCellDef>Lakier</th>
-        <td mat-cell *matCellDef="let v">
-          <mat-icon *ngIf="v.varnished" color="primary">check</mat-icon>
-          <mat-icon *ngIf="!v.varnished" color="warn">close</mat-icon>
-        </td>
-      </ng-container>
+        <ng-container matColumnDef="currentPrice">
+          <th mat-header-cell *matHeaderCellDef>Cena</th>
+          <td mat-cell *matCellDef="let v" class="price-cell">
+            {{ v.currentPrice ? (v.currentPrice | number:'1.2-2') + ' PLN' : '-' }}
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="currentPrice">
-        <th mat-header-cell *matHeaderCellDef>Cena</th>
-        <td mat-cell *matCellDef="let v" class="price-cell">
-          {{ v.currentPrice ? (v.currentPrice | number:'1.2-2') + ' PLN' : '-' }}
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="active">
-        <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let v">
-          <mat-chip-listbox>
+        <ng-container matColumnDef="active">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let v">
             <mat-chip [class.active]="v.active" [class.inactive]="!v.active">
               {{ v.active ? 'Aktywny' : 'Nieaktywny' }}
             </mat-chip>
-          </mat-chip-listbox>
-        </td>
-      </ng-container>
+          </td>
+        </ng-container>
 
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Akcje</th>
-        <td mat-cell *matCellDef="let v" class="actions-cell">
-          <button mat-icon-button (click)="openEditDialog(v)" matTooltip="Edytuj">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" (click)="onDelete(v)" matTooltip="Usuń">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Akcje</th>
+          <td mat-cell *matCellDef="let v" class="actions-cell">
+            <button mat-icon-button color="primary" (click)="openEditDialog(v)" matTooltip="Edytuj">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="onDelete(v)" matTooltip="Usuń">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+            [class.material-inactive-row]="!row.materialActive"></tr>
+      </table>
 
-    <div *ngIf="variants().length === 0 && !loading()" class="empty-state">
-      <mat-icon>inventory_2</mat-icon>
-      <p>Brak wariantów płyt do wyświetlenia</p>
-    </div>
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize()"
+        [pageIndex]="pageIndex()"
+        [pageSizeOptions]="[10, 20, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    } @else if (!loading()) {
+      <div class="empty-state">
+        <mat-icon>inventory_2</mat-icon>
+        <p>Brak wariantów płyt</p>
+        <button mat-stroked-button color="primary" (click)="openCreateDialog()">
+          Dodaj pierwszy wariant
+        </button>
+      </div>
+    }
   </div>
-
-  <mat-paginator
-    [length]="totalElements()"
-    [pageSize]="pageSize()"
-    [pageIndex]="pageIndex()"
-    [pageSizeOptions]="[10, 20, 50]"
-    (page)="onPageChange($event)"
-    showFirstLastButtons>
-  </mat-paginator>
 </div>

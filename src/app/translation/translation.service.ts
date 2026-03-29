@@ -102,6 +102,24 @@ export class TranslationService {
     return {...DEFAULT_TRANSLATIONS};
   }
 
+  /**
+   * Upserts (creates or updates) translations for a key across multiple languages.
+   * @param key Translation key, e.g. "BOARD_VARIANT.WHITE"
+   * @param entries Array of {lang, value} pairs
+   */
+  upsertTranslations(key: string, entries: { lang: string; value: string }[]): Observable<void> {
+    return this.http.post<void>(`${this.translationUrl}/upsert`, { key, entries }).pipe(
+      tap(() => {
+        // Invalidate cache for affected languages so next fetch is fresh
+        entries.forEach(e => {
+          const lang = e.lang.toUpperCase();
+          this.cache.single.forEach((_, k) => { if (k.startsWith(lang + '_')) this.cache.single.delete(k); });
+          this.cache.multi.forEach((_, k)  => { if (k.startsWith(lang + '_')) this.cache.multi.delete(k); });
+        });
+      })
+    );
+  }
+
   clearCache(clearAll: boolean = true, specificKey?: string): void {
     if (clearAll) {
       this.cache.single.clear();

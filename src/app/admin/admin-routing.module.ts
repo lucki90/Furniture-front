@@ -6,7 +6,7 @@ import { MaterialManagementComponent } from './material/components/material-mana
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'prices',
+    redirectTo: 'materials',
     pathMatch: 'full'
   },
   {

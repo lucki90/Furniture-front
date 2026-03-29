@@ -33,6 +33,7 @@ import {
 } from './model/plinth.model';
 import { ToastService } from '../core/error/toast.service';
 import { ExcelService, ExcelRowRequest } from './service/excel.service';
+import { ProjectPricingService, PricingBreakdown, UpdatePricingRequest } from './service/project-pricing.service';
 
 // TODO i18n — MATERIAL_NAMES: zastąpić TranslationService.getByCategory('MATERIAL', lang)
 // Klucze MATERIAL.* już są w DB (10-insert-translations.sql, PL+EN).
@@ -73,6 +74,7 @@ export class KitchenPageComponent {
   private kitchenService = inject(KitchenService);
   private aggregatorService = inject(ProjectDetailsAggregatorService);
   private excelService = inject(ExcelService);
+  private pricingService = inject(ProjectPricingService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private toast = inject(ToastService);
@@ -85,7 +87,16 @@ export class KitchenPageComponent {
   isCalculatingProject = false;
 
   // Aktywna zakładka w szczegółach projektu
-  activeDetailsTab: 'walls' | 'boards' | 'components' | 'jobs' = 'walls';
+  activeDetailsTab: 'walls' | 'boards' | 'components' | 'jobs' | 'pricing' = 'walls';
+
+  // Wycena projektu
+  pricing: PricingBreakdown | null = null;
+  isPricingLoading = false;
+  isPricingSaving = false;
+  pricingDiscountPct = 0;
+  pricingManualOverrideEnabled = false;
+  pricingManualOverride: number | null = null;
+  pricingOfferNotes = '';
 
   // Agregowane dane dla zakładek szczegółów
   aggregatedBoards: AggregatedBoard[] = [];
@@ -656,6 +667,48 @@ export class KitchenPageComponent {
     this.aggregatedJobs = [];
     this.totalWasteCost = 0;
     this.wasteDetails = [];
+    this.pricing = null;
+  }
+
+  // ============ WYCENA PROJEKTU ============
+
+  loadPricing(): void {
+    const id = this.currentProjectId();
+    if (!id) return;
+    this.isPricingLoading = true;
+    this.pricingService.getBreakdown(id).subscribe({
+      next: (breakdown) => {
+        this.pricing = breakdown;
+        this.pricingDiscountPct = breakdown.discountPct ?? 0;
+        this.pricingManualOverrideEnabled = breakdown.manualPriceOverride != null;
+        this.pricingManualOverride = breakdown.manualPriceOverride ?? null;
+        this.pricingOfferNotes = breakdown.offerNotes ?? '';
+        this.isPricingLoading = false;
+      },
+      error: () => {
+        this.isPricingLoading = false;
+      }
+    });
+  }
+
+  savePricing(): void {
+    const id = this.currentProjectId();
+    if (!id) return;
+    this.isPricingSaving = true;
+    const request: UpdatePricingRequest = {
+      discountPct: this.pricingDiscountPct,
+      manualPriceOverride: this.pricingManualOverrideEnabled ? this.pricingManualOverride : null,
+      offerNotes: this.pricingOfferNotes || null
+    };
+    this.pricingService.updatePricing(id, request).subscribe({
+      next: (breakdown) => {
+        this.pricing = breakdown;
+        this.isPricingSaving = false;
+      },
+      error: () => {
+        this.isPricingSaving = false;
+      }
+    });
   }
 
   /**

@@ -1,6 +1,7 @@
-import { Component, Inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -8,16 +9,17 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Observable, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
 import { MaterialAdminService } from '../../service/material-admin.service';
+import { ToastService } from '../../../../core/error/toast.service';
+import { TranslationService } from '../../../../translation/translation.service';
 import {
   MaterialOptionResponse,
   ComponentOptionResponse,
-  JobOptionResponse,
   BoardVariantCreateRequest,
   BoardVariantUpdateRequest,
   ComponentVariantCreateRequest,
   ComponentVariantUpdateRequest,
-  JobVariantCreateRequest,
   JobVariantUpdateRequest
 } from '../../model/material-variant.model';
 
@@ -50,22 +52,32 @@ export class VariantDialogComponent implements OnInit {
   form!: FormGroup;
   loading = signal(false);
   saving = signal(false);
+  errorMessage = signal<string | null>(null);
 
   // Options for dropdowns
   materials = signal<MaterialOptionResponse[]>([]);
   components = signal<ComponentOptionResponse[]>([]);
-  jobs = signal<JobOptionResponse[]>([]);
+
+  // Translation management
+  translationPl = signal<string>('');
+  translationEn = signal<string>('');
+  translationKeyExists = signal<boolean | null>(null); // null=unknown, true=exists, false=new key
+  translationLoading = signal(false);
+  private destroyRef = inject(DestroyRef);
+  private translationService = inject(TranslationService);
 
   constructor(
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<VariantDialogComponent>,
     private materialAdminService: MaterialAdminService,
+    private toast: ToastService,
     @Inject(MAT_DIALOG_DATA) public data: VariantDialogData
   ) {}
 
   ngOnInit(): void {
     this.initForm();
     this.loadOptions();
+    this.setupTranslationPreview();
 
     if (this.data.mode === 'edit' && this.data.variant) {
       this.populateForm();
@@ -77,40 +89,71 @@ export class VariantDialogComponent implements OnInit {
       case 'board':
         this.form = this.fb.group({
           materialId: [null, Validators.required],
-          thicknessMm: [null, [Validators.required, Validators.min(1)]],
+          thicknessMm: [null, [Validators.required, Validators.min(2), Validators.max(50)]],
           colorCode: ['', Validators.required],
+          colorName: [''],
+          colorHex: [''],
           varnished: [false],
-          densityKgDm3: [null],
-          priceEntryId: [null, Validators.required],
+          currentPrice: [null, [Validators.required, Validators.min(0.01)]],
           translationKey: [''],
           active: [true]
         });
+        if (this.data.mode === 'edit') {
+          this.form.get('materialId')?.disable();
+        }
         break;
 
       case 'component':
         this.form = this.fb.group({
           componentId: [null, Validators.required],
-          modelCode: ['', Validators.required],
-          additionalInfo: [''],
-          priceEntryId: [null, Validators.required],
-          translationKey: [''],
+          modelCode: ['', [Validators.required, Validators.maxLength(100)]],
+          additionalInfo: ['', Validators.maxLength(500)],
+          currentPrice: [null, [Validators.required, Validators.min(0.01)]],
+          translationKey: ['', Validators.maxLength(255)],
           active: [true]
         });
+        if (this.data.mode === 'edit') {
+          this.form.get('componentId')?.disable();
+        }
         break;
 
       case 'job':
         this.form = this.fb.group({
-          jobId: [null, Validators.required],
-          variantCode: ['', Validators.required],
-          unit: ['', Validators.required],
-          materialId: [null],
-          thicknessThresholdMm: [null],
-          priceEntryId: [null, Validators.required],
-          translationKey: [''],
-          active: [true]
+          currentPrice: [null, [Validators.required, Validators.min(0.01)]]
         });
         break;
     }
+  }
+
+  private setupTranslationPreview(): void {
+    const ctrl = this.form?.get('translationKey');
+    if (!ctrl) return;
+
+    ctrl.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      debounceTime(500),
+      distinctUntilChanged()
+    ).subscribe((key: string) => {
+      if (!key || key.length < 3) {
+        this.translationPl.set('');
+        this.translationEn.set('');
+        this.translationKeyExists.set(null);
+        return;
+      }
+      // Load both PL and EN to check/populate
+      this.translationLoading.set(true);
+      const category = key.split('.')[0] || key;
+      this.translationService.getByCategory(category, 'pl').subscribe(plMap => {
+        this.translationService.getByCategory(category, 'en').subscribe(enMap => {
+          this.translationLoading.set(false);
+          const plVal = plMap[key] ?? '';
+          const enVal = enMap[key] ?? '';
+          this.translationPl.set(plVal);
+          this.translationEn.set(enVal);
+          this.translationKeyExists.set(!!(plVal || enVal));
+        });
+      });
+    });
   }
 
   private loadOptions(): void {
@@ -138,13 +181,8 @@ export class VariantDialogComponent implements OnInit {
         break;
 
       case 'job':
-        this.materialAdminService.getJobOptions().subscribe({
-          next: (options) => {
-            this.jobs.set(options);
-            this.loading.set(false);
-          },
-          error: () => this.loading.set(false)
-        });
+        // Job variant edit — no dropdown needed, only price
+        this.loading.set(false);
         break;
     }
   }
@@ -158,9 +196,10 @@ export class VariantDialogComponent implements OnInit {
           materialId: v.materialId,
           thicknessMm: v.thicknessMm,
           colorCode: v.colorCode,
+          colorName: v.colorName || '',
+          colorHex: v.colorHex || '',
           varnished: v.varnished,
-          densityKgDm3: v.densityKgDm3,
-          priceEntryId: v.priceEntryId,
+          currentPrice: v.currentPrice,
           translationKey: v.translationKey,
           active: v.active
         });
@@ -171,7 +210,7 @@ export class VariantDialogComponent implements OnInit {
           componentId: v.componentId,
           modelCode: v.modelCode,
           additionalInfo: v.additionalInfo,
-          priceEntryId: v.priceEntryId,
+          currentPrice: v.currentPrice,
           translationKey: v.translationKey,
           active: v.active
         });
@@ -179,14 +218,7 @@ export class VariantDialogComponent implements OnInit {
 
       case 'job':
         this.form.patchValue({
-          jobId: v.jobId,
-          variantCode: v.variantCode,
-          unit: v.unit,
-          materialId: v.materialId,
-          thicknessThresholdMm: v.thicknessThresholdMm,
-          priceEntryId: v.priceEntryId,
-          translationKey: v.translationKey,
-          active: v.active
+          currentPrice: v.currentPrice
         });
         break;
     }
@@ -197,7 +229,7 @@ export class VariantDialogComponent implements OnInit {
     switch (this.data.type) {
       case 'board': return `${action} wariant płyty`;
       case 'component': return `${action} wariant komponentu`;
-      case 'job': return `${action} wariant pracy`;
+      case 'job': return `Edytuj cenę pracy`;
     }
   }
 
@@ -208,13 +240,29 @@ export class VariantDialogComponent implements OnInit {
     }
 
     this.saving.set(true);
-    const formValue = this.form.value;
+    this.errorMessage.set(null);
+    const formValue = this.form.getRawValue();
 
     if (this.data.mode === 'create') {
       this.createVariant(formValue);
     } else {
       this.updateVariant(formValue);
     }
+  }
+
+  private handleError(err: any): void {
+    this.saving.set(false);
+    if (err?.error?.errors?.length) {
+      const messages = err.error.errors.map((e: any) =>
+        e.field ? `${e.field}: ${e.code}` : e.code
+      );
+      this.errorMessage.set(messages.join(', '));
+    } else if (err?.error?.code) {
+      this.errorMessage.set(err.error.code);
+    } else {
+      this.errorMessage.set('Wystąpił błąd podczas zapisywania');
+    }
+    this.toast.showHttpError(err);
   }
 
   private createVariant(formValue: any): void {
@@ -224,14 +272,17 @@ export class VariantDialogComponent implements OnInit {
           materialId: formValue.materialId,
           thicknessMm: formValue.thicknessMm,
           colorCode: formValue.colorCode,
+          colorName: formValue.colorName || undefined,
+          colorHex: formValue.colorHex || undefined,
           varnished: formValue.varnished,
-          densityKgDm3: formValue.densityKgDm3,
-          priceEntryId: formValue.priceEntryId,
+          currentPrice: formValue.currentPrice,
           translationKey: formValue.translationKey
         };
-        this.materialAdminService.createBoardVariant(boardCreate).subscribe({
+        this.materialAdminService.createBoardVariant(boardCreate).pipe(
+          switchMap(() => this.saveTranslationsIfNeeded(formValue.translationKey))
+        ).subscribe({
           next: () => this.dialogRef.close(true),
-          error: () => this.saving.set(false)
+          error: (err) => this.handleError(err)
         });
         break;
 
@@ -240,28 +291,14 @@ export class VariantDialogComponent implements OnInit {
           componentId: formValue.componentId,
           modelCode: formValue.modelCode,
           additionalInfo: formValue.additionalInfo,
-          priceEntryId: formValue.priceEntryId,
+          currentPrice: formValue.currentPrice,
           translationKey: formValue.translationKey
         };
-        this.materialAdminService.createComponentVariant(componentCreate).subscribe({
+        this.materialAdminService.createComponentVariant(componentCreate).pipe(
+          switchMap(() => this.saveTranslationsIfNeeded(formValue.translationKey))
+        ).subscribe({
           next: () => this.dialogRef.close(true),
-          error: () => this.saving.set(false)
-        });
-        break;
-
-      case 'job':
-        const jobCreate: JobVariantCreateRequest = {
-          jobId: formValue.jobId,
-          variantCode: formValue.variantCode,
-          unit: formValue.unit,
-          materialId: formValue.materialId,
-          thicknessThresholdMm: formValue.thicknessThresholdMm,
-          priceEntryId: formValue.priceEntryId,
-          translationKey: formValue.translationKey
-        };
-        this.materialAdminService.createJobVariant(jobCreate).subscribe({
-          next: () => this.dialogRef.close(true),
-          error: () => this.saving.set(false)
+          error: (err) => this.handleError(err)
         });
         break;
     }
@@ -275,15 +312,18 @@ export class VariantDialogComponent implements OnInit {
         const boardUpdate: BoardVariantUpdateRequest = {
           thicknessMm: formValue.thicknessMm,
           colorCode: formValue.colorCode,
+          colorName: formValue.colorName || undefined,
+          colorHex: formValue.colorHex || undefined,
           varnished: formValue.varnished,
-          densityKgDm3: formValue.densityKgDm3,
-          priceEntryId: formValue.priceEntryId,
+          currentPrice: formValue.currentPrice,
           translationKey: formValue.translationKey,
           active: formValue.active
         };
-        this.materialAdminService.updateBoardVariant(id, boardUpdate).subscribe({
+        this.materialAdminService.updateBoardVariant(id, boardUpdate).pipe(
+          switchMap(() => this.saveTranslationsIfNeeded(formValue.translationKey))
+        ).subscribe({
           next: () => this.dialogRef.close(true),
-          error: () => this.saving.set(false)
+          error: (err) => this.handleError(err)
         });
         break;
 
@@ -291,32 +331,45 @@ export class VariantDialogComponent implements OnInit {
         const componentUpdate: ComponentVariantUpdateRequest = {
           modelCode: formValue.modelCode,
           additionalInfo: formValue.additionalInfo,
-          priceEntryId: formValue.priceEntryId,
+          currentPrice: formValue.currentPrice,
           translationKey: formValue.translationKey,
           active: formValue.active
         };
-        this.materialAdminService.updateComponentVariant(id, componentUpdate).subscribe({
+        this.materialAdminService.updateComponentVariant(id, componentUpdate).pipe(
+          switchMap(() => this.saveTranslationsIfNeeded(formValue.translationKey))
+        ).subscribe({
           next: () => this.dialogRef.close(true),
-          error: () => this.saving.set(false)
+          error: (err) => this.handleError(err)
         });
         break;
 
       case 'job':
         const jobUpdate: JobVariantUpdateRequest = {
-          variantCode: formValue.variantCode,
-          unit: formValue.unit,
-          materialId: formValue.materialId,
-          thicknessThresholdMm: formValue.thicknessThresholdMm,
-          priceEntryId: formValue.priceEntryId,
-          translationKey: formValue.translationKey,
-          active: formValue.active
+          currentPrice: formValue.currentPrice
         };
         this.materialAdminService.updateJobVariant(id, jobUpdate).subscribe({
           next: () => this.dialogRef.close(true),
-          error: () => this.saving.set(false)
+          error: (err) => this.handleError(err)
         });
         break;
     }
+  }
+
+  /** Saves PL/EN translations if a key is set and values are non-empty. Returns Observable<void>. */
+  private saveTranslationsIfNeeded(key: string | null | undefined): Observable<void> {
+    if (!key || key.trim().length < 3) return of(undefined as void);
+    const entries: { lang: string; value: string }[] = [];
+    const pl = this.translationPl().trim();
+    const en = this.translationEn().trim();
+    if (pl) entries.push({ lang: 'PL', value: pl });
+    if (en) entries.push({ lang: 'EN', value: en });
+    if (entries.length === 0) return of(undefined as void);
+    return this.translationService.upsertTranslations(key.trim(), entries);
+  }
+
+  onColorPickerChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.form.get('colorHex')?.setValue(value);
   }
 
   onCancel(): void {

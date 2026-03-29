@@ -37,6 +37,12 @@ export interface UserSettings {
   wasteHdfEnabled: boolean;
   wasteMdfEnabled: boolean;
   grainContinuityEnabled: boolean;
+
+  // Marże i rabaty
+  markupMaterialsPct: number;
+  markupComponentsPct: number;
+  markupJobsPct: number;
+  defaultDiscountPct: number;
 }
 
 /** Available option values returned by GET /settings/options. */
@@ -74,5 +80,9 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   wasteChipboardEnabled: true,
   wasteHdfEnabled: false,
   wasteMdfEnabled: false,
-  grainContinuityEnabled: false
+  grainContinuityEnabled: false,
+  markupMaterialsPct: 0,
+  markupComponentsPct: 0,
+  markupJobsPct: 0,
+  defaultDiscountPct: 0
 };
