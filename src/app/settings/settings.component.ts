@@ -9,6 +9,9 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { FormFieldComponent } from '../shared/form-field/form-field.component';
 import { BoardPriceService, BoardPrice, CreateBoardPrice } from './board-price.service';
+import { ComponentPriceService, ComponentPrice } from './component-price.service';
+import { JobPriceService, JobPrice } from './job-price.service';
+import { PriceEditTableComponent, PriceSaveEvent } from './price-edit-table/price-edit-table.component';
 import { TranslationService } from '../translation/translation.service';
 import { LanguageService } from '../service/language.service';
 import { MaterialAdminService } from '../admin/material/service/material-admin.service';
@@ -19,13 +22,15 @@ import { MaterialOption } from '../admin/material/model/material-variant.model';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, FormFieldComponent, MatExpansionModule, MatIconModule],
+  imports: [CommonModule, FormsModule, FormFieldComponent, MatExpansionModule, MatIconModule, PriceEditTableComponent],
 })
 export class SettingsComponent implements OnInit {
 
   private settingsService = inject(SettingsService);
   private kitchenStateService = inject(KitchenStateService);
   private boardPriceService = inject(BoardPriceService);
+  private componentPriceService = inject(ComponentPriceService);
+  private jobPriceService = inject(JobPriceService);
   private translationService = inject(TranslationService);
   private languageService = inject(LanguageService);
   private materialAdminService = inject(MaterialAdminService);
@@ -81,6 +86,13 @@ export class SettingsComponent implements OnInit {
   markupJobsPct = 0;
   defaultDiscountPct = 0;
 
+  // Form values — dane firmy
+  companyName = '';
+  companyAddress = '';
+  companyPhone = '';
+  companyEmail = '';
+  offerValidityDays = 14;
+
   // Cennik płyt
   boardPrices: BoardPrice[] = [];
   boardPricesLoading = false;
@@ -96,6 +108,26 @@ export class SettingsComponent implements OnInit {
   editBoardSaving = false;
   csvImporting = false;
   csvImportResult: { added: number; updated: number; errors: { lineNumber: number; line: string; message: string }[] } | null = null;
+
+  // Cennik komponentów
+  componentPrices: ComponentPrice[] = [];
+  componentPricesLoading = false;
+  componentPricesError: string | null = null;
+  componentCategoryFilter = '';
+
+  // Cennik prac
+  jobPrices: JobPrice[] = [];
+  jobPricesLoading = false;
+  jobPricesError: string | null = null;
+  jobCategoryFilter = '';
+
+  /** Row-class function passed to PriceEditTableComponent. */
+  readonly componentRowClass = (cp: ComponentPrice): string =>
+    (!cp.componentActive || !cp.variantActive) ? 'inactive' : '';
+
+  /** Row-class function for job price table. */
+  readonly jobRowClass = (jp: JobPrice): string =>
+    (!jp.jobActive || !jp.variantActive) ? 'inactive' : '';
 
   // UI states
   loading = false;
@@ -122,6 +154,8 @@ export class SettingsComponent implements OnInit {
     this.loadSettings();
     this.loadBoardPrices();
     this.loadMaterialOptions();
+    this.loadComponentPrices();
+    this.loadJobPrices();
   }
 
   private loadTranslations(lang: string): void {
@@ -197,6 +231,12 @@ export class SettingsComponent implements OnInit {
         this.markupComponentsPct = Number(settings.markupComponentsPct ?? 0);
         this.markupJobsPct = Number(settings.markupJobsPct ?? 0);
         this.defaultDiscountPct = Number(settings.defaultDiscountPct ?? 0);
+        // Dane firmy
+        this.companyName = settings.companyName ?? '';
+        this.companyAddress = settings.companyAddress ?? '';
+        this.companyPhone = settings.companyPhone ?? '';
+        this.companyEmail = settings.companyEmail ?? '';
+        this.offerValidityDays = settings.offerValidityDays ?? 14;
         this.loading = false;
       },
       error: (err) => {
@@ -243,7 +283,12 @@ export class SettingsComponent implements OnInit {
       markupMaterialsPct: this.markupMaterialsPct,
       markupComponentsPct: this.markupComponentsPct,
       markupJobsPct: this.markupJobsPct,
-      defaultDiscountPct: this.defaultDiscountPct
+      defaultDiscountPct: this.defaultDiscountPct,
+      companyName: this.companyName || undefined,
+      companyAddress: this.companyAddress || undefined,
+      companyPhone: this.companyPhone || undefined,
+      companyEmail: this.companyEmail || undefined,
+      offerValidityDays: this.offerValidityDays
     };
 
     this.settingsService.updateSettings(request as any).subscribe({
@@ -384,5 +429,93 @@ export class SettingsComponent implements OnInit {
 
   private emptyNewBoard(): CreateBoardPrice {
     return { materialCode: '', thicknessMm: 18, colorCode: '', colorName: '', colorHex: '', varnished: false, pricePerM2: 0 };
+  }
+
+  // ── Cennik komponentów ─────────────────────────────────────────────────────
+
+  loadComponentPrices(): void {
+    this.componentPricesLoading = true;
+    this.componentPricesError = null;
+    this.componentPriceService.list().subscribe({
+      next: (prices) => {
+        this.componentPrices = prices;
+        this.componentPricesLoading = false;
+      },
+      error: () => {
+        this.componentPricesError = 'Nie udało się załadować cennika komponentów.';
+        this.componentPricesLoading = false;
+      }
+    });
+  }
+
+  get componentCategories(): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const cp of this.componentPrices) {
+      if (!seen.has(cp.category)) {
+        seen.add(cp.category);
+        result.push(cp.category);
+      }
+    }
+    return result.sort();
+  }
+
+  get filteredComponentPrices(): ComponentPrice[] {
+    if (!this.componentCategoryFilter) return this.componentPrices;
+    return this.componentPrices.filter(cp => cp.category === this.componentCategoryFilter);
+  }
+
+  onComponentPriceSave(event: PriceSaveEvent): void {
+    this.componentPriceService.update(event.id, { pricePerUnit: event.price }).subscribe({
+      next: (updated) => {
+        this.componentPrices = this.componentPrices.map(p => p.id === updated.id ? updated : p);
+        event.complete(true);
+      },
+      error: () => event.complete(false),
+    });
+  }
+
+  // ── Cennik prac ────────────────────────────────────────────────────────────
+
+  loadJobPrices(): void {
+    this.jobPricesLoading = true;
+    this.jobPricesError = null;
+    this.jobPriceService.list().subscribe({
+      next: (prices) => {
+        this.jobPrices = prices;
+        this.jobPricesLoading = false;
+      },
+      error: () => {
+        this.jobPricesError = 'Nie udało się załadować cennika prac.';
+        this.jobPricesLoading = false;
+      }
+    });
+  }
+
+  get jobCategories(): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const jp of this.jobPrices) {
+      if (!seen.has(jp.jobCategory)) {
+        seen.add(jp.jobCategory);
+        result.push(jp.jobCategory);
+      }
+    }
+    return result.sort();
+  }
+
+  get filteredJobPrices(): JobPrice[] {
+    if (!this.jobCategoryFilter) return this.jobPrices;
+    return this.jobPrices.filter(jp => jp.jobCategory === this.jobCategoryFilter);
+  }
+
+  onJobPriceSave(event: PriceSaveEvent): void {
+    this.jobPriceService.update(event.id, { pricePerUnit: event.price }).subscribe({
+      next: (updated) => {
+        this.jobPrices = this.jobPrices.map(p => p.id === updated.id ? updated : p);
+        event.complete(true);
+      },
+      error: () => event.complete(false),
+    });
   }
 }

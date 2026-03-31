@@ -1,0 +1,67 @@
+<!-- Optional toolbar (filters, actions etc.) -->
+<ng-container *ngIf="toolbarTemplate">
+  <ng-container *ngTemplateOutlet="toolbarTemplate"></ng-container>
+</ng-container>
+
+<!-- Loading state -->
+<div *ngIf="loading" class="pte-loading">⏳ Ładowanie...</div>
+
+<!-- Error state -->
+<div *ngIf="error && !loading" class="pte-error">
+  {{ error }}
+  <button class="btn btn-sm btn-outline" (click)="retry.emit()" style="margin-left:8px;">
+    Spróbuj ponownie
+  </button>
+</div>
+
+<!-- Table -->
+<ng-container *ngIf="!loading && !error">
+  <div class="table-container">
+    <table *ngIf="rows.length > 0" class="pte-table">
+      <thead>
+        <tr>
+          <ng-container *ngTemplateOutlet="headersTemplate"></ng-container>
+          <th>{{ priceLabel }}</th>
+          <th class="pte-actions-header">Akcja</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of rows" [ngClass]="getRowClass(row)">
+          <!-- Custom row cells (provided by parent) -->
+          <ng-container *ngTemplateOutlet="rowCellsTemplate; context: {$implicit: row}"></ng-container>
+
+          <!-- Price cell -->
+          <td *ngIf="!isEditing(row)" class="pte-price-cell">{{ formatPrice(row) }}</td>
+          <td *ngIf="isEditing(row)">
+            <input type="number" class="pte-price-input"
+                   [(ngModel)]="editPrice"
+                   min="0.01" step="0.01" />
+          </td>
+
+          <!-- Actions cell -->
+          <td class="pte-actions-cell">
+            <button *ngIf="!isEditing(row)"
+                    class="btn btn-sm btn-outline pte-btn"
+                    (click)="startEdit(row)">
+              Edytuj
+            </button>
+            <ng-container *ngIf="isEditing(row)">
+              <button class="btn btn-sm btn-primary pte-btn"
+                      (click)="submitEdit(row)"
+                      [disabled]="saving">
+                {{ saving ? '...' : 'Zapisz' }}
+              </button>
+              <button class="btn btn-sm btn-outline pte-btn pte-btn-cancel"
+                      (click)="cancelEdit()">
+                Anuluj
+              </button>
+            </ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="rows.length === 0" class="pte-empty">{{ emptyText }}</div>
+</ng-container>

@@ -43,6 +43,13 @@ export interface UserSettings {
   markupComponentsPct: number;
   markupJobsPct: number;
   defaultDiscountPct: number;
+
+  // Dane firmy (dla ofert PDF)
+  companyName?: string;
+  companyAddress?: string;
+  companyPhone?: string;
+  companyEmail?: string;
+  offerValidityDays: number;
 }
 
 /** Available option values returned by GET /settings/options. */
@@ -84,5 +91,10 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   markupMaterialsPct: 0,
   markupComponentsPct: 0,
   markupJobsPct: 0,
-  defaultDiscountPct: 0
+  defaultDiscountPct: 0,
+  companyName: '',
+  companyAddress: '',
+  companyPhone: '',
+  companyEmail: '',
+  offerValidityDays: 14
 };

@@ -6,12 +6,18 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 export interface SaveProjectDialogData {
   projectName?: string;
   projectDescription?: string;
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
   isUpdate: boolean;
 }
 
 export interface SaveProjectDialogResult {
   name: string;
   description?: string;
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
 }
 
 @Component({
@@ -25,6 +31,9 @@ export class SaveProjectDialogComponent {
 
   projectName: string;
   projectDescription: string;
+  clientName: string;
+  clientPhone: string;
+  clientEmail: string;
 
   constructor(
     public dialogRef: MatDialogRef<SaveProjectDialogComponent>,
@@ -32,6 +41,9 @@ export class SaveProjectDialogComponent {
   ) {
     this.projectName = data.projectName || '';
     this.projectDescription = data.projectDescription || '';
+    this.clientName = data.clientName || '';
+    this.clientPhone = data.clientPhone || '';
+    this.clientEmail = data.clientEmail || '';
   }
 
   get dialogTitle(): string {
@@ -55,7 +67,10 @@ export class SaveProjectDialogComponent {
 
     const result: SaveProjectDialogResult = {
       name: this.projectName.trim(),
-      description: this.projectDescription.trim() || undefined
+      description: this.projectDescription.trim() || undefined,
+      clientName: this.clientName.trim() || undefined,
+      clientPhone: this.clientPhone.trim() || undefined,
+      clientEmail: this.clientEmail.trim() || undefined
     };
 
     this.dialogRef.close(result);

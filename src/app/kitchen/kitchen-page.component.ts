@@ -10,6 +10,7 @@ import { KitchenCabinetListComponent } from './cabinet-list/kitchen-cabinet-list
 import { KitchenFloorPlanComponent } from './floor-plan/kitchen-floor-plan.component';
 import { AddWallDialogComponent, AddWallDialogData, AddWallDialogResult } from './add-wall-dialog/add-wall-dialog.component';
 import { SaveProjectDialogComponent, SaveProjectDialogData, SaveProjectDialogResult } from './save-project-dialog/save-project-dialog.component';
+import { OfferOptionsDialogComponent } from './offer-options-dialog/offer-options-dialog.component';
 import { KitchenStateService } from './service/kitchen-state.service';
 import { KitchenService } from './service/kitchen.service';
 import { ProjectDetailsAggregatorService, AggregatedBoard, AggregatedComponent, AggregatedJob } from './service/project-details-aggregator.service';
@@ -93,6 +94,13 @@ export class KitchenPageComponent {
   pricing: PricingBreakdown | null = null;
   isPricingLoading = false;
   isPricingSaving = false;
+  isPdfDownloading = false;
+  private lastOfferOptions: import('./service/project-pricing.service').OfferOptionsRequest = {
+    showCostDetails: true,
+    frontDescription: '',
+    countertopDescription: '',
+    hardwareDescription: 'Blum'
+  };
   pricingDiscountPct = 0;
   pricingManualOverrideEnabled = false;
   pricingManualOverride: number | null = null;
@@ -452,7 +460,8 @@ export class KitchenPageComponent {
       next: (response) => {
         this.stateService.setProjectInfo(
           response.id, response.name, response.version,
-          response.description, response.status, response.allowedTransitions
+          response.description, response.status, response.allowedTransitions,
+          response.clientName, response.clientPhone, response.clientEmail
         );
         this.isChangingStatus = false;
         this.snackBar.open(`Status zmieniony na: ${getStatusLabel(response.status)}`, 'OK', { duration: 3000 });
@@ -578,9 +587,12 @@ export class KitchenPageComponent {
       data: {
         projectName: this.currentProjectName() || '',
         projectDescription: this.currentProjectDescription() || '',
+        clientName: this.stateService.currentProjectClientName() || '',
+        clientPhone: this.stateService.currentProjectClientPhone() || '',
+        clientEmail: this.stateService.currentProjectClientEmail() || '',
         isUpdate
       } as SaveProjectDialogData,
-      width: '450px'
+      width: '500px'
     });
 
     dialogRef.afterClosed().subscribe((result: SaveProjectDialogResult | undefined) => {
@@ -590,11 +602,11 @@ export class KitchenPageComponent {
 
       if (isUpdate && this.currentProjectId()) {
         // Aktualizacja istniejącego projektu
-        const request = this.stateService.buildUpdateProjectRequest(result.name, result.description);
+        const request = this.stateService.buildUpdateProjectRequest(result.name, result.description, result.clientName, result.clientPhone, result.clientEmail);
 
         this.kitchenService.updateProject(this.currentProjectId()!, request).subscribe({
           next: (response) => {
-            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description, response.status, response.allowedTransitions);
+            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description, response.status, response.allowedTransitions, result.clientName, result.clientPhone, result.clientEmail);
             this.isSavingProject = false;
             this.snackBar.open('Projekt został zaktualizowany', 'OK', { duration: 3000 });
           },
@@ -606,11 +618,11 @@ export class KitchenPageComponent {
         });
       } else {
         // Tworzenie nowego projektu
-        const request = this.stateService.buildMultiWallProjectRequest(result.name, result.description);
+        const request = this.stateService.buildMultiWallProjectRequest(result.name, result.description, result.clientName, result.clientPhone, result.clientEmail);
 
         this.kitchenService.createProject(request).subscribe({
           next: (response) => {
-            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description, response.status, response.allowedTransitions);
+            this.stateService.setProjectInfo(response.id, response.name, response.version, result.description, response.status, response.allowedTransitions, result.clientName, result.clientPhone, result.clientEmail);
             this.isSavingProject = false;
             this.snackBar.open('Projekt został zapisany', 'OK', { duration: 3000 });
           },
@@ -708,6 +720,47 @@ export class KitchenPageComponent {
       error: () => {
         this.isPricingSaving = false;
       }
+    });
+  }
+
+  downloadOfferPdf(): void {
+    const id = this.currentProjectId();
+    if (!id) return;
+
+    const dialogRef = this.dialog.open(OfferOptionsDialogComponent, {
+      width: '480px',
+      data: this.lastOfferOptions
+    });
+    dialogRef.afterClosed().subscribe(options => {
+      if (!options) return; // user cancelled
+      this.lastOfferOptions = options; // persist for next opening
+
+      this.isPdfDownloading = true;
+      this.pricingService.downloadOfferPdf(id, options).subscribe({
+        next: (response) => {
+          const blob = response.body;
+          if (!blob) { this.isPdfDownloading = false; return; }
+
+          // Extract filename from Content-Disposition header
+          const disposition = response.headers.get('Content-Disposition');
+          let filename = 'oferta.pdf';
+          if (disposition) {
+            const match = disposition.match(/filename="?([^";\n]+)"?/);
+            if (match?.[1]) filename = match[1];
+          }
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(url);
+          this.isPdfDownloading = false;
+        },
+        error: () => {
+          this.isPdfDownloading = false;
+        }
+      });
     });
   }
 

@@ -1,0 +1,67 @@
+/* Loading & error states */
+.pte-loading {
+  padding: 10px 0;
+  color: var(--text-muted, #888);
+  font-size: 13px;
+}
+
+.pte-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  color: #c62828;
+  font-size: 13px;
+}
+
+/* Table styles */
+.pte-table {
+  font-size: 13px;
+  min-width: 400px; /* ensures table doesn't collapse — parent scroll wrapper handles overflow */
+}
+
+.pte-price-cell {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pte-actions-header {
+  width: 100px;
+  min-width: 100px;
+}
+
+.pte-actions-cell {
+  white-space: nowrap;
+  width: 100px;
+}
+
+/* Price input in edit mode */
+.pte-price-input {
+  width: 80px;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 4px;
+}
+
+/* Button sizing inside table */
+.pte-btn {
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+.pte-btn-cancel {
+  margin-left: 4px;
+}
+
+/* Inactive row — opacity applied via class="inactive" on <tr> */
+tr.inactive td {
+  opacity: 0.55;
+}
+
+/* Empty state */
+.pte-empty {
+  padding: 12px 0;
+  color: var(--text-muted, #888);
+  font-size: 13px;
+}

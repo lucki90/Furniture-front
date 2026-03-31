@@ -92,3 +92,24 @@ textarea.form-control {
 .btn-secondary:hover {
   background: #d1d5db;
 }
+
+.section-divider {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 16px 0 12px;
+}
+
+.section-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 12px 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}

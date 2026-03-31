@@ -289,6 +289,12 @@ export interface CabinetSummary {
 export interface CreateKitchenProjectRequest {
   name: string;
   description?: string;
+
+  // Dane klienta (opcjonalne — używane w ofercie PDF)
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
+
   walls: ProjectWallRequest[];
 
   // Ustawienia projektu (globalne)
@@ -313,6 +319,12 @@ export interface ProjectWallRequest {
 export interface UpdateKitchenProjectRequest {
   name: string;
   description?: string;
+
+  // Dane klienta (opcjonalne — używane w ofercie PDF)
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
+
   status?: ProjectStatus;
   walls: ProjectWallRequest[];
 
@@ -345,6 +357,12 @@ export interface KitchenProjectDetailResponse {
   id: number;
   name: string;
   description?: string;
+
+  // Dane klienta
+  clientName?: string;
+  clientPhone?: string;
+  clientEmail?: string;
+
   status: ProjectStatus;
   version: number;
 

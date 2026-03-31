@@ -24,6 +24,40 @@
         rows="3">
       </textarea>
     </div>
+
+    <hr class="section-divider">
+    <p class="section-label">Dane klienta (opcjonalne — używane w ofercie PDF)</p>
+
+    <div class="form-group">
+      <label class="form-label" for="clientName">Imię / nazwa klienta</label>
+      <input
+        type="text"
+        id="clientName"
+        class="form-control"
+        [(ngModel)]="clientName"
+        placeholder="np. Jan Kowalski">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="clientPhone">Telefon</label>
+        <input
+          type="tel"
+          id="clientPhone"
+          class="form-control"
+          [(ngModel)]="clientPhone"
+          placeholder="np. +48 600 100 200">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="clientEmail">E-mail</label>
+        <input
+          type="email"
+          id="clientEmail"
+          class="form-control"
+          [(ngModel)]="clientEmail"
+          placeholder="np. jan.kowalski@email.pl">
+      </div>
+    </div>
   </div>
 
   <div class="dialog-actions">

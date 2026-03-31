@@ -421,6 +421,184 @@
         </div>
       </mat-expansion-panel>
 
+      <!-- SEKCJA 7: Cennik komponentów -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="panel-icon">build</mat-icon>
+            Cennik komponentów
+          </mat-panel-title>
+          <mat-panel-description>
+            Zawiasy, szuflady, nóżki, wieszaki
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <app-price-edit-table
+            [rows]="filteredComponentPrices"
+            priceField="pricePerUnit"
+            priceLabel="Cena / jedn."
+            priceUnit="zł"
+            [loading]="componentPricesLoading"
+            [error]="componentPricesError"
+            [rowClassFn]="componentRowClass"
+            [emptyText]="componentCategoryFilter ? 'Brak komponentów w kategorii ' + componentCategoryFilter + '.' : 'Brak komponentów.'"
+            (save)="onComponentPriceSave($event)"
+            (retry)="loadComponentPrices()">
+
+          <!-- Toolbar: category filter -->
+          <ng-template #toolbar>
+            <div class="component-price-toolbar">
+              <label class="filter-label">Filtruj kategorie:</label>
+              <select class="form-control" style="width:200px;" [(ngModel)]="componentCategoryFilter">
+                <option value="">— wszystkie —</option>
+                <option *ngFor="let cat of componentCategories" [value]="cat">{{ cat }}</option>
+              </select>
+              <span *ngIf="componentCategoryFilter" style="font-size:12px; color:#888; margin-left:8px;">
+                {{ filteredComponentPrices.length }} / {{ componentPrices.length }} pozycji
+              </span>
+            </div>
+          </ng-template>
+
+          <!-- Column headers -->
+          <ng-template #headers>
+            <th>Kategoria</th>
+            <th>Komponent</th>
+            <th>Model</th>
+            <th>Jedn.</th>
+            <th>Aktywny</th>
+          </ng-template>
+
+          <!-- Row cells -->
+          <ng-template #rowCells let-cp>
+            <td><span class="category-chip">{{ cp.category }}</span></td>
+            <td>
+              <mat-icon *ngIf="!cp.componentActive"
+                        style="font-size:14px; width:14px; height:14px; color:#f57c00; vertical-align:middle; margin-right:2px;"
+                        title="Komponent nieaktywny">warning</mat-icon>
+              {{ cp.componentCode }}
+            </td>
+            <td>
+              {{ cp.modelCode }}
+              <span *ngIf="cp.additionalInfo" style="color:#888; font-size:11px; margin-left:4px;">({{ cp.additionalInfo }})</span>
+            </td>
+            <td>{{ cp.unit || '—' }}</td>
+            <td>
+              <span *ngIf="cp.componentActive && cp.variantActive" style="color:#388e3c;">✓</span>
+              <span *ngIf="!cp.componentActive || !cp.variantActive" style="color:#c62828;">✗</span>
+            </td>
+          </ng-template>
+
+        </app-price-edit-table>
+      </mat-expansion-panel>
+
+      <!-- SEKCJA 8: Cennik prac -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="panel-icon">handyman</mat-icon>
+            Cennik prac
+          </mat-panel-title>
+          <mat-panel-description>
+            Cięcie, oklejanie, wiercenie, frezowanie
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <app-price-edit-table
+            [rows]="filteredJobPrices"
+            priceField="pricePerUnit"
+            priceLabel="Cena / jedn."
+            priceUnit="zł"
+            [loading]="jobPricesLoading"
+            [error]="jobPricesError"
+            [rowClassFn]="jobRowClass"
+            [emptyText]="jobCategoryFilter ? 'Brak prac w kategorii ' + jobCategoryFilter + '.' : 'Brak prac.'"
+            (save)="onJobPriceSave($event)"
+            (retry)="loadJobPrices()">
+
+          <!-- Toolbar: category filter -->
+          <ng-template #toolbar>
+            <div class="component-price-toolbar">
+              <label class="filter-label">Filtruj kategorie:</label>
+              <select class="form-control" style="width:200px;" [(ngModel)]="jobCategoryFilter">
+                <option value="">— wszystkie —</option>
+                <option *ngFor="let cat of jobCategories" [value]="cat">{{ cat }}</option>
+              </select>
+              <span *ngIf="jobCategoryFilter" style="font-size:12px; color:#888; margin-left:8px;">
+                {{ filteredJobPrices.length }} / {{ jobPrices.length }} pozycji
+              </span>
+            </div>
+          </ng-template>
+
+          <!-- Column headers -->
+          <ng-template #headers>
+            <th>Kategoria</th>
+            <th>Praca</th>
+            <th>Wariant</th>
+            <th>Próg gr.</th>
+            <th>Jedn.</th>
+          </ng-template>
+
+          <!-- Row cells -->
+          <ng-template #rowCells let-jp>
+            <td><span class="category-chip">{{ jp.jobCategory }}</span></td>
+            <td>
+              <mat-icon *ngIf="!jp.jobActive"
+                        style="font-size:14px; width:14px; height:14px; color:#f57c00; vertical-align:middle; margin-right:2px;"
+                        title="Praca nieaktywna">warning</mat-icon>
+              {{ jp.jobCode }}
+            </td>
+            <td>{{ jp.variantCode }}</td>
+            <td>{{ jp.thicknessThresholdMm != null ? jp.thicknessThresholdMm + ' mm' : '—' }}</td>
+            <td>{{ jp.unit || '—' }}</td>
+          </ng-template>
+
+        </app-price-edit-table>
+      </mat-expansion-panel>
+
+      <!-- SEKCJA 9: Dane firmy -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="panel-icon">business</mat-icon>
+            Dane firmy
+          </mat-panel-title>
+          <mat-panel-description>
+            Wyświetlane w nagłówku oferty PDF
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <p class="section-hint">
+          Dane firmy są drukowane w nagłówku i stopce oferty PDF dla klienta.
+          Możesz uzupełnić dowolny podzbiór pól.
+        </p>
+        <div class="form-grid">
+          <app-form-field label="Nazwa firmy" hint="Wyświetlana w nagłówku oferty (max 255 znaków)">
+            <input type="text" class="form-control" [(ngModel)]="companyName" [disabled]="saving"
+                   maxlength="255" placeholder="np. Studio Mebli XYZ" />
+          </app-form-field>
+
+          <app-form-field label="Adres" hint="Adres firmy (max 500 znaków)">
+            <input type="text" class="form-control" [(ngModel)]="companyAddress" [disabled]="saving"
+                   maxlength="500" placeholder="np. ul. Stolarska 5, 00-001 Warszawa" />
+          </app-form-field>
+
+          <app-form-field label="Telefon" hint="Numer telefonu firmy (max 50 znaków)">
+            <input type="text" class="form-control" [(ngModel)]="companyPhone" [disabled]="saving"
+                   maxlength="50" placeholder="np. +48 600 100 200" />
+          </app-form-field>
+
+          <app-form-field label="E-mail" hint="Adres e-mail firmy (max 255 znaków)">
+            <input type="email" class="form-control" [(ngModel)]="companyEmail" [disabled]="saving"
+                   maxlength="255" placeholder="np. kontakt@meble.pl" />
+          </app-form-field>
+
+          <app-form-field label="Ważność oferty" unit="dni" hint="Liczba dni ważności oferty PDF (1–365)">
+            <input type="number" class="form-control" [(ngModel)]="offerValidityDays" [disabled]="saving"
+                   min="1" max="365" step="1" />
+          </app-form-field>
+        </div>
+      </mat-expansion-panel>
+
     </mat-accordion>
 
     <!-- Actions -->

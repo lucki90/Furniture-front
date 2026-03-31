@@ -658,9 +658,14 @@
                   <textarea style="width:100%; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; resize:vertical; min-height:70px; box-sizing:border-box;"
                             [(ngModel)]="pricingOfferNotes" placeholder="Notatki dla klienta, warunki oferty..."></textarea>
                 </div>
-                <button class="btn btn-primary btn-sm" (click)="savePricing()" [disabled]="isPricingSaving">
-                  {{ isPricingSaving ? 'Zapisuję...' : '💾 Zapisz wycenę' }}
-                </button>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                  <button class="btn btn-primary btn-sm" (click)="savePricing()" [disabled]="isPricingSaving">
+                    {{ isPricingSaving ? 'Zapisuję...' : '💾 Zapisz wycenę' }}
+                  </button>
+                  <button class="btn btn-outline btn-sm" (click)="downloadOfferPdf()" [disabled]="isPdfDownloading">
+                    {{ isPdfDownloading ? '⏳ Generuję PDF...' : '📄 Pobierz ofertę PDF' }}
+                  </button>
+                </div>
               </div>
 
               <!-- Notatki do oferty (widok) -->

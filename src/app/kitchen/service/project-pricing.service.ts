@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface PricingBreakdown {
@@ -36,6 +36,13 @@ export interface UpdatePricingRequest {
   offerNotes: string | null;
 }
 
+export interface OfferOptionsRequest {
+  showCostDetails: boolean;
+  frontDescription?: string;
+  countertopDescription?: string;
+  hardwareDescription?: string;
+}
+
 const BASE_URL = 'http://localhost:8080/api/furniture/kitchen/projects';
 
 @Injectable({ providedIn: 'root' })
@@ -49,5 +56,12 @@ export class ProjectPricingService {
 
   updatePricing(projectId: number, request: UpdatePricingRequest): Observable<PricingBreakdown> {
     return this.http.put<PricingBreakdown>(`${BASE_URL}/${projectId}/pricing`, request);
+  }
+
+  downloadOfferPdf(projectId: number, options: OfferOptionsRequest): Observable<HttpResponse<Blob>> {
+    return this.http.post(`${BASE_URL}/${projectId}/offer/pdf`, options, {
+      responseType: 'blob',
+      observe: 'response'
+    });
   }
 }

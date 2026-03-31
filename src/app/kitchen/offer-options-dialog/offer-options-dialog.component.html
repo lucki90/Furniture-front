@@ -1,0 +1,45 @@
+<h2 mat-dialog-title>Generuj ofertę PDF</h2>
+
+<mat-dialog-content>
+
+  <div class="option-row checkbox-row">
+    <label class="checkbox-label">
+      <input type="checkbox" [(ngModel)]="showCostDetails" />
+      <span>Pokaż szczegóły kosztów (materiały, montaż, narzuty)</span>
+    </label>
+    <p class="hint">
+      Jeśli odznaczone, PDF pokaże tylko rabat (jeśli dotyczy) i cenę końcową.
+    </p>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <p class="section-label">Skrócony opis projektu (opcjonalnie)</p>
+
+  <div class="option-row">
+    <label class="form-label" for="frontDesc">Fronty</label>
+    <input id="frontDesc" type="text" class="form-input"
+           [(ngModel)]="frontDescription"
+           placeholder="np. Lakierowane matowe MDF" />
+  </div>
+
+  <div class="option-row">
+    <label class="form-label" for="countertopDesc">Blat</label>
+    <input id="countertopDesc" type="text" class="form-input"
+           [(ngModel)]="countertopDescription"
+           placeholder="np. 38mm Dąb laminowany" />
+  </div>
+
+  <div class="option-row">
+    <label class="form-label" for="hardwareDesc">Okucia</label>
+    <input id="hardwareDesc" type="text" class="form-input"
+           [(ngModel)]="hardwareDescription"
+           placeholder="np. Blum" />
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button class="btn-cancel" (click)="onCancel()">Anuluj</button>
+  <button class="btn-generate" (click)="onGenerate()">Generuj PDF</button>
+</mat-dialog-actions>
