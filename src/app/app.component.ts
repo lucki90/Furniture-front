@@ -4,6 +4,7 @@ import { KitchenStateService } from './kitchen/service/kitchen-state.service';
 import { DictionaryService } from './kitchen/service/dictionary.service';
 import { LanguageService, AppLanguage } from './service/language.service';
 import { TranslationService } from './translation/translation.service';
+import { AuthService } from './core/auth/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +21,8 @@ export class AppComponent implements OnInit {
     private readonly kitchenStateService: KitchenStateService,
     private readonly dictionaryService: DictionaryService,
     private readonly translationService: TranslationService,
-    readonly languageService: LanguageService
+    readonly languageService: LanguageService,
+    readonly authService: AuthService
   ) {
     // Przy każdej zmianie języka:
     // 1. Wyczyść cache tłumaczeń (aby komponenty pobrały nowe dane w nowym języku)
@@ -33,6 +35,9 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Restore session from localStorage
+    this.authService.initFromStorage();
+
     this.settingsService.getSettings().subscribe({
       next: (settings) => {
         this.kitchenStateService.setGlobalDefaults({

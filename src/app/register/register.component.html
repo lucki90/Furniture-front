@@ -1,0 +1,90 @@
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <h1>Furniture App</h1>
+      <p>Utwórz nowe konto</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="register-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">Imię</label>
+          <input
+            id="firstName"
+            type="text"
+            [(ngModel)]="firstName"
+            name="firstName"
+            placeholder="Jan"
+            [disabled]="isLoading"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">Nazwisko</label>
+          <input
+            id="lastName"
+            type="text"
+            [(ngModel)]="lastName"
+            name="lastName"
+            placeholder="Kowalski"
+            [disabled]="isLoading"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email *</label>
+        <input
+          id="email"
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="twoj@email.com"
+          autocomplete="email"
+          required
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Hasło * <span class="hint">(min. 8 znaków)</span></label>
+        <input
+          id="password"
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Wprowadź hasło"
+          autocomplete="new-password"
+          required
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Powtórz hasło *</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          [(ngModel)]="confirmPassword"
+          name="confirmPassword"
+          placeholder="Powtórz hasło"
+          autocomplete="new-password"
+          required
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="register-btn" [disabled]="isLoading">
+        {{ isLoading ? 'Rejestracja...' : 'Zarejestruj się' }}
+      </button>
+    </form>
+
+    <div class="register-footer">
+      <p>Masz już konto? <a routerLink="/login">Zaloguj się</a></p>
+    </div>
+  </div>
+</div>

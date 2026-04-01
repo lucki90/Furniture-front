@@ -1,0 +1,48 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <h1>Furniture App</h1>
+      <p>Zaloguj się do aplikacji</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          [(ngModel)]="email"
+          name="email"
+          placeholder="twoj@email.com"
+          autocomplete="email"
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Hasło</label>
+        <input
+          id="password"
+          type="password"
+          [(ngModel)]="password"
+          name="password"
+          placeholder="Wprowadź hasło"
+          autocomplete="current-password"
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="login-btn" [disabled]="isLoading">
+        {{ isLoading ? 'Logowanie...' : 'Zaloguj się' }}
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <p>Nie masz konta? <a routerLink="/register">Zarejestruj się</a></p>
+    </div>
+  </div>
+</div>

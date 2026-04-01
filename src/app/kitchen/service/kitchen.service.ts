@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {
   CreateKitchenProjectRequest,
@@ -53,30 +53,20 @@ export class KitchenService {
   }
 
   // ============ PROJECT MANAGEMENT CRUD ============
-
-  private getUserHeaders(userId: number = 1): HttpHeaders {
-    return new HttpHeaders().set('X-User-Id', userId.toString());
-  }
+  // Authorization header added automatically by authInterceptor
 
   /**
    * Creates a new kitchen project with multiple walls.
    */
-  createProject(request: CreateKitchenProjectRequest, userId: number = 1): Observable<KitchenProjectDetailResponse> {
-    return this.http.post<KitchenProjectDetailResponse>(
-      this.projectsUrl,
-      request,
-      { headers: this.getUserHeaders(userId) }
-    );
+  createProject(request: CreateKitchenProjectRequest): Observable<KitchenProjectDetailResponse> {
+    return this.http.post<KitchenProjectDetailResponse>(this.projectsUrl, request);
   }
 
   /**
    * Gets all projects for the current user.
    */
-  getProjects(userId: number = 1): Observable<KitchenProjectListResponse[]> {
-    return this.http.get<KitchenProjectListResponse[]>(
-      this.projectsUrl,
-      { headers: this.getUserHeaders(userId) }
-    );
+  getProjects(): Observable<KitchenProjectListResponse[]> {
+    return this.http.get<KitchenProjectListResponse[]>(this.projectsUrl);
   }
 
   /**
@@ -89,32 +79,24 @@ export class KitchenService {
   /**
    * Updates an existing kitchen project.
    */
-  updateProject(projectId: number, request: UpdateKitchenProjectRequest, userId: number = 1): Observable<KitchenProjectDetailResponse> {
-    return this.http.put<KitchenProjectDetailResponse>(
-      `${this.projectsUrl}/${projectId}`,
-      request,
-      { headers: this.getUserHeaders(userId) }
-    );
+  updateProject(projectId: number, request: UpdateKitchenProjectRequest): Observable<KitchenProjectDetailResponse> {
+    return this.http.put<KitchenProjectDetailResponse>(`${this.projectsUrl}/${projectId}`, request);
   }
 
   /**
    * Deletes a kitchen project (soft delete).
    */
-  deleteProject(projectId: number, userId: number = 1): Observable<void> {
-    return this.http.delete<void>(
-      `${this.projectsUrl}/${projectId}`,
-      { headers: this.getUserHeaders(userId) }
-    );
+  deleteProject(projectId: number): Observable<void> {
+    return this.http.delete<void>(`${this.projectsUrl}/${projectId}`);
   }
 
   /**
    * Changes the status of a kitchen project.
    */
-  changeProjectStatus(projectId: number, status: ProjectStatus, userId: number = 1): Observable<KitchenProjectDetailResponse> {
+  changeProjectStatus(projectId: number, status: ProjectStatus): Observable<KitchenProjectDetailResponse> {
     return this.http.patch<KitchenProjectDetailResponse>(
       `${this.projectsUrl}/${projectId}/status`,
-      { status },
-      { headers: this.getUserHeaders(userId) }
+      { status }
     );
   }
 

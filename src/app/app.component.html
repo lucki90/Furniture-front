@@ -1,4 +1,4 @@
-<div class="app-layout">
+<div class="app-layout" *ngIf="authService.isLoggedIn(); else authPages">
   <!-- SIDEBAR -->
   <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
     <!-- Header -->
@@ -9,14 +9,6 @@
 
     <!-- Navigation -->
     <nav class="sidebar-nav">
-      <!-- Dashboard -->
-      <div class="nav-section">
-        <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">
-          <span class="nav-item-icon">📊</span>
-          <span class="nav-item-text">Dashboard</span>
-        </a>
-      </div>
-
       <!-- Szafki -->
       <div class="nav-section">
         <div class="nav-section-title">Szafki</div>
@@ -39,8 +31,8 @@
         </a>
       </div>
 
-      <!-- Panel Administracyjny -->
-      <div class="nav-section">
+      <!-- Panel Administracyjny (tylko dla ADMIN) -->
+      <div class="nav-section" *ngIf="authService.isAdmin()">
         <div class="nav-section-title">Administracja</div>
         <a class="nav-item" routerLink="/admin/materials" routerLinkActive="active">
           <span class="nav-item-icon">🪵</span>
@@ -68,6 +60,17 @@
       </select>
     </div>
 
+    <!-- User Menu -->
+    <div class="user-menu">
+      <div class="user-info">
+        <span class="user-email">{{ authService.user()?.email }}</span>
+        <span class="user-role">{{ authService.user()?.role }}</span>
+      </div>
+      <button class="logout-btn" (click)="authService.logout()" title="Wyloguj się">
+        Wyloguj
+      </button>
+    </div>
+
     <!-- Toggle Button -->
     <div class="sidebar-toggle">
       <button class="toggle-btn" (click)="toggleSidebar()" [title]="sidebarCollapsed ? 'Rozwiń menu' : 'Zwiń menu'">
@@ -84,3 +87,9 @@
   <!-- Toast Notifications -->
   <app-toast-container></app-toast-container>
 </div>
+
+<!-- Auth pages (login/register) — no sidebar -->
+<ng-template #authPages>
+  <router-outlet></router-outlet>
+  <app-toast-container></app-toast-container>
+</ng-template>
