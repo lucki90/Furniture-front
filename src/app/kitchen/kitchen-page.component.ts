@@ -567,6 +567,11 @@ export class KitchenPageComponent {
     this.resetProjectResult();
   }
 
+  onCloneCabinet(cabinetId: string): void {
+    this.stateService.cloneCabinet(cabinetId);
+    this.resetProjectResult();
+  }
+
   onWallChange(): void {
     // This is now handled by the setters for wallLength and wallHeight
     this.resetProjectResult();

@@ -168,6 +168,47 @@
   padding-right: 28px;
 }
 
+/* Trigger pickera typu szafki */
+.type-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 6px;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1e293b);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.type-picker-trigger:hover {
+  border-color: var(--accent-color, #3b82f6);
+}
+
+.type-picker-trigger:focus {
+  outline: none;
+  border-color: var(--accent-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.type-picker-current {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.type-picker-chevron {
+  color: #94a3b8;
+  font-size: 11px;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
 /* Input z jednostką */
 .input-with-unit {
   display: flex;

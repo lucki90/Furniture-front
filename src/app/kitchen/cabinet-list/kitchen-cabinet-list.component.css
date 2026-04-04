@@ -120,8 +120,26 @@ tr.editing:hover {
   color: white;
 }
 
+.btn-clone {
+  background: transparent;
+  color: #059669;
+  border: 1px solid #059669;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: all 0.15s;
+}
+
+.btn-clone:hover:not(:disabled) {
+  background: #059669;
+  color: white;
+}
+
 .btn-edit:disabled,
-.btn-remove:disabled {
+.btn-remove:disabled,
+.btn-clone:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }

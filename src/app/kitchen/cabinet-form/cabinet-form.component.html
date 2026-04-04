@@ -9,33 +9,33 @@
         </div>
         <div class="form-group flex-2">
           <label class="form-label">Typ szafki</label>
-          <select class="form-control" formControlName="kitchenCabinetType">
-            <optgroup label="Szafki dolne">
-              <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
-              <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
-              <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
-              <option value="BASE_SINK">Dolna – zlewowa</option>
-              <option value="BASE_COOKTOP">Dolna – pod płytę grzewczą</option>
-              <option value="BASE_DISHWASHER">Dolna – zmywarka (front)</option>
-              <option value="BASE_DISHWASHER_FREESTANDING">Dolna – zmywarka wolnostojąca</option>
-              <option value="BASE_OVEN">Dolna – piekarnik (zabudowany)</option>
-              <option value="BASE_OVEN_FREESTANDING">Dolna – piekarnik wolnostojący</option>
-              <option value="BASE_FRIDGE">Słupek – lodówka w zabudowie</option>
-              <option value="BASE_FRIDGE_FREESTANDING">Dolna – lodówka wolnostojąca</option>
-            </optgroup>
-            <optgroup label="Szafki wiszące">
-              <option value="UPPER_ONE_DOOR">Wisząca – 1 drzwi</option>
-              <option value="UPPER_TWO_DOOR">Wisząca – 2 drzwi</option>
-              <option value="UPPER_OPEN_SHELF">Wisząca – otwarta półka</option>
-              <option value="UPPER_CASCADE">Wisząca – kaskadowa</option>
-              <option value="UPPER_HOOD">Wisząca – na okap</option>
-              <option value="UPPER_DRAINER">Szafka z ociekaczem</option>
-            </optgroup>
-            <optgroup label="Specjalne">
-              <option value="TALL_CABINET">Słupek</option>
-              <option value="CORNER_CABINET">Narożna</option>
-            </optgroup>
+          <!-- Ukryty select — potrzebny dla reactive forms binding -->
+          <select class="form-control" formControlName="kitchenCabinetType" style="display:none">
+            <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
+            <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
+            <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
+            <option value="BASE_SINK">Dolna – zlewowa</option>
+            <option value="BASE_COOKTOP">Dolna – pod płytę grzewczą</option>
+            <option value="BASE_DISHWASHER">Dolna – zmywarka (front)</option>
+            <option value="BASE_DISHWASHER_FREESTANDING">Dolna – zmywarka wolnostojąca</option>
+            <option value="BASE_OVEN">Dolna – piekarnik (zabudowany)</option>
+            <option value="BASE_OVEN_FREESTANDING">Dolna – piekarnik wolnostojący</option>
+            <option value="BASE_FRIDGE">Słupek – lodówka w zabudowie</option>
+            <option value="BASE_FRIDGE_FREESTANDING">Dolna – lodówka wolnostojąca</option>
+            <option value="UPPER_ONE_DOOR">Wisząca – 1 drzwi</option>
+            <option value="UPPER_TWO_DOOR">Wisząca – 2 drzwi</option>
+            <option value="UPPER_OPEN_SHELF">Wisząca – otwarta półka</option>
+            <option value="UPPER_CASCADE">Wisząca – kaskadowa</option>
+            <option value="UPPER_HOOD">Wisząca – na okap</option>
+            <option value="UPPER_DRAINER">Szafka z ociekaczem</option>
+            <option value="TALL_CABINET">Słupek</option>
+            <option value="CORNER_CABINET">Narożna</option>
           </select>
+          <!-- Widoczny trigger — otwiera dialog pickera -->
+          <button type="button" class="type-picker-trigger" (click)="openTypePicker()">
+            <span class="type-picker-current">{{ currentTypeLabel }}</span>
+            <span class="type-picker-chevron">▾</span>
+          </button>
         </div>
       </div>
 

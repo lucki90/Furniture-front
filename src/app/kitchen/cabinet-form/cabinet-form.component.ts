@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { KitchenService } from '../service/kitchen.service';
 import { ToastService } from '../../core/error/toast.service';
@@ -25,6 +26,7 @@ import { CornerFormComponent } from './sections/corner-form/corner-form.componen
 import { EnclosureFormComponent } from './sections/enclosure-form/enclosure-form.component';
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
 import { getFormError } from '../../shared/form-error.util';
+import { CabinetTypePickerComponent } from './cabinet-type-picker/cabinet-type-picker.component';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -48,6 +50,7 @@ export class CabinetFormComponent implements OnChanges {
   cancelEdit = new EventEmitter<void>();
 
   private readonly dictionaryService = inject(DictionaryService);
+  private readonly dialog = inject(MatDialog);
   readonly stateService = inject(KitchenStateService);
 
   form: FormGroup;
@@ -116,6 +119,46 @@ export class CabinetFormComponent implements OnChanges {
    */
   getFieldError(controlName: string): string | null {
     return getFormError(this.form.get(controlName));
+  }
+
+  private readonly TYPE_LABELS: Record<KitchenCabinetType, string> = {
+    [KitchenCabinetType.BASE_TWO_DOOR]:               'Dolna – 2 drzwi',
+    [KitchenCabinetType.BASE_ONE_DOOR]:               'Dolna – 1 drzwi',
+    [KitchenCabinetType.BASE_WITH_DRAWERS]:           'Dolna – szuflady',
+    [KitchenCabinetType.BASE_SINK]:                   'Dolna – zlewowa',
+    [KitchenCabinetType.BASE_COOKTOP]:                'Dolna – pod płytę grzewczą',
+    [KitchenCabinetType.BASE_DISHWASHER]:             'Dolna – zmywarka (front)',
+    [KitchenCabinetType.BASE_DISHWASHER_FREESTANDING]:'Dolna – zmywarka wolnostojąca',
+    [KitchenCabinetType.BASE_OVEN]:                   'Dolna – piekarnik (zabudowany)',
+    [KitchenCabinetType.BASE_OVEN_FREESTANDING]:      'Dolna – piekarnik wolnostojący',
+    [KitchenCabinetType.BASE_FRIDGE]:                 'Słupek – lodówka w zabudowie',
+    [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]:    'Dolna – lodówka wolnostojąca',
+    [KitchenCabinetType.UPPER_ONE_DOOR]:              'Wisząca – 1 drzwi',
+    [KitchenCabinetType.UPPER_TWO_DOOR]:              'Wisząca – 2 drzwi',
+    [KitchenCabinetType.UPPER_OPEN_SHELF]:            'Wisząca – otwarta półka',
+    [KitchenCabinetType.UPPER_CASCADE]:               'Wisząca – kaskadowa',
+    [KitchenCabinetType.UPPER_HOOD]:                  'Wisząca – na okap',
+    [KitchenCabinetType.UPPER_DRAINER]:               'Szafka z ociekaczem',
+    [KitchenCabinetType.TALL_CABINET]:                'Słupek',
+    [KitchenCabinetType.CORNER_CABINET]:              'Narożna',
+  };
+
+  get currentTypeLabel(): string {
+    const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
+    return this.TYPE_LABELS[type] ?? 'Wybierz typ...';
+  }
+
+  openTypePicker(): void {
+    const ref = this.dialog.open(CabinetTypePickerComponent, {
+      width: '600px',
+      maxHeight: '80vh',
+      panelClass: 'cabinet-picker-dialog'
+    });
+    ref.afterClosed().subscribe((type: KitchenCabinetType | null) => {
+      if (type) {
+        this.form.get('kitchenCabinetType')?.setValue(type);
+      }
+    });
   }
 
   /**

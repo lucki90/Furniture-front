@@ -43,6 +43,13 @@
             ✏️
           </button>
           <button
+            class="btn-clone"
+            (click)="onClone(cabinet.id)"
+            [disabled]="editingCabinetId !== null"
+            title="Kopiuj szafkę">
+            ⎘
+          </button>
+          <button
             class="btn-remove"
             (click)="onRemove(cabinet.id)"
             [disabled]="editingCabinetId !== null"

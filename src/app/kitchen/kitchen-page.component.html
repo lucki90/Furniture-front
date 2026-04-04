@@ -268,7 +268,8 @@
           [cabinets]="cabinets()"
           [editingCabinetId]="editingCabinetId"
           (edit)="onEditCabinet($event)"
-          (remove)="onRemoveCabinet($event)">
+          (remove)="onRemoveCabinet($event)"
+          (clone)="onCloneCabinet($event)">
         </app-kitchen-cabinet-list>
 
         <div class="empty-list" *ngIf="cabinets().length === 0">

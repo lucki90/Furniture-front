@@ -1,4 +1,4 @@
-import { Component, inject, computed, Input } from '@angular/core';
+import { Component, inject, computed, Input, signal } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { KitchenCabinet, CabinetZone, getCabinetZone, requiresCountertop, isFreestandingAppliance } from '../model/kitchen-state.model';
@@ -74,6 +74,12 @@ export class KitchenLayoutComponent {
 
   /** ID aktualnie edytowanej szafki - do podświetlenia */
   @Input() editingCabinetId: string | null = null;
+
+  // ===== Sygnały przełączników widoczności (toolbar SVG) =====
+  readonly showCabinetLabels = signal(true);
+  // showCountertop i showUpperCabinets współdzielone ze state service (wpływają też na floor plan)
+  readonly showCountertop = this.stateService.showCountertop;
+  readonly showUpperCabinets = this.stateService.showUpperCabinets;
 
   readonly wall = this.stateService.wall;
   readonly selectedWall = this.stateService.selectedWall;

@@ -17,6 +17,7 @@ export class KitchenCabinetListComponent {
 
   @Output() remove = new EventEmitter<string>();
   @Output() edit = new EventEmitter<string>();
+  @Output() clone = new EventEmitter<string>();
 
   getCabinetTypeName(type: KitchenCabinetType): string {
     const typeNames: Record<KitchenCabinetType, string> = {
@@ -49,6 +50,10 @@ export class KitchenCabinetListComponent {
 
   onEdit(cabinetId: string): void {
     this.edit.emit(cabinetId);
+  }
+
+  onClone(cabinetId: string): void {
+    this.clone.emit(cabinetId);
   }
 
   isEditing(cabinetId: string): boolean {

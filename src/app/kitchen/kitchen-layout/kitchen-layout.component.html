@@ -14,11 +14,27 @@
       <span *ngIf="fitsOnWall()" class="success-inline">✓</span>
     </p>
 
+    <!-- Toolbar przełączników widoczności -->
+    <div class="svg-toolbar">
+      <label class="svg-toggle">
+        <input type="checkbox" [checked]="showCabinetLabels()" (change)="showCabinetLabels.set(!showCabinetLabels())">
+        Etykiety
+      </label>
+      <label class="svg-toggle">
+        <input type="checkbox" [checked]="showCountertop()" (change)="showCountertop.set(!showCountertop())">
+        Blat
+      </label>
+      <label class="svg-toggle">
+        <input type="checkbox" [checked]="showUpperCabinets()" (change)="showUpperCabinets.set(!showUpperCabinets())">
+        Szafki górne
+      </label>
+    </div>
+
     <!-- Wall visualization - SVG -->
     <div class="wall-view-wrapper">
       <!-- Zone labels (po lewej) -->
       <div class="zone-labels" [style.height.px]="totalHeight">
-        <span class="zone-label" [style.top.px]="topZoneY" [style.height.px]="topZoneHeight">Górne</span>
+        <span *ngIf="showUpperCabinets()" class="zone-label" [style.top.px]="topZoneY" [style.height.px]="topZoneHeight">Górne</span>
         <span class="zone-label gap-label" [style.top.px]="gapZoneY" [style.height.px]="gapZoneHeight"></span>
         <span class="zone-label counter-label" [style.top.px]="counterZoneY" [style.height.px]="counterZoneHeight">Blat</span>
         <span class="zone-label" [style.top.px]="bottomZoneY" [style.height.px]="bottomZoneHeight">Dolne</span>
@@ -51,7 +67,8 @@
 
         <!-- Tło stref -->
         <!-- Strefa górna -->
-        <rect [attr.x]="0" [attr.y]="topZoneY"
+        <rect *ngIf="showUpperCabinets()"
+              [attr.x]="0" [attr.y]="topZoneY"
               [attr.width]="wallDisplayWidth()" [attr.height]="topZoneHeight"
               class="zone-bg upper-zone-bg"/>
 
@@ -61,20 +78,22 @@
               class="zone-bg gap-zone-bg"/>
 
         <!-- Blat — podzielony na segmenty w miejscach słupków (TALL_CABINET) -->
-        <rect *ngFor="let seg of countertopZoneRects()"
-              [attr.x]="seg.x" [attr.y]="counterZoneY"
-              [attr.width]="seg.width" [attr.height]="counterZoneHeight"
-              fill="url(#countertopGradient)" class="countertop-rect">
-          <title *ngIf="countertopDimensions()">Blat: {{ countertopDimensions()!.lengthMm }}×{{ countertopDimensions()!.depthMm }}mm</title>
-        </rect>
-        <!-- Etykiety wymiarów blatu — osobna per segment (podzielona przy słupkach FULL) -->
-        <text *ngFor="let lbl of countertopSegmentLabels()"
-              [attr.x]="lbl.x"
-              [attr.y]="counterZoneY - 2"
-              class="countertop-dimension-label"
-              text-anchor="middle">
-          {{ lbl.lengthMm }}×{{ lbl.depthMm }}mm
-        </text>
+        <ng-container *ngIf="showCountertop()">
+          <rect *ngFor="let seg of countertopZoneRects()"
+                [attr.x]="seg.x" [attr.y]="counterZoneY"
+                [attr.width]="seg.width" [attr.height]="counterZoneHeight"
+                fill="url(#countertopGradient)" class="countertop-rect">
+            <title *ngIf="countertopDimensions()">Blat: {{ countertopDimensions()!.lengthMm }}×{{ countertopDimensions()!.depthMm }}mm</title>
+          </rect>
+          <!-- Etykiety wymiarów blatu — osobna per segment (podzielona przy słupkach FULL) -->
+          <text *ngFor="let lbl of countertopSegmentLabels()"
+                [attr.x]="lbl.x"
+                [attr.y]="counterZoneY - 2"
+                class="countertop-dimension-label"
+                text-anchor="middle">
+            {{ lbl.lengthMm }}×{{ lbl.depthMm }}mm
+          </text>
+        </ng-container>
 
         <!-- Strefa dolna -->
         <rect [attr.x]="0" [attr.y]="bottomZoneY"
@@ -83,7 +102,8 @@
 
         <!-- Szafki -->
         <g *ngFor="let pos of visualPositions(); let i = index" class="cabinet-group"
-           [class.editing]="isEditing(pos.cabinetId)">
+           [class.editing]="isEditing(pos.cabinetId)"
+           [style.display]="!showUpperCabinets() && pos.zone === 'TOP' ? 'none' : null">
 
           <!-- Lewa płyta obudowy — kolor taki sam jak szafka, szerokość w mm -->
           <rect *ngIf="pos.leftEnclosureDisplayWidth > 0"
@@ -203,7 +223,8 @@
           </g>
 
           <!-- Etykieta szafki -->
-          <text [attr.x]="pos.displayX + pos.displayWidth / 2"
+          <text *ngIf="showCabinetLabels()"
+                [attr.x]="pos.displayX + pos.displayWidth / 2"
                 [attr.y]="pos.displayY + pos.bodyHeight / 2"
                 class="cabinet-label-text"
                 text-anchor="middle"
@@ -254,7 +275,7 @@
         </g>
 
         <!-- Wolne miejsce - górne -->
-        <rect *ngIf="hasHangingCabinets() && remainingTopSpaceWidth() > 0"
+        <rect *ngIf="showUpperCabinets() && hasHangingCabinets() && remainingTopSpaceWidth() > 0"
               [attr.x]="remainingTopSpaceX()"
               [attr.y]="topZoneY"
               [attr.width]="remainingTopSpaceWidth()"
@@ -270,24 +291,26 @@
               class="remaining-space-rect"/>
 
         <!-- Blenda górna (filler) nad szafkami wiszącymi -->
-        <rect *ngIf="fillerPosition() as filler"
-              [attr.x]="filler.x"
-              [attr.y]="filler.y"
-              [attr.width]="filler.width"
-              [attr.height]="filler.height"
-              class="filler-rect">
-          <title>Blenda górna</title>
-        </rect>
+        <ng-container *ngIf="showUpperCabinets()">
+          <rect *ngIf="fillerPosition() as filler"
+                [attr.x]="filler.x"
+                [attr.y]="filler.y"
+                [attr.width]="filler.width"
+                [attr.height]="filler.height"
+                class="filler-rect">
+            <title>Blenda górna</title>
+          </rect>
 
-        <!-- Znaczniki spojenia blendy górnej (przy długości > 2800mm) -->
-        <ng-container *ngFor="let joinX of fillerJoinXPositions()">
-          <line *ngIf="fillerPosition() as filler"
-                [attr.x1]="joinX" [attr.x2]="joinX"
-                [attr.y1]="filler.y"
-                [attr.y2]="filler.y + filler.height"
-                class="board-join-line">
-            <title>Połączenie blendy górnej</title>
-          </line>
+          <!-- Znaczniki spojenia blendy górnej (przy długości > 2800mm) -->
+          <ng-container *ngFor="let joinX of fillerJoinXPositions()">
+            <line *ngIf="fillerPosition() as filler"
+                  [attr.x1]="joinX" [attr.x2]="joinX"
+                  [attr.y1]="filler.y"
+                  [attr.y2]="filler.y + filler.height"
+                  class="board-join-line">
+              <title>Połączenie blendy górnej</title>
+            </line>
+          </ng-container>
         </ng-container>
 
         <!-- Cokół (pod szafkami dolnymi) — może być kilka odcinków gdy AGD wolnostojące w środku -->
@@ -314,7 +337,7 @@
         </ng-container>
 
         <!-- Linia wymiarowa gap (przestrzeń robocza) -->
-        <g *ngIf="gapDimensionLine() as dim" class="gap-dimension-group">
+        <g *ngIf="showUpperCabinets() && gapDimensionLine() as dim" class="gap-dimension-group">
           <!-- Linia pionowa -->
           <line [attr.x1]="dim.x + 8" [attr.y1]="dim.y1"
                 [attr.x2]="dim.x + 8" [attr.y2]="dim.y2"

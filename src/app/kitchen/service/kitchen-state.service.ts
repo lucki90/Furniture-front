@@ -144,6 +144,10 @@ export class KitchenStateService {
     return this._plinthHeightMm() + this._countertopThicknessMm();
   });
 
+  // ===== Sygnały przełączników widoczności (współdzielone między SVG front i floor plan) =====
+  readonly showCountertop = signal(true);
+  readonly showUpperCabinets = signal(true);
+
   readonly selectedWall = computed(() => {
     const wallId = this._selectedWallId();
     return this._walls().find(w => w.id === wallId) ?? this._walls()[0];
@@ -700,6 +704,22 @@ export class KitchenStateService {
         ...wall,
         cabinets: wall.cabinets.filter(cab => cab.id !== cabinetId)
       }))
+    );
+  }
+
+  cloneCabinet(cabinetId: string): void {
+    const selectedWallId = this._selectedWallId();
+    this._walls.update(walls =>
+      walls.map(wall => {
+        if (wall.id !== selectedWallId) return wall;
+        const source = wall.cabinets.find(cab => cab.id === cabinetId);
+        if (!source) return wall;
+        const clone: KitchenCabinet = {
+          ...structuredClone(source),
+          id: this.generateCabinetId()
+        };
+        return { ...wall, cabinets: [...wall.cabinets, clone] };
+      })
     );
   }
 

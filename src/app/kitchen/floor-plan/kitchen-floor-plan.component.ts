@@ -64,6 +64,10 @@ export class KitchenFloorPlanComponent {
   readonly walls = this.stateService.walls;
   readonly selectedWallId = this.stateService.selectedWallId;
 
+  // Przełączniki widoczności (współdzielone z kitchen-layout przez state service)
+  readonly showCountertop = this.stateService.showCountertop;
+  readonly showUpperCabinets = this.stateService.showUpperCabinets;
+
   addWallRequested = output<void>();
   wallRemoved = output<string>();
 

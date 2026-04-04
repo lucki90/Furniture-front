@@ -91,7 +91,7 @@
   grid-template-columns: 340px 1fr 360px;
   gap: 16px;
   margin-bottom: 20px;
-  align-items: stretch;
+  align-items: start;
 }
 
 /* Panel card - wspólny styl */
@@ -134,6 +134,9 @@
 /* Floor plan column */
 .floor-plan-column {
   min-width: 340px;
+  position: sticky;
+  top: 16px;
+  align-self: start;
 }
 
 .floor-plan-column .panel-content {
@@ -302,6 +305,9 @@
 /* Front view column */
 .front-view-column {
   min-width: 0;
+  position: sticky;
+  top: 16px;
+  align-self: start;
 }
 
 .front-view-column .panel-content {
@@ -314,7 +320,7 @@
 }
 
 .form-column .panel-card {
-  height: 100%;
+  height: auto;
 }
 
 .form-column .panel-content {
