@@ -93,6 +93,12 @@ export class SettingsComponent implements OnInit {
   companyEmail = '';
   offerValidityDays = 14;
 
+  // Logo firmy
+  /** URL do podglądu logo (null = brak logo). Używane w <img [src]>. */
+  companyLogoUrl: string | null = null;
+  logoUploading = false;
+  logoError: string | null = null;
+
   // Cennik płyt
   boardPrices: BoardPrice[] = [];
   boardPricesLoading = false;
@@ -152,10 +158,92 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     this.loadOptions();
     this.loadSettings();
+    this.loadLogo();
     this.loadBoardPrices();
     this.loadMaterialOptions();
     this.loadComponentPrices();
     this.loadJobPrices();
+  }
+
+  // ── Logo firmy ─────────────────────────────────────────────────────────────
+
+  /**
+   * Pobiera logo z backendu z nagłówkiem Authorization i tworzy blob: URL do wyświetlenia.
+   * Zwykły <img src="url"> nie wysyła tokenu JWT, stąd konieczność użycia fetch + blob.
+   */
+  loadLogo(): void {
+    const token = localStorage.getItem('accessToken') ?? '';
+    fetch(this.settingsService.getLogoUrl(), {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.status === 200 ? res.blob() : null)
+      .then(blob => this.applyLogoBlob(blob))
+      .catch(() => this.applyLogoBlob(null));
+  }
+
+  /**
+   * Zastępuje bieżący blob: URL nowym (zwalnia stary, by uniknąć wycieku pamięci).
+   * Akceptuje Blob, File (extends Blob) lub null (brak logo).
+   */
+  private applyLogoBlob(blob: Blob | null): void {
+    if (this.companyLogoUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(this.companyLogoUrl);
+    }
+    this.companyLogoUrl = blob ? URL.createObjectURL(blob) : null;
+  }
+
+  /**
+   * Handles <input type="file"> change. Validates and uploads the selected image.
+   */
+  onLogoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg'];
+    if (!allowedTypes.includes(file.type)) {
+      this.logoError = 'Dozwolone formaty: PNG, JPEG.';
+      return;
+    }
+    if (file.size > 512_000) {
+      this.logoError = 'Plik jest za duży. Maksymalny rozmiar: 500 KB.';
+      return;
+    }
+
+    this.logoError = null;
+    this.logoUploading = true;
+
+    this.settingsService.uploadLogo(file).subscribe({
+      next: () => {
+        // File extends Blob — tworzymy blob: URL bezpośrednio z pliku (bez ponownego fetch)
+        this.applyLogoBlob(file);
+        this.logoUploading = false;
+      },
+      error: (err) => {
+        console.error('Logo upload failed', err);
+        this.logoError = 'Nie udało się przesłać logo. Sprawdź format i rozmiar pliku.';
+        this.logoUploading = false;
+      }
+    });
+
+    // Reset input — pozwala ponownie wybrać ten sam plik po usunięciu
+    input.value = '';
+  }
+
+  /**
+   * Removes the company logo.
+   */
+  removeLogo(): void {
+    this.settingsService.deleteLogo().subscribe({
+      next: () => {
+        this.applyLogoBlob(null);
+        this.logoError = null;
+      },
+      error: (err) => {
+        console.error('Logo delete failed', err);
+        this.logoError = 'Nie udało się usunąć logo.';
+      }
+    });
   }
 
   private loadTranslations(lang: string): void {

@@ -35,13 +35,13 @@ import {
 import { ToastService } from '../core/error/toast.service';
 import { ExcelService, ExcelRowRequest } from './service/excel.service';
 import { ProjectPricingService, PricingBreakdown, UpdatePricingRequest } from './service/project-pricing.service';
+import { LanguageService } from '../service/language.service';
+import { TranslationService } from '../translation/translation.service';
 
-// TODO i18n — MATERIAL_NAMES: zastąpić TranslationService.getByCategory('MATERIAL', lang)
-// Klucze MATERIAL.* już są w DB (10-insert-translations.sql, PL+EN).
-// Uwaga: część kluczy różni się od kodu enum (np. MDF_LAMINATED nie ma MATERIAL.MDF_LAMINATED w DB —
-// dodać w migracji SQL; podobnie OSB, ACRYLIC, SOLID_WOOD).
-// Wymagana zmiana: preload przed downloadExcel() lub jako computed na podstawie sygnału języka.
-/** Polish translations for raw material codes used as fallback in the Excel Symbol column. */
+// Polskie fallback-i nazw materiałów — używane gdy tłumaczenia z backendu nie są jeszcze załadowane.
+// Tłumaczenia MATERIAL.* są w DB (10-insert-translations.sql + 25-board-name-translations.sql).
+// Preload odbywa się w translationLoadEffect() przez bomTranslations — patrz niżej.
+/** Polish fallback translations for raw material codes (Excel Symbol column). */
 const MATERIAL_NAMES_PL: Record<string, string> = {
   CHIPBOARD: 'Płyta wiórowa',
   MDF_LAMINATED: 'MDF laminowany',
@@ -79,6 +79,8 @@ export class KitchenPageComponent {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private toast = inject(ToastService);
+  private languageService = inject(LanguageService);
+  private translationService = inject(TranslationService);
 
   result: any | null = null;
   editingCabinet: KitchenCabinet | null = null;
@@ -122,6 +124,22 @@ export class KitchenPageComponent {
   // Stan zapisywania projektu
   isSavingProject = false;
   isChangingStatus = false;
+
+  /**
+   * Tłumaczenia BOM (BOARD_NAME.* i MATERIAL.*) załadowane z backendu w bieżącym języku.
+   * Klucze: "BOARD_NAME.SIDE_NAME", "MATERIAL.CHIPBOARD" itp.
+   * Używane w aggregate() (board labels) i downloadExcel() (symbol kolumna).
+   */
+  private bomTranslations: Record<string, string> = {};
+
+  /** Ładuje tłumaczenia BOM przy inicjalizacji i przy każdej zmianie języka. */
+  private translationLoadEffect = effect(() => {
+    const lang = this.languageService.lang();
+    this.translationService.getByCategories(['BOARD_NAME', 'MATERIAL'], lang)
+      .subscribe(translations => {
+        this.bomTranslations = translations;
+      });
+  });
 
   // Synchronizacja wall-level config → global signals przy zmianie ściany
   private syncEffect = effect(() => {
@@ -655,7 +673,7 @@ export class KitchenPageComponent {
     this.kitchenService.calculateMultiWall(request).subscribe({
       next: (response) => {
         this.projectResult = response;
-        const agg = this.aggregatorService.aggregate(response, this.stateService.walls());
+        const agg = this.aggregatorService.aggregate(response, this.stateService.walls(), this.bomTranslations);
         this.aggregatedBoards = agg.boards;
         this.aggregatedComponents = agg.components;
         this.aggregatedJobs = agg.jobs;
@@ -726,6 +744,12 @@ export class KitchenPageComponent {
   downloadOfferPdf(): void {
     const id = this.currentProjectId();
     if (!id) return;
+
+    // Ostrzeżenie o brakujących cenach — nie blokuje, tylko informuje
+    const priceWarning = this.validateBomPrices();
+    if (priceWarning) {
+      this.toast.warning(priceWarning);
+    }
 
     const dialogRef = this.dialog.open(OfferOptionsDialogComponent, {
       width: '480px',
@@ -819,6 +843,25 @@ export class KitchenPageComponent {
   // ─── Eksport Excel ──────────────────────────────────────────────────────────
 
   /**
+   * Sprawdza czy w BOM są pozycje bez ustawionych cen (unitCost === 0).
+   * Zwraca komunikat ostrzeżenia lub null jeśli wszystko OK.
+   */
+  private validateBomPrices(): string | null {
+    const boardsMissing = this.aggregatedBoards.filter(b => !b.unitCost || b.unitCost === 0).length;
+    const componentsMissing = this.aggregatedComponents
+      .filter(c => !c.isWaste && (!c.unitCost || c.unitCost === 0)).length;
+    const jobsMissing = this.aggregatedJobs.filter(j => !j.unitCost || j.unitCost === 0).length;
+
+    const parts: string[] = [];
+    if (boardsMissing > 0) parts.push(`${boardsMissing} płyt`);
+    if (componentsMissing > 0) parts.push(`${componentsMissing} komponentów`);
+    if (jobsMissing > 0) parts.push(`${jobsMissing} prac`);
+
+    if (parts.length === 0) return null;
+    return `Brak cen dla: ${parts.join(', ')}. Wycena będzie niepełna.`;
+  }
+
+  /**
    * Generuje plik Excel z listą płyt do zamówienia (zamówienie_cięcia).
    * Wysyła zagregowane płyty do backendu → POST /download/excel → plik .xlsx.
    *
@@ -827,6 +870,11 @@ export class KitchenPageComponent {
    */
   downloadExcel(): void {
     if (!this.projectResult || this.isExporting) return;
+
+    const priceWarning = this.validateBomPrices();
+    if (priceWarning) {
+      this.toast.warning(priceWarning);
+    }
 
     this.isExporting = true;
 
@@ -840,8 +888,10 @@ export class KitchenPageComponent {
       return {
         lp: index + 1,
         quantity: board.quantity,
-        // Symbol = kolor płyty (np. "RAL 9016", "Dąb"); fallback: polska nazwa materiału
-        symbol: board.color || (board.material ? (MATERIAL_NAMES_PL[board.material] ?? board.material) : ''),
+        // Symbol = kolor płyty (np. "RAL 9016", "Dąb"); fallback: przetłumaczona nazwa materiału
+        symbol: board.color || (board.material
+          ? (this.bomTranslations['MATERIAL.' + board.material] ?? MATERIAL_NAMES_PL[board.material] ?? board.material)
+          : ''),
         thickness: board.thickness,
         // sideY = wysokość płyty = kierunek słoja (długość)
         length: board.height,
@@ -863,7 +913,7 @@ export class KitchenPageComponent {
       : `kuchnia_${dateStr}`;
     const filename = namePart.replace(/[^\w\-ąęółśżźćńĄĘÓŁŚŻŹĆŃ]/g, '_') + '.xlsx';
 
-    this.excelService.downloadBoardList(rows, filename).subscribe({
+    this.excelService.downloadBoardList(rows, filename, this.languageService.lang()).subscribe({
       next: () => {
         this.isExporting = false;
       },

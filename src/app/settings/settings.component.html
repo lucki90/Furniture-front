@@ -571,6 +571,52 @@
           Dane firmy są drukowane w nagłówku i stopce oferty PDF dla klienta.
           Możesz uzupełnić dowolny podzbiór pól.
         </p>
+
+        <!-- Logo firmy -->
+        <div class="logo-field">
+          <div class="logo-field-label">
+            Logo firmy
+            <span class="logo-field-hint">· PNG / JPEG · max 500 KB</span>
+          </div>
+
+          <!-- Stan: brak logo -->
+          <div *ngIf="!companyLogoUrl" class="logo-dropzone">
+            <span class="logo-dropzone-icon">🖼️</span>
+            <span class="logo-dropzone-text">Nie ustawiono logo</span>
+            <label class="btn btn-sm logo-upload-btn" [class.disabled]="logoUploading">
+              <span *ngIf="logoUploading" class="spinner spinner-sm logo-spinner"></span>
+              {{ logoUploading ? 'Przesyłanie…' : 'Wybierz plik' }}
+              <input type="file" accept="image/png,image/jpeg"
+                     (change)="onLogoSelected($event)"
+                     [disabled]="logoUploading"
+                     style="display:none;" />
+            </label>
+          </div>
+
+          <!-- Stan: logo ustawione -->
+          <div *ngIf="companyLogoUrl" class="logo-filled">
+            <div class="logo-img-wrap">
+              <img [src]="companyLogoUrl" alt="Logo firmy" class="logo-img" />
+            </div>
+            <div class="logo-filled-actions">
+              <label class="btn btn-sm btn-outline" [class.disabled]="logoUploading">
+                <span *ngIf="logoUploading" class="spinner spinner-sm logo-spinner"></span>
+                {{ logoUploading ? 'Przesyłanie…' : 'Zmień' }}
+                <input type="file" accept="image/png,image/jpeg"
+                       (change)="onLogoSelected($event)"
+                       [disabled]="logoUploading"
+                       style="display:none;" />
+              </label>
+              <button class="btn btn-sm btn-danger-outline"
+                      (click)="removeLogo()" [disabled]="logoUploading">
+                Usuń
+              </button>
+            </div>
+          </div>
+
+          <p *ngIf="logoError" class="logo-error">{{ logoError }}</p>
+        </div>
+
         <div class="form-grid">
           <app-form-field label="Nazwa firmy" hint="Wyświetlana w nagłówku oferty (max 255 znaków)">
             <input type="text" class="form-control" [(ngModel)]="companyName" [disabled]="saving"

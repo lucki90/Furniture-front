@@ -2,16 +2,9 @@ import { Injectable } from '@angular/core';
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 
-// TODO i18n — BOARD_NAME: zastąpić TranslationService.getByCategory('BOARD_NAME', lang)
-// Klucze już są w DB (10-insert-translations.sql, PL+EN), ale brakuje nowszych typów płyt
-// dodanych w Fazie 2 (SEGMENT_DIVIDER_NAME, SINK_APRON, HOOD_SCREEN, CORNER_PANEL,
-// BLIND_PANEL, BIFOLD_INNER_FRONT, OVEN_APRON, OVEN_TRAY_FRONT) — dodać do migracji SQL.
-// Wymagana zmiana: aggregate() musi przyjmować boardTranslations: Record<string,string>
-// jako parametr (pre-loaded przed wywołaniem), bo metoda jest synchroniczna.
-// Wzorzec wywołania w kitchen-page.component.ts:
-//   translationService.getByCategory('BOARD_NAME', lang).subscribe(translations => {
-//     const result = aggregatorService.aggregate(response, walls, translations);
-//   });
+// Polskie fallback-i nazw płyt używane gdy tłumaczenia z backendu nie są jeszcze załadowane.
+// Backend zwraca klucze BOARD_NAME.* (np. "BOARD_NAME.SIDE_NAME").
+// Brakujące klucze zostały dodane do DB w migracji 25-board-name-translations.sql (Faza 9.3).
 const BOARD_NAME_PL: Record<string, string> = {
   'SIDE_NAME': 'Bok',
   'WREATH_NAME': 'Wieniec',
@@ -100,8 +93,12 @@ export class ProjectDetailsAggregatorService {
   /**
    * @param response  Backend calculation result for all walls.
    * @param frontendWalls  Frontend wall state (needed for plinth.thicknessMm override).
+   * @param bomTranslations  Optional flat translation map pre-loaded from backend
+   *   (keys like "BOARD_NAME.SIDE_NAME", "MATERIAL.CHIPBOARD").
+   *   When provided, used instead of hardcoded BOARD_NAME_PL for board labels.
+   *   Falls back to BOARD_NAME_PL when missing or not yet loaded.
    */
-  aggregate(response: MultiWallCalculateResponse, frontendWalls: WallWithCabinets[]): AggregationResult {
+  aggregate(response: MultiWallCalculateResponse, frontendWalls: WallWithCabinets[], bomTranslations?: Record<string, string>): AggregationResult {
     const boardsMap = new Map<string, AggregatedBoard>();
     const componentsMap = new Map<string, AggregatedComponent>();
     const jobsMap = new Map<string, AggregatedJob>();
@@ -146,7 +143,7 @@ export class ProjectDetailsAggregatorService {
               veneerX: board.veneerX ?? 0,
               veneerY: board.veneerY ?? 0,
               veneerColor: board.veneerColor ?? '',
-              boardLabel: BOARD_NAME_PL[board.boardName] ?? board.boardName,
+              boardLabel: bomTranslations?.['BOARD_NAME.' + board.boardName] ?? BOARD_NAME_PL[board.boardName] ?? board.boardName,
               cabinetRefs: [cabinetRef],
               remarks: boardRemarks || undefined
             });

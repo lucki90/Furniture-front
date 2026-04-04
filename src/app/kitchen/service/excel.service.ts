@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 
@@ -48,9 +48,11 @@ export class ExcelService {
    * Wysyła listę płyt do backendu, odbiera plik .xlsx i uruchamia pobieranie w przeglądarce.
    * @param rows — wiersze zamówienia (lista płyt)
    * @param filename — nazwa pobieranego pliku (domyślnie zamowienie_plyt.xlsx)
+   * @param lang — język nagłówków: "pl" (domyślnie) lub "en"
    */
-  downloadBoardList(rows: ExcelRowRequest[], filename = 'zamowienie_plyt.xlsx'): Observable<void> {
-    return this.http.post(this.downloadUrl, rows, { responseType: 'blob' }).pipe(
+  downloadBoardList(rows: ExcelRowRequest[], filename = 'zamowienie_plyt.xlsx', lang = 'pl'): Observable<void> {
+    const headers = new HttpHeaders({ 'Accept-Language': lang });
+    return this.http.post(this.downloadUrl, rows, { responseType: 'blob', headers }).pipe(
       tap((blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const anchor = document.createElement('a');

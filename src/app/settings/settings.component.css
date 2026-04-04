@@ -352,6 +352,121 @@ select.form-control {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Logo firmy ───────────────────────────────────────────────────────────── */
+
+.logo-field {
+  margin-bottom: 16px;
+}
+
+.logo-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.logo-field-hint {
+  font-weight: 400;
+  color: var(--text-muted, #94a3b8);
+  margin-left: 2px;
+}
+
+/* Empty state */
+.logo-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 16px;
+  border: 1.5px dashed var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  background: var(--bg-hover, #f8fafc);
+  text-align: center;
+}
+
+.logo-dropzone-icon {
+  font-size: 22px;
+  opacity: 0.35;
+  line-height: 1;
+}
+
+.logo-dropzone-text {
+  font-size: 12px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.logo-upload-btn {
+  cursor: pointer;
+  margin-top: 4px;
+  border: 1px solid var(--accent-color, #3b82f6);
+  color: var(--accent-color, #3b82f6);
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.logo-upload-btn:hover:not(.disabled) {
+  background: rgba(59, 130, 246, 0.07);
+}
+
+/* Filled state */
+.logo-filled {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  background: var(--bg-card, #fff);
+}
+
+.logo-img-wrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 110px;
+  height: 52px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.logo-img {
+  max-width: 106px;
+  max-height: 48px;
+  object-fit: contain;
+}
+
+.logo-filled-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-danger-outline {
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+}
+
+.btn-danger-outline:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.07);
+  border-color: #ef4444;
+}
+
+.logo-spinner {
+  border-color: rgba(100, 116, 139, 0.3);
+  border-top-color: var(--text-secondary, #64748b);
+}
+
+.logo-error {
+  margin: 6px 0 0 0;
+  font-size: 12px;
+  color: var(--error-color, #ef4444);
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .settings-page {
