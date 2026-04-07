@@ -1,11 +1,11 @@
-import { KitchenCabinetRequestMapper } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
 
 /**
  * Request mapper dla szafki wiszącej otwartej — bez drzwi (UPPER_OPEN_SHELF).
  */
 export class UpperOpenShelfRequestMapper implements KitchenCabinetRequestMapper {
 
-  map(form: any): any {
+  map(form: any, materialDefaults: MaterialDefaults): any {
     return {
       lang: 'pl',
       kitchenCabinetType: 'UPPER_OPEN_SHELF',
@@ -22,7 +22,7 @@ export class UpperOpenShelfRequestMapper implements KitchenCabinetRequestMapper 
       isBackInGroove: false,
       isFrontExtended: false,
       isCoveredWithCounterTop: false,
-      varnishedFront: false,
+      varnishedFront: materialDefaults.varnishedFront,
 
       frontType: 'OPEN',
       cabinetType: 'STANDARD',
@@ -31,14 +31,14 @@ export class UpperOpenShelfRequestMapper implements KitchenCabinetRequestMapper 
       drawerRequest: null,
 
       materialRequest: {
-        boxMaterial: 'CHIPBOARD',
-        boxBoardThickness: 18,
-        boxColor: 'WHITE',
-        frontMaterial: 'CHIPBOARD',
-        frontBoardThickness: 18,
-        frontColor: 'WHITE',
-        frontVeneerColor: 'WHITE',
-        boxVeneerColor: 'WHITE'
+        boxMaterial: materialDefaults.boxMaterial,
+        boxBoardThickness: materialDefaults.boxBoardThickness,
+        boxColor: materialDefaults.boxColor,
+        frontMaterial: materialDefaults.frontMaterial,
+        frontBoardThickness: materialDefaults.frontBoardThickness,
+        frontColor: materialDefaults.frontColor,
+        frontVeneerColor: materialDefaults.frontColor,
+        boxVeneerColor: materialDefaults.boxColor
       }
     };
   }

@@ -45,6 +45,7 @@ export class AppComponent implements OnInit {
           countertopThicknessMm: settings.defaultCountertopThicknessMm,
           upperFillerHeightMm: settings.defaultUpperFillerHeightMm
         });
+        this.kitchenStateService.setMaterialDefaults(settings);
       },
       error: (err) => {
         console.warn('Could not load user settings from server, using defaults.', err);

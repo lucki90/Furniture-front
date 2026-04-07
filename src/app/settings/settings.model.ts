@@ -44,6 +44,18 @@ export interface UserSettings {
   markupJobsPct: number;
   defaultDiscountPct: number;
 
+  // Domyślne materiały i kolory płyt
+  defaultBoxMaterial: string;
+  defaultBoxBoardThickness: number;
+  defaultBoxColor: string;
+  defaultFrontMaterial: string;
+  defaultFrontBoardThickness: number;
+  defaultFrontColor: string;
+  defaultBackMaterial: string;
+  defaultBackBoardThickness: number;
+  defaultSheetSizeMode: 'FULL' | 'HALF' | 'QUARTER';
+  defaultVarnishedFront: boolean;
+
   // Dane firmy (dla ofert PDF)
   companyName?: string;
   companyAddress?: string;
@@ -92,6 +104,16 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   markupComponentsPct: 0,
   markupJobsPct: 0,
   defaultDiscountPct: 0,
+  defaultBoxMaterial: 'CHIPBOARD',
+  defaultBoxBoardThickness: 18,
+  defaultBoxColor: 'WHITE',
+  defaultFrontMaterial: 'CHIPBOARD',
+  defaultFrontBoardThickness: 18,
+  defaultFrontColor: 'WHITE',
+  defaultBackMaterial: 'HDF',
+  defaultBackBoardThickness: 3,
+  defaultSheetSizeMode: 'FULL',
+  defaultVarnishedFront: false,
   companyName: '',
   companyAddress: '',
   companyPhone: '',

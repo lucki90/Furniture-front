@@ -1,9 +1,9 @@
-import {KitchenCabinetRequestMapper} from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { KitchenCabinetRequestMapper, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
 
 export class BaseOneDoorRequestMapper
   implements KitchenCabinetRequestMapper {
 
-  map(form: any): any {
+  map(form: any, materialDefaults: MaterialDefaults): any {
     return {
       lang: 'pl',
       kitchenCabinetType: 'BASE_ONE_DOOR',
@@ -20,7 +20,7 @@ export class BaseOneDoorRequestMapper
       isBackInGroove: false,
       isFrontExtended: false,
       isCoveredWithCounterTop: false,
-      varnishedFront: false,
+      varnishedFront: materialDefaults.varnishedFront,
 
       frontType: 'ONE_DOOR',
       cabinetType: 'STANDARD',
@@ -29,14 +29,14 @@ export class BaseOneDoorRequestMapper
       drawerRequest: null,
 
       materialRequest: {
-        boxMaterial: 'CHIPBOARD',
-        boxBoardThickness: 18,
-        boxColor: 'WHITE',
-        frontMaterial: 'CHIPBOARD',
-        frontBoardThickness: 18,
-        frontColor: 'WHITE',
-        frontVeneerColor: 'WHITE',
-        boxVeneerColor: 'WHITE'
+        boxMaterial: materialDefaults.boxMaterial,
+        boxBoardThickness: materialDefaults.boxBoardThickness,
+        boxColor: materialDefaults.boxColor,
+        frontMaterial: materialDefaults.frontMaterial,
+        frontBoardThickness: materialDefaults.frontBoardThickness,
+        frontColor: materialDefaults.frontColor,
+        frontVeneerColor: materialDefaults.frontColor,
+        boxVeneerColor: materialDefaults.boxColor
       }
     };
   }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
+import { resolveVeneerEdges } from './veneer-edge-resolver';
 
 // Polskie fallback-i nazw płyt używane gdy tłumaczenia z backendu nie są jeszcze załadowane.
 // Backend zwraca klucze BOARD_NAME.* (np. "BOARD_NAME.SIDE_NAME").
@@ -53,6 +54,8 @@ export interface AggregatedBoard {
    * - SIDE_NAME + GROOVE_FOR_HDF: "Frezowanie nutu pod HDF na boku Ymm"
    */
   remarks?: string;
+  /** Polski opis okleinowanych krawędzi, np. "przód, góra, dół". Pusty gdy brak okleiny. */
+  veneerEdgeLabel?: string;
 }
 
 export interface AggregatedComponent {
@@ -131,6 +134,9 @@ export class ProjectDetailsAggregatorService {
               boardRemarks = `Frezowanie nutu pod HDF na boku ${board.sideY}mm`;
             }
 
+            const vX = board.veneerX ?? 0;
+            const vY = board.veneerY ?? 0;
+            const veneerEdgeInfo = resolveVeneerEdges(board.boardName, vX, vY);
             this.addBoardToMap(boardsMap, {
               material: board.boardName,
               thickness: board.boardThickness,
@@ -140,12 +146,13 @@ export class ProjectDetailsAggregatorService {
               unitCost: board.priceEntry?.price ?? 0,
               totalCost: board.totalPrice,
               color: board.color,
-              veneerX: board.veneerX ?? 0,
-              veneerY: board.veneerY ?? 0,
+              veneerX: vX,
+              veneerY: vY,
               veneerColor: board.veneerColor ?? '',
               boardLabel: bomTranslations?.['BOARD_NAME.' + board.boardName] ?? BOARD_NAME_PL[board.boardName] ?? board.boardName,
               cabinetRefs: [cabinetRef],
-              remarks: boardRemarks || undefined
+              remarks: boardRemarks || undefined,
+              veneerEdgeLabel: veneerEdgeInfo.label || undefined
             });
           }
         }

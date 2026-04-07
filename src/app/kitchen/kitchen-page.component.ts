@@ -905,7 +905,8 @@ export class KitchenPageComponent {
         widthVeneer: board.veneerX ?? 0,    // liczba okleinowanych krawędzi (kierunek szerokości)
         veneerColor: board.veneerColor ?? '',
         sticker,
-        remarks: board.remarks ?? ''
+        remarks: board.remarks ?? '',
+        veneerEdgeLabel: board.veneerEdgeLabel ?? ''
       };
     });
 

@@ -437,6 +437,7 @@
                   <tr>
                     <th>Materiał</th>
                     <th>Wymiary (mm)</th>
+                    <th>Okleina krawędzi</th>
                     <th>Ilość</th>
                     <th>Cena jedn.</th>
                     <th>Cena całk.</th>
@@ -446,6 +447,7 @@
                   <tr *ngFor="let board of aggregatedBoards">
                     <td>{{ board.material }} ({{ board.thickness }}mm)</td>
                     <td>{{ board.width }} × {{ board.height }}</td>
+                    <td>{{ board.veneerEdgeLabel || '—' }}</td>
                     <td>{{ board.quantity }}</td>
                     <td>{{ board.unitCost.toFixed(2) }} zł</td>
                     <td class="text-right font-bold">{{ board.totalCost.toFixed(2) }} zł</td>
@@ -453,7 +455,7 @@
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colspan="4"><strong>Suma płyt (szafki + blat + cokół):</strong></td>
+                    <td colspan="5"><strong>Suma płyt (szafki + blat + cokół):</strong></td>
                     <td class="text-right"><strong>{{ totalAggregatedBoardsCost.toFixed(2) }} zł</strong></td>
                   </tr>
                 </tfoot>

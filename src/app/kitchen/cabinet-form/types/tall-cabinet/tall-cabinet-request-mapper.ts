@@ -1,5 +1,5 @@
 import { FormArray, FormGroup } from "@angular/forms";
-import { KitchenCabinetRequestMapper } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { KitchenCabinetRequestMapper, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
 import { mapSegmentToRequest, SegmentFormData, SegmentRequest } from "../../model/segment.model";
 
 /**
@@ -8,7 +8,7 @@ import { mapSegmentToRequest, SegmentFormData, SegmentRequest } from "../../mode
  */
 export class TallCabinetRequestMapper implements KitchenCabinetRequestMapper {
 
-  map(form: any): any {
+  map(form: any, materialDefaults: MaterialDefaults): any {
     // Mapuj segmenty z FormArray
     const segments = this.mapSegments(form.segments);
 
@@ -29,7 +29,7 @@ export class TallCabinetRequestMapper implements KitchenCabinetRequestMapper {
       isBackInGroove: false,
       isFrontExtended: false,
       isCoveredWithCounterTop: false,  // Słupek nie ma blatu
-      varnishedFront: false,
+      varnishedFront: materialDefaults.varnishedFront,
 
       // Dla szafki segmentowej frontType jest null - fronty są per segment
       frontType: null,
@@ -43,14 +43,14 @@ export class TallCabinetRequestMapper implements KitchenCabinetRequestMapper {
       segments: segments,
 
       materialRequest: {
-        boxMaterial: 'CHIPBOARD',
-        boxBoardThickness: 18,
-        boxColor: 'WHITE',
-        frontMaterial: 'CHIPBOARD',
-        frontBoardThickness: 18,
-        frontColor: 'WHITE',
-        frontVeneerColor: 'WHITE',
-        boxVeneerColor: 'WHITE'
+        boxMaterial: materialDefaults.boxMaterial,
+        boxBoardThickness: materialDefaults.boxBoardThickness,
+        boxColor: materialDefaults.boxColor,
+        frontMaterial: materialDefaults.frontMaterial,
+        frontBoardThickness: materialDefaults.frontBoardThickness,
+        frontColor: materialDefaults.frontColor,
+        frontVeneerColor: materialDefaults.frontColor,
+        boxVeneerColor: materialDefaults.boxColor
       }
     };
   }

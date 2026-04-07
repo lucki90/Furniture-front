@@ -15,7 +15,7 @@ import { PriceEditTableComponent, PriceSaveEvent } from './price-edit-table/pric
 import { TranslationService } from '../translation/translation.service';
 import { LanguageService } from '../service/language.service';
 import { MaterialAdminService } from '../admin/material/service/material-admin.service';
-import { MaterialOption } from '../admin/material/model/material-variant.model';
+import { BoardColorOptionResponse, MaterialOption } from '../admin/material/model/material-variant.model';
 
 @Component({
   selector: 'app-settings',
@@ -85,6 +85,22 @@ export class SettingsComponent implements OnInit {
   markupComponentsPct = 0;
   markupJobsPct = 0;
   defaultDiscountPct = 0;
+
+  // Form values — domyślne materiały i kolory płyt
+  defaultBoxMaterial = 'CHIPBOARD';
+  defaultBoxBoardThickness = 18;
+  defaultBoxColor = 'WHITE';
+  defaultFrontMaterial = 'CHIPBOARD';
+  defaultFrontBoardThickness = 18;
+  defaultFrontColor = 'WHITE';
+  defaultBackMaterial = 'HDF';
+  defaultBackBoardThickness = 3;
+  defaultSheetSizeMode: 'FULL' | 'HALF' | 'QUARTER' = 'FULL';
+  defaultVarnishedFront = false;
+
+  // Color options for box/front dropdowns — loaded from backend when material changes
+  boxColorOptions: BoardColorOptionResponse[] = [];
+  frontColorOptions: BoardColorOptionResponse[] = [];
 
   // Form values — dane firmy
   companyName = '';
@@ -264,6 +280,71 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  /** Called when box material select changes — rebuild color list and keep/reset current color. */
+  onBoxMaterialChange(materialCode: string): void {
+    this.defaultBoxMaterial = materialCode;
+    this.rebuildColorOptions();
+  }
+
+  /** Called when front material select changes — rebuild colors, enforce varnished-only-for-MDF rule. */
+  onFrontMaterialChange(materialCode: string): void {
+    this.defaultFrontMaterial = materialCode;
+    if (materialCode !== 'MDF') {
+      // Only MDF fronts can be varnished — auto-clear when switching away
+      this.defaultVarnishedFront = false;
+    }
+    this.rebuildColorOptions();
+  }
+
+  /**
+   * Rebuilds box/front color option arrays from the already-loaded boardPrices.
+   * Source of truth = "Cennik płyt" — same data, no extra API call.
+   * Called after boardPrices load and after any material change.
+   */
+  rebuildColorOptions(): void {
+    this.boxColorOptions = this.colorOptionsForMaterial(this.defaultBoxMaterial);
+    this.frontColorOptions = this.colorOptionsForMaterial(this.defaultFrontMaterial);
+
+    // Reset selected color if it no longer exists in the new list
+    if (this.boxColorOptions.length > 0 &&
+        !this.boxColorOptions.some(o => o.colorCode === this.defaultBoxColor)) {
+      this.defaultBoxColor = this.boxColorOptions[0].colorCode;
+    }
+    if (this.frontColorOptions.length > 0 &&
+        !this.frontColorOptions.some(o => o.colorCode === this.defaultFrontColor)) {
+      this.defaultFrontColor = this.frontColorOptions[0].colorCode;
+    }
+  }
+
+  /** Extracts distinct colors for a given materialCode from the board price list, sorted by name. */
+  private colorOptionsForMaterial(materialCode: string): BoardColorOptionResponse[] {
+    const seen = new Set<string>();
+    const result: BoardColorOptionResponse[] = [];
+    for (const bp of this.boardPrices) {
+      if (bp.materialCode === materialCode && !seen.has(bp.colorCode)) {
+        seen.add(bp.colorCode);
+        result.push({
+          colorCode: bp.colorCode,
+          colorName: bp.colorName,
+          colorHex: bp.colorHex,
+          varnished: bp.varnished
+        });
+      }
+    }
+    return result.sort((a, b) =>
+      (a.colorName ?? a.colorCode).localeCompare(b.colorName ?? b.colorCode));
+  }
+
+  /** Returns true when varnished front is allowed (only MDF fronts can be varnished). */
+  get canVarnishFront(): boolean {
+    return this.defaultFrontMaterial === 'MDF';
+  }
+
+  /** Returns hex color for a given colorCode from the provided options list. */
+  getColorHex(options: BoardColorOptionResponse[], colorCode: string): string | null {
+    return options.find(o => o.colorCode === colorCode)?.colorHex ?? null;
+  }
+
   loadOptions(): void {
     this.settingsService.getOptions().subscribe({
       next: (options: SettingsOptions) => {
@@ -319,6 +400,19 @@ export class SettingsComponent implements OnInit {
         this.markupComponentsPct = Number(settings.markupComponentsPct ?? 0);
         this.markupJobsPct = Number(settings.markupJobsPct ?? 0);
         this.defaultDiscountPct = Number(settings.defaultDiscountPct ?? 0);
+        // Domyślne materiały
+        this.defaultBoxMaterial = settings.defaultBoxMaterial ?? 'CHIPBOARD';
+        this.defaultBoxBoardThickness = settings.defaultBoxBoardThickness ?? 18;
+        this.defaultBoxColor = settings.defaultBoxColor ?? 'WHITE';
+        this.defaultFrontMaterial = settings.defaultFrontMaterial ?? 'CHIPBOARD';
+        this.defaultFrontBoardThickness = settings.defaultFrontBoardThickness ?? 18;
+        this.defaultFrontColor = settings.defaultFrontColor ?? 'WHITE';
+        this.defaultBackMaterial = settings.defaultBackMaterial ?? 'HDF';
+        this.defaultBackBoardThickness = settings.defaultBackBoardThickness ?? 3;
+        this.defaultSheetSizeMode = (settings.defaultSheetSizeMode as 'FULL' | 'HALF' | 'QUARTER') ?? 'FULL';
+        this.defaultVarnishedFront = settings.defaultVarnishedFront ?? false;
+        // Rebuild color dropdowns using loaded material (boardPrices may already be ready)
+        this.rebuildColorOptions();
         // Dane firmy
         this.companyName = settings.companyName ?? '';
         this.companyAddress = settings.companyAddress ?? '';
@@ -372,6 +466,16 @@ export class SettingsComponent implements OnInit {
       markupComponentsPct: this.markupComponentsPct,
       markupJobsPct: this.markupJobsPct,
       defaultDiscountPct: this.defaultDiscountPct,
+      defaultBoxMaterial: this.defaultBoxMaterial,
+      defaultBoxBoardThickness: this.defaultBoxBoardThickness,
+      defaultBoxColor: this.defaultBoxColor,
+      defaultFrontMaterial: this.defaultFrontMaterial,
+      defaultFrontBoardThickness: this.defaultFrontBoardThickness,
+      defaultFrontColor: this.defaultFrontColor,
+      defaultBackMaterial: this.defaultBackMaterial,
+      defaultBackBoardThickness: this.defaultBackBoardThickness,
+      defaultSheetSizeMode: this.defaultSheetSizeMode,
+      defaultVarnishedFront: this.defaultVarnishedFront,
       companyName: this.companyName || undefined,
       companyAddress: this.companyAddress || undefined,
       companyPhone: this.companyPhone || undefined,
@@ -393,6 +497,7 @@ export class SettingsComponent implements OnInit {
           supportHeightReductionMm: updated.defaultSupportHeightReductionMm ?? 30,
           supportWidthReductionMm: updated.defaultSupportWidthReductionMm ?? 50
         });
+        this.kitchenStateService.setMaterialDefaults(updated);
 
         this.saving = false;
         this.savedSuccess = true;
@@ -417,6 +522,8 @@ export class SettingsComponent implements OnInit {
       next: (prices) => {
         this.boardPrices = prices;
         this.boardPricesLoading = false;
+        // Rebuild color dropdowns now that board prices are available
+        this.rebuildColorOptions();
       },
       error: () => {
         this.boardPricesError = 'Nie udało się załadować cennika płyt.';

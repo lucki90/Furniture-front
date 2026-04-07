@@ -2,6 +2,14 @@ import { Page } from '../../price/model/price-entry.model';
 
 // ============ Board Variants ============
 
+/** Lightweight response for color dropdowns in settings UI. */
+export interface BoardColorOptionResponse {
+  colorCode: string;
+  colorName: string | null;
+  colorHex: string | null;
+  varnished: boolean;
+}
+
 export interface BoardVariantAdminResponse {
   id: number;
   materialId: number;

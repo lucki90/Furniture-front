@@ -1,8 +1,8 @@
-import { KitchenCabinetRequestMapper } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
 
 export class BaseSinkRequestMapper implements KitchenCabinetRequestMapper {
 
-  map(form: any): any {
+  map(form: any, materialDefaults: MaterialDefaults): any {
     const sinkFrontType: string = form.sinkFrontType ?? 'TWO_DOORS';
     const isDrawer = sinkFrontType === 'DRAWER';
 
@@ -22,7 +22,7 @@ export class BaseSinkRequestMapper implements KitchenCabinetRequestMapper {
       isBackInGroove: false,
       isFrontExtended: false,
       isCoveredWithCounterTop: false,
-      varnishedFront: false,
+      varnishedFront: materialDefaults.varnishedFront,
 
       openingType: form.openingType ?? 'HANDLE',
 
@@ -40,14 +40,14 @@ export class BaseSinkRequestMapper implements KitchenCabinetRequestMapper {
       } : null,
 
       materialRequest: {
-        boxMaterial: 'CHIPBOARD',
-        boxBoardThickness: 18,
-        boxColor: 'WHITE',
-        frontMaterial: 'CHIPBOARD',
-        frontBoardThickness: 18,
-        frontColor: 'WHITE',
-        frontVeneerColor: 'WHITE',
-        boxVeneerColor: 'WHITE'
+        boxMaterial: materialDefaults.boxMaterial,
+        boxBoardThickness: materialDefaults.boxBoardThickness,
+        boxColor: materialDefaults.boxColor,
+        frontMaterial: materialDefaults.frontMaterial,
+        frontBoardThickness: materialDefaults.frontBoardThickness,
+        frontColor: materialDefaults.frontColor,
+        frontVeneerColor: materialDefaults.frontColor,
+        boxVeneerColor: materialDefaults.boxColor
       }
     };
   }

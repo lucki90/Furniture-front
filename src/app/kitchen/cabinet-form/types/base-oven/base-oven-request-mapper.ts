@@ -1,11 +1,11 @@
-import { KitchenCabinetRequestMapper } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
 
 /**
  * Request mapper dla szafki na wbudowany piekarnik (BASE_OVEN).
  */
 export class BaseOvenRequestMapper implements KitchenCabinetRequestMapper {
 
-  map(form: any): any {
+  map(form: any, materialDefaults: MaterialDefaults): any {
     const ovenApronEnabled: boolean = form.ovenApronEnabled ?? false;
 
     return {
@@ -24,7 +24,7 @@ export class BaseOvenRequestMapper implements KitchenCabinetRequestMapper {
       isBackInGroove: false,
       isFrontExtended: false,
       isCoveredWithCounterTop: false,
-      varnishedFront: false,
+      varnishedFront: materialDefaults.varnishedFront,
 
       cabinetType: 'BASE_OVEN',
       openingType: form.openingType ?? 'HANDLE',
@@ -47,14 +47,14 @@ export class BaseOvenRequestMapper implements KitchenCabinetRequestMapper {
         : null,
 
       materialRequest: {
-        boxMaterial: 'CHIPBOARD',
-        boxBoardThickness: 18,
-        boxColor: form.materialRequest?.boxColor ?? 'WHITE',
-        frontMaterial: 'CHIPBOARD',
-        frontBoardThickness: 18,
-        frontColor: form.materialRequest?.frontColor ?? 'WHITE',
-        frontVeneerColor: form.materialRequest?.frontVeneerColor ?? 'WHITE',
-        boxVeneerColor: form.materialRequest?.boxVeneerColor ?? 'WHITE'
+        boxMaterial: materialDefaults.boxMaterial,
+        boxBoardThickness: materialDefaults.boxBoardThickness,
+        boxColor: materialDefaults.boxColor,
+        frontMaterial: materialDefaults.frontMaterial,
+        frontBoardThickness: materialDefaults.frontBoardThickness,
+        frontColor: materialDefaults.frontColor,
+        frontVeneerColor: materialDefaults.frontColor,
+        boxVeneerColor: materialDefaults.boxColor
       }
     };
   }

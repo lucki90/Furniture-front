@@ -2,6 +2,40 @@
    SETTINGS PAGE
    ============================================ */
 
+/* Color swatch next to color select dropdown */
+.color-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-select-wrapper .form-control {
+  flex: 1;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+/* Checkbox label — disabled state (non-MDF material) */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .settings-page {
   max-width: 640px;
   margin: 0 auto;
@@ -170,6 +204,15 @@
   color: var(--text-muted, #94a3b8);
   margin: 0 0 12px 0;
   line-height: 1.5;
+}
+
+.subsection-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #334155);
+  margin: 16px 0 8px 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color, #e2e8f0);
 }
 
 /* Inactive material row in board price table */

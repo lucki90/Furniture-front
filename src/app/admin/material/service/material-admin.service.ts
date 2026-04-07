@@ -17,7 +17,8 @@ import {
   JobOption,
   BulkPriceUpdateRequest,
   BulkPriceUpdateResponse,
-  CsvImportResultResponse
+  CsvImportResultResponse,
+  BoardColorOptionResponse
 } from '../model/material-variant.model';
 
 @Injectable({
@@ -51,6 +52,15 @@ export class MaterialAdminService {
 
   getJobOptions(): Observable<JobOption[]> {
     return this.http.get<JobOption[]>(`${this.baseUrl}/options/jobs`);
+  }
+
+  /**
+   * Returns distinct active color options for a given material (for settings color dropdowns).
+   * Calls GET /admin/materials/options/board-colors?materialCode=X
+   */
+  getBoardColorOptions(materialCode: string): Observable<BoardColorOptionResponse[]> {
+    const params = new HttpParams().set('materialCode', materialCode);
+    return this.http.get<BoardColorOptionResponse[]>(`${this.baseUrl}/options/board-colors`, { params });
   }
 
   // ============ BOARD VARIANTS ============

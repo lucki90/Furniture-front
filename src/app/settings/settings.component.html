@@ -223,7 +223,138 @@
         </div>
       </mat-expansion-panel>
 
-      <!-- SEKCJA 5: Marże i rabaty -->
+      <!-- SEKCJA 5: Domyślne materiały i kolory płyt -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="panel-icon">palette</mat-icon>
+            Domyślne materiały i kolory płyt
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <p class="section-hint">
+          Materiał i kolor stosowane domyślnie przy kalkulacji nowych szafek.
+          Można nadpisać per-szafka w przyszłości. Zmiany dotyczą tylko nowych kalkulacji.
+        </p>
+
+        <p class="subsection-title">Korpus szafki</p>
+        <div class="form-grid">
+          <app-form-field label="Materiał korpusu" hint="Materiał płyt korpusu (boki, wieńce, półki)">
+            <select class="form-control" [ngModel]="defaultBoxMaterial" (ngModelChange)="onBoxMaterialChange($event)" [disabled]="saving">
+              <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
+              <option value="MDF">MDF</option>
+              <option value="MDF_LAMINATED">MDF laminowany</option>
+            </select>
+          </app-form-field>
+
+          <app-form-field label="Grubość korpusu" unit="mm" hint="Grubość płyt korpusu (typowo 18mm)">
+            <select class="form-control" [(ngModel)]="defaultBoxBoardThickness" [disabled]="saving">
+              <option [ngValue]="16">16 mm</option>
+              <option [ngValue]="18">18 mm</option>
+              <option [ngValue]="22">22 mm</option>
+              <option [ngValue]="25">25 mm</option>
+              <option [ngValue]="28">28 mm</option>
+            </select>
+          </app-form-field>
+
+          <app-form-field label="Kolor korpusu" hint="Kolor płyt korpusu — lista pochodzi z dodanych wariantów płyt">
+            <div class="color-select-wrapper">
+              <ng-container *ngIf="boxColorOptions.length > 0; else boxColorFallback">
+                <select class="form-control" [(ngModel)]="defaultBoxColor" [disabled]="saving">
+                  <option *ngFor="let opt of boxColorOptions" [value]="opt.colorCode">
+                    {{ opt.colorName || opt.colorCode }}
+                  </option>
+                </select>
+                <span class="color-swatch" *ngIf="getColorHex(boxColorOptions, defaultBoxColor) as hex"
+                      [style.background]="hex" title="{{ hex }}"></span>
+              </ng-container>
+              <ng-template #boxColorFallback>
+                <input type="text" class="form-control" [(ngModel)]="defaultBoxColor" [disabled]="saving" maxlength="100"
+                       placeholder="np. WHITE, OAK_NATURAL" />
+              </ng-template>
+            </div>
+          </app-form-field>
+        </div>
+
+        <p class="subsection-title">Front szafki</p>
+        <div class="form-grid">
+          <app-form-field label="Materiał frontu" hint="Materiał płyt frontów">
+            <select class="form-control" [ngModel]="defaultFrontMaterial" (ngModelChange)="onFrontMaterialChange($event)" [disabled]="saving">
+              <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
+              <option value="MDF">MDF</option>
+              <option value="MDF_LAMINATED">MDF laminowany</option>
+            </select>
+          </app-form-field>
+
+          <app-form-field label="Grubość frontu" unit="mm" hint="Grubość płyt frontów (typowo 18mm)">
+            <select class="form-control" [(ngModel)]="defaultFrontBoardThickness" [disabled]="saving">
+              <option [ngValue]="16">16 mm</option>
+              <option [ngValue]="18">18 mm</option>
+              <option [ngValue]="22">22 mm</option>
+              <option [ngValue]="25">25 mm</option>
+              <option [ngValue]="28">28 mm</option>
+            </select>
+          </app-form-field>
+
+          <app-form-field label="Kolor frontu" hint="Kolor płyt frontów — lista pochodzi z dodanych wariantów płyt">
+            <div class="color-select-wrapper">
+              <ng-container *ngIf="frontColorOptions.length > 0; else frontColorFallback">
+                <select class="form-control" [(ngModel)]="defaultFrontColor" [disabled]="saving">
+                  <option *ngFor="let opt of frontColorOptions" [value]="opt.colorCode">
+                    {{ opt.colorName || opt.colorCode }}
+                  </option>
+                </select>
+                <span class="color-swatch" *ngIf="getColorHex(frontColorOptions, defaultFrontColor) as hex"
+                      [style.background]="hex" title="{{ hex }}"></span>
+              </ng-container>
+              <ng-template #frontColorFallback>
+                <input type="text" class="form-control" [(ngModel)]="defaultFrontColor" [disabled]="saving" maxlength="100"
+                       placeholder="np. ANTHRACITE, WHITE" />
+              </ng-template>
+            </div>
+          </app-form-field>
+
+          <app-form-field label="Domyślnie lakierowany front"
+                         [hint]="canVarnishFront ? 'Fronty MDF lakierowane — okleina krawędzi nie jest liczona' : 'Lakierowanie dostępne tylko dla MDF'">
+            <label class="checkbox-label" [class.disabled]="!canVarnishFront || saving">
+              <input type="checkbox" [(ngModel)]="defaultVarnishedFront"
+                     [disabled]="saving || !canVarnishFront" />
+              <span>Front lakierowany</span>
+            </label>
+          </app-form-field>
+        </div>
+
+        <p class="subsection-title">Tył szafki (HDF)</p>
+        <div class="form-grid">
+          <app-form-field label="Materiał tyłu" hint="Materiał tylnej ścianki (zazwyczaj HDF)">
+            <select class="form-control" [(ngModel)]="defaultBackMaterial" [disabled]="saving">
+              <option value="HDF">HDF</option>
+              <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
+            </select>
+          </app-form-field>
+
+          <app-form-field label="Grubość tyłu" unit="mm" hint="Grubość tylnej ścianki HDF (typowo 3mm)">
+            <select class="form-control" [(ngModel)]="defaultBackBoardThickness" [disabled]="saving">
+              <option [ngValue]="3">3 mm</option>
+              <option [ngValue]="4">4 mm</option>
+              <option [ngValue]="6">6 mm</option>
+            </select>
+          </app-form-field>
+        </div>
+
+        <p class="subsection-title">Kalkulacja odpadu arkuszowego</p>
+        <div class="form-grid">
+          <app-form-field label="Rozmiar arkusza" hint="Maksymalny rozmiar arkusza w obliczeniach odpadu (FULL = 2800×2070, HALF = 2800×1035, QUARTER = 1400×1035)">
+            <select class="form-control" [(ngModel)]="defaultSheetSizeMode" [disabled]="saving">
+              <option value="FULL">Pełny arkusz (2800×2070 mm)</option>
+              <option value="HALF">Pół arkusza (2800×1035 mm)</option>
+              <option value="QUARTER">Ćwierć arkusza (1400×1035 mm)</option>
+            </select>
+          </app-form-field>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- SEKCJA 6: Marże i rabaty -->
       <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>

@@ -1,4 +1,4 @@
-import { KitchenCabinetRequestMapper } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
 
 /**
  * Request mapper dla szafki wiszącej kaskadowej (UPPER_CASCADE).
@@ -13,7 +13,7 @@ import { KitchenCabinetRequestMapper } from '../../type-config/request-mapper/ki
  */
 export class UpperCascadeRequestMapper implements KitchenCabinetRequestMapper {
 
-  map(form: any): any {
+  map(form: any, materialDefaults: MaterialDefaults): any {
     const lowerHeight = form.cascadeLowerHeight ?? 400;
     const lowerDepth = form.cascadeLowerDepth ?? 300;
     const upperHeight = form.cascadeUpperHeight ?? 320;
@@ -40,7 +40,7 @@ export class UpperCascadeRequestMapper implements KitchenCabinetRequestMapper {
       isBackInGroove: false,
       isFrontExtended: false,   // per-segment tylko (cascadeSegments[0].isFrontExtended)
       isCoveredWithCounterTop: false,
-      varnishedFront: false,
+      varnishedFront: materialDefaults.varnishedFront,
 
       frontType: 'ONE_DOOR',    // per-segment (getEffectiveFrontType() wywołuje backend)
       cabinetType: 'STANDARD',
@@ -70,14 +70,14 @@ export class UpperCascadeRequestMapper implements KitchenCabinetRequestMapper {
       ],
 
       materialRequest: {
-        boxMaterial: 'CHIPBOARD',
-        boxBoardThickness: 18,
-        boxColor: 'WHITE',
-        frontMaterial: 'CHIPBOARD',
-        frontBoardThickness: 18,
-        frontColor: 'WHITE',
-        frontVeneerColor: 'WHITE',
-        boxVeneerColor: 'WHITE'
+        boxMaterial: materialDefaults.boxMaterial,
+        boxBoardThickness: materialDefaults.boxBoardThickness,
+        boxColor: materialDefaults.boxColor,
+        frontMaterial: materialDefaults.frontMaterial,
+        frontBoardThickness: materialDefaults.frontBoardThickness,
+        frontColor: materialDefaults.frontColor,
+        frontVeneerColor: materialDefaults.frontColor,
+        boxVeneerColor: materialDefaults.boxColor
       }
     };
   }

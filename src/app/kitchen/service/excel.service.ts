@@ -33,6 +33,8 @@ export interface ExcelRowRequest {
    * Kolumna gotowa, automatyczne generowanie uwag w kolejnej iteracji
    */
   remarks: string;
+  /** Polski opis okleinowanych krawędzi, np. "przód, góra, dół". Pusty gdy brak okleiny. */
+  veneerEdgeLabel: string;
 }
 
 @Injectable({

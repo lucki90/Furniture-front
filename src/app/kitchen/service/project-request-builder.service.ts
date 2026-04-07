@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { MaterialDefaults, DEFAULT_MATERIAL_DEFAULTS } from '../cabinet-form/type-config/request-mapper/kitchen-cabinet-request-mapper';
 import {
   KitchenCabinet,
   CabinetCalculationResult,
@@ -27,6 +28,7 @@ export interface WallBuildSettings {
   countertopThicknessMm: number;
   upperFillerHeightMm: number;
   fillerWidthMm: number;
+  materialDefaults?: MaterialDefaults;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -54,6 +56,7 @@ export class ProjectRequestBuilderService {
       let currentXTop = 0;
 
       const { plinthHeightMm, countertopThicknessMm, upperFillerHeightMm, fillerWidthMm } = settings;
+      const md = settings.materialDefaults ?? DEFAULT_MATERIAL_DEFAULTS;
       const wallH = wall.heightMm;
 
       const bottomCabsInWall = wall.cabinets.filter(c => requiresCountertop(c.type));
@@ -169,16 +172,19 @@ export class ProjectRequestBuilderService {
           positionX: posX,
           positionY: computedPosY,
           shelfQuantity: cab.shelfQuantity,
-          varnishedFront: false,
+          // TODO: per-projekt overrides — gdy projekt/szafka ma nadpisane materiały/kolory/okleiny,
+          //   użyj ich zamiast globalnych defaults `md`. Patrz kitchen-state.service.ts → TODO ProjectMaterialOverrides.
+          //   Priorytet: cab.materialOverride ?? md (per szafka) → wall.materialOverride ?? md (per ściana) → md (global)
+          varnishedFront: md.varnishedFront,
           materialRequest: {
-            boxMaterial: 'CHIPBOARD',
-            boxBoardThickness: 18,
-            boxColor: 'WHITE',
-            boxVeneerColor: 'WHITE',
-            frontMaterial: 'CHIPBOARD',
-            frontBoardThickness: 18,
-            frontColor: 'WHITE',
-            frontVeneerColor: 'WHITE'
+            boxMaterial: md.boxMaterial,
+            boxBoardThickness: md.boxBoardThickness,
+            boxColor: md.boxColor,
+            boxVeneerColor: md.boxColor,   // TODO: osobny override koloru okleiny korpusu
+            frontMaterial: md.frontMaterial,
+            frontBoardThickness: md.frontBoardThickness,
+            frontColor: md.frontColor,
+            frontVeneerColor: md.frontColor // TODO: osobny override koloru okleiny frontu
           },
           drawerRequest,
           segments,

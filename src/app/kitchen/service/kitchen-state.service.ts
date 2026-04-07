@@ -33,6 +33,7 @@ import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
+import { MaterialDefaults, DEFAULT_MATERIAL_DEFAULTS } from '../cabinet-form/type-config/request-mapper/kitchen-cabinet-request-mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -95,6 +96,15 @@ export class KitchenStateService {
   private _frontGapMm = signal<number>(2);                 // Szczelina frontowa
   private _supportHeightReductionMm = signal<number>(30);  // Zmniejszenie podpory (H)
   private _supportWidthReductionMm = signal<number>(50);   // Zmniejszenie podpory (W)
+
+  // Domyślne materiały — signal, aktualizowany przez setMaterialDefaults() z app.component.ts
+  // TODO: per-projekt overrides materiałów (kolor korpusu/frontu/tyłu, grubości, okleina, lakierowanie)
+  //   Pomysł implementacji: każdy projekt (KitchenWall?) może mieć opcjonalne MaterialOverrides,
+  //   które nadpisują globalny materialDefaults signal tylko dla tego projektu/ściany.
+  //   Nowe pole: ProjectMaterialOverrides { boxColorOverride?, frontColorOverride?, varnishedFrontOverride?,
+  //              frontVeneerColorOverride?, boxVeneerColorOverride? } — null = użyj globalnego defaultu.
+  //   UI: panel "Nadpisz materiały" per projekt, toggle dla każdego pola.
+  readonly materialDefaults = signal<MaterialDefaults>({ ...DEFAULT_MATERIAL_DEFAULTS });
 
   // Globalne defaults z user_settings DB — cache używany przez clearAll() i addWall()
   // Ustawiane JEDNOKROTNIE przy starcie przez setGlobalDefaults() z app.component.ts
@@ -514,6 +524,34 @@ export class KitchenStateService {
 
     // Zastosuj od razu do live signals (żeby bieżący stan też był spójny)
     this.updateProjectSettings(settings);
+  }
+
+  /**
+   * Ustawia domyślne materiały płyt z user_settings.
+   * Wywoływać po załadowaniu ustawień z serwera (app.component.ts).
+   */
+  setMaterialDefaults(settings: {
+    defaultBoxMaterial?: string;
+    defaultBoxBoardThickness?: number;
+    defaultBoxColor?: string;
+    defaultFrontMaterial?: string;
+    defaultFrontBoardThickness?: number;
+    defaultFrontColor?: string;
+    defaultBackMaterial?: string;
+    defaultBackBoardThickness?: number;
+    defaultVarnishedFront?: boolean;
+  }): void {
+    this.materialDefaults.set({
+      boxMaterial: settings.defaultBoxMaterial ?? DEFAULT_MATERIAL_DEFAULTS.boxMaterial,
+      boxBoardThickness: settings.defaultBoxBoardThickness ?? DEFAULT_MATERIAL_DEFAULTS.boxBoardThickness,
+      boxColor: settings.defaultBoxColor ?? DEFAULT_MATERIAL_DEFAULTS.boxColor,
+      frontMaterial: settings.defaultFrontMaterial ?? DEFAULT_MATERIAL_DEFAULTS.frontMaterial,
+      frontBoardThickness: settings.defaultFrontBoardThickness ?? DEFAULT_MATERIAL_DEFAULTS.frontBoardThickness,
+      frontColor: settings.defaultFrontColor ?? DEFAULT_MATERIAL_DEFAULTS.frontColor,
+      backMaterial: settings.defaultBackMaterial ?? DEFAULT_MATERIAL_DEFAULTS.backMaterial,
+      backBoardThickness: settings.defaultBackBoardThickness ?? DEFAULT_MATERIAL_DEFAULTS.backBoardThickness,
+      varnishedFront: settings.defaultVarnishedFront ?? DEFAULT_MATERIAL_DEFAULTS.varnishedFront
+    });
   }
 
   // ============ COUNTERTOP & PLINTH CONFIG ============
@@ -1154,7 +1192,8 @@ export class KitchenStateService {
       plinthHeightMm: this._plinthHeightMm(),
       countertopThicknessMm: this._countertopThicknessMm(),
       upperFillerHeightMm: this._upperFillerHeightMm(),
-      fillerWidthMm: this._fillerWidthMm()
+      fillerWidthMm: this._fillerWidthMm(),
+      materialDefaults: this.materialDefaults()
     });
   }
 

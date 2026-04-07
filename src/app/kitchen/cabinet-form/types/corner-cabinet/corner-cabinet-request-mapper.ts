@@ -1,4 +1,4 @@
-import { KitchenCabinetRequestMapper } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { KitchenCabinetRequestMapper, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
 import {
   CornerMechanismType,
   CornerOpeningType,
@@ -11,16 +11,16 @@ import {
  */
 export class CornerCabinetRequestMapper implements KitchenCabinetRequestMapper {
 
-  map(form: any): any {
+  map(form: any, materialDefaults: MaterialDefaults): any {
     const mechanism = (form.cornerMechanism ?? CornerMechanismType.FIXED_SHELVES) as CornerMechanismType;
     const typeB = isBlindType(mechanism);
 
-    return typeB ? this.mapTypeB(form, mechanism) : this.mapTypeA(form, mechanism);
+    return typeB ? this.mapTypeB(form, mechanism, materialDefaults) : this.mapTypeA(form, mechanism, materialDefaults);
   }
 
   // ==================== TYPE A (L-SHAPED) ====================
 
-  private mapTypeA(form: any, mechanism: CornerMechanismType): any {
+  private mapTypeA(form: any, mechanism: CornerMechanismType, materialDefaults: MaterialDefaults): any {
     const isUpper = form.isUpperCorner ?? false;
     const openingType = (form.cornerOpeningType ?? CornerOpeningType.TWO_DOORS) as CornerOpeningType;
 
@@ -60,7 +60,7 @@ export class CornerCabinetRequestMapper implements KitchenCabinetRequestMapper {
       isBackInGroove: false,
       isFrontExtended: false,
       isCoveredWithCounterTop: !isUpper,
-      varnishedFront: false,
+      varnishedFront: materialDefaults.varnishedFront,
 
       frontType: frontType,
       cabinetType: 'CORNER',
@@ -70,13 +70,13 @@ export class CornerCabinetRequestMapper implements KitchenCabinetRequestMapper {
       segments: null,
 
       cornerRequest: cornerRequest,
-      materialRequest: this.buildMaterialRequest()
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 
   // ==================== TYPE B (BLIND/RECTANGULAR) ====================
 
-  private mapTypeB(form: any, mechanism: CornerMechanismType): any {
+  private mapTypeB(form: any, mechanism: CornerMechanismType, materialDefaults: MaterialDefaults): any {
     const cornerRequest = {
       widthA: form.cornerWidthA,
       widthB: null,  // Type B nie ma widthB
@@ -107,7 +107,7 @@ export class CornerCabinetRequestMapper implements KitchenCabinetRequestMapper {
       isBackInGroove: false,
       isFrontExtended: false,
       isCoveredWithCounterTop: true,
-      varnishedFront: false,
+      varnishedFront: materialDefaults.varnishedFront,
 
       frontType: 'CORNER_BLIND',
       cabinetType: 'CORNER_BLIND',
@@ -117,22 +117,22 @@ export class CornerCabinetRequestMapper implements KitchenCabinetRequestMapper {
       segments: null,
 
       cornerRequest: cornerRequest,
-      materialRequest: this.buildMaterialRequest()
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 
   // ==================== COMMON ====================
 
-  private buildMaterialRequest(): any {
+  private buildMaterialRequest(materialDefaults: MaterialDefaults): any {
     return {
-      boxMaterial: 'CHIPBOARD',
-      boxBoardThickness: 18,
-      boxColor: 'WHITE',
-      frontMaterial: 'CHIPBOARD',
-      frontBoardThickness: 18,
-      frontColor: 'WHITE',
-      frontVeneerColor: 'WHITE',
-      boxVeneerColor: 'WHITE'
+      boxMaterial: materialDefaults.boxMaterial,
+      boxBoardThickness: materialDefaults.boxBoardThickness,
+      boxColor: materialDefaults.boxColor,
+      frontMaterial: materialDefaults.frontMaterial,
+      frontBoardThickness: materialDefaults.frontBoardThickness,
+      frontColor: materialDefaults.frontColor,
+      frontVeneerColor: materialDefaults.frontColor,
+      boxVeneerColor: materialDefaults.boxColor
     };
   }
 }

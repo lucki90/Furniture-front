@@ -559,7 +559,7 @@ export class CabinetFormComponent implements OnChanges {
     const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;
     const mapper = KitchenCabinetTypeConfig[type].requestMapper;
     const formData = this.form.getRawValue();
-    const request = mapper.map(formData);
+    const request = mapper.map(formData, this.stateService.materialDefaults());
 
     this.kitchenService.calculateCabinet(request).subscribe({
       next: res => {

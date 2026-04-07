@@ -1,4 +1,4 @@
-import { KitchenCabinetRequestMapper } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
 import { mapSegmentToRequest, SegmentFormData, SegmentRequest, SegmentType } from '../../model/segment.model';
 
 /**
@@ -11,7 +11,7 @@ import { mapSegmentToRequest, SegmentFormData, SegmentRequest, SegmentType } fro
  */
 export class BaseFridgeRequestMapper implements KitchenCabinetRequestMapper {
 
-  map(form: any): any {
+  map(form: any, materialDefaults: MaterialDefaults): any {
     const sectionType: string = form.fridgeSectionType ?? 'TWO_DOORS';
     const shelfQuantity: number = form.shelfQuantity ?? 0;
 
@@ -48,7 +48,7 @@ export class BaseFridgeRequestMapper implements KitchenCabinetRequestMapper {
       isBackInGroove: shelfQuantity > 0,
       isFrontExtended: false,
       isCoveredWithCounterTop: false,
-      varnishedFront: false,
+      varnishedFront: materialDefaults.varnishedFront,
 
       cabinetType: 'FRIDGE',
       openingType: form.openingType ?? 'HANDLE',
@@ -63,14 +63,14 @@ export class BaseFridgeRequestMapper implements KitchenCabinetRequestMapper {
       segments: segments,
 
       materialRequest: {
-        boxMaterial: 'CHIPBOARD',
-        boxBoardThickness: 18,
-        boxColor: form.materialRequest?.boxColor ?? 'WHITE',
-        frontMaterial: 'CHIPBOARD',
-        frontBoardThickness: 18,
-        frontColor: form.materialRequest?.frontColor ?? 'WHITE',
-        frontVeneerColor: form.materialRequest?.frontVeneerColor ?? 'WHITE',
-        boxVeneerColor: form.materialRequest?.boxVeneerColor ?? 'WHITE'
+        boxMaterial: materialDefaults.boxMaterial,
+        boxBoardThickness: materialDefaults.boxBoardThickness,
+        boxColor: materialDefaults.boxColor,
+        frontMaterial: materialDefaults.frontMaterial,
+        frontBoardThickness: materialDefaults.frontBoardThickness,
+        frontColor: materialDefaults.frontColor,
+        frontVeneerColor: materialDefaults.frontColor,
+        boxVeneerColor: materialDefaults.boxColor
       }
     };
   }
