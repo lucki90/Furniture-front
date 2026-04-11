@@ -1,10 +1,11 @@
-import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
 /**
  * Request mapper dla wolnostojącego piekarnika (BASE_OVEN_FREESTANDING).
  * Wizualizacja — 0 płyt.
  */
-export class BaseOvenFreestandingRequestMapper implements KitchenCabinetRequestMapper {
+export class BaseOvenFreestandingRequestMapper extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     return {
@@ -29,17 +30,7 @@ export class BaseOvenFreestandingRequestMapper implements KitchenCabinetRequestM
       openingType: form.openingType ?? 'NONE',
 
       drawerRequest: null,
-
-      materialRequest: {
-        boxMaterial: materialDefaults.boxMaterial,
-        boxBoardThickness: materialDefaults.boxBoardThickness,
-        boxColor: materialDefaults.boxColor,
-        frontMaterial: materialDefaults.frontMaterial,
-        frontBoardThickness: materialDefaults.frontBoardThickness,
-        frontColor: materialDefaults.frontColor,
-        frontVeneerColor: materialDefaults.frontColor,
-        boxVeneerColor: materialDefaults.boxColor
-      }
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 }

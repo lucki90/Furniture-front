@@ -1,12 +1,13 @@
 import { FormArray, FormGroup } from "@angular/forms";
-import { KitchenCabinetRequestMapper, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 import { mapSegmentToRequest, SegmentFormData, SegmentRequest } from "../../model/segment.model";
 
 /**
  * Request mapper dla szafki typu słupek (TALL_CABINET).
  * Mapuje dane formularza na request API, włącznie z segmentami.
  */
-export class TallCabinetRequestMapper implements KitchenCabinetRequestMapper {
+export class TallCabinetRequestMapper extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     // Mapuj segmenty z FormArray
@@ -41,17 +42,7 @@ export class TallCabinetRequestMapper implements KitchenCabinetRequestMapper {
 
       // Segmenty
       segments: segments,
-
-      materialRequest: {
-        boxMaterial: materialDefaults.boxMaterial,
-        boxBoardThickness: materialDefaults.boxBoardThickness,
-        boxColor: materialDefaults.boxColor,
-        frontMaterial: materialDefaults.frontMaterial,
-        frontBoardThickness: materialDefaults.frontBoardThickness,
-        frontColor: materialDefaults.frontColor,
-        frontVeneerColor: materialDefaults.frontColor,
-        boxVeneerColor: materialDefaults.boxColor
-      }
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 

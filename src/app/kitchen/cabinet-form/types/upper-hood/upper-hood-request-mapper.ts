@@ -1,10 +1,11 @@
-import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
 /**
  * Request mapper dla szafki wiszącej na okap (UPPER_HOOD).
  * Mapuje dane formularza na CabinetRequest wysyłany do backendu.
  */
-export class UpperHoodRequestMapper implements KitchenCabinetRequestMapper {
+export class UpperHoodRequestMapper extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     const hoodScreenEnabled: boolean = form.hoodScreenEnabled ?? false;
@@ -36,17 +37,7 @@ export class UpperHoodRequestMapper implements KitchenCabinetRequestMapper {
       hoodScreenHeightMm: hoodScreenEnabled ? (form.hoodScreenHeightMm ?? 100) : 0,
 
       drawerRequest: null,
-
-      materialRequest: {
-        boxMaterial: materialDefaults.boxMaterial,
-        boxBoardThickness: materialDefaults.boxBoardThickness,
-        boxColor: materialDefaults.boxColor,
-        frontMaterial: materialDefaults.frontMaterial,
-        frontBoardThickness: materialDefaults.frontBoardThickness,
-        frontColor: materialDefaults.frontColor,
-        frontVeneerColor: materialDefaults.frontColor,
-        boxVeneerColor: materialDefaults.boxColor
-      }
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 }

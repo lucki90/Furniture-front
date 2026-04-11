@@ -1,0 +1,133 @@
+/* ============ WALL CONFIG SECTION (Blat & Cokół) ============
+   Przeniesione z kitchen-page.component.css (R.2.5).
+   Reguły były w komponencie rodzica — kopia niezbędna ze względu na Angular ViewEncapsulation.
+   ============================================================ */
+
+.wall-config-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.config-group {
+  background: white;
+  border-radius: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.config-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Margines tylko gdy są widoczne pola konfiguracji */
+.config-header:has(+ .config-fields) {
+  margin-bottom: 8px;
+}
+
+.config-header .toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary, #1e293b);
+}
+
+.config-header .toggle-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent-color, #3b82f6);
+}
+
+.config-header .toggle-text {
+  white-space: nowrap;
+}
+
+.config-info {
+  font-size: 10px;
+  color: var(--text-muted, #64748b);
+  margin-left: auto;
+}
+
+.config-fields {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.config-field label {
+  font-size: 9px;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.config-field select {
+  padding: 4px 6px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 4px;
+  font-size: 11px;
+  background: white;
+  cursor: pointer;
+}
+
+.config-field select:focus {
+  outline: none;
+  border-color: var(--accent-color, #3b82f6);
+}
+
+.config-field input[type=number] {
+  padding: 4px 6px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 4px;
+  font-size: 11px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.config-field input[type=number]:focus {
+  outline: none;
+  border-color: var(--accent-color, #3b82f6);
+}
+
+/* Ostrzeżenie w konfiguracji blatu (głębokość < głębokość szafek) */
+.warning-hint {
+  font-size: 9px;
+  color: #d97706;
+  margin-top: 2px;
+}
+
+/* Toggle label (globalna klasa — scoped kopia dla zgodności) */
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: var(--accent-color, #3b82f6);
+}
+
+.toggle-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary, #1e293b);
+}

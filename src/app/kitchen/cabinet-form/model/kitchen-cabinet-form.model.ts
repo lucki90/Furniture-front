@@ -52,6 +52,7 @@ export interface CabinetResponse {
   boards: Board[];
   components: Component[];
   jobs: Job[];
+  summaryCosts: number;
   boardTotalCost: number;
   componentTotalCost: number;
   jobTotalCost: number;

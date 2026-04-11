@@ -1,10 +1,11 @@
-import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
 /**
  * Request mapper dla wolnostojącej lodówki (BASE_FRIDGE_FREESTANDING).
  * Wizualizacja — 0 płyt (używa formuły DISHWASHER).
  */
-export class BaseFridgeFreestandingRequestMapper implements KitchenCabinetRequestMapper {
+export class BaseFridgeFreestandingRequestMapper extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     return {
@@ -32,17 +33,7 @@ export class BaseFridgeFreestandingRequestMapper implements KitchenCabinetReques
       fridgeFreestandingType: form.fridgeFreestandingType ?? 'TWO_DOORS',
 
       drawerRequest: null,
-
-      materialRequest: {
-        boxMaterial: materialDefaults.boxMaterial,
-        boxBoardThickness: materialDefaults.boxBoardThickness,
-        boxColor: materialDefaults.boxColor,
-        frontMaterial: materialDefaults.frontMaterial,
-        frontBoardThickness: materialDefaults.frontBoardThickness,
-        frontColor: materialDefaults.frontColor,
-        frontVeneerColor: materialDefaults.frontColor,
-        boxVeneerColor: materialDefaults.boxColor
-      }
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 }

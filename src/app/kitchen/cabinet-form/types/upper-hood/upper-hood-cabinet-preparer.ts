@@ -1,6 +1,7 @@
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 
 /**
  * Preparer dla szafki wiszącej na okap (UPPER_HOOD).
@@ -68,16 +69,11 @@ export class UpperHoodCabinetPreparer implements KitchenCabinetPreparer {
     });
 
     // Kontrolki
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), false);
-    this.setControlEnabled(form.get('drawerModel'), false);
-    this.setControlEnabled(form.get('hoodFrontType'), true);
-    this.setControlEnabled(form.get('hoodScreenEnabled'), true);
-    this.setControlEnabled(form.get('hoodScreenHeightMm'), false);  // aktywowane dynamicznie
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), false);
+    setControlEnabled(form.get('drawerModel'), false);
+    setControlEnabled(form.get('hoodFrontType'), true);
+    setControlEnabled(form.get('hoodScreenEnabled'), true);
+    setControlEnabled(form.get('hoodScreenHeightMm'), false);  // aktywowane dynamicznie
   }
 }

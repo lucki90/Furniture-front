@@ -1,3 +1,5 @@
+import { DrawerFrontDetail } from './kitchen-cabinet-form.model';
+
 /**
  * Typ segmentu w szafce wielosegmentowej (np. słupek).
  */
@@ -46,7 +48,7 @@ export interface SegmentRequest {
     drawerQuantity: number;
     drawerModel: string;
     drawerBaseHdf: boolean;
-    drawerFrontDetails: any | null;
+    drawerFrontDetails: DrawerFrontDetail[] | null;
   } | null;
   shelfQuantity?: number | null;
   frontType?: string | null;

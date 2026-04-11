@@ -6,6 +6,7 @@ import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model'
 import { CabinetVisualConfig } from '../cabinet-form/model/cabinet-visual-elements.model';
 import { CountertopMaterialType, CountertopJointType, CountertopEdgeType } from './countertop.model';
 import { FeetType, PlinthMaterialType } from './plinth.model';
+import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 
 /**
  * Strefa pozycjonowania szafki:
@@ -439,6 +440,6 @@ export interface CabinetFormData {
 
 export interface CabinetCalculatedEvent {
   formData: CabinetFormData;
-  result: any;
+  result: CabinetResponse;
   editingCabinetId?: string;
 }

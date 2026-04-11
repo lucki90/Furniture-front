@@ -1,4 +1,5 @@
-import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
 /**
  * Request mapper dla szafki wiszącej kaskadowej (UPPER_CASCADE).
@@ -11,7 +12,7 @@ import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config
  *   - height = cascadeLowerHeight + cascadeUpperHeight (suma segmentów)
  *   - depth  = cascadeUpperDepth (głębszy, górny segment — używany do kalkulacji materiałów)
  */
-export class UpperCascadeRequestMapper implements KitchenCabinetRequestMapper {
+export class UpperCascadeRequestMapper extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     const lowerHeight = form.cascadeLowerHeight ?? 400;
@@ -68,17 +69,7 @@ export class UpperCascadeRequestMapper implements KitchenCabinetRequestMapper {
           isFrontExtended: false         // przedłużony front tylko dla dolnego
         }
       ],
-
-      materialRequest: {
-        boxMaterial: materialDefaults.boxMaterial,
-        boxBoardThickness: materialDefaults.boxBoardThickness,
-        boxColor: materialDefaults.boxColor,
-        frontMaterial: materialDefaults.frontMaterial,
-        frontBoardThickness: materialDefaults.frontBoardThickness,
-        frontColor: materialDefaults.frontColor,
-        frontVeneerColor: materialDefaults.frontColor,
-        boxVeneerColor: materialDefaults.boxColor
-      }
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 }

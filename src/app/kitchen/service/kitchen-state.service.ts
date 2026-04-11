@@ -1,5 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { ProjectRequestBuilderService } from './project-request-builder.service';
+import { ProjectSettingsService } from './project-settings.service';
+import { ProjectMetadataService } from './project-metadata.service';
 import {
   KitchenCabinet,
   KitchenCabinetBase,
@@ -33,7 +35,8 @@ import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
-import { MaterialDefaults, DEFAULT_MATERIAL_DEFAULTS } from '../cabinet-form/type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { MaterialDefaults } from '../cabinet-form/type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +44,8 @@ import { MaterialDefaults, DEFAULT_MATERIAL_DEFAULTS } from '../cabinet-form/typ
 export class KitchenStateService {
 
   private requestBuilder = inject(ProjectRequestBuilderService);
+  private settingsService = inject(ProjectSettingsService);
+  private metadataService = inject(ProjectMetadataService);
 
   // ============ MULTI-WALL STATE ============
 
@@ -71,92 +76,42 @@ export class KitchenStateService {
   private _wallIdCounter = 1;
   private _cabinetIdCounter = 0;
 
-  // ============ PROJECT STATE ============
+  // ============ PROJECT STATE — FACADE (deleguje do ProjectMetadataService) ============
 
-  private _currentProjectId = signal<number | null>(null);
-  private _currentProjectName = signal<string | null>(null);
-  private _currentProjectDescription = signal<string | null>(null);
-  private _currentProjectClientName = signal<string | null>(null);
-  private _currentProjectClientPhone = signal<string | null>(null);
-  private _currentProjectClientEmail = signal<string | null>(null);
-  private _currentProjectVersion = signal<number>(0);
-  private _currentProjectStatus = signal<ProjectStatus>('DRAFT');
-  private _currentProjectAllowedTransitions = signal<ProjectStatus[]>([]);
-
-  // ============ PROJECT SETTINGS (globalne ustawienia) ============
-
-  private _plinthHeightMm = signal<number>(100);           // Domyślna wysokość cokołu
-  private _countertopThicknessMm = signal<number>(38);     // Domyślna grubość blatu
-  private _upperFillerHeightMm = signal<number>(100);      // Domyślna wysokość blendy górnej
-
-  // Ustawienia obudowy szafek
-  private _distanceFromWallMm = signal<number>(560);       // Głębokość zabudowy
-  private _plinthSetbackMm = signal<number>(60);           // Cofnięcie cokołu od frontu
-  private _fillerWidthMm = signal<number>(50);             // Szerokość blendy bocznej
-  private _frontGapMm = signal<number>(2);                 // Szczelina frontowa
-  private _supportHeightReductionMm = signal<number>(30);  // Zmniejszenie podpory (H)
-  private _supportWidthReductionMm = signal<number>(50);   // Zmniejszenie podpory (W)
-
-  // Domyślne materiały — signal, aktualizowany przez setMaterialDefaults() z app.component.ts
-  // TODO: per-projekt overrides materiałów (kolor korpusu/frontu/tyłu, grubości, okleina, lakierowanie)
-  //   Pomysł implementacji: każdy projekt (KitchenWall?) może mieć opcjonalne MaterialOverrides,
-  //   które nadpisują globalny materialDefaults signal tylko dla tego projektu/ściany.
-  //   Nowe pole: ProjectMaterialOverrides { boxColorOverride?, frontColorOverride?, varnishedFrontOverride?,
-  //              frontVeneerColorOverride?, boxVeneerColorOverride? } — null = użyj globalnego defaultu.
-  //   UI: panel "Nadpisz materiały" per projekt, toggle dla każdego pola.
-  readonly materialDefaults = signal<MaterialDefaults>({ ...DEFAULT_MATERIAL_DEFAULTS });
-
-  // Globalne defaults z user_settings DB — cache używany przez clearAll() i addWall()
-  // Ustawiane JEDNOKROTNIE przy starcie przez setGlobalDefaults() z app.component.ts
-  private _globalDefaultPlinthHeightMm = 100;
-  private _globalDefaultCountertopThicknessMm = 38;
-  private _globalDefaultUpperFillerHeightMm = 100;
-  private _globalDefaultDistanceFromWallMm = 560;
-  private _globalDefaultPlinthSetbackMm = 60;
-  private _globalDefaultFillerWidthMm = 50;
-  private _globalDefaultFrontGapMm = 2;
-  private _globalDefaultSupportHeightReductionMm = 30;
-  private _globalDefaultSupportWidthReductionMm = 50;
+  // ============ PROJECT SETTINGS — FACADE (deleguje do ProjectSettingsService) ============
+  // Wszystkie ustawienia projektu (cokół, blat, blenda, obudowa, materiały) są w ProjectSettingsService.
+  // KitchenStateService eksponuje je przez readonly aliasy dla backward-compat z konsumentami.
 
   // ============ PUBLIC SIGNALS ============
 
   readonly walls = this._walls.asReadonly();
   readonly selectedWallId = this._selectedWallId.asReadonly();
-  readonly currentProjectId = this._currentProjectId.asReadonly();
-  readonly currentProjectName = this._currentProjectName.asReadonly();
-  readonly currentProjectDescription = this._currentProjectDescription.asReadonly();
-  readonly currentProjectClientName = this._currentProjectClientName.asReadonly();
-  readonly currentProjectClientPhone = this._currentProjectClientPhone.asReadonly();
-  readonly currentProjectClientEmail = this._currentProjectClientEmail.asReadonly();
-  readonly currentProjectVersion = this._currentProjectVersion.asReadonly();
-  readonly currentProjectStatus = this._currentProjectStatus.asReadonly();
-  readonly currentProjectAllowedTransitions = this._currentProjectAllowedTransitions.asReadonly();
 
-  // Ustawienia projektu (publiczne)
-  readonly plinthHeightMm = this._plinthHeightMm.asReadonly();
-  readonly countertopThicknessMm = this._countertopThicknessMm.asReadonly();
-  readonly upperFillerHeightMm = this._upperFillerHeightMm.asReadonly();
+  // Metadane projektu — delegacja do ProjectMetadataService (backward-compat)
+  readonly currentProjectId = this.metadataService.currentProjectId;
+  readonly currentProjectName = this.metadataService.currentProjectName;
+  readonly currentProjectDescription = this.metadataService.currentProjectDescription;
+  readonly currentProjectClientName = this.metadataService.currentProjectClientName;
+  readonly currentProjectClientPhone = this.metadataService.currentProjectClientPhone;
+  readonly currentProjectClientEmail = this.metadataService.currentProjectClientEmail;
+  readonly currentProjectVersion = this.metadataService.currentProjectVersion;
+  readonly currentProjectStatus = this.metadataService.currentProjectStatus;
+  readonly currentProjectAllowedTransitions = this.metadataService.currentProjectAllowedTransitions;
 
-  // Ustawienia obudowy (publiczne)
-  readonly distanceFromWallMm = this._distanceFromWallMm.asReadonly();
-  readonly plinthSetbackMm = this._plinthSetbackMm.asReadonly();
-  readonly fillerWidthMm = this._fillerWidthMm.asReadonly();
-  readonly frontGapMm = this._frontGapMm.asReadonly();
-  readonly supportHeightReductionMm = this._supportHeightReductionMm.asReadonly();
-  readonly supportWidthReductionMm = this._supportWidthReductionMm.asReadonly();
-
-  /**
-   * Obliczona wysokość blatu od podłogi:
-   * plinthHeight + corpusHeight (typowy 720mm) + countertopThickness
-   * Uwaga: corpusHeight zależy od konkretnej szafki, tu podajemy bez niego.
-   */
-  readonly countertopSurfaceHeightMm = computed(() => {
-    return this._plinthHeightMm() + this._countertopThicknessMm();
-  });
-
-  // ===== Sygnały przełączników widoczności (współdzielone między SVG front i floor plan) =====
-  readonly showCountertop = signal(true);
-  readonly showUpperCabinets = signal(true);
+  // Ustawienia projektu — delegacja do ProjectSettingsService (backward-compat)
+  readonly plinthHeightMm = this.settingsService.plinthHeightMm;
+  readonly countertopThicknessMm = this.settingsService.countertopThicknessMm;
+  readonly upperFillerHeightMm = this.settingsService.upperFillerHeightMm;
+  readonly distanceFromWallMm = this.settingsService.distanceFromWallMm;
+  readonly plinthSetbackMm = this.settingsService.plinthSetbackMm;
+  readonly fillerWidthMm = this.settingsService.fillerWidthMm;
+  readonly frontGapMm = this.settingsService.frontGapMm;
+  readonly supportHeightReductionMm = this.settingsService.supportHeightReductionMm;
+  readonly supportWidthReductionMm = this.settingsService.supportWidthReductionMm;
+  readonly materialDefaults = this.settingsService.materialDefaults;
+  readonly countertopSurfaceHeightMm = this.settingsService.countertopSurfaceHeightMm;
+  readonly showCountertop = this.settingsService.showCountertop;
+  readonly showUpperCabinets = this.settingsService.showUpperCabinets;
 
   readonly selectedWall = computed(() => {
     const wallId = this._selectedWallId();
@@ -285,9 +240,9 @@ export class KitchenStateService {
 
     const wall = this.selectedWall();
     const wallHeight = wall?.heightMm ?? 2600;
-    const plinth = this._plinthHeightMm();
-    const countertopThickness = this._countertopThicknessMm();
-    const upperFiller = this._upperFillerHeightMm();
+    const plinth = this.settingsService.plinthHeightMm();
+    const countertopThickness = this.settingsService.countertopThicknessMm();
+    const upperFiller = this.settingsService.upperFillerHeightMm();
 
     // Oblicz maksymalną wysokość korpusu dolnych szafek (typowo 720mm).
     // Uwzględnia tylko szafki z blatem (requiresCountertop=true).
@@ -372,7 +327,7 @@ export class KitchenStateService {
       countertopConfig: {
         enabled: true,
         materialType: 'LAMINATE',
-        thicknessMm: this._globalDefaultCountertopThicknessMm,
+        thicknessMm: this.settingsService.getGlobalDefaultCountertopThicknessMm(),
         jointType: 'NONE',
         edgeType: 'ABS_EDGE',
         sideOverhangExtraMm: 5
@@ -441,117 +396,21 @@ export class KitchenStateService {
     return WALL_TYPES.filter(wt => !this.isWallTypeUsed(wt.value));
   }
 
-  // ============ PROJECT SETTINGS MANAGEMENT ============
+  // ============ PROJECT SETTINGS MANAGEMENT — FACADE ============
 
-  updateProjectSettings(settings: {
-    plinthHeightMm?: number;
-    countertopThicknessMm?: number;
-    upperFillerHeightMm?: number;
-    distanceFromWallMm?: number;
-    plinthSetbackMm?: number;
-    fillerWidthMm?: number;
-    frontGapMm?: number;
-    supportHeightReductionMm?: number;
-    supportWidthReductionMm?: number;
-  }): void {
-    if (settings.plinthHeightMm !== undefined) {
-      this._plinthHeightMm.set(settings.plinthHeightMm);
-    }
-    if (settings.countertopThicknessMm !== undefined) {
-      this._countertopThicknessMm.set(settings.countertopThicknessMm);
-    }
-    if (settings.upperFillerHeightMm !== undefined) {
-      this._upperFillerHeightMm.set(settings.upperFillerHeightMm);
-    }
-    if (settings.distanceFromWallMm !== undefined) {
-      this._distanceFromWallMm.set(settings.distanceFromWallMm);
-    }
-    if (settings.plinthSetbackMm !== undefined) {
-      this._plinthSetbackMm.set(settings.plinthSetbackMm);
-    }
-    if (settings.fillerWidthMm !== undefined) {
-      this._fillerWidthMm.set(settings.fillerWidthMm);
-    }
-    if (settings.frontGapMm !== undefined) {
-      this._frontGapMm.set(settings.frontGapMm);
-    }
-    if (settings.supportHeightReductionMm !== undefined) {
-      this._supportHeightReductionMm.set(settings.supportHeightReductionMm);
-    }
-    if (settings.supportWidthReductionMm !== undefined) {
-      this._supportWidthReductionMm.set(settings.supportWidthReductionMm);
-    }
+  /** @see ProjectSettingsService.updateProjectSettings */
+  updateProjectSettings(settings: Parameters<ProjectSettingsService['updateProjectSettings']>[0]): void {
+    this.settingsService.updateProjectSettings(settings);
   }
 
-  /**
-   * Zapisuje globalne defaults z user_settings DB i natychmiast je stosuje na sygnałach.
-   * Wywoływać TYLKO raz przy starcie aplikacji (app.component.ts ngOnInit).
-   * Dzięki temu clearAll() i addWall() mogą dziedziczyć wartości z bazy zamiast hardcoded stałych.
-   */
-  setGlobalDefaults(settings: {
-    plinthHeightMm: number;
-    countertopThicknessMm: number;
-    upperFillerHeightMm: number;
-    distanceFromWallMm?: number;
-    plinthSetbackMm?: number;
-    fillerWidthMm?: number;
-    frontGapMm?: number;
-    supportHeightReductionMm?: number;
-    supportWidthReductionMm?: number;
-  }): void {
-    // Zapamiętaj jako globalne defaults (używane przez clearAll / addWall)
-    this._globalDefaultPlinthHeightMm = settings.plinthHeightMm;
-    this._globalDefaultCountertopThicknessMm = settings.countertopThicknessMm;
-    this._globalDefaultUpperFillerHeightMm = settings.upperFillerHeightMm;
-    if (settings.distanceFromWallMm !== undefined) {
-      this._globalDefaultDistanceFromWallMm = settings.distanceFromWallMm;
-    }
-    if (settings.plinthSetbackMm !== undefined) {
-      this._globalDefaultPlinthSetbackMm = settings.plinthSetbackMm;
-    }
-    if (settings.fillerWidthMm !== undefined) {
-      this._globalDefaultFillerWidthMm = settings.fillerWidthMm;
-    }
-    if (settings.frontGapMm !== undefined) {
-      this._globalDefaultFrontGapMm = settings.frontGapMm;
-    }
-    if (settings.supportHeightReductionMm !== undefined) {
-      this._globalDefaultSupportHeightReductionMm = settings.supportHeightReductionMm;
-    }
-    if (settings.supportWidthReductionMm !== undefined) {
-      this._globalDefaultSupportWidthReductionMm = settings.supportWidthReductionMm;
-    }
-
-    // Zastosuj od razu do live signals (żeby bieżący stan też był spójny)
-    this.updateProjectSettings(settings);
+  /** @see ProjectSettingsService.setGlobalDefaults */
+  setGlobalDefaults(settings: Parameters<ProjectSettingsService['setGlobalDefaults']>[0]): void {
+    this.settingsService.setGlobalDefaults(settings);
   }
 
-  /**
-   * Ustawia domyślne materiały płyt z user_settings.
-   * Wywoływać po załadowaniu ustawień z serwera (app.component.ts).
-   */
-  setMaterialDefaults(settings: {
-    defaultBoxMaterial?: string;
-    defaultBoxBoardThickness?: number;
-    defaultBoxColor?: string;
-    defaultFrontMaterial?: string;
-    defaultFrontBoardThickness?: number;
-    defaultFrontColor?: string;
-    defaultBackMaterial?: string;
-    defaultBackBoardThickness?: number;
-    defaultVarnishedFront?: boolean;
-  }): void {
-    this.materialDefaults.set({
-      boxMaterial: settings.defaultBoxMaterial ?? DEFAULT_MATERIAL_DEFAULTS.boxMaterial,
-      boxBoardThickness: settings.defaultBoxBoardThickness ?? DEFAULT_MATERIAL_DEFAULTS.boxBoardThickness,
-      boxColor: settings.defaultBoxColor ?? DEFAULT_MATERIAL_DEFAULTS.boxColor,
-      frontMaterial: settings.defaultFrontMaterial ?? DEFAULT_MATERIAL_DEFAULTS.frontMaterial,
-      frontBoardThickness: settings.defaultFrontBoardThickness ?? DEFAULT_MATERIAL_DEFAULTS.frontBoardThickness,
-      frontColor: settings.defaultFrontColor ?? DEFAULT_MATERIAL_DEFAULTS.frontColor,
-      backMaterial: settings.defaultBackMaterial ?? DEFAULT_MATERIAL_DEFAULTS.backMaterial,
-      backBoardThickness: settings.defaultBackBoardThickness ?? DEFAULT_MATERIAL_DEFAULTS.backBoardThickness,
-      varnishedFront: settings.defaultVarnishedFront ?? DEFAULT_MATERIAL_DEFAULTS.varnishedFront
-    });
+  /** @see ProjectSettingsService.setMaterialDefaults */
+  setMaterialDefaults(settings: Parameters<ProjectSettingsService['setMaterialDefaults']>[0]): void {
+    this.settingsService.setMaterialDefaults(settings);
   }
 
   // ============ COUNTERTOP & PLINTH CONFIG ============
@@ -603,7 +462,7 @@ export class KitchenStateService {
     return `cabinet-${this._cabinetIdCounter}`;
   }
 
-  addCabinet(formData: CabinetFormData, calculatedResult: any): void {
+  addCabinet(formData: CabinetFormData, calculatedResult: CabinetResponse): void {
     const newCabinet = this.buildCabinetFromFormData(formData, this.generateCabinetId(), calculatedResult);
     const selectedWallId = this._selectedWallId();
 
@@ -806,7 +665,7 @@ export class KitchenStateService {
         countertopConfig: {
           enabled: true,
           materialType: 'LAMINATE',
-          thicknessMm: this._globalDefaultCountertopThicknessMm,
+          thicknessMm: this.settingsService.getGlobalDefaultCountertopThicknessMm(),
           jointType: 'NONE',
           edgeType: 'ABS_EDGE',
           sideOverhangExtraMm: 5
@@ -821,20 +680,10 @@ export class KitchenStateService {
     this._selectedWallId.set('wall-1');
     this._wallIdCounter = 1;
     this._cabinetIdCounter = 0;
-    this._currentProjectId.set(null);
-    this._currentProjectName.set(null);
-    this._currentProjectDescription.set(null);
-    this._currentProjectClientName.set(null);
-    this._currentProjectClientPhone.set(null);
-    this._currentProjectClientEmail.set(null);
-    this._currentProjectVersion.set(0);
-    this._currentProjectStatus.set('DRAFT');
-    this._currentProjectAllowedTransitions.set([]);
+    this.metadataService.clearMetadata();
 
     // Reset ustawień projektu do globalnych defaults (z user_settings DB)
-    this._plinthHeightMm.set(this._globalDefaultPlinthHeightMm);
-    this._countertopThicknessMm.set(this._globalDefaultCountertopThicknessMm);
-    this._upperFillerHeightMm.set(this._globalDefaultUpperFillerHeightMm);
+    this.settingsService.resetToGlobalDefaults();
   }
 
   // ============ PROJECT LOAD/SAVE ============
@@ -1041,20 +890,14 @@ export class KitchenStateService {
     // Ustaw stan
     this._walls.set(walls);
     this._selectedWallId.set(walls[0].id);
-    this._currentProjectId.set(project.id);
-    this._currentProjectName.set(project.name);
-    this._currentProjectDescription.set(project.description ?? null);
-    this._currentProjectClientName.set(project.clientName ?? null);
-    this._currentProjectClientPhone.set(project.clientPhone ?? null);
-    this._currentProjectClientEmail.set(project.clientEmail ?? null);
-    this._currentProjectVersion.set(project.version);
-    this._currentProjectStatus.set(project.status);
-    this._currentProjectAllowedTransitions.set(project.allowedTransitions ?? []);
+    this.metadataService.applyLoadedProject(project);
 
     // Wczytaj ustawienia projektu (z wartościami domyślnymi jako fallback)
-    this._plinthHeightMm.set(project.plinthHeightMm ?? 100);
-    this._countertopThicknessMm.set(project.countertopThicknessMm ?? 38);
-    this._upperFillerHeightMm.set(project.upperFillerHeightMm ?? 100);
+    this.settingsService.applyProjectSettings(
+      project.plinthHeightMm ?? 100,
+      project.countertopThicknessMm ?? 38,
+      project.upperFillerHeightMm ?? 100
+    );
   }
 
   /**
@@ -1062,42 +905,28 @@ export class KitchenStateService {
    */
   buildUpdateProjectRequest(name?: string, description?: string, clientName?: string, clientPhone?: string, clientEmail?: string): UpdateKitchenProjectRequest {
     return {
-      name: name ?? this._currentProjectName() ?? 'Bez nazwy',
+      name: name ?? this.metadataService.currentProjectName() ?? 'Bez nazwy',
       description,
       clientName,
       clientPhone,
       clientEmail,
       walls: this.buildProjectWalls(),
-      plinthHeightMm: this._plinthHeightMm(),
-      countertopThicknessMm: this._countertopThicknessMm(),
-      upperFillerHeightMm: this._upperFillerHeightMm()
+      plinthHeightMm: this.settingsService.plinthHeightMm(),
+      countertopThicknessMm: this.settingsService.countertopThicknessMm(),
+      upperFillerHeightMm: this.settingsService.upperFillerHeightMm()
     };
   }
 
-  /**
-   * Ustawia ID aktualnego projektu po zapisie.
-   */
+  /** @see ProjectMetadataService.setProjectInfo */
   setProjectInfo(projectId: number, projectName: string, version: number, description?: string, status?: ProjectStatus, allowedTransitions?: ProjectStatus[], clientName?: string, clientPhone?: string, clientEmail?: string): void {
-    this._currentProjectId.set(projectId);
-    this._currentProjectName.set(projectName);
-    this._currentProjectDescription.set(description ?? null);
-    this._currentProjectClientName.set(clientName ?? null);
-    this._currentProjectClientPhone.set(clientPhone ?? null);
-    this._currentProjectClientEmail.set(clientEmail ?? null);
-    this._currentProjectVersion.set(version);
-    if (status) {
-      this._currentProjectStatus.set(status);
-    }
-    if (allowedTransitions) {
-      this._currentProjectAllowedTransitions.set(allowedTransitions);
-    }
+    this.metadataService.setProjectInfo(projectId, projectName, version, description, status, allowedTransitions, clientName, clientPhone, clientEmail);
   }
 
   /**
    * Sprawdza czy aktualnie pracujemy nad zapisanym projektem.
    */
   hasUnsavedProject(): boolean {
-    return this._currentProjectId() === null && this.totalCabinetCount() > 0;
+    return this.metadataService.currentProjectId() === null && this.totalCabinetCount() > 0;
   }
 
   clearSelectedWallCabinets(): void {
@@ -1178,9 +1007,9 @@ export class KitchenStateService {
       clientPhone,
       clientEmail,
       walls: this.buildProjectWalls(),
-      plinthHeightMm: this._plinthHeightMm(),
-      countertopThicknessMm: this._countertopThicknessMm(),
-      upperFillerHeightMm: this._upperFillerHeightMm()
+      plinthHeightMm: this.settingsService.plinthHeightMm(),
+      countertopThicknessMm: this.settingsService.countertopThicknessMm(),
+      upperFillerHeightMm: this.settingsService.upperFillerHeightMm()
     };
   }
 
@@ -1189,18 +1018,18 @@ export class KitchenStateService {
    */
   private buildProjectWalls(): ProjectWallRequest[] {
     return this.requestBuilder.buildProjectWalls(this._walls(), {
-      plinthHeightMm: this._plinthHeightMm(),
-      countertopThicknessMm: this._countertopThicknessMm(),
-      upperFillerHeightMm: this._upperFillerHeightMm(),
-      fillerWidthMm: this._fillerWidthMm(),
-      materialDefaults: this.materialDefaults()
+      plinthHeightMm: this.settingsService.plinthHeightMm(),
+      countertopThicknessMm: this.settingsService.countertopThicknessMm(),
+      upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
+      fillerWidthMm: this.settingsService.fillerWidthMm(),
+      materialDefaults: this.settingsService.materialDefaults()
     });
   }
 
   // ============ PRIVATE HELPERS (delegates to ProjectRequestBuilderService) ============
 
   private enclosureOuterWidthMm(cab: KitchenCabinet, side: 'left' | 'right'): number {
-    return this.requestBuilder.enclosureOuterWidthMm(cab, side, this._fillerWidthMm());
+    return this.requestBuilder.enclosureOuterWidthMm(cab, side, this.settingsService.fillerWidthMm());
   }
 
   private mapCalculationResult(result: any): CabinetCalculationResult | undefined {

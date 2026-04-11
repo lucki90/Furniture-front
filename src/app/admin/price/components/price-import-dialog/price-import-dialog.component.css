@@ -175,7 +175,7 @@ mat-dialog-content {
 
 .format-hint code {
   display: block;
-  background: #fff;
+  background: var(--bg-white, #ffffff);
   padding: 8px;
   border-radius: 4px;
   font-size: 11px;

@@ -1,4 +1,5 @@
-import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 import { mapSegmentToRequest, SegmentFormData, SegmentRequest, SegmentType } from '../../model/segment.model';
 
 /**
@@ -9,7 +10,7 @@ import { mapSegmentToRequest, SegmentFormData, SegmentRequest, SegmentType } fro
  * Segment FRIDGE_BUILT_IN jest dodawany automatycznie przez backend (BaseFridgeKitchenCabinetPreparer),
  * który oblicza jego wysokość na podstawie całkowitej wysokości szafki minus suma sekcji górnych.
  */
-export class BaseFridgeRequestMapper implements KitchenCabinetRequestMapper {
+export class BaseFridgeRequestMapper extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     const sectionType: string = form.fridgeSectionType ?? 'TWO_DOORS';
@@ -61,17 +62,7 @@ export class BaseFridgeRequestMapper implements KitchenCabinetRequestMapper {
 
       // Sekcje górne (null gdy brak)
       segments: segments,
-
-      materialRequest: {
-        boxMaterial: materialDefaults.boxMaterial,
-        boxBoardThickness: materialDefaults.boxBoardThickness,
-        boxColor: materialDefaults.boxColor,
-        frontMaterial: materialDefaults.frontMaterial,
-        frontBoardThickness: materialDefaults.frontBoardThickness,
-        frontColor: materialDefaults.frontColor,
-        frontVeneerColor: materialDefaults.frontColor,
-        boxVeneerColor: materialDefaults.boxColor
-      }
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 }

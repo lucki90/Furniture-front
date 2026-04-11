@@ -14,61 +14,7 @@
 .projects-header h1 {
   margin: 0;
   font-size: 1.75rem;
-  color: #333;
-}
-
-/* Buttons */
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background: #2563eb;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #1d4ed8;
-}
-
-.btn-secondary {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.btn-secondary:hover {
-  background: #d1d5db;
-}
-
-.btn-danger {
-  background: #ef4444;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #dc2626;
-}
-
-.btn-sm {
-  padding: 6px 14px;
-  font-size: 0.85rem;
-}
-
-.btn-icon {
-  padding: 6px 10px;
-  background: transparent;
-  border: 1px solid #e5e7eb;
-}
-
-.btn-icon:hover {
-  background: #fef2f2;
-  border-color: #ef4444;
+  color: var(--text-primary, #333);
 }
 
 /* Loading state */
@@ -78,22 +24,9 @@
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #6b7280;
+  color: var(--text-muted, #6b7280);
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #2563eb;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
 
 /* Error state */
 .error-state {
@@ -101,7 +34,7 @@
   flex-direction: column;
   align-items: center;
   padding: 40px 20px;
-  background: #fef2f2;
+  background: var(--error-bg, #fef2f2);
   border-radius: 8px;
   color: #991b1b;
 }
@@ -110,12 +43,8 @@
   margin: 0 0 16px 0;
 }
 
-/* Empty state */
+/* Empty state — local overrides only (base defined globally) */
 .empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 60px 20px;
   background: #f9fafb;
   border-radius: 12px;
   border: 2px dashed #d1d5db;
@@ -133,7 +62,7 @@
 
 .empty-state p {
   margin: 0 0 24px 0;
-  color: #6b7280;
+  color: var(--text-muted, #6b7280);
 }
 
 /* Projects grid */
@@ -154,7 +83,7 @@
 }
 
 .project-card:hover {
-  border-color: #2563eb;
+  border-color: var(--accent-dark, #2563eb);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
 }
 
@@ -179,7 +108,7 @@
 .project-description {
   margin: 0 0 16px 0;
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--text-muted, #6b7280);
   line-height: 1.4;
 }
 
@@ -222,7 +151,7 @@
 }
 
 .stat.cost .stat-value {
-  color: #059669;
+  color: var(--success-dark, #059669);
 }
 
 /* Project dates */
@@ -279,8 +208,8 @@
    ==================================================== */
 
 .flow-section {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-main, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 12px;
   padding: 20px 24px;
   margin-bottom: 20px;
@@ -289,7 +218,7 @@
 .flow-section-title {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary, #64748b);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0 0 16px 0;
@@ -355,7 +284,7 @@
   position: absolute;
   top: -7px;
   right: -7px;
-  background: #1e293b;
+  background: var(--text-primary, #1e293b);
   color: white;
   border-radius: 10px;
   font-size: 0.62rem;
@@ -368,7 +297,7 @@
 
 /* Strzałka między węzłami */
 .flow-arrow {
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   font-size: 1.1rem;
   flex-shrink: 0;
   font-weight: 400;
@@ -389,7 +318,7 @@
 
 .flow-cancel-bracket {
   font-size: 0.7rem;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   font-style: italic;
 }
 
@@ -399,7 +328,7 @@
 
 .flow-restore-hint {
   font-size: 0.72rem;
-  color: #2563eb;
+  color: var(--accent-dark, #2563eb);
   font-style: italic;
   font-weight: 500;
 }
@@ -410,14 +339,14 @@
   flex-wrap: wrap;
   gap: 6px;
   padding-top: 8px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-color, #e2e8f0);
 }
 
 .flow-note {
   font-size: 0.68rem;
-  color: #64748b;
+  color: var(--text-secondary, #64748b);
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 4px;
   padding: 2px 8px;
   white-space: nowrap;
@@ -436,7 +365,7 @@
   margin-bottom: 20px;
   padding: 14px 16px;
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 10px;
 }
 
@@ -450,7 +379,7 @@
 .filter-label {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary, #64748b);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -486,7 +415,7 @@
 }
 
 .filter-btn--cancelled.filter-btn--active {
-  background-color: #fee2e2;
+  background-color: var(--error-bg, #fee2e2);
 }
 
 /* Liczba w filtrze */
@@ -508,17 +437,17 @@
 .btn-clear-filters {
   padding: 4px 10px;
   border-radius: 20px;
-  border: 1px solid #94a3b8;
+  border: 1px solid var(--text-muted, #94a3b8);
   font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
   background: transparent;
-  color: #475569;
+  color: var(--text-secondary, #475569);
   transition: all 0.12s ease;
 }
 
 .btn-clear-filters:hover {
-  background: #f1f5f9;
+  background: var(--bg-hover, #f1f5f9);
 }
 
 /* Sortowanie — group */
@@ -532,7 +461,7 @@
 .sort-btn {
   padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color, #e2e8f0);
   font-size: 0.73rem;
   font-weight: 500;
   cursor: pointer;
@@ -543,14 +472,14 @@
 }
 
 .sort-btn:hover {
-  background: #f1f5f9;
-  border-color: #94a3b8;
+  background: var(--bg-hover, #f1f5f9);
+  border-color: var(--text-muted, #94a3b8);
 }
 
 .sort-btn--active {
-  background: #1e293b;
+  background: var(--text-primary, #1e293b);
   color: white;
-  border-color: #1e293b;
+  border-color: var(--text-primary, #1e293b);
 }
 
 .sort-btn--active:hover {
@@ -567,7 +496,7 @@
   background: #f9fafb;
   border: 1px dashed #d1d5db;
   border-radius: 10px;
-  color: #6b7280;
+  color: var(--text-muted, #6b7280);
   font-size: 0.9rem;
   margin-bottom: 20px;
 }

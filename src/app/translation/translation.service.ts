@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, shareReplay } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { DEFAULT_TRANSLATIONS } from "./default-translations";
+import { environment } from '../../environments/environment';
 
 interface TranslationCache {
   [key: string]: string;
@@ -15,9 +16,9 @@ interface CacheStore {
 
 @Injectable({providedIn: 'root'})
 export class TranslationService {
-  private readonly translationUrl = 'http://localhost:8080/api/furniture/translation';
-  private readonly translationBatchUrl = 'http://localhost:8080/api/furniture/translation/batch';
-  private readonly translationAllUrl = 'http://localhost:8080/api/furniture/translation/all';
+  private readonly translationUrl = `${environment.apiUrl}/translation`;
+  private readonly translationBatchUrl = `${environment.apiUrl}/translation/batch`;
+  private readonly translationAllUrl = `${environment.apiUrl}/translation/all`;
   private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minut
 
   private readonly cache: CacheStore = {

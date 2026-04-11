@@ -1,6 +1,7 @@
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 
 /**
  * Preparer dla szafki wiszącej otwartej — bez drzwi (UPPER_OPEN_SHELF).
@@ -43,13 +44,8 @@ export class UpperOpenShelfCabinetPreparer implements KitchenCabinetPreparer {
     });
 
     // Kontrolki
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), true);
-    this.setControlEnabled(form.get('drawerModel'), false);
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), true);
+    setControlEnabled(form.get('drawerModel'), false);
   }
 }

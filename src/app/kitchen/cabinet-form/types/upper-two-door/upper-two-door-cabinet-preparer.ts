@@ -1,6 +1,7 @@
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
+import { setStandardDoorVisibility, setUpperExtraVisibility, setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 
 /**
  * Preparer dla szafki wiszącej z dwojgiem drzwi (UPPER_TWO_DOOR).
@@ -9,36 +10,13 @@ import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-v
 export class UpperTwoDoorCabinetPreparer implements KitchenCabinetPreparer {
 
   prepare(form: FormGroup, v: CabinetFormVisibility): void {
-    // Widoczność — standardowe pola wymiarów + półki
-    v.width = true;
-    v.shelfQuantity = true;
-    v.drawerQuantity = false;
-    v.drawerModel = false;
-    v.segments = false;
+    setStandardDoorVisibility(v);
+    setUpperExtraVisibility(v, /* liftUpVisible */ false);
 
-    // Ukryj pola narożnika
-    v.cornerWidthA = false;
-    v.cornerWidthB = false;
-    v.cornerMechanism = false;
-    v.cornerShelfQuantity = false;
-    v.isUpperCorner = false;
-
-    // Pokaż pola pozycjonowania szafek wiszących
-    v.positioningMode = true;
-    v.gapFromCountertopMm = true;
-
-    // Pokaż sekcję obudowy bocznej
-    v.enclosureSection = true;
-
-    // Opcje frontu wiszącej — tylko extendedFront (lift-up niedostępny dla 2-drzwiowej)
-    v.liftUp = false;
-    v.extendedFront = true;
-
-    // Wartości domyślne — wymiary korpusu szafki wiszącej 2-drzwiowej
     form.patchValue({
       width: 600,
-      height: 720,     // Typowa wysokość szafki wiszącej
-      depth: 320,       // Typowa głębokość szafki wiszącej
+      height: 720,
+      depth: 320,
       shelfQuantity: 1,
       drawerQuantity: 0,
       drawerModel: null,
@@ -47,14 +25,8 @@ export class UpperTwoDoorCabinetPreparer implements KitchenCabinetPreparer {
       isFrontExtended: false
     });
 
-    // Kontrolki
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), true);
-    this.setControlEnabled(form.get('drawerModel'), false);
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), true);
+    setControlEnabled(form.get('drawerModel'), false);
   }
 }

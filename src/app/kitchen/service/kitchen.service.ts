@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
+import { environment } from '../../../environments/environment';
 import {
   CreateKitchenProjectRequest,
   KitchenProjectDetailResponse,
@@ -12,13 +13,14 @@ import {
   ProjectStatus,
   UpdateKitchenProjectRequest
 } from '../model/kitchen-project.model';
+import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class KitchenService {
 
-  private readonly baseUrl = 'http://localhost:8080/api/furniture/kitchen';
+  private readonly baseUrl = `${environment.apiUrl}/kitchen`;
   private readonly addKitchenCabinet = `${this.baseUrl}/add`;
   private readonly kitchenLayout = `${this.baseUrl}/layout`;
   private readonly projectCalculate = `${this.baseUrl}/project/calculate`;
@@ -28,12 +30,13 @@ export class KitchenService {
   constructor(private readonly http: HttpClient) {
   }
 
-  calculateCabinet(data: any): Observable<any> {
-    return this.http.post<any>(this.addKitchenCabinet, data);
+  calculateCabinet(data: unknown): Observable<CabinetResponse> {
+    return this.http.post<CabinetResponse>(this.addKitchenCabinet, data);
   }
 
-  postKitchenLayout(data: any): Observable<any> {
-    return this.http.post<any>(this.kitchenLayout, data);
+  /** @deprecated Not used — layout calculated client-side */
+  postKitchenLayout(data: unknown): Observable<unknown> {
+    return this.http.post<unknown>(this.kitchenLayout, data);
   }
 
   /**

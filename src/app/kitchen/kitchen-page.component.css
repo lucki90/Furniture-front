@@ -196,7 +196,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 10px 12px;
-  background: #f8fafc;
+  background: var(--bg-main, #f8fafc);
   border-top: 1px solid var(--border-color, #e2e8f0);
 }
 
@@ -469,7 +469,7 @@
 /* Pre-calculation summary */
 .pre-calculation-summary {
   padding: var(--spacing-lg);
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, var(--bg-main, #f8fafc) 0%, var(--bg-hover, #f1f5f9) 100%);
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
 }

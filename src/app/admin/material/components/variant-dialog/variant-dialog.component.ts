@@ -9,7 +9,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Observable, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
+import { EMPTY, Observable, debounceTime, distinctUntilChanged, forkJoin, of, switchMap } from 'rxjs';
 import { MaterialAdminService } from '../../service/material-admin.service';
 import { ToastService } from '../../../../core/error/toast.service';
 import { TranslationService } from '../../../../translation/translation.service';
@@ -20,7 +20,10 @@ import {
   BoardVariantUpdateRequest,
   ComponentVariantCreateRequest,
   ComponentVariantUpdateRequest,
-  JobVariantUpdateRequest
+  JobVariantUpdateRequest,
+  BoardVariantAdminResponse,
+  ComponentVariantAdminResponse,
+  JobVariantAdminResponse
 } from '../../model/material-variant.model';
 
 export type VariantType = 'board' | 'component' | 'job';
@@ -28,7 +31,7 @@ export type VariantType = 'board' | 'component' | 'job';
 export interface VariantDialogData {
   type: VariantType;
   mode: 'create' | 'edit';
-  variant?: any;
+  variant?: BoardVariantAdminResponse | ComponentVariantAdminResponse | JobVariantAdminResponse;
 }
 
 @Component({
@@ -132,27 +135,29 @@ export class VariantDialogComponent implements OnInit {
     ctrl.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
       debounceTime(500),
-      distinctUntilChanged()
-    ).subscribe((key: string) => {
-      if (!key || key.length < 3) {
-        this.translationPl.set('');
-        this.translationEn.set('');
-        this.translationKeyExists.set(null);
-        return;
-      }
-      // Load both PL and EN to check/populate
-      this.translationLoading.set(true);
-      const category = key.split('.')[0] || key;
-      this.translationService.getByCategory(category, 'pl').subscribe(plMap => {
-        this.translationService.getByCategory(category, 'en').subscribe(enMap => {
-          this.translationLoading.set(false);
-          const plVal = plMap[key] ?? '';
-          const enVal = enMap[key] ?? '';
-          this.translationPl.set(plVal);
-          this.translationEn.set(enVal);
-          this.translationKeyExists.set(!!(plVal || enVal));
+      distinctUntilChanged(),
+      switchMap((key: string) => {
+        if (!key || key.length < 3) {
+          this.translationPl.set('');
+          this.translationEn.set('');
+          this.translationKeyExists.set(null);
+          return EMPTY;
+        }
+        this.translationLoading.set(true);
+        const category = key.split('.')[0] || key;
+        return forkJoin({
+          plMap: this.translationService.getByCategory(category, 'pl'),
+          enMap: this.translationService.getByCategory(category, 'en'),
+          key: Promise.resolve(key)
         });
-      });
+      })
+    ).subscribe(({ plMap, enMap, key }) => {
+      this.translationLoading.set(false);
+      const plVal = plMap[key] ?? '';
+      const enVal = enMap[key] ?? '';
+      this.translationPl.set(plVal);
+      this.translationEn.set(enVal);
+      this.translationKeyExists.set(!!(plVal || enVal));
     });
   }
 
@@ -188,10 +193,11 @@ export class VariantDialogComponent implements OnInit {
   }
 
   private populateForm(): void {
-    const v = this.data.variant;
+    if (!this.data.variant) return;
 
     switch (this.data.type) {
-      case 'board':
+      case 'board': {
+        const v = this.data.variant as BoardVariantAdminResponse;
         this.form.patchValue({
           materialId: v.materialId,
           thicknessMm: v.thicknessMm,
@@ -204,8 +210,10 @@ export class VariantDialogComponent implements OnInit {
           active: v.active
         });
         break;
+      }
 
-      case 'component':
+      case 'component': {
+        const v = this.data.variant as ComponentVariantAdminResponse;
         this.form.patchValue({
           componentId: v.componentId,
           modelCode: v.modelCode,
@@ -215,12 +223,15 @@ export class VariantDialogComponent implements OnInit {
           active: v.active
         });
         break;
+      }
 
-      case 'job':
+      case 'job': {
+        const v = this.data.variant as JobVariantAdminResponse;
         this.form.patchValue({
           currentPrice: v.currentPrice
         });
         break;
+      }
     }
   }
 
@@ -305,7 +316,8 @@ export class VariantDialogComponent implements OnInit {
   }
 
   private updateVariant(formValue: any): void {
-    const id = this.data.variant.id;
+    // variant is always present in edit mode (checked by caller)
+    const id = this.data.variant!.id;
 
     switch (this.data.type) {
       case 'board':
@@ -365,6 +377,10 @@ export class VariantDialogComponent implements OnInit {
     if (en) entries.push({ lang: 'EN', value: en });
     if (entries.length === 0) return of(undefined as void);
     return this.translationService.upsertTranslations(key.trim(), entries);
+  }
+
+  get jobVariant(): JobVariantAdminResponse | undefined {
+    return this.data.type === 'job' ? this.data.variant as JobVariantAdminResponse : undefined;
   }
 
   onColorPickerChange(event: Event): void {

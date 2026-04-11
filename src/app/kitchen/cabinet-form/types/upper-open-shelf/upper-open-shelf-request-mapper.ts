@@ -1,9 +1,10 @@
-import { KitchenCabinetRequestMapper, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
 /**
  * Request mapper dla szafki wiszącej otwartej — bez drzwi (UPPER_OPEN_SHELF).
  */
-export class UpperOpenShelfRequestMapper implements KitchenCabinetRequestMapper {
+export class UpperOpenShelfRequestMapper extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     return {
@@ -29,17 +30,7 @@ export class UpperOpenShelfRequestMapper implements KitchenCabinetRequestMapper 
       openingType: form.openingType ?? 'NONE',
 
       drawerRequest: null,
-
-      materialRequest: {
-        boxMaterial: materialDefaults.boxMaterial,
-        boxBoardThickness: materialDefaults.boxBoardThickness,
-        boxColor: materialDefaults.boxColor,
-        frontMaterial: materialDefaults.frontMaterial,
-        frontBoardThickness: materialDefaults.frontBoardThickness,
-        frontColor: materialDefaults.frontColor,
-        frontVeneerColor: materialDefaults.frontColor,
-        boxVeneerColor: materialDefaults.boxColor
-      }
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, catchError, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface DictionaryItem {
   code: string;
@@ -55,7 +56,7 @@ export const DICTIONARY_FALLBACK: AllDictionaries = {
 
 @Injectable({ providedIn: 'root' })
 export class DictionaryService {
-  private readonly url = 'http://localhost:8080/api/furniture/dictionaries/all-options';
+  private readonly url = `${environment.apiUrl}/dictionaries/all-options`;
 
   private readonly _data = signal<AllDictionaries>(DICTIONARY_FALLBACK);
   private readonly _loaded = signal(false);

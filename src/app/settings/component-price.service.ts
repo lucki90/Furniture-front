@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface ComponentPrice {
   id: number;
@@ -22,7 +23,7 @@ export interface UpdateComponentPrice {
   pricePerUnit: number;
 }
 
-const BASE_URL = 'http://localhost:8080/api/furniture/prices/components';
+const BASE_URL = `${environment.apiUrl}/prices/components`;
 
 @Injectable({ providedIn: 'root' })
 export class ComponentPriceService {

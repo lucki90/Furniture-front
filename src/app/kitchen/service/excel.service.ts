@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 /**
  * DTO wysyłane do backendu — odpowiada ExcelRowRequest.java
@@ -44,7 +45,7 @@ export class ExcelService {
 
   private readonly http = inject(HttpClient);
   // server.servlet.contextPath=/api/furniture — wszystkie endpointy mają ten prefix
-  private readonly downloadUrl = 'http://localhost:8080/api/furniture/download/excel';
+  private readonly downloadUrl = `${environment.apiUrl}/download/excel`;
 
   /**
    * Wysyła listę płyt do backendu, odbiera plik .xlsx i uruchamia pobieranie w przeglądarce.

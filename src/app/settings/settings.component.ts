@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, AfterViewInit, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -8,7 +8,7 @@ import { SettingsOptions, UserSettings } from './settings.model';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { FormFieldComponent } from '../shared/form-field/form-field.component';
-import { BoardPriceService, BoardPrice, CreateBoardPrice } from './board-price.service';
+import { BoardPrice } from './board-price.service';
 import { ComponentPriceService, ComponentPrice } from './component-price.service';
 import { JobPriceService, JobPrice } from './job-price.service';
 import { PriceEditTableComponent, PriceSaveEvent } from './price-edit-table/price-edit-table.component';
@@ -16,19 +16,22 @@ import { TranslationService } from '../translation/translation.service';
 import { LanguageService } from '../service/language.service';
 import { MaterialAdminService } from '../admin/material/service/material-admin.service';
 import { BoardColorOptionResponse, MaterialOption } from '../admin/material/model/material-variant.model';
+import { BoardPricesSectionComponent } from './board-prices-section/board-prices-section.component';
+import { CompanyInfoSectionComponent } from './company-info-section/company-info-section.component';
 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, FormFieldComponent, MatExpansionModule, MatIconModule, PriceEditTableComponent],
+  imports: [CommonModule, FormsModule, FormFieldComponent, MatExpansionModule, MatIconModule, PriceEditTableComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent],
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, AfterViewInit {
+
+  @ViewChild(CompanyInfoSectionComponent) companyInfoSection?: CompanyInfoSectionComponent;
 
   private settingsService = inject(SettingsService);
   private kitchenStateService = inject(KitchenStateService);
-  private boardPriceService = inject(BoardPriceService);
   private componentPriceService = inject(ComponentPriceService);
   private jobPriceService = inject(JobPriceService);
   private translationService = inject(TranslationService);
@@ -102,34 +105,8 @@ export class SettingsComponent implements OnInit {
   boxColorOptions: BoardColorOptionResponse[] = [];
   frontColorOptions: BoardColorOptionResponse[] = [];
 
-  // Form values — dane firmy
-  companyName = '';
-  companyAddress = '';
-  companyPhone = '';
-  companyEmail = '';
-  offerValidityDays = 14;
-
-  // Logo firmy
-  /** URL do podglądu logo (null = brak logo). Używane w <img [src]>. */
-  companyLogoUrl: string | null = null;
-  logoUploading = false;
-  logoError: string | null = null;
-
-  // Cennik płyt
-  boardPrices: BoardPrice[] = [];
-  boardPricesLoading = false;
-  boardPricesError: string | null = null;
-  showAddBoardForm = false;
-  addBoardSaving = false;
-  addBoardError: string | null = null;
-  newBoard: CreateBoardPrice = this.emptyNewBoard();
-  editingBoardId: number | null = null;
-  editBoardPrice = 0;
-  editBoardColorName: string | null = null;
-  editBoardColorHex: string | null = null;
-  editBoardSaving = false;
-  csvImporting = false;
-  csvImportResult: { added: number; updated: number; errors: { lineNumber: number; line: string; message: string }[] } | null = null;
+  // boardPrices — utrzymywane TYLKO dla przebudowy list kolorów materiałów; zarządzane przez BoardPricesSectionComponent
+  private boardPrices: BoardPrice[] = [];
 
   // Cennik komponentów
   componentPrices: ComponentPrice[] = [];
@@ -174,103 +151,24 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     this.loadOptions();
     this.loadSettings();
-    this.loadLogo();
-    this.loadBoardPrices();
     this.loadMaterialOptions();
     this.loadComponentPrices();
     this.loadJobPrices();
   }
 
-  // ── Logo firmy ─────────────────────────────────────────────────────────────
-
-  /**
-   * Pobiera logo z backendu z nagłówkiem Authorization i tworzy blob: URL do wyświetlenia.
-   * Zwykły <img src="url"> nie wysyła tokenu JWT, stąd konieczność użycia fetch + blob.
-   */
-  loadLogo(): void {
-    const token = localStorage.getItem('accessToken') ?? '';
-    fetch(this.settingsService.getLogoUrl(), {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.status === 200 ? res.blob() : null)
-      .then(blob => this.applyLogoBlob(blob))
-      .catch(() => this.applyLogoBlob(null));
+  ngAfterViewInit(): void {
+    // Logo wymaga tokenu Bearer — ładujemy po inicjalizacji widoku
+    this.companyInfoSection?.loadLogo();
   }
 
-  /**
-   * Zastępuje bieżący blob: URL nowym (zwalnia stary, by uniknąć wycieku pamięci).
-   * Akceptuje Blob, File (extends Blob) lub null (brak logo).
-   */
-  private applyLogoBlob(blob: Blob | null): void {
-    if (this.companyLogoUrl?.startsWith('blob:')) {
-      URL.revokeObjectURL(this.companyLogoUrl);
-    }
-    this.companyLogoUrl = blob ? URL.createObjectURL(blob) : null;
-  }
-
-  /**
-   * Handles <input type="file"> change. Validates and uploads the selected image.
-   */
-  onLogoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    const allowedTypes = ['image/png', 'image/jpeg'];
-    if (!allowedTypes.includes(file.type)) {
-      this.logoError = 'Dozwolone formaty: PNG, JPEG.';
-      return;
-    }
-    if (file.size > 512_000) {
-      this.logoError = 'Plik jest za duży. Maksymalny rozmiar: 500 KB.';
-      return;
-    }
-
-    this.logoError = null;
-    this.logoUploading = true;
-
-    this.settingsService.uploadLogo(file).subscribe({
-      next: () => {
-        // File extends Blob — tworzymy blob: URL bezpośrednio z pliku (bez ponownego fetch)
-        this.applyLogoBlob(file);
-        this.logoUploading = false;
-      },
-      error: (err) => {
-        console.error('Logo upload failed', err);
-        this.logoError = 'Nie udało się przesłać logo. Sprawdź format i rozmiar pliku.';
-        this.logoUploading = false;
-      }
-    });
-
-    // Reset input — pozwala ponownie wybrać ten sam plik po usunięciu
-    input.value = '';
-  }
-
-  /**
-   * Removes the company logo.
-   */
-  removeLogo(): void {
-    this.settingsService.deleteLogo().subscribe({
-      next: () => {
-        this.applyLogoBlob(null);
-        this.logoError = null;
-      },
-      error: (err) => {
-        console.error('Logo delete failed', err);
-        this.logoError = 'Nie udało się usunąć logo.';
-      }
-    });
-  }
+  // ── Logo firmy — delegowane do CompanyInfoSectionComponent (R.2.4) ───────────
+  // Metody loadLogo, onLogoSelected, removeLogo przeniesione do CompanyInfoSectionComponent.
+  // Wywołanie: ngAfterViewInit → this.companyInfoSection?.loadLogo().
 
   private loadTranslations(lang: string): void {
     this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT'], lang).subscribe(t => {
       this.translations = t;
     });
-  }
-
-  getMaterialDisplay(bp: BoardPrice): string {
-    // bp.materialName holds the translationKey of the material (e.g. MATERIAL.CHIPBOARD)
-    return this.translations[bp.materialName] || bp.materialCode;
   }
 
   private loadMaterialOptions(): void {
@@ -413,12 +311,8 @@ export class SettingsComponent implements OnInit {
         this.defaultVarnishedFront = settings.defaultVarnishedFront ?? false;
         // Rebuild color dropdowns using loaded material (boardPrices may already be ready)
         this.rebuildColorOptions();
-        // Dane firmy
-        this.companyName = settings.companyName ?? '';
-        this.companyAddress = settings.companyAddress ?? '';
-        this.companyPhone = settings.companyPhone ?? '';
-        this.companyEmail = settings.companyEmail ?? '';
-        this.offerValidityDays = settings.offerValidityDays ?? 14;
+        // Dane firmy — delegowane do CompanyInfoSectionComponent (R.2.4)
+        this.companyInfoSection?.applySettings(settings);
         this.loading = false;
       },
       error: (err) => {
@@ -476,11 +370,8 @@ export class SettingsComponent implements OnInit {
       defaultBackBoardThickness: this.defaultBackBoardThickness,
       defaultSheetSizeMode: this.defaultSheetSizeMode,
       defaultVarnishedFront: this.defaultVarnishedFront,
-      companyName: this.companyName || undefined,
-      companyAddress: this.companyAddress || undefined,
-      companyPhone: this.companyPhone || undefined,
-      companyEmail: this.companyEmail || undefined,
-      offerValidityDays: this.offerValidityDays
+      // Dane firmy — czytane z CompanyInfoSectionComponent przez @ViewChild
+      ...(this.companyInfoSection?.getCompanyData() ?? { offerValidityDays: 14 })
     };
 
     this.settingsService.updateSettings(request as any).subscribe({
@@ -513,117 +404,15 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  // ── Cennik płyt ──────────────────────────────────────────────────────────────
+  // ── Cennik płyt (obsługa delegowana do BoardPricesSectionComponent) ──────────
 
-  loadBoardPrices(): void {
-    this.boardPricesLoading = true;
-    this.boardPricesError = null;
-    this.boardPriceService.list().subscribe({
-      next: (prices) => {
-        this.boardPrices = prices;
-        this.boardPricesLoading = false;
-        // Rebuild color dropdowns now that board prices are available
-        this.rebuildColorOptions();
-      },
-      error: () => {
-        this.boardPricesError = 'Nie udało się załadować cennika płyt.';
-        this.boardPricesLoading = false;
-      }
-    });
-  }
-
-  toggleAddBoardForm(): void {
-    this.showAddBoardForm = !this.showAddBoardForm;
-    this.newBoard = this.emptyNewBoard();
-    this.addBoardError = null;
-  }
-
-  submitAddBoard(): void {
-    this.addBoardSaving = true;
-    this.addBoardError = null;
-    this.boardPriceService.create(this.newBoard).subscribe({
-      next: (created) => {
-        this.boardPrices = [...this.boardPrices, created];
-        this.showAddBoardForm = false;
-        this.newBoard = this.emptyNewBoard();
-        this.addBoardSaving = false;
-      },
-      error: (err) => {
-        this.addBoardError = err?.error?.message || 'Błąd podczas dodawania ceny.';
-        this.addBoardSaving = false;
-      }
-    });
-  }
-
-  startEditBoard(bp: BoardPrice): void {
-    this.editingBoardId = bp.id;
-    this.editBoardPrice = bp.pricePerM2 ?? 0;
-    this.editBoardColorName = bp.colorName;
-    this.editBoardColorHex = bp.colorHex;
-  }
-
-  cancelEditBoard(): void {
-    this.editingBoardId = null;
-  }
-
-  submitEditBoard(bp: BoardPrice): void {
-    this.editBoardSaving = true;
-    this.boardPriceService.update(bp.id, {
-      pricePerM2: this.editBoardPrice,
-      colorName: this.editBoardColorName ?? undefined,
-      colorHex: this.editBoardColorHex ?? undefined
-    }).subscribe({
-      next: (updated) => {
-        this.boardPrices = this.boardPrices.map(p => p.id === updated.id ? updated : p);
-        this.editingBoardId = null;
-        this.editBoardSaving = false;
-      },
-      error: () => {
-        this.editBoardSaving = false;
-      }
-    });
-  }
-
-  downloadCsvTemplate(): void {
-    this.boardPriceService.downloadTemplate().subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'board_prices_template.csv';
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    });
-  }
-
-  onCsvFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      this.csvImportResult = { added: 0, updated: 0, errors: [{ lineNumber: 0, line: '', message: 'Plik jest zbyt duży. Maksymalny rozmiar: 10 MB' }] };
-      input.value = '';
-      return;
-    }
-    this.csvImporting = true;
-    this.csvImportResult = null;
-    this.boardPriceService.importCsv(file).subscribe({
-      next: (result) => {
-        this.csvImportResult = result;
-        this.csvImporting = false;
-        this.loadBoardPrices();
-        input.value = '';
-      },
-      error: () => {
-        this.csvImporting = false;
-        input.value = '';
-      }
-    });
-  }
-
-  private emptyNewBoard(): CreateBoardPrice {
-    return { materialCode: '', thicknessMm: 18, colorCode: '', colorName: '', colorHex: '', varnished: false, pricePerM2: 0 };
+  /**
+   * Wywoływany gdy BoardPricesSectionComponent załaduje lub zmieni listę płyt.
+   * Aktualizuje lokalne boardPrices używane przez rebuildColorOptions().
+   */
+  onBoardPricesChanged(prices: BoardPrice[]): void {
+    this.boardPrices = prices;
+    this.rebuildColorOptions();
   }
 
   // ── Cennik komponentów ─────────────────────────────────────────────────────

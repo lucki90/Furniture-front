@@ -1,6 +1,7 @@
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 
 export class BaseCooktopCabinetPreparer implements KitchenCabinetPreparer {
 
@@ -44,15 +45,10 @@ export class BaseCooktopCabinetPreparer implements KitchenCabinetPreparer {
     });
 
     // Aktywacja kontrolek
-    this.setControlEnabled(form.get('drawerQuantity'), true);
-    this.setControlEnabled(form.get('drawerModel'), true);
-    this.setControlEnabled(form.get('shelfQuantity'), false);
-    this.setControlEnabled(form.get('cooktopType'), true);
-    this.setControlEnabled(form.get('cooktopFrontType'), true);
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
+    setControlEnabled(form.get('drawerQuantity'), true);
+    setControlEnabled(form.get('drawerModel'), true);
+    setControlEnabled(form.get('shelfQuantity'), false);
+    setControlEnabled(form.get('cooktopType'), true);
+    setControlEnabled(form.get('cooktopFrontType'), true);
   }
 }

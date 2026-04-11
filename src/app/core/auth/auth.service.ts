@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { AuthResponse, LoginRequest, RegisterRequest, UserInfo } from './auth.model';
 import { KitchenStateService } from '../../kitchen/service/kitchen-state.service';
+import { environment } from '../../../environments/environment';
 
 const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
@@ -12,7 +13,7 @@ const USER_KEY = 'user';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private readonly baseUrl = 'http://localhost:8080/api/furniture/auth';
+  private readonly baseUrl = `${environment.apiUrl}/auth`;
   private readonly _currentUser = signal<UserInfo | null>(null);
 
   readonly isLoggedIn = computed(() => this._currentUser() !== null);

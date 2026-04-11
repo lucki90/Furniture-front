@@ -1,6 +1,7 @@
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 
 export class BaseSinkCabinetPreparer implements KitchenCabinetPreparer {
 
@@ -46,17 +47,12 @@ export class BaseSinkCabinetPreparer implements KitchenCabinetPreparer {
     });
 
     // Możliwość edycji
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), false);
-    this.setControlEnabled(form.get('drawerModel'), false);
-    this.setControlEnabled(form.get('sinkFrontType'), true);
-    this.setControlEnabled(form.get('sinkApronEnabled'), true);
-    this.setControlEnabled(form.get('sinkApronHeightMm'), true);
-    this.setControlEnabled(form.get('sinkDrawerModel'), false);
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), false);
+    setControlEnabled(form.get('drawerModel'), false);
+    setControlEnabled(form.get('sinkFrontType'), true);
+    setControlEnabled(form.get('sinkApronEnabled'), true);
+    setControlEnabled(form.get('sinkApronHeightMm'), true);
+    setControlEnabled(form.get('sinkDrawerModel'), false);
   }
 }

@@ -3,7 +3,6 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { KitchenLayoutComponent } from "./kitchen-layout/kitchen-layout.component";
 import { CabinetFormComponent } from "./cabinet-form/cabinet-form.component";
 import { KitchenCabinetListComponent } from './cabinet-list/kitchen-cabinet-list.component';
@@ -14,25 +13,13 @@ import { OfferOptionsDialogComponent } from './offer-options-dialog/offer-option
 import { KitchenStateService } from './service/kitchen-state.service';
 import { KitchenService } from './service/kitchen.service';
 import { ProjectDetailsAggregatorService, AggregatedBoard, AggregatedComponent, AggregatedJob } from './service/project-details-aggregator.service';
-import { CabinetCalculatedEvent, KitchenCabinet, CountertopConfig, PlinthConfig, isUpperCabinetType } from './model/kitchen-state.model';
+import { CabinetCalculatedEvent, KitchenCabinet } from './model/kitchen-state.model';
+import { FEET_TYPE_OPTIONS } from './model/plinth.model';
 import { MultiWallCalculateResponse, ProjectStatus, getStatusLabel, getStatusColor, PROJECT_STATUSES } from './model/kitchen-project.model';
 import { Board, Component as CabinetComponent, Job } from './cabinet-form/model/kitchen-cabinet-form.model';
-import {
-  CountertopMaterialType,
-  COUNTERTOP_MATERIAL_OPTIONS,
-  CountertopJointType,
-  COUNTERTOP_JOINT_OPTIONS,
-  CountertopEdgeType,
-  COUNTERTOP_EDGE_OPTIONS,
-  COUNTERTOP_THICKNESS_OPTIONS
-} from './model/countertop.model';
-import {
-  FeetType,
-  FEET_TYPE_OPTIONS,
-  PlinthMaterialType,
-  PLINTH_MATERIAL_OPTIONS
-} from './model/plinth.model';
 import { ToastService } from '../core/error/toast.service';
+import { ConfirmDialogService } from '../shared/confirm-dialog/confirm-dialog.service';
+import { WallConfigComponent } from './wall-config/wall-config.component';
 import { ExcelService, ExcelRowRequest } from './service/excel.service';
 import { ProjectPricingService, PricingBreakdown, UpdatePricingRequest } from './service/project-pricing.service';
 import { LanguageService } from '../service/language.service';
@@ -66,7 +53,8 @@ const MATERIAL_NAMES_PL: Record<string, string> = {
     CabinetFormComponent,
     KitchenLayoutComponent,
     KitchenCabinetListComponent,
-    KitchenFloorPlanComponent
+    KitchenFloorPlanComponent,
+    WallConfigComponent
   ]
 })
 export class KitchenPageComponent {
@@ -77,8 +65,8 @@ export class KitchenPageComponent {
   private excelService = inject(ExcelService);
   private pricingService = inject(ProjectPricingService);
   private dialog = inject(MatDialog);
-  private snackBar = inject(MatSnackBar);
   private toast = inject(ToastService);
+  private confirmDialog = inject(ConfirmDialogService);
   private languageService = inject(LanguageService);
   private translationService = inject(TranslationService);
 
@@ -149,7 +137,7 @@ export class KitchenPageComponent {
     // Synchronizuj plinth z feetType
     const plinthConfig = this.stateService.getPlinthConfig(wallId);
     if (plinthConfig?.enabled) {
-      const feetOption = this.feetTypeOptions.find(o => o.value === plinthConfig.feetType);
+      const feetOption = FEET_TYPE_OPTIONS.find(o => o.value === plinthConfig.feetType);
       if (feetOption) {
         this.stateService.updateProjectSettings({ plinthHeightMm: feetOption.feetHeightMm });
       }
@@ -223,238 +211,9 @@ export class KitchenPageComponent {
   }
 
   // ============ COUNTERTOP & PLINTH CONFIG ============
-
-  // Opcje dla dropdownów
-  readonly countertopMaterialOptions = COUNTERTOP_MATERIAL_OPTIONS;
-  readonly countertopThicknessOptions = COUNTERTOP_THICKNESS_OPTIONS;
-  readonly countertopJointOptions = COUNTERTOP_JOINT_OPTIONS;
-  readonly countertopEdgeOptions = COUNTERTOP_EDGE_OPTIONS;
-  readonly feetTypeOptions = FEET_TYPE_OPTIONS;
-  readonly plinthMaterialOptions = PLINTH_MATERIAL_OPTIONS;
-
-  // Helper - pobiera konfigurację blatu dla aktualnej ściany
-  private getSelectedWallCountertopConfig(): CountertopConfig | undefined {
-    const wallId = this.selectedWallId();
-    if (!wallId) return undefined;
-    return this.stateService.getCountertopConfig(wallId);
-  }
-
-  // Helper - pobiera konfigurację cokołu dla aktualnej ściany
-  private getSelectedWallPlinthConfig(): PlinthConfig | undefined {
-    const wallId = this.selectedWallId();
-    if (!wallId) return undefined;
-    return this.stateService.getPlinthConfig(wallId);
-  }
-
-  // Gettery dla konfiguracji blatu
-  get countertopEnabled(): boolean {
-    return this.getSelectedWallCountertopConfig()?.enabled ?? true;
-  }
-
-  set countertopEnabled(value: boolean) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
-    this.stateService.updateCountertopConfig(wallId, { ...current, enabled: value });
-    this.resetProjectResult();
-  }
-
-  get countertopMaterial(): CountertopMaterialType {
-    return this.getSelectedWallCountertopConfig()?.materialType ?? 'LAMINATE';
-  }
-
-  set countertopMaterial(value: CountertopMaterialType) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
-    this.stateService.updateCountertopConfig(wallId, { ...current, materialType: value });
-    this.resetProjectResult();
-  }
-
-  get countertopThickness(): number {
-    return this.getSelectedWallCountertopConfig()?.thicknessMm ?? 38;
-  }
-
-  set countertopThickness(value: number) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
-    this.stateService.updateCountertopConfig(wallId, { ...current, thicknessMm: value });
-    // Synchronizuj grubość blatu z globalnym sygnałem
-    this.stateService.updateProjectSettings({ countertopThicknessMm: value });
-    this.resetProjectResult();
-  }
-
-  get countertopJoint(): CountertopJointType {
-    return this.getSelectedWallCountertopConfig()?.jointType ?? 'ALUMINUM_STRIP';
-  }
-
-  set countertopJoint(value: CountertopJointType) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
-    this.stateService.updateCountertopConfig(wallId, { ...current, jointType: value });
-    this.resetProjectResult();
-  }
-
-  get countertopEdge(): CountertopEdgeType {
-    return this.getSelectedWallCountertopConfig()?.edgeType ?? 'ABS_EDGE';
-  }
-
-  set countertopEdge(value: CountertopEdgeType) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
-    this.stateService.updateCountertopConfig(wallId, { ...current, edgeType: value });
-    this.resetProjectResult();
-  }
-
-  // Głębokość blatu (manualDepthMm, default 600mm)
-  get countertopDepth(): number {
-    return this.getSelectedWallCountertopConfig()?.manualDepthMm ?? 600;
-  }
-
-  set countertopDepth(value: number) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true };
-    this.stateService.updateCountertopConfig(wallId, { ...current, manualDepthMm: value });
-    this.resetProjectResult();
-  }
-
-  // Naddatek boczny (sideOverhangExtraMm, default 5mm)
-  get countertopSideOverhang(): number {
-    return this.getSelectedWallCountertopConfig()?.sideOverhangExtraMm ?? 5;
-  }
-
-  set countertopSideOverhang(value: number) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true };
-    this.stateService.updateCountertopConfig(wallId, { ...current, sideOverhangExtraMm: value });
-    this.resetProjectResult();
-  }
-
-  // Włączenie ręcznego nadpisania długości blatu
-  get countertopManualLengthEnabled(): boolean {
-    return this.getSelectedWallCountertopConfig()?.manualLengthMm != null;
-  }
-
-  set countertopManualLengthEnabled(enabled: boolean) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true };
-    this.stateService.updateCountertopConfig(wallId, {
-      ...current,
-      manualLengthMm: enabled ? (current.manualLengthMm ?? 1200) : undefined
-    });
-    this.resetProjectResult();
-  }
-
-  // Ręczna długość blatu
-  get countertopManualLength(): number {
-    return this.getSelectedWallCountertopConfig()?.manualLengthMm ?? 1200;
-  }
-
-  set countertopManualLength(value: number) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true };
-    this.stateService.updateCountertopConfig(wallId, { ...current, manualLengthMm: value });
-    this.resetProjectResult();
-  }
-
-  /**
-   * Maksymalna głębokość szafek dolnych/słupków (do walidacji głębokości blatu).
-   */
-  get maxBottomCabinetDepth(): number {
-    const wall = this.selectedWall();
-    if (!wall || wall.cabinets.length === 0) return 0;
-    const bottomCabinets = wall.cabinets.filter(c => !isUpperCabinetType(c.type));
-    if (bottomCabinets.length === 0) return 0;
-    return Math.max(...bottomCabinets.map(c => c.depth));
-  }
-
-  /**
-   * Ostrzeżenie: głębokość blatu jest mniejsza niż głębokość najgłębszej szafki dolnej.
-   */
-  get countertopDepthWarning(): boolean {
-    const depth = this.countertopDepth;
-    const maxCabDepth = this.maxBottomCabinetDepth;
-    return maxCabDepth > 0 && depth < maxCabDepth;
-  }
-
-  // Gettery dla konfiguracji cokołu
-  get plinthEnabled(): boolean {
-    return this.getSelectedWallPlinthConfig()?.enabled ?? true;
-  }
-
-  set plinthEnabled(value: boolean) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
-    this.stateService.updatePlinthConfig(wallId, { ...current, enabled: value });
-    this.resetProjectResult();
-  }
-
-  get feetType(): FeetType {
-    return this.getSelectedWallPlinthConfig()?.feetType ?? 'FEET_100';
-  }
-
-  set feetType(value: FeetType) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
-    this.stateService.updatePlinthConfig(wallId, { ...current, feetType: value });
-    // Synchronizuj wysokość nóżek z globalnym sygnałem (feetHeightMm = fizyczna wysokość nóżek)
-    const feetOption = this.feetTypeOptions.find(o => o.value === value);
-    this.stateService.updateProjectSettings({ plinthHeightMm: feetOption?.feetHeightMm ?? 100 });
-    this.resetProjectResult();
-  }
-
-  get plinthMaterial(): PlinthMaterialType {
-    return this.getSelectedWallPlinthConfig()?.materialType ?? 'PVC';
-  }
-
-  set plinthMaterial(value: PlinthMaterialType) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
-    this.stateService.updatePlinthConfig(wallId, { ...current, materialType: value });
-    this.resetProjectResult();
-  }
-
-  /** Grubość płyty cokołowej (domyślnie: 18mm dla MDF/CHIPBOARD, 16mm dla PVC/ALUMINUM) */
-  get plinthThickness(): number {
-    const configured = this.getSelectedWallPlinthConfig()?.thicknessMm;
-    if (configured != null) return configured;
-    const mat = this.plinthMaterial;
-    return (mat === 'MDF_LAMINATED' || mat === 'CHIPBOARD') ? 18 : 16;
-  }
-
-  set plinthThickness(value: number) {
-    const wallId = this.selectedWallId();
-    if (!wallId) return;
-    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true };
-    this.stateService.updatePlinthConfig(wallId, { ...current, thicknessMm: value });
-    this.resetProjectResult();
-  }
-
-  /**
-   * Zwraca wysokość cokołu na podstawie wybranego typu nóżek
-   */
-  get plinthHeight(): number {
-    const feetOption = this.feetTypeOptions.find(o => o.value === this.feetType);
-    return feetOption?.plinthHeightMm ?? 97;
-  }
-
-  // Gettery/settery dla blendy górnej
-  get upperFillerHeight(): number {
-    return this.stateService.upperFillerHeightMm();
-  }
-
-  set upperFillerHeight(value: number) {
-    this.stateService.updateProjectSettings({ upperFillerHeightMm: value });
+  // Gettery/settery przeniesione do WallConfigComponent (R.2.5).
+  // Handler emitowanego zdarzenia:
+  onWallConfigChanged(): void {
     this.resetProjectResult();
   }
 
@@ -482,7 +241,7 @@ export class KitchenPageComponent {
           response.clientName, response.clientPhone, response.clientEmail
         );
         this.isChangingStatus = false;
-        this.snackBar.open(`Status zmieniony na: ${getStatusLabel(response.status)}`, 'OK', { duration: 3000 });
+        this.toast.success(`Status zmieniony na: ${getStatusLabel(response.status)}`);
       },
       error: (err) => {
         console.error('Error changing project status:', err);
@@ -498,9 +257,7 @@ export class KitchenPageComponent {
     const availableTypes = this.stateService.getAvailableWallTypes();
 
     if (availableTypes.length === 0) {
-      this.snackBar.open('Wszystkie typy ścian zostały już dodane', 'OK', {
-        duration: 3000
-      });
+      this.toast.error('Wszystkie typy ścian zostały już dodane');
       return;
     }
 
@@ -512,9 +269,7 @@ export class KitchenPageComponent {
     dialogRef.afterClosed().subscribe((result: AddWallDialogResult | undefined) => {
       if (result) {
         this.stateService.addWall(result.type, result.widthMm, result.heightMm);
-        this.snackBar.open(`Dodano ścianę: ${this.stateService.getWallLabel(result.type)}`, 'OK', {
-          duration: 2000
-        });
+        this.toast.success(`Dodano ścianę: ${this.stateService.getWallLabel(result.type)}`);
         this.resetProjectResult();
       }
     });
@@ -524,16 +279,20 @@ export class KitchenPageComponent {
     const wall = this.walls().find(w => w.id === wallId);
     if (!wall) return;
 
-    if (wall.cabinets.length > 0) {
-      const confirmRemove = confirm(
-        `Ściana "${this.stateService.getWallLabel(wall.type)}" zawiera ${wall.cabinets.length} szafek. Czy na pewno chcesz ją usunąć?`
-      );
-      if (!confirmRemove) return;
-    }
+    const doRemove = () => {
+      this.stateService.removeWall(wallId);
+      this.toast.success('Ściana została usunięta');
+      this.resetProjectResult();
+    };
 
-    this.stateService.removeWall(wallId);
-    this.snackBar.open('Ściana została usunięta', 'OK', { duration: 2000 });
-    this.resetProjectResult();
+    if (wall.cabinets.length > 0) {
+      this.confirmDialog.confirm({
+        message: `Ściana "${this.stateService.getWallLabel(wall.type)}" zawiera ${wall.cabinets.length} szafek. Czy na pewno chcesz ją usunąć?`,
+        confirmText: 'Usuń'
+      }).subscribe(confirmed => { if (confirmed) doRemove(); });
+    } else {
+      doRemove();
+    }
   }
 
   // ============ CABINET MANAGEMENT ============
@@ -578,24 +337,30 @@ export class KitchenPageComponent {
   }
 
   clearAll(): void {
-    const confirmClear = confirm('Czy na pewno chcesz usunąć wszystkie ściany i szafki?');
-    if (!confirmClear) return;
-
-    this.stateService.clearAll();
-    this.result = null;
-    this.editingCabinet = null;
-    this.resetProjectResult();
+    this.confirmDialog.confirm({
+      message: 'Czy na pewno chcesz usunąć wszystkie ściany i szafki?',
+      confirmText: 'Usuń wszystko'
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.stateService.clearAll();
+      this.result = null;
+      this.editingCabinet = null;
+      this.resetProjectResult();
+    });
   }
 
   clearSelectedWallCabinets(): void {
     const wall = this.selectedWall();
     if (!wall || wall.cabinets.length === 0) return;
 
-    const confirmClear = confirm(`Czy na pewno chcesz usunąć wszystkie szafki ze ściany "${this.selectedWallLabel}"?`);
-    if (!confirmClear) return;
-
-    this.stateService.clearSelectedWallCabinets();
-    this.resetProjectResult();
+    this.confirmDialog.confirm({
+      message: `Czy na pewno chcesz usunąć wszystkie szafki ze ściany "${this.selectedWallLabel}"?`,
+      confirmText: 'Usuń szafki'
+    }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.stateService.clearSelectedWallCabinets();
+      this.resetProjectResult();
+    });
   }
 
   // ============ PROJECT SAVE ============
@@ -631,7 +396,7 @@ export class KitchenPageComponent {
           next: (response) => {
             this.stateService.setProjectInfo(response.id, response.name, response.version, result.description, response.status, response.allowedTransitions, result.clientName, result.clientPhone, result.clientEmail);
             this.isSavingProject = false;
-            this.snackBar.open('Projekt został zaktualizowany', 'OK', { duration: 3000 });
+            this.toast.success('Projekt został zaktualizowany');
           },
           error: (err) => {
             console.error('Error updating project:', err);
@@ -647,7 +412,7 @@ export class KitchenPageComponent {
           next: (response) => {
             this.stateService.setProjectInfo(response.id, response.name, response.version, result.description, response.status, response.allowedTransitions, result.clientName, result.clientPhone, result.clientEmail);
             this.isSavingProject = false;
-            this.snackBar.open('Projekt został zapisany', 'OK', { duration: 3000 });
+            this.toast.success('Projekt został zapisany');
           },
           error: (err) => {
             console.error('Error creating project:', err);

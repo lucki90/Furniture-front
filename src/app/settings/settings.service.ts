@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SettingsOptions, UserSettings } from './settings.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SettingsService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/furniture/settings';
+  private readonly apiUrl = `${environment.apiUrl}/settings`;
 
   constructor(private readonly http: HttpClient) {}
 

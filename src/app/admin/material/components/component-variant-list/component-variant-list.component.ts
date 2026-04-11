@@ -1,4 +1,6 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -11,11 +13,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from '../../../../core/error/toast.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MaterialAdminService } from '../../service/material-admin.service';
 import { ComponentVariantAdminResponse } from '../../model/material-variant.model';
 import { VariantDialogComponent, VariantDialogData } from '../variant-dialog/variant-dialog.component';
+import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
+import { DIALOG_WIDTH } from '../../../../shared/constants/dialog.constants';
 
 @Component({
   selector: 'app-component-variant-list',
@@ -33,7 +37,6 @@ import { VariantDialogComponent, VariantDialogData } from '../variant-dialog/var
     MatChipsModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    MatSnackBarModule,
     MatTooltipModule
   ],
   templateUrl: './component-variant-list.component.html',
@@ -41,6 +44,8 @@ import { VariantDialogComponent, VariantDialogData } from '../variant-dialog/var
 })
 export class ComponentVariantListComponent implements OnInit {
   displayedColumns = ['componentCode', 'componentCategory', 'modelCode', 'additionalInfo', 'currentPrice', 'active', 'actions'];
+
+  private readonly destroyRef = inject(DestroyRef);
 
   variants = signal<ComponentVariantAdminResponse[]>([]);
   loading = signal(false);
@@ -55,7 +60,8 @@ export class ComponentVariantListComponent implements OnInit {
   constructor(
     private materialAdminService: MaterialAdminService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private toast: ToastService,
+    private confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
@@ -77,7 +83,7 @@ export class ComponentVariantListComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.snackBar.open('Błąd podczas ładowania wariantów komponentów', 'OK', { duration: 3000 });
+        this.toast.error('Błąd podczas ładowania wariantów komponentów');
         this.loading.set(false);
       }
     });
@@ -107,12 +113,14 @@ export class ComponentVariantListComponent implements OnInit {
 
     const dialogRef = this.dialog.open(VariantDialogComponent, {
       data: dialogData,
-      width: '500px'
+      width: DIALOG_WIDTH.STANDARD
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(result => {
       if (result) {
-        this.snackBar.open('Wariant komponentu został dodany', 'OK', { duration: 3000 });
+        this.toast.success('Wariant komponentu został dodany');
         this.loadVariants();
       }
     });
@@ -127,28 +135,35 @@ export class ComponentVariantListComponent implements OnInit {
 
     const dialogRef = this.dialog.open(VariantDialogComponent, {
       data: dialogData,
-      width: '500px'
+      width: DIALOG_WIDTH.STANDARD
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(result => {
       if (result) {
-        this.snackBar.open('Wariant komponentu został zaktualizowany', 'OK', { duration: 3000 });
+        this.toast.success('Wariant komponentu został zaktualizowany');
         this.loadVariants();
       }
     });
   }
 
   onDelete(variant: ComponentVariantAdminResponse): void {
-    if (confirm(`Czy na pewno chcesz usunąć wariant "${variant.modelCode}" komponentu "${variant.componentCode}"?`)) {
-      this.materialAdminService.deleteComponentVariant(variant.id).subscribe({
-        next: () => {
-          this.snackBar.open('Wariant komponentu został usunięty', 'OK', { duration: 3000 });
-          this.loadVariants();
-        },
-        error: () => {
-          this.snackBar.open('Błąd podczas usuwania wariantu', 'OK', { duration: 3000 });
-        }
-      });
-    }
+    this.confirmDialog.confirm({
+      message: `Czy na pewno chcesz usunąć wariant "${variant.modelCode}" komponentu "${variant.componentCode}"?`,
+      confirmText: 'Tak'
+    }).pipe(
+      filter(Boolean),
+      switchMap(() => this.materialAdminService.deleteComponentVariant(variant.id)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.toast.success('Wariant komponentu został usunięty');
+        this.loadVariants();
+      },
+      error: () => {
+        this.toast.error('Błąd podczas usuwania wariantu');
+      }
+    });
   }
 }

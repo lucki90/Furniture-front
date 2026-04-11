@@ -38,6 +38,7 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading = false;
+//         TODO wczytywac code i tlumaczyc go a jako fallback brac message z backendu albo defaultowy
         this.errorMessage = err.error?.message || 'Nieprawidłowy email lub hasło';
       }
     });

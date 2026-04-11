@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { KitchenService } from '../service/kitchen.service';
@@ -27,6 +28,7 @@ import { EnclosureFormComponent } from './sections/enclosure-form/enclosure-form
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
 import { getFormError } from '../../shared/form-error.util';
 import { CabinetTypePickerComponent } from './cabinet-type-picker/cabinet-type-picker.component';
+import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visibility';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -54,7 +56,7 @@ export class CabinetFormComponent implements OnChanges {
   readonly stateService = inject(KitchenStateService);
 
   form: FormGroup;
-  visibility: any = {};
+  visibility: CabinetFormVisibility = {} as CabinetFormVisibility;
   loading = false;
   /** Typy otwarcia z DictionaryService (reaktywnie aktualizowane przy zmianie języka) */
   get openingTypes(): { value: string; label: string }[] {
@@ -303,6 +305,7 @@ export class CabinetFormComponent implements OnChanges {
   }
 
   private readonly toastService = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private fb: FormBuilder,
@@ -314,6 +317,7 @@ export class CabinetFormComponent implements OnChanges {
 
     this.form.get('kitchenCabinetType')!
       .valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(type => this.onTypeChange(type as KitchenCabinetType));
   }
 

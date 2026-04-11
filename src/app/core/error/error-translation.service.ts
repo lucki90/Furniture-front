@@ -1,6 +1,7 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap, catchError, map, firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { ApiErrorResponse, FieldErrorDetail, TranslatedError } from './api-error.model';
 
 /**
@@ -11,7 +12,7 @@ import { ApiErrorResponse, FieldErrorDetail, TranslatedError } from './api-error
  */
 @Injectable({ providedIn: 'root' })
 export class ErrorTranslationService {
-  private readonly translationUrl = 'http://localhost:8080/api/furniture/translation';
+  private readonly translationUrl = `${environment.apiUrl}/translation`;
   private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minut
 
   // Cache tłumaczeń błędów
@@ -153,16 +154,17 @@ export class ErrorTranslationService {
   /**
    * Sprawdza czy odpowiedź HTTP to ApiErrorResponse.
    */
-  isApiError(error: any): error is ApiErrorResponse {
-    return error && typeof error === 'object' && 'errorId' in error && 'status' in error;
+  isApiError(error: unknown): error is ApiErrorResponse {
+    return error !== null && typeof error === 'object' && 'errorId' in error && 'status' in error;
   }
 
   /**
    * Wyciąga ApiErrorResponse z błędu HTTP.
    */
-  extractApiError(httpError: any): ApiErrorResponse | null {
-    if (httpError?.error && this.isApiError(httpError.error)) {
-      return httpError.error;
+  extractApiError(httpError: unknown): ApiErrorResponse | null {
+    if (httpError !== null && typeof httpError === 'object' && 'error' in httpError &&
+        this.isApiError((httpError as { error: unknown }).error)) {
+      return (httpError as { error: ApiErrorResponse }).error;
     }
     return null;
   }

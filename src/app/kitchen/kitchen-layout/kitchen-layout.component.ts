@@ -6,6 +6,12 @@ import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { DisplayFront, DisplayHandle, CabinetRenderContext } from './strategies/cabinet-render-context';
 import { CABINET_RENDER_REGISTRY } from './strategies/cabinet-render-registry';
+import {
+  PLATE_THICKNESS_MM,
+  COUNTERTOP_DEPTH_DEFAULT_MM,
+  OVEN_HEIGHT_COMPACT_MM,
+  OVEN_HEIGHT_STANDARD_MM
+} from './kitchen-layout.constants';
 
 /**
  * Nóżka do wyświetlania — pionowy bar od korpusu do podłogi
@@ -203,7 +209,6 @@ export class KitchenLayoutComponent {
 
   // Stałe blatu
   private readonly COUNTERTOP_OVERHANG = 20;  // Nawis blatu z przodu (mm)
-  private readonly COUNTERTOP_DEPTH_DEFAULT = 600;  // Domyślna głębokość blatu (mm)
 
   readonly scaleFactor = computed(() => {
     const wallLength = this.wall().length;
@@ -326,10 +331,9 @@ export class KitchenLayoutComponent {
       // Separator piekarnik / sekcja dolna (tylko BASE_OVEN, gdy jest sekcja dolna)
       let ovenSeparatorDisplayY: number | undefined;
       if (cabinetType === KitchenCabinetType.BASE_OVEN && ovenConfig?.ovenLowerSectionType !== 'NONE') {
-        const T = 18; // grubość płyty (default, wystarczająca dokładność dla wizualizacji)
         const apronH = ovenConfig?.ovenApronEnabled ? (ovenConfig?.ovenApronHeightMm ?? 0) : 0;
-        const ovenSlotH = ovenConfig?.ovenHeightType === 'COMPACT' ? 455 : 595;
-        ovenSeparatorDisplayY = displayY + Math.round((T + apronH + ovenSlotH) * sv);
+        const ovenSlotH = ovenConfig?.ovenHeightType === 'COMPACT' ? OVEN_HEIGHT_COMPACT_MM : OVEN_HEIGHT_STANDARD_MM;
+        ovenSeparatorDisplayY = displayY + Math.round((PLATE_THICKNESS_MM + apronH + ovenSlotH) * sv);
         // Ogranicz do obszaru korpusu (zapobiegaj wyjściu poza szafkę)
         if (ovenSeparatorDisplayY >= displayY + bodyHeight || ovenSeparatorDisplayY <= displayY) {
           ovenSeparatorDisplayY = undefined;
@@ -344,14 +348,13 @@ export class KitchenLayoutComponent {
 
       // Oblicz szerokość obudów w px (0 = brak)
       const globalFillerW = this.stateService.fillerWidthMm();
-      const PLATE_MM = 18;
       const leftFillerMm = originalCabinet?.leftFillerWidthOverrideMm ?? globalFillerW;
       const rightFillerMm = originalCabinet?.rightFillerWidthOverrideMm ?? globalFillerW;
       const leftEncType = originalCabinet?.leftEnclosureType;
       const rightEncType = originalCabinet?.rightEnclosureType;
       const calcEncW = (type: string | undefined, fillerMm: number): number => {
         if (!type || type === 'NONE') return 0;
-        const widthMm = type === 'PARALLEL_FILLER_STRIP' ? fillerMm : PLATE_MM;
+        const widthMm = type === 'PARALLEL_FILLER_STRIP' ? fillerMm : PLATE_THICKNESS_MM;
         return Math.max(1, Math.round(widthMm * scale));
       };
       const leftEnclosureDisplayWidth = calcEncW(leftEncType, leftFillerMm);
@@ -483,7 +486,7 @@ export class KitchenLayoutComponent {
 
     // Głębokość z config (default 600mm)
     const wall = this.selectedWall();
-    const depthMm = wall?.countertopConfig?.manualDepthMm ?? this.COUNTERTOP_DEPTH_DEFAULT;
+    const depthMm = wall?.countertopConfig?.manualDepthMm ?? COUNTERTOP_DEPTH_DEFAULT_MM;
 
     // Naddatek boczny z config (default 5mm z każdej strony)
     const sideExtra = wall?.countertopConfig?.sideOverhangExtraMm ?? 5;
@@ -575,7 +578,7 @@ export class KitchenLayoutComponent {
     const wall = this.selectedWall();
     if (!wall) return [];
 
-    const depthMm = wall.countertopConfig?.manualDepthMm ?? this.COUNTERTOP_DEPTH_DEFAULT;
+    const depthMm = wall.countertopConfig?.manualDepthMm ?? COUNTERTOP_DEPTH_DEFAULT_MM;
 
     // Jeden segment — użyj istniejącego countertopDimensions (z blendami + naddatkami)
     if (segs.length === 1) {

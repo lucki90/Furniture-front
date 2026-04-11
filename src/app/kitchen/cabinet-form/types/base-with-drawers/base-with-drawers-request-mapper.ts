@@ -1,6 +1,7 @@
-import { KitchenCabinetRequestMapper, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
-export class BaseWithDrawersRequestMapper implements KitchenCabinetRequestMapper {
+export class BaseWithDrawersRequestMapper extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     return {
@@ -31,17 +32,7 @@ export class BaseWithDrawersRequestMapper implements KitchenCabinetRequestMapper
         drawerBaseHdf: false,
         drawerFrontDetails: null // równe wysokości szuflad
       },
-
-      materialRequest: {
-        boxMaterial: materialDefaults.boxMaterial,
-        boxBoardThickness: materialDefaults.boxBoardThickness,
-        boxColor: materialDefaults.boxColor,
-        frontMaterial: materialDefaults.frontMaterial,
-        frontBoardThickness: materialDefaults.frontBoardThickness,
-        frontColor: materialDefaults.frontColor,
-        frontVeneerColor: materialDefaults.frontColor,
-        boxVeneerColor: materialDefaults.boxColor
-      }
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 }

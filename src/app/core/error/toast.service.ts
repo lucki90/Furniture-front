@@ -70,7 +70,7 @@ export class ToastService {
    * Wyświetla toast z błędem HTTP.
    * Automatycznie wyciąga ApiErrorResponse jeśli dostępny.
    */
-  showHttpError(httpError: any): void {
+  showHttpError(httpError: unknown): void {
     const apiError = this.errorTranslation.extractApiError(httpError);
 
     if (apiError) {
@@ -79,7 +79,8 @@ export class ToastService {
     }
 
     // Fallback dla nieznanych błędów
-    const message = httpError?.message || httpError?.statusText || 'Wystąpił błąd połączenia';
+    const err = httpError as Record<string, unknown>;
+    const message = (err?.['message'] as string) || (err?.['statusText'] as string) || 'Wystąpił błąd połączenia';
     this.error(message);
   }
 

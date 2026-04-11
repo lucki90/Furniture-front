@@ -1,3 +1,5 @@
+import { Component as CabinetComponentDto } from '../cabinet-form/model/kitchen-cabinet-form.model';
+
 /**
  * Model dla blend (paneli wypełniających).
  */
@@ -53,7 +55,7 @@ export interface FillerPanelResponse {
   colorCode?: string;
   adjacentCabinetId?: string;
   leftSide: boolean;
-  components: any[]; // ComponentDto
+  components: CabinetComponentDto[];
   materialCost: number;
   cuttingCost: number;
   veneerCost: number;

@@ -55,13 +55,6 @@
   pointer-events: none;
 }
 
-.spinner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-}
 
 /* Table */
 .variant-table {
@@ -143,20 +136,6 @@
   white-space: nowrap;
 }
 
-/* Status chips */
-::ng-deep mat-chip.active {
-  --mdc-chip-label-text-color: #2e7d32;
-  --mdc-chip-elevated-container-color: #e8f5e9;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-::ng-deep mat-chip.inactive {
-  --mdc-chip-label-text-color: #c62828;
-  --mdc-chip-elevated-container-color: #ffebee;
-  font-size: 12px;
-  font-weight: 500;
-}
 
 /* Inactive material warning */
 .material-inactive-icon {
@@ -188,28 +167,6 @@
   flex-shrink: 0;
 }
 
-/* Empty state */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 32px;
-  color: var(--text-muted);
-}
-
-.empty-state mat-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
-  margin-bottom: var(--spacing-md);
-  color: var(--text-muted);
-}
-
-.empty-state p {
-  font-size: 16px;
-  margin-bottom: var(--spacing-md);
-}
 
 /* Paginator */
 ::ng-deep .mat-mdc-paginator {

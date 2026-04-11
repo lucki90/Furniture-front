@@ -1,6 +1,7 @@
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 
 /**
  * Preparer dla szafki wiszącej kaskadowej (UPPER_CASCADE).
@@ -64,11 +65,11 @@ export class UpperCascadeCabinetPreparer implements KitchenCabinetPreparer {
     this.recalculateDimensions(form);
 
     // Zablokuj pola obliczane automatycznie
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), false);
-    this.setControlEnabled(form.get('drawerModel'), false);
-    this.setControlEnabled(form.get('height'), false);
-    this.setControlEnabled(form.get('depth'), false);
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), false);
+    setControlEnabled(form.get('drawerModel'), false);
+    setControlEnabled(form.get('height'), false);
+    setControlEnabled(form.get('depth'), false);
   }
 
   /**
@@ -81,10 +82,5 @@ export class UpperCascadeCabinetPreparer implements KitchenCabinetPreparer {
     const upperHeight = form.get('cascadeUpperHeight')?.value ?? 320;
     const upperDepth = form.get('cascadeUpperDepth')?.value ?? 400;
     form.patchValue({ height: lowerHeight + upperHeight, depth: upperDepth });
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
   }
 }

@@ -2,6 +2,7 @@ import { CabinetRenderContext, DisplayFront, DisplayHandle } from '../cabinet-re
 import { createVerticalHandle } from '../cabinet-svg-helpers';
 import { SegmentType, SegmentFrontType } from '../../../cabinet-form/model/segment.model';
 import { renderSingleDoor } from './single-door.renderer';
+import { FRIDGE_LOWER_FRONT_DEFAULT_MM, FRIDGE_TOTAL_HEIGHT_DEFAULT_MM } from '../../kitchen-layout.constants';
 
 /**
  * Renderuje lodówkę w zabudowie (BASE_FRIDGE).
@@ -19,7 +20,7 @@ export function renderFridgeBuiltIn(
   const { displayX, bodyY, displayWidth, bodyHeight, frontGap: gap, fridgeConfig } = ctx;
   const sectionType = fridgeConfig?.fridgeSectionType ?? 'TWO_DOORS';
   const upperSections = fridgeConfig?.upperSections ?? [];
-  const totalHeightMm = fridgeConfig?.heightMm ?? 2000;
+  const totalHeightMm = fridgeConfig?.heightMm ?? FRIDGE_TOTAL_HEIGHT_DEFAULT_MM;
 
   // Oblicz wysokość sekcji górnych (px)
   const upperSectionsHeightMm = upperSections.reduce((sum, s) => sum + (s.height ?? 0), 0);
@@ -78,7 +79,7 @@ export function renderFridgeBuiltIn(
     // TWO_DOORS: górny front (lodówka) + dolny front (zamrażarka)
     // Proporcja odwołuje się do SAMEJ sekcji lodówki (nie całej szafki)
     const fridgeHeightMm = totalHeightMm - upperSectionsHeightMm;
-    const lowerH = fridgeConfig?.lowerFrontHeightMm ?? 713;
+    const lowerH = fridgeConfig?.lowerFrontHeightMm ?? FRIDGE_LOWER_FRONT_DEFAULT_MM;
     const lowerRatio = Math.min(Math.max(lowerH / Math.max(fridgeHeightMm, 1), 0.1), 0.9);
     const lowerDisplayH = Math.round(fridgeSectionPx * lowerRatio);
     const upperDisplayH = fridgeSectionPx - lowerDisplayH;

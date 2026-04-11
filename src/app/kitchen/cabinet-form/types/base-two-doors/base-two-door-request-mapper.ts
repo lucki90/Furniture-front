@@ -1,7 +1,8 @@
-import { KitchenCabinetRequestMapper, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
 export class BaseTwoDoorRequestMapper
-  implements KitchenCabinetRequestMapper {
+  extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     return {
@@ -27,17 +28,7 @@ export class BaseTwoDoorRequestMapper
       openingType: form.openingType ?? 'HANDLE',
 
       drawerRequest: null,
-
-      materialRequest: {
-        boxMaterial: materialDefaults.boxMaterial,
-        boxBoardThickness: materialDefaults.boxBoardThickness,
-        boxColor: materialDefaults.boxColor,
-        frontMaterial: materialDefaults.frontMaterial,
-        frontBoardThickness: materialDefaults.frontBoardThickness,
-        frontColor: materialDefaults.frontColor,
-        frontVeneerColor: materialDefaults.frontColor,
-        boxVeneerColor: materialDefaults.boxColor
-      }
+      materialRequest: this.buildMaterialRequest(materialDefaults)
     };
   }
 }

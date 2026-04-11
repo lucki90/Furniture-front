@@ -1,0 +1,112 @@
+<div class="wall-config-section" *ngIf="selectedWall()">
+  <!-- Blat -->
+  <div class="config-group">
+    <div class="config-header">
+      <label class="toggle-label">
+        <input type="checkbox" [(ngModel)]="countertopEnabled">
+        <span class="toggle-text">🍳 Blat</span>
+      </label>
+    </div>
+    <div class="config-fields" *ngIf="countertopEnabled">
+      <div class="config-field">
+        <label>Materiał</label>
+        <select [(ngModel)]="countertopMaterial">
+          <option *ngFor="let opt of countertopMaterialOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>Grubość</label>
+        <select [(ngModel)]="countertopThickness">
+          <option *ngFor="let opt of countertopThicknessOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>Łączenie</label>
+        <select [(ngModel)]="countertopJoint">
+          <option *ngFor="let opt of countertopJointOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>Krawędź</label>
+        <select [(ngModel)]="countertopEdge">
+          <option *ngFor="let opt of countertopEdgeOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <!-- Głębokość blatu -->
+      <div class="config-field">
+        <label>Głębokość (mm)</label>
+        <input type="number" [(ngModel)]="countertopDepth"
+               min="200" max="1200" step="10"
+               title="Domyślna głębokość blatu to 600mm. Powinna być ≥ głębokości szafek.">
+        <span *ngIf="countertopDepthWarning" class="warning-hint">
+          ⚠️ Mniej niż głębokość szafek ({{ maxBottomCabinetDepth }}mm)
+        </span>
+      </div>
+      <!-- Naddatek boczny -->
+      <div class="config-field">
+        <label>Naddatek boczny (mm)</label>
+        <input type="number" [(ngModel)]="countertopSideOverhang"
+               min="0" max="50" step="1"
+               title="Dodatkowe mm z każdej strony poza blendami bocznymi (standardowo 5mm)">
+      </div>
+      <!-- Nadpisz długość -->
+      <div class="config-field">
+        <label class="toggle-label">
+          <input type="checkbox" [checked]="countertopManualLengthEnabled"
+                 (change)="countertopManualLengthEnabled = $any($event.target).checked">
+          Nadpisz długość
+        </label>
+      </div>
+      <div class="config-field" *ngIf="countertopManualLengthEnabled">
+        <label>Długość (mm)</label>
+        <input type="number" [(ngModel)]="countertopManualLength"
+               min="100" max="6000" step="10">
+      </div>
+    </div>
+  </div>
+
+  <!-- Cokół -->
+  <div class="config-group">
+    <div class="config-header">
+      <label class="toggle-label">
+        <input type="checkbox" [(ngModel)]="plinthEnabled">
+        <span class="toggle-text">🦶 Cokół</span>
+      </label>
+      <span class="config-info" *ngIf="plinthEnabled">({{ plinthHeight }}mm)</span>
+    </div>
+    <div class="config-fields" *ngIf="plinthEnabled">
+      <div class="config-field">
+        <label>Nóżki</label>
+        <select [(ngModel)]="feetType">
+          <option *ngFor="let opt of feetTypeOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>Materiał</label>
+        <select [(ngModel)]="plinthMaterial">
+          <option *ngFor="let opt of plinthMaterialOptions" [value]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="config-field">
+        <label>Grubość (mm)</label>
+        <input type="number" [(ngModel)]="plinthThickness" min="12" max="25" step="1"
+               style="width:60px" [title]="'Grubość płyty cokołowej (domyślnie ' + plinthThickness + 'mm)'">
+      </div>
+    </div>
+  </div>
+
+  <!-- Blenda górna -->
+  <div class="config-group">
+    <div class="config-header">
+      <span class="toggle-text">Blenda górna</span>
+      <span class="config-info">({{ upperFillerHeight }}mm)</span>
+    </div>
+    <div class="config-fields">
+      <div class="config-field">
+        <label>Wysokość (mm)</label>
+        <input type="number" [(ngModel)]="upperFillerHeight"
+               min="0" max="150" step="10" class="number-input">
+      </div>
+    </div>
+  </div>
+</div>

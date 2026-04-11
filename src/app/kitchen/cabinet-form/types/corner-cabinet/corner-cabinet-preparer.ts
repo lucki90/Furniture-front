@@ -1,4 +1,5 @@
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
 import {
@@ -43,10 +44,10 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
     this.applyDefaultValues(form, mechanism);
 
     // Wyłącz pola nieużywane
-    this.setControlEnabled(form.get('width'), false);
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), false);
-    this.setControlEnabled(form.get('drawerModel'), false);
+    setControlEnabled(form.get('width'), false);
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), false);
+    setControlEnabled(form.get('drawerModel'), false);
 
     // Nasłuchuj zmian mechanizmu
     this.setupMechanismListener(form, v);
@@ -174,10 +175,5 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
         form.patchValue({ cornerMechanism: CornerMechanismType.FIXED_SHELVES });
       }
     });
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
   }
 }

@@ -1,6 +1,7 @@
 import { CabinetRenderContext, DisplayFront, DisplayHandle } from '../cabinet-render-context';
 import { createVerticalHandle, createHorizontalHandle } from '../cabinet-svg-helpers';
 import { SegmentFormData, SegmentType, SegmentFrontType } from '../../../cabinet-form/model/segment.model';
+import { TALL_SEGMENT_DOOR_DEFAULT_MM, TALL_SEGMENT_DRAWER_DEFAULT_MM } from '../../kitchen-layout.constants';
 
 /**
  * Renderuje segmenty słupka kuchennego (TALL_CABINET).
@@ -19,9 +20,9 @@ export function renderTallCabinet(
   if (!segments || segments.length === 0) {
     // Domyślnie 3 sekcje jeśli brak danych
     const defaultSegments: SegmentFormData[] = [
-      { segmentType: SegmentType.DOOR, height: 600, orderIndex: 0, frontType: SegmentFrontType.ONE_DOOR },
-      { segmentType: SegmentType.DOOR, height: 600, orderIndex: 1, frontType: SegmentFrontType.ONE_DOOR },
-      { segmentType: SegmentType.DRAWER, height: 400, orderIndex: 2, drawerQuantity: 2 }
+      { segmentType: SegmentType.DOOR, height: TALL_SEGMENT_DOOR_DEFAULT_MM, orderIndex: 0, frontType: SegmentFrontType.ONE_DOOR },
+      { segmentType: SegmentType.DOOR, height: TALL_SEGMENT_DOOR_DEFAULT_MM, orderIndex: 1, frontType: SegmentFrontType.ONE_DOOR },
+      { segmentType: SegmentType.DRAWER, height: TALL_SEGMENT_DRAWER_DEFAULT_MM, orderIndex: 2, drawerQuantity: 2 }
     ];
     segments = defaultSegments;
   }

@@ -1,5 +1,6 @@
 import { CabinetRenderContext, DisplayFront, DisplayHandle } from '../cabinet-render-context';
 import { createVerticalHandle } from '../cabinet-svg-helpers';
+import { CASCADE_LOWER_HEIGHT_DEFAULT_MM, CASCADE_UPPER_DEPTH_DEFAULT_MM } from '../../kitchen-layout.constants';
 
 /**
  * Renderuje szafkę kaskadową (UPPER_CASCADE).
@@ -13,8 +14,8 @@ export function renderCascade(
   handles: DisplayHandle[]
 ): void {
   const { displayX, bodyY, displayWidth, bodyHeight, frontGap: gap, cascadeLowerHeight, cascadeUpperHeight } = ctx;
-  const lower = cascadeLowerHeight ?? 400;
-  const upper = cascadeUpperHeight ?? 320;
+  const lower = cascadeLowerHeight ?? CASCADE_LOWER_HEIGHT_DEFAULT_MM;
+  const upper = cascadeUpperHeight ?? CASCADE_UPPER_DEPTH_DEFAULT_MM;
   const total = lower + upper;
 
   const lowerHeightPx = Math.round((lower / total) * bodyHeight);

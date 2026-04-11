@@ -1,4 +1,6 @@
-import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
+import { setDimensionValidators } from '../../type-config/validator/dimension-validator.utils';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
@@ -61,7 +63,7 @@ export class BaseFridgeCabinetPreparer implements KitchenCabinetPreparer {
 
     // Ustaw walidatory Angular dla wymiarów — zastępują stare walidatory poprzedniego typu
     const c = KitchenCabinetConstraints.BASE_FRIDGE;
-    this.setDimensionValidators(form, c.WIDTH_MIN, c.WIDTH_MAX, c.HEIGHT_MIN, c.HEIGHT_MAX, c.DEPTH_MIN, c.DEPTH_MAX);
+    setDimensionValidators(form, c);
 
     // Walidatory dla frontu zamrażarki (domyślnie TWO_DOORS)
     const lowerFrontCtrl = form.get('lowerFrontHeightMm');
@@ -82,10 +84,10 @@ export class BaseFridgeCabinetPreparer implements KitchenCabinetPreparer {
       lowerFrontHeightMm: 713   // default wg dokumentacji (zamrażarka ~713mm)
     });
 
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), false);  // zawsze 0, ukryta w UI
-    this.setControlEnabled(form.get('fridgeSectionType'), true);
-    this.setControlEnabled(form.get('lowerFrontHeightMm'), true);
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), false);  // zawsze 0, ukryta w UI
+    setControlEnabled(form.get('fridgeSectionType'), true);
+    setControlEnabled(form.get('lowerFrontHeightMm'), true);
 
     // Zainicjalizuj pustą tablicę segmentów (sekcje nad lodówką — opcjonalne)
     this.initializeEmptySegments(form);
@@ -101,37 +103,5 @@ export class BaseFridgeCabinetPreparer implements KitchenCabinetPreparer {
         segmentsControl.removeAt(0);
       }
     }
-  }
-
-  /**
-   * Ustawia walidatory Angular min/max dla szerokości, wysokości i głębokości.
-   * Zastępuje stare walidatory z poprzedniego typu szafki.
-   */
-  private setDimensionValidators(
-    form: FormGroup,
-    wMin: number, wMax: number,
-    hMin: number, hMax: number,
-    dMin: number, dMax: number
-  ): void {
-    const w = form.get('width');
-    const h = form.get('height');
-    const d = form.get('depth');
-    if (w) {
-      w.setValidators([Validators.required, Validators.min(wMin), Validators.max(wMax)]);
-      w.updateValueAndValidity({ emitEvent: false });
-    }
-    if (h) {
-      h.setValidators([Validators.required, Validators.min(hMin), Validators.max(hMax)]);
-      h.updateValueAndValidity({ emitEvent: false });
-    }
-    if (d) {
-      d.setValidators([Validators.required, Validators.min(dMin), Validators.max(dMax)]);
-      d.updateValueAndValidity({ emitEvent: false });
-    }
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
   }
 }

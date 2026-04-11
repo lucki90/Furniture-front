@@ -1,4 +1,6 @@
-import { AbstractControl, FormGroup, Validators } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
+import { setDimensionValidators } from '../../type-config/validator/dimension-validator.utils';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
@@ -54,7 +56,7 @@ export class BaseFridgeFreestandingCabinetPreparer implements KitchenCabinetPrep
 
     // Ustaw walidatory Angular dla wymiarów — zastępują stare walidatory poprzedniego typu
     const c = KitchenCabinetConstraints.BASE_FRIDGE_FREESTANDING;
-    this.setDimensionValidators(form, c.WIDTH_MIN, c.WIDTH_MAX, c.HEIGHT_MIN, c.HEIGHT_MAX, c.DEPTH_MIN, c.DEPTH_MAX);
+    setDimensionValidators(form, c);
 
     // Wyczyść walidatory lowerFrontHeightMm (nieaktywne dla tego typu)
     const lowerFrontCtrl = form.get('lowerFrontHeightMm');
@@ -74,40 +76,8 @@ export class BaseFridgeFreestandingCabinetPreparer implements KitchenCabinetPrep
       fridgeFreestandingType: 'TWO_DOORS'
     });
 
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), false);
-    this.setControlEnabled(form.get('drawerModel'), false);
-  }
-
-  /**
-   * Ustawia walidatory Angular min/max dla szerokości, wysokości i głębokości.
-   * Zastępuje stare walidatory z poprzedniego typu szafki.
-   */
-  private setDimensionValidators(
-    form: FormGroup,
-    wMin: number, wMax: number,
-    hMin: number, hMax: number,
-    dMin: number, dMax: number
-  ): void {
-    const w = form.get('width');
-    const h = form.get('height');
-    const d = form.get('depth');
-    if (w) {
-      w.setValidators([Validators.required, Validators.min(wMin), Validators.max(wMax)]);
-      w.updateValueAndValidity({ emitEvent: false });
-    }
-    if (h) {
-      h.setValidators([Validators.required, Validators.min(hMin), Validators.max(hMax)]);
-      h.updateValueAndValidity({ emitEvent: false });
-    }
-    if (d) {
-      d.setValidators([Validators.required, Validators.min(dMin), Validators.max(dMax)]);
-      d.updateValueAndValidity({ emitEvent: false });
-    }
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), false);
+    setControlEnabled(form.get('drawerModel'), false);
   }
 }

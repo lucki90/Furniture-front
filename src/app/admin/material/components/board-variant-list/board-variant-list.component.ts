@@ -2,6 +2,7 @@ import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { filter, switchMap } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,7 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from '../../../../core/error/toast.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
@@ -22,6 +23,8 @@ import { VariantDialogComponent, VariantDialogData } from '../variant-dialog/var
 import { CsvImportDialogComponent } from '../csv-import-dialog/csv-import-dialog.component';
 import { TranslationService } from '../../../../translation/translation.service';
 import { LanguageService } from '../../../../service/language.service';
+import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
+import { DIALOG_WIDTH } from '../../../../shared/constants/dialog.constants';
 
 @Component({
   selector: 'app-board-variant-list',
@@ -40,7 +43,6 @@ import { LanguageService } from '../../../../service/language.service';
     MatCheckboxModule,
     MatSelectModule,
     MatDialogModule,
-    MatSnackBarModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatChipsModule
@@ -64,13 +66,14 @@ export class BoardVariantListComponent implements OnInit {
 
   private readonly translationService = inject(TranslationService);
   private readonly languageService = inject(LanguageService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
 
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private readonly materialService: MaterialAdminService,
     private readonly dialog: MatDialog,
-    private readonly snackBar: MatSnackBar
+    private readonly toast: ToastService
   ) {
     // Reload translations whenever language changes (toObservable emits current value immediately)
     toObservable(this.languageService.lang).pipe(
@@ -132,7 +135,7 @@ export class BoardVariantListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.snackBar.open('Błąd podczas ładowania wariantów płyt', 'Zamknij', { duration: 3000 });
+        this.toast.error('Błąd podczas ładowania wariantów płyt');
         this.loading.set(false);
         console.error('Error loading board variants:', err);
       }
@@ -161,54 +164,65 @@ export class BoardVariantListComponent implements OnInit {
       width: '550px'
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(result => {
       if (result) {
         this.loadVariants();
-        this.snackBar.open('Import zakończony pomyślnie', 'Zamknij', { duration: 3000 });
+        this.toast.success('Import zakończony pomyślnie');
       }
     });
   }
 
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(VariantDialogComponent, {
-      width: '600px',
+      width: DIALOG_WIDTH.WIDE,
       data: { mode: 'create', type: 'board' } as VariantDialogData
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(result => {
       if (result) {
         this.loadVariants();
-        this.snackBar.open('Wariant płyty został dodany', 'Zamknij', { duration: 3000 });
+        this.toast.success('Wariant płyty został dodany');
       }
     });
   }
 
   openEditDialog(variant: BoardVariantAdminResponse): void {
     const dialogRef = this.dialog.open(VariantDialogComponent, {
-      width: '600px',
+      width: DIALOG_WIDTH.WIDE,
       data: { mode: 'edit', type: 'board', variant } as VariantDialogData
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(result => {
       if (result) {
         this.loadVariants();
-        this.snackBar.open('Wariant płyty został zaktualizowany', 'Zamknij', { duration: 3000 });
+        this.toast.success('Wariant płyty został zaktualizowany');
       }
     });
   }
 
   onDelete(variant: BoardVariantAdminResponse): void {
-    if (confirm(`Czy na pewno chcesz usunąć wariant "${variant.materialCode} ${variant.thicknessMm}mm ${variant.colorCode}"?`)) {
-      this.materialService.deleteBoardVariant(variant.id).subscribe({
-        next: () => {
-          this.loadVariants();
-          this.snackBar.open('Wariant płyty został usunięty', 'Zamknij', { duration: 3000 });
-        },
-        error: (err) => {
-          this.snackBar.open('Błąd podczas usuwania wariantu', 'Zamknij', { duration: 3000 });
-          console.error('Error deleting board variant:', err);
-        }
-      });
-    }
+    this.confirmDialog.confirm({
+      message: `Czy na pewno chcesz usunąć wariant "${variant.materialCode} ${variant.thicknessMm}mm ${variant.colorCode}"?`,
+      confirmText: 'Tak'
+    }).pipe(
+      filter(Boolean),
+      switchMap(() => this.materialService.deleteBoardVariant(variant.id)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: () => {
+        this.loadVariants();
+        this.toast.success('Wariant płyty został usunięty');
+      },
+      error: (err) => {
+        this.toast.error('Błąd podczas usuwania wariantu');
+        console.error('Error deleting board variant:', err);
+      }
+    });
   }
 }

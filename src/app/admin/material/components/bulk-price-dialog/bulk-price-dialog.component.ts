@@ -76,10 +76,10 @@ export class BulkPriceDialogComponent {
     const formValue = this.form.value;
 
     const request: BulkPriceUpdateRequest = {
-      updates: formValue.updates.map((u: any) => ({
+      updates: formValue.updates.map((u: PriceUpdate) => ({
         priceEntryId: u.priceEntryId,
         newPrice: u.newPrice
-      } as PriceUpdate))
+      }))
     };
 
     this.materialAdminService.bulkPriceUpdate(request).subscribe({

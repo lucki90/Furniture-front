@@ -20,7 +20,7 @@ import {
 import { CountertopRequest, DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
 import { PlinthRequest, DEFAULT_PLINTH_REQUEST } from '../model/plinth.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
-import { mapSegmentToRequest, SegmentFormData, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
+import { mapSegmentToRequest, SegmentFormData, SegmentRequest, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
 import { EnclosureType } from '../cabinet-form/model/enclosure.model';
 
 export interface WallBuildSettings {
@@ -270,7 +270,12 @@ export class ProjectRequestBuilderService {
   /**
    * Mapuje wynik kalkulacji (dwa formaty: /add i /load) na CabinetCalculationResult.
    */
-  mapCalculationResult(result: any): CabinetCalculationResult | undefined {
+  mapCalculationResult(result: {
+    summaryCosts?: number; totalCost?: number;
+    boardTotalCost?: number; boardsCost?: number; boardCosts?: number;
+    componentTotalCost?: number; componentsCost?: number; componentCosts?: number;
+    jobTotalCost?: number; jobsCost?: number; jobCosts?: number;
+  }): CabinetCalculationResult | undefined {
     if (!result) return undefined;
     return {
       totalCost: result.summaryCosts ?? result.totalCost ?? 0,
@@ -334,7 +339,7 @@ export class ProjectRequestBuilderService {
   /**
    * Mapuje SegmentRequest (z API) na SegmentFormData (dla stanu aplikacji).
    */
-  mapSegmentResponseToFormData(seg: any): SegmentFormData {
+  mapSegmentResponseToFormData(seg: SegmentRequest): SegmentFormData {
     const formData: SegmentFormData = {
       segmentType: seg.segmentType as SegmentType,
       height: seg.height,

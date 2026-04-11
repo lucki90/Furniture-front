@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import {
   Page,
   BoardVariantAdminResponse,
@@ -26,7 +27,8 @@ import {
 })
 export class MaterialAdminService {
 
-  private readonly baseUrl = 'http://localhost:8080/api/furniture/admin/materials';
+  private readonly baseUrl = `${environment.apiUrl}/admin/materials`;
+  private readonly boardPricesUrl = `${environment.apiUrl}/prices/boards`;
 
   constructor(private readonly http: HttpClient) {}
 
@@ -168,11 +170,11 @@ export class MaterialAdminService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<CsvImportResultResponse>(
-      'http://localhost:8080/api/furniture/prices/boards/import', formData);
+      `${this.boardPricesUrl}/import`, formData);
   }
 
   downloadCsvTemplate(): Observable<Blob> {
-    return this.http.get('http://localhost:8080/api/furniture/prices/boards/template', {
+    return this.http.get(`${this.boardPricesUrl}/template`, {
       responseType: 'blob'
     });
   }

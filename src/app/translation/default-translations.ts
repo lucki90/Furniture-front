@@ -153,6 +153,7 @@ export const DEFAULT_TRANSLATIONS: { [key: string]: string } = {
   'GENERAL.UNIT_PIECE': 'sztuk',
 
   // Errors
+  //TODO zmienilismy nazwy tlumaczen dla wyjatkow - zaczynaja sie od ex. -> sprawdzic w bazie backednu
   'ERROR.INVALID_HEIGHT': 'Nieprawidłowa wysokość szafki',
   'ERROR.INVALID_WIDTH': 'Nieprawidłowa szerokość szafki',
   'ERROR.INVALID_DEPTH': 'Nieprawidłowa głębokość szafki',

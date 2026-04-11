@@ -1,4 +1,5 @@
-import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
 import { SegmentType } from '../../model/segment.model';
@@ -38,9 +39,9 @@ export class TallCabinetPreparer implements KitchenCabinetPreparer {
     });
 
     // Możliwość edycji standardowych pól
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), false);
-    this.setControlEnabled(form.get('drawerModel'), false);
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), false);
+    setControlEnabled(form.get('drawerModel'), false);
 
     // Inicjalizuj domyślne segmenty jeśli FormArray istnieje
     this.initializeDefaultSegments(form);
@@ -95,10 +96,5 @@ export class TallCabinetPreparer implements KitchenCabinetPreparer {
       shelfQuantity: [data.shelfQuantity ?? null],
       frontType: [data.frontType ?? null]
     });
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
   }
 }

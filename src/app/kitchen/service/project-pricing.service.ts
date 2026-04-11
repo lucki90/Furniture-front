@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface PricingBreakdown {
   boardsNet: number;
@@ -43,7 +44,7 @@ export interface OfferOptionsRequest {
   hardwareDescription?: string;
 }
 
-const BASE_URL = 'http://localhost:8080/api/furniture/kitchen/projects';
+const BASE_URL = `${environment.apiUrl}/kitchen/projects`;
 
 @Injectable({ providedIn: 'root' })
 export class ProjectPricingService {

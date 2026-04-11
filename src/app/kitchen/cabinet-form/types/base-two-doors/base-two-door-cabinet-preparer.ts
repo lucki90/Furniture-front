@@ -1,51 +1,25 @@
-import {AbstractControl, FormGroup} from '@angular/forms';
-import {KitchenCabinetPreparer} from "../../type-config/preparer/kitchen-cabinet-preparer";
-import {CabinetFormVisibility} from "../../type-config/preparer/cabinet-form-visibility";
+import { FormGroup } from '@angular/forms';
+import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
+import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
+import { setStandardDoorVisibility, setBaseExtraVisibility, setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 
-export class BaseTwoDoorCabinetPreparer
-  implements KitchenCabinetPreparer {
+export class BaseTwoDoorCabinetPreparer implements KitchenCabinetPreparer {
 
   prepare(form: FormGroup, v: CabinetFormVisibility): void {
+    setStandardDoorVisibility(v);
+    setBaseExtraVisibility(v);
 
-    // widoczność
-    v.width = true;  // Standardowa szerokość widoczna
-    v.shelfQuantity = true;
-    v.drawerQuantity = false;
-    v.drawerModel = false;
-    v.segments = false;
-
-    // Ukryj pola narożnika (resetowanie po CORNER_CABINET)
-    v.cornerWidthA = false;
-    v.cornerWidthB = false;
-    v.cornerMechanism = false;
-    v.cornerShelfQuantity = false;
-    v.isUpperCorner = false;
-
-    // Pokaż sekcję obudowy bocznej
-    v.enclosureSection = true;
-
-    // Pokaż opcję dolnego wieńca na podłodze
-    v.bottomWreathOnFloor = true;
-
-    // wartości domyślne
-    // kitchenCabinetType: [KitchenCabinetType.BASE_TWO_DOOR], -- ta wartosc ustawiana jest przy wyborze typu szafki
     form.patchValue({
       width: 600,
-      height: 720, // Wysokość korpusu (bez cokołu i blatu)
+      height: 720,
       depth: 500,
-      drawerModel: [null],
+      drawerModel: null,
       drawerQuantity: 0,
       shelfQuantity: 1
     });
 
-    //mozlowosc edycji
-    this.setControlEnabled(form.get('drawerQuantity'), v.drawerQuantity);
-    this.setControlEnabled(form.get('shelfQuantity'), v.shelfQuantity);
-    this.setControlEnabled(form.get('drawerModel'), v.drawerModel);
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
+    setControlEnabled(form.get('drawerQuantity'), v.drawerQuantity);
+    setControlEnabled(form.get('shelfQuantity'), v.shelfQuantity);
+    setControlEnabled(form.get('drawerModel'), v.drawerModel);
   }
 }

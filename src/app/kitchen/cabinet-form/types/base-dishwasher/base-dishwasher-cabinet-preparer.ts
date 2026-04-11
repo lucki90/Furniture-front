@@ -1,6 +1,7 @@
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 
 export class BaseDishwasherCabinetPreparer implements KitchenCabinetPreparer {
 
@@ -33,13 +34,8 @@ export class BaseDishwasherCabinetPreparer implements KitchenCabinetPreparer {
       drawerModel: null
     });
 
-    this.setControlEnabled(form.get('shelfQuantity'), false);
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('drawerModel'), false);
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
+    setControlEnabled(form.get('shelfQuantity'), false);
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('drawerModel'), false);
   }
 }

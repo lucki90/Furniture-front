@@ -1,3 +1,5 @@
+import { Component as CabinetComponentDto } from '../cabinet-form/model/kitchen-cabinet-form.model';
+
 // Uwaga: opcje poniżej są zachowane jako fallback.
 // Docelowo opcje ładowane są z backendu przez DictionaryService (GET /dictionaries/all-options).
 
@@ -115,7 +117,7 @@ export interface CountertopResponse {
   segmentCount: number;
   wasSplit: boolean;
   splitReason?: string;
-  components: any[]; // ComponentDto
+  components: CabinetComponentDto[];
   totalMaterialCost: number;
   totalCuttingCost: number;
   totalEdgingCost: number;

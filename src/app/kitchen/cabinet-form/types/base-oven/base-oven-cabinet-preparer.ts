@@ -1,6 +1,7 @@
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
+import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 
 /**
  * Preparer dla szafki na wbudowany piekarnik (BASE_OVEN).
@@ -66,20 +67,15 @@ export class BaseOvenCabinetPreparer implements KitchenCabinetPreparer {
       ovenApronHeightMm: 50
     });
 
-    this.setControlEnabled(form.get('drawerQuantity'), false);
-    this.setControlEnabled(form.get('shelfQuantity'), false);
-    this.setControlEnabled(form.get('drawerModel'), true);   // aktywny dla LOW_DRAWER (domyślne)
-    this.setControlEnabled(form.get('ovenHeightType'), true);
-    this.setControlEnabled(form.get('ovenLowerSectionType'), true);
-    this.setControlEnabled(form.get('ovenApronEnabled'), true);
-    this.setControlEnabled(form.get('ovenApronHeightMm'), false);  // aktywowane dynamicznie
+    setControlEnabled(form.get('drawerQuantity'), false);
+    setControlEnabled(form.get('shelfQuantity'), false);
+    setControlEnabled(form.get('drawerModel'), true);   // aktywny dla LOW_DRAWER (domyślne)
+    setControlEnabled(form.get('ovenHeightType'), true);
+    setControlEnabled(form.get('ovenLowerSectionType'), true);
+    setControlEnabled(form.get('ovenApronEnabled'), true);
+    setControlEnabled(form.get('ovenApronHeightMm'), false);  // aktywowane dynamicznie
 
     // Pokaż selector systemu szuflad — domyślna sekcja to LOW_DRAWER
     v.ovenDrawerModel = true;
-  }
-
-  private setControlEnabled(control: AbstractControl | null, enabled: boolean): void {
-    if (!control) return;
-    enabled ? control.enable() : control.disable();
   }
 }

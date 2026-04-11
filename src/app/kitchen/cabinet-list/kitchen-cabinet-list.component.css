@@ -2,14 +2,6 @@
   /* bez dodatkowego marginu - kontrolowane przez rodzica */
 }
 
-.empty-state {
-  padding: 20px;
-  background: #f8fafc;
-  border-radius: 6px;
-  text-align: center;
-  color: #64748b;
-  font-size: 13px;
-}
 
 table {
   width: 100%;

@@ -1,11 +1,12 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ToastService } from '../../../../core/error/toast.service';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MaterialAdminService } from '../../service/material-admin.service';
@@ -21,7 +22,6 @@ import { MaterialOption } from '../../model/material-variant.model';
     MatIconModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
     MatSlideToggleModule,
     MatTooltipModule
   ],
@@ -34,9 +34,11 @@ export class MaterialListComponent implements OnInit {
   materials = signal<MaterialOption[]>([]);
   loading = signal(false);
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     private materialAdminService: MaterialAdminService,
-    private snackBar: MatSnackBar
+    private toast: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -45,31 +47,35 @@ export class MaterialListComponent implements OnInit {
 
   loadMaterials(): void {
     this.loading.set(true);
-    this.materialAdminService.getAllMaterials().subscribe({
-      next: (materials) => {
-        this.materials.set(materials);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.snackBar.open('Błąd podczas ładowania materiałów', 'OK', { duration: 3000 });
-        this.loading.set(false);
-      }
-    });
+    this.materialAdminService.getAllMaterials()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (materials) => {
+          this.materials.set(materials);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.toast.error('Błąd podczas ładowania materiałów');
+          this.loading.set(false);
+        }
+      });
   }
 
   onToggleActive(material: MaterialOption): void {
-    this.materialAdminService.toggleMaterialActive(material.id).subscribe({
-      next: (updated) => {
-        const list = this.materials().map(m =>
-          m.id === updated.id ? { ...m, active: updated.active } : m
-        );
-        this.materials.set(list);
-        const status = updated.active ? 'aktywny' : 'nieaktywny';
-        this.snackBar.open(`Materiał "${updated.code}" — ${status}`, 'OK', { duration: 3000 });
-      },
-      error: () => {
-        this.snackBar.open('Błąd podczas zmiany statusu materiału', 'OK', { duration: 3000 });
-      }
-    });
+    this.materialAdminService.toggleMaterialActive(material.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => {
+          const list = this.materials().map(m =>
+            m.id === updated.id ? { ...m, active: updated.active } : m
+          );
+          this.materials.set(list);
+          const status = updated.active ? 'aktywny' : 'nieaktywny';
+          this.toast.success(`Materiał "${updated.code}" — ${status}`);
+        },
+        error: () => {
+          this.toast.error('Błąd podczas zmiany statusu materiału');
+        }
+      });
   }
 }

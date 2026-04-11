@@ -1,5 +1,6 @@
 import { CabinetRenderContext, DisplayFront, DisplayHandle } from '../cabinet-render-context';
 import { createVerticalHandle, createHorizontalHandle } from '../cabinet-svg-helpers';
+import { PLATE_THICKNESS_MM, OVEN_HEIGHT_COMPACT_MM, OVEN_HEIGHT_STANDARD_MM } from '../../kitchen-layout.constants';
 
 /**
  * Renderuje piekarnik wbudowany (BASE_OVEN).
@@ -15,9 +16,8 @@ export function renderOven(
   handles: DisplayHandle[]
 ): void {
   const { displayX, bodyY, displayWidth, bodyHeight, frontGap: gap, scaleVert: sv, ovenConfig } = ctx;
-  const T = 18; // grubość płyty — ta sama stała co po stronie Java
   const apronH = ovenConfig?.ovenApronEnabled ? (ovenConfig?.ovenApronHeightMm ?? 0) : 0;
-  const ovenSlotH = ovenConfig?.ovenHeightType === 'COMPACT' ? 455 : 595;
+  const ovenSlotH = ovenConfig?.ovenHeightType === 'COMPACT' ? OVEN_HEIGHT_COMPACT_MM : OVEN_HEIGHT_STANDARD_MM;
   const lowerSectionType = ovenConfig?.ovenLowerSectionType ?? 'NONE';
 
   const apronDisplayH = Math.round(apronH * sv);
@@ -36,7 +36,7 @@ export function renderOven(
   }
 
   // Wnęka piekarnika — szaro-srebrna (APPLIANCE)
-  const ovenSlotY = bodyY + Math.round(T * sv) + apronDisplayH;
+  const ovenSlotY = bodyY + Math.round(PLATE_THICKNESS_MM * sv) + apronDisplayH;
   fronts.push({
     type: 'APPLIANCE',
     x: displayX + gap,
@@ -46,7 +46,7 @@ export function renderOven(
   });
 
   // Sekcja dolna: szuflada lub drzwi
-  const lowerStartPx = bodyY + Math.round((T + apronH + ovenSlotH + T) * sv);
+  const lowerStartPx = bodyY + Math.round((PLATE_THICKNESS_MM + apronH + ovenSlotH + PLATE_THICKNESS_MM) * sv);
   const lowerH = bodyY + bodyHeight - gap - lowerStartPx;
 
   if (lowerSectionType !== 'NONE' && lowerH > gap * 2) {

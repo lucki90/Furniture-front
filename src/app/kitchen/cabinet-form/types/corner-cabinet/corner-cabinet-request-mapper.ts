@@ -1,4 +1,5 @@
-import { KitchenCabinetRequestMapper, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 import {
   CornerMechanismType,
   CornerOpeningType,
@@ -9,7 +10,7 @@ import {
  * Request mapper dla szafki narożnej (CORNER_CABINET).
  * Routuje do Type A (L-shaped) lub Type B (Blind) na podstawie mechanizmu.
  */
-export class CornerCabinetRequestMapper implements KitchenCabinetRequestMapper {
+export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
 
   map(form: any, materialDefaults: MaterialDefaults): any {
     const mechanism = (form.cornerMechanism ?? CornerMechanismType.FIXED_SHELVES) as CornerMechanismType;
@@ -121,18 +122,4 @@ export class CornerCabinetRequestMapper implements KitchenCabinetRequestMapper {
     };
   }
 
-  // ==================== COMMON ====================
-
-  private buildMaterialRequest(materialDefaults: MaterialDefaults): any {
-    return {
-      boxMaterial: materialDefaults.boxMaterial,
-      boxBoardThickness: materialDefaults.boxBoardThickness,
-      boxColor: materialDefaults.boxColor,
-      frontMaterial: materialDefaults.frontMaterial,
-      frontBoardThickness: materialDefaults.frontBoardThickness,
-      frontColor: materialDefaults.frontColor,
-      frontVeneerColor: materialDefaults.frontColor,
-      boxVeneerColor: materialDefaults.boxColor
-    };
-  }
 }

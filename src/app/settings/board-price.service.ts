@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface BoardPrice {
   id: number;
@@ -40,7 +41,7 @@ export interface CsvImportResult {
   errors: { lineNumber: number; line: string; message: string }[];
 }
 
-const BASE_URL = 'http://localhost:8080/api/furniture/prices/boards';
+const BASE_URL = `${environment.apiUrl}/prices/boards`;
 
 @Injectable({ providedIn: 'root' })
 export class BoardPriceService {

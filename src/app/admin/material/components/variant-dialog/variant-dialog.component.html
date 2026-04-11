@@ -204,11 +204,11 @@
 
       <!-- Job Variant Fields (only price editable) -->
       @if (data.type === 'job') {
-        @if (data.variant) {
+        @if (jobVariant) {
           <div class="job-info">
-            <p><strong>Praca:</strong> {{ data.variant.jobCode }} ({{ data.variant.jobCategory }})</p>
-            <p><strong>Kod wariantu:</strong> {{ data.variant.variantCode }}</p>
-            <p><strong>Jednostka:</strong> {{ data.variant.unit }}</p>
+            <p><strong>Praca:</strong> {{ jobVariant.jobCode }} ({{ jobVariant.jobCategory }})</p>
+            <p><strong>Kod wariantu:</strong> {{ jobVariant.variantCode }}</p>
+            <p><strong>Jednostka:</strong> {{ jobVariant.unit }}</p>
           </div>
         }
 
