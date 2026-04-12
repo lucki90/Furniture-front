@@ -13,7 +13,7 @@
     <div class="form-group flex-2">
       <label class="form-label">System organizacji</label>
       <select class="form-control" formControlName="cornerMechanism">
-        <option *ngFor="let m of availableCornerMechanisms" [value]="m.value">{{ m.label }}</option>
+        <option *ngFor="let m of availableCornerMechanisms; trackBy: trackByValue" [value]="m.value">{{ m.label }}</option>
       </select>
     </div>
   </div>

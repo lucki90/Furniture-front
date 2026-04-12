@@ -5,10 +5,10 @@
   </div>
 
   <div class="picker-body">
-    <div *ngFor="let group of groups" class="picker-group">
+    <div *ngFor="let group of groups; trackBy: trackByIndex" class="picker-group">
       <h3 class="group-title">{{ group.title }}</h3>
       <div class="type-grid">
-        <button *ngFor="let card of group.types"
+        <button *ngFor="let card of group.types; trackBy: trackByType"
                 class="type-card"
                 (click)="select(card.type)"
                 [title]="card.label">

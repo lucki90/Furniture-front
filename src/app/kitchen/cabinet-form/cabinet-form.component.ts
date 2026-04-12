@@ -58,13 +58,13 @@ export class CabinetFormComponent implements OnChanges {
   form: FormGroup;
   visibility: CabinetFormVisibility = {} as CabinetFormVisibility;
   loading = false;
-  /** Typy otwarcia z DictionaryService (reaktywnie aktualizowane przy zmianie języka) */
-  get openingTypes(): { value: string; label: string }[] {
-    return this.dictionaryService.data().openingTypes.map(item => ({
+  /** Typy otwarcia z DictionaryService (memoizowane — nie tworzy nowej tablicy przy każdym CD cycle) */
+  readonly openingTypes = computed(() =>
+    this.dictionaryService.data().openingTypes.map(item => ({
       value: item.code,
       label: item.label
-    }));
-  }
+    }))
+  );
 
   // Dla segmentów
   selectedSegmentIndex = -1;
@@ -101,18 +101,19 @@ export class CabinetFormComponent implements OnChanges {
   /**
    * Opcje typów segmentów dostępne dla sekcji nad lodówką (BASE_FRIDGE).
    * Tylko DOOR i OPEN_SHELF — bez szuflad i wnęk AGD.
+   * computed() — stała referencja tablicy, nie tworzy nowej instancji przy każdym CD cycle.
    */
-  get fridgeSegmentTypeOptions() {
-    return SEGMENT_TYPE_OPTIONS.filter(opt =>
+  readonly fridgeSegmentTypeOptions = computed(() =>
+    SEGMENT_TYPE_OPTIONS.filter(opt =>
       opt.value === SegmentType.DOOR || opt.value === SegmentType.OPEN_SHELF
-    );
-  }
+    )
+  );
 
   /**
    * Aktywne opcje typów segmentów — zależne od aktualnego typu szafki.
    */
   get activeSegmentTypeOptions() {
-    return this.isFridgeCabinet ? this.fridgeSegmentTypeOptions : SEGMENT_TYPE_OPTIONS;
+    return this.isFridgeCabinet ? this.fridgeSegmentTypeOptions() : SEGMENT_TYPE_OPTIONS;
   }
 
   /**
@@ -669,4 +670,7 @@ export class CabinetFormComponent implements OnChanges {
     }
     return this.segmentsArray.at(this.selectedSegmentIndex) as FormGroup;
   }
+
+  protected trackByValue = (_: number, item: { value: string }) => item.value;
+  protected trackByIndex = (index: number) => index;
 }

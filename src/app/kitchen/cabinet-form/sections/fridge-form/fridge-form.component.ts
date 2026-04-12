@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -13,6 +13,7 @@ import { DictionaryService } from '../../../service/dictionary.service';
 @Component({
   selector: 'app-fridge-form',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './fridge-form.component.html',
   styleUrls: ['./fridge-form.component.css']
@@ -67,4 +68,6 @@ export class FridgeFormComponent implements OnInit {
       ctrl.updateValueAndValidity({ emitEvent: false });
     }
   }
+
+  protected trackByCode = (_: number, item: { code: string }) => item.code;
 }

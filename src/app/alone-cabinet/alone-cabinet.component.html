@@ -301,7 +301,7 @@
     <div *ngIf="multiRequests && multiRequests.length > 0">
       <h3>{{ translations['UI.preparedRequests'] }}</h3>
       <ul>
-        <li *ngFor="let req of multiRequests; index as i">
+        <li *ngFor="let req of multiRequests; index as i; trackBy: trackByIndex">
           Request {{ i + 1 }}
         </li>
       </ul>
@@ -334,7 +334,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let board of response.boards; index as i">
+      <tr *ngFor="let board of response.boards; index as i; trackBy: trackByIndex">
         <td>{{ i + 1 }}</td>
         <td>{{ translations['BOARD_NAME.' + board.boardName] }}</td>
         <td>{{ board.quantity }}</td>
@@ -369,7 +369,7 @@
       </thead>
 
       <tbody>
-      <tr *ngFor="let component of response.components; index as i">
+      <tr *ngFor="let component of response.components; index as i; trackBy: trackByIndex">
         <td>{{ i + 1 }}</td>
         <td>{{ translations['COMPONENT_CATEGORY.' + component.category] }} {{
             (component.additionalInfo !== null &&
@@ -419,7 +419,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let job of response.jobs; index as i">
+      <tr *ngFor="let job of response.jobs; index as i; trackBy: trackByIndex">
         <td>{{ i + 1 }}</td>
         <td class="tooltip-cell" [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)">
           {{ translations['JOB_CATEGORY.' + job.category] }}

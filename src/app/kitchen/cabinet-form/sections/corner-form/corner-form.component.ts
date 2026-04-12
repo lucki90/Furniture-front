@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -26,6 +26,7 @@ import { getFormError } from '../../../../shared/form-error.util';
 @Component({
   selector: 'app-corner-form',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
   templateUrl: './corner-form.component.html',
   styleUrls: ['./corner-form.component.css']
@@ -205,4 +206,6 @@ export class CornerFormComponent implements OnInit {
   getFieldError(controlName: string): string | null {
     return getFormError(this.form.get(controlName));
   }
+
+  protected trackByValue = (_: number, item: { value: string }) => item.value;
 }

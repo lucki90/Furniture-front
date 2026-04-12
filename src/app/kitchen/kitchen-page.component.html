@@ -27,7 +27,7 @@
             (change)="onStatusChange($any($event.target).value); $any($event.target).value = ''"
             [style.border-color]="getStatusColor(currentProjectStatus()) + '60'">
             <option value="" disabled selected>{{ isChangingStatus ? 'Zmieniam...' : 'Zmień status...' }}</option>
-            <option *ngFor="let status of currentProjectAllowedTransitions()" [value]="status">
+            <option *ngFor="let status of currentProjectAllowedTransitions(); trackBy: trackByIndex" [value]="status">
               {{ getStatusLabel(status) }}
             </option>
           </select>
@@ -123,7 +123,7 @@
     <div class="inline-summary" *ngIf="result && !editingCabinet">
       <div class="summary-badge">
         <span class="summary-icon">✓</span>
-        <span class="summary-text">Ostatnia szafka: <strong>{{ result.totalCost?.toFixed(0) || '0' }} zł</strong></span>
+        <span class="summary-text">Ostatnia szafka: <strong>{{ result.summaryCosts?.toFixed(0) || '0' }} zł</strong></span>
       </div>
       <div class="summary-badge" *ngIf="cabinets().length > 0">
         <span class="summary-icon">🧱</span>
@@ -333,7 +333,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let board of aggregatedBoards">
+                  <tr *ngFor="let board of aggregatedBoards; trackBy: trackByIndex">
                     <td>{{ board.material }} ({{ board.thickness }}mm)</td>
                     <td>{{ board.width }} × {{ board.height }}</td>
                     <td>{{ board.veneerEdgeLabel || '—' }}</td>
@@ -369,7 +369,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let comp of aggregatedComponents"
+                  <tr *ngFor="let comp of aggregatedComponents; trackBy: trackByIndex"
                       [class.waste-row]="comp.isWaste"
                       [class.waste-excluded]="comp.isWaste && !includeWasteCost">
                     <td>{{ comp.name }}</td>
@@ -409,7 +409,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let job of aggregatedJobs">
+                  <tr *ngFor="let job of aggregatedJobs; trackBy: trackByIndex">
                     <td>{{ job.name }}</td>
                     <td>{{ job.type }}</td>
                     <td>{{ job.quantity }}</td>
@@ -433,7 +433,7 @@
           <!-- Tab: Ściany -->
           <div class="tab-panel" *ngIf="activeDetailsTab === 'walls'">
             <div class="walls-list">
-              <div class="wall-item" *ngFor="let wall of projectResult.walls">
+              <div class="wall-item" *ngFor="let wall of projectResult.walls; trackBy: trackByWall">
                 <div class="wall-item-header">
                   <h4>{{ wall.wallType }}</h4>
                   <span class="wall-dims">{{ wall.widthMm }} × {{ wall.heightMm }} mm</span>

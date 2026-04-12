@@ -6,7 +6,7 @@
     <div class="form-group flex-2">
       <label class="form-label">Typ frontu</label>
       <select class="form-control" formControlName="sinkFrontType">
-        <option *ngFor="let o of dictionaryService.data().sinkFrontTypes" [value]="o.code">{{ o.label }}</option>
+        <option *ngFor="let o of dictionaryService.data().sinkFrontTypes; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
       </select>
     </div>
     <app-form-field class="form-group flex-2" label="Szerokość wnętrza korpusu" unit="mm"
@@ -37,7 +37,7 @@
     <div class="form-group flex-2">
       <label class="form-label">System szuflad</label>
       <select class="form-control" formControlName="sinkDrawerModel">
-        <option *ngFor="let o of dictionaryService.data().drawerModels" [value]="o.code">{{ o.label }}</option>
+        <option *ngFor="let o of dictionaryService.data().drawerModels; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
       </select>
     </div>
   </div>

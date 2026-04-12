@@ -19,7 +19,7 @@
   <div *ngIf="csvImportResult" class="csv-import-result">
     Import CSV: <strong>{{ csvImportResult.added }} dodano</strong>, <strong>{{ csvImportResult.updated }} zaktualizowano</strong>
     <span *ngIf="csvImportResult.errors.length > 0" style="color:#dc2626;">, {{ csvImportResult.errors.length }} błędów</span>
-    <div *ngFor="let err of csvImportResult.errors" style="color:#dc2626; font-size:12px; margin-top:2px;">
+    <div *ngFor="let err of csvImportResult.errors; trackBy: trackByIndex" style="color:#dc2626; font-size:12px; margin-top:2px;">
       Linia {{ err.lineNumber }}: {{ err.message }}
     </div>
   </div>
@@ -30,7 +30,7 @@
       <app-form-field label="Materiał">
         <select class="form-control" [(ngModel)]="newBoard.materialCode">
           <option value="">— wybierz —</option>
-          <option *ngFor="let opt of materialOptions" [value]="opt.code">
+          <option *ngFor="let opt of materialOptions; trackBy: trackByCode" [value]="opt.code">
             {{ translations[opt.translationKey] || opt.code }}
           </option>
         </select>
@@ -91,7 +91,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let bp of boardPrices" [class.board-price-row-inactive]="!bp.materialActive">
+        <tr *ngFor="let bp of boardPrices; trackBy: trackById" [class.board-price-row-inactive]="!bp.materialActive">
           <!-- Kolor: swatch + nazwa + kod -->
           <td>
             <ng-container *ngIf="editingBoardId !== bp.id">

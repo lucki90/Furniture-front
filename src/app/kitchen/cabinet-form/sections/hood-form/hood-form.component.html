@@ -6,7 +6,7 @@
     <div class="form-group flex-2">
       <label class="form-label">Typ frontu</label>
       <select class="form-control" formControlName="hoodFrontType">
-        <option *ngFor="let o of dictionaryService.data().hoodFrontTypes" [value]="o.code">{{ o.label }}</option>
+        <option *ngFor="let o of dictionaryService.data().hoodFrontTypes; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
       </select>
     </div>
   </div>

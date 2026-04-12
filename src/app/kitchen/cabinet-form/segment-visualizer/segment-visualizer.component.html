@@ -8,7 +8,7 @@
 
     <!-- Lista segmentów -->
     <div
-      *ngFor="let segment of segmentsArray.controls; let i = index"
+      *ngFor="let segment of segmentsArray.controls; let i = index; trackBy: trackByIndex"
       class="segment-block"
       [class.selected]="i === selectedIndex"
       [style.height.px]="getSegmentHeightPx(segment)"
@@ -36,7 +36,7 @@
           <!-- Szuflady -->
           <ng-container *ngSwitchCase="'DRAWER'">
             <div class="drawer-lines"
-                 *ngFor="let _ of [].constructor($any(segment).get('drawerQuantity')?.value || 3)">
+                 *ngFor="let _ of [].constructor($any(segment).get('drawerQuantity')?.value || 3); trackBy: trackByIndex">
               <div class="drawer-line"></div>
             </div>
           </ng-container>
@@ -53,7 +53,7 @@
           <!-- Otwarte półki -->
           <ng-container *ngSwitchCase="'OPEN_SHELF'">
             <div class="open-shelf-lines"
-                 *ngFor="let _ of [].constructor($any(segment).get('shelfQuantity')?.value || 1)">
+                 *ngFor="let _ of [].constructor($any(segment).get('shelfQuantity')?.value || 1); trackBy: trackByIndex">
               <div class="shelf-line"></div>
             </div>
           </ng-container>

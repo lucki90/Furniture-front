@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   CabinetVisualConfig,
@@ -36,6 +36,7 @@ export interface CabinetDetailInput {
 @Component({
   selector: 'app-cabinet-detail-visualizer',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   templateUrl: './cabinet-detail-visualizer.component.html',
   styleUrls: ['./cabinet-detail-visualizer.component.css']

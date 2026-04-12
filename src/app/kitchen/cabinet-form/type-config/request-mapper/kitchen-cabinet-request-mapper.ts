@@ -23,6 +23,8 @@ export const DEFAULT_MATERIAL_DEFAULTS: MaterialDefaults = {
   varnishedFront: false
 };
 
+// TODO R.9: Type map() signature — define CabinetCalculateRequest interface matching backend DTO
+// so all 19 mappers return a typed request instead of any.
 export interface KitchenCabinetRequestMapper {
   map(formValue: any, materialDefaults: MaterialDefaults): any;
 }

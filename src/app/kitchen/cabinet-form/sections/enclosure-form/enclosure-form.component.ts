@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -15,6 +15,7 @@ import { FormFieldComponent } from '../../../../shared/form-field/form-field.com
 @Component({
   selector: 'app-enclosure-form',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
   templateUrl: './enclosure-form.component.html',
   styleUrls: ['./enclosure-form.component.css']
@@ -51,4 +52,6 @@ export class EnclosureFormComponent implements OnInit {
   get isRightParallelFiller(): boolean {
     return this.form.get('rightEnclosureType')?.value === 'PARALLEL_FILLER_STRIP';
   }
+
+  protected trackByValue = (_: number, item: { value: string }) => item.value;
 }

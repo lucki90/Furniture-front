@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { PrintDocRequest } from '../../alone-cabinet/model/cabinet-form.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,14 +16,12 @@ export class PrintDocService {
   }
 
   // Metoda do pobierania pliku Excel
-  downloadExcel(data: any): Observable<Blob> {
+  downloadExcel(data: PrintDocRequest[]): Observable<Blob> {
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
 
-    console.log("data:")
-    console.log(data)
     return this.http.post(this.excelUrl, data, {responseType: 'blob'});
   }
 }

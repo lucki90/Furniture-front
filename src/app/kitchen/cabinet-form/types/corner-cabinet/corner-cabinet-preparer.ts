@@ -8,8 +8,7 @@ import {
   BASE_CORNER_CONSTRAINTS,
   UPPER_CORNER_CONSTRAINTS,
   BLIND_CORNER_CONSTRAINTS,
-  isBlindType,
-  isAllowedForUpperCabinet
+  isBlindType
 } from '../../model/corner-cabinet.model';
 
 /**
@@ -49,11 +48,10 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
     setControlEnabled(form.get('shelfQuantity'), false);
     setControlEnabled(form.get('drawerModel'), false);
 
-    // Nasłuchuj zmian mechanizmu
-    this.setupMechanismListener(form, v);
-
-    // Nasłuchuj zmian isUpperCorner (tylko Type A)
-    this.setupUpperCabinetListener(form, v);
+    // NOTE R.9: Logika reaktywna (zmiany mechanizmu / isUpperCorner) jest obsługiwana
+    // w CornerFormComponent z prawidłowym takeUntilDestroyed(). Preparer NIE może
+    // subskrybować valueChanges — jest singletonem (tworzonym raz w type-config),
+    // więc każde wywołanie prepare() akumulowałoby nowe subskrypcje bez cleanup.
   }
 
   /**
@@ -82,6 +80,7 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
                       : isUpper ? UPPER_CORNER_CONSTRAINTS
                       : BASE_CORNER_CONSTRAINTS;
 
+    // TODO R.9: `patch: any` — rozważ typowany interfejs CornerPatchValues zamiast any
     const patch: any = {
       cornerWidthA: typeB ? 1000 : (isUpper ? 700 : 900),
       cornerWidthB: isUpper ? 700 : 900,
@@ -108,72 +107,4 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
     form.patchValue(patch);
   }
 
-  /**
-   * Nasłuchuje zmian mechanizmu — reroutuje widoczność (Type A ↔ Type B).
-   */
-  private setupMechanismListener(form: FormGroup, v: CabinetFormVisibility): void {
-    const mechanismControl = form.get('cornerMechanism');
-    if (!mechanismControl) return;
-
-    mechanismControl.valueChanges.subscribe((mechanism: CornerMechanismType) => {
-      const typeB = isBlindType(mechanism);
-
-      this.updateVisibilityForMechanism(mechanism, form, v);
-
-      // Przy przejściu na Type B — wymuś dolną szafkę i wyczyść widthB
-      if (typeB) {
-        form.patchValue({
-          isUpperCorner: false,
-          cornerFrontUchylnyWidthMm: form.get('cornerFrontUchylnyWidthMm')?.value ?? 500,
-          depth: BLIND_CORNER_CONSTRAINTS.depth,
-          cornerShelfQuantity: mechanism === CornerMechanismType.BLIND_CORNER
-            ? (form.get('cornerShelfQuantity')?.value ?? 0) : 0
-        });
-      } else {
-        // Type A — przywróć domyślne dla isUpperCorner
-        const isUpper = form.get('isUpperCorner')?.value ?? false;
-        const constraints = isUpper ? UPPER_CORNER_CONSTRAINTS : BASE_CORNER_CONSTRAINTS;
-        form.patchValue({
-          depth: constraints.depth,
-          cornerShelfQuantity: mechanism === CornerMechanismType.FIXED_SHELVES
-            ? (form.get('cornerShelfQuantity')?.value ?? 2) : 0
-        });
-      }
-    });
-
-    // Ustaw początkowy stan cornerShelfQuantity
-    v.cornerShelfQuantity = mechanismControl.value === CornerMechanismType.FIXED_SHELVES
-      || mechanismControl.value === CornerMechanismType.BLIND_CORNER;
-  }
-
-  /**
-   * Nasłuchuje zmian isUpperCorner (Type A only) — aktualizuje ograniczenia i widoczność cornerOpeningType.
-   */
-  private setupUpperCabinetListener(form: FormGroup, v: CabinetFormVisibility): void {
-    const isUpperControl = form.get('isUpperCorner');
-    if (!isUpperControl) return;
-
-    isUpperControl.valueChanges.subscribe((isUpper: boolean) => {
-      const mechanism = form.get('cornerMechanism')?.value as CornerMechanismType;
-      const typeB = isBlindType(mechanism);
-      if (typeB) return;  // Type B nie ma górnej wersji
-
-      const constraints = isUpper ? UPPER_CORNER_CONSTRAINTS : BASE_CORNER_CONSTRAINTS;
-
-      // cornerOpeningType zawsze widoczny dla Type A (dolna i górna obsługują TWO_DOORS i BIFOLD)
-      v.cornerOpeningType = true;
-
-      form.patchValue({
-        height: 720,
-        depth: constraints.depth,
-        cornerWidthA: isUpper ? 700 : 900,
-        cornerWidthB: isUpper ? 700 : 900
-      });
-
-      // Resetuj mechanizm jeśli niedozwolony dla górnej (tylko FIXED_SHELVES dla górnych)
-      if (isUpper && mechanism && !isAllowedForUpperCabinet(mechanism)) {
-        form.patchValue({ cornerMechanism: CornerMechanismType.FIXED_SHELVES });
-      }
-    });
-  }
 }

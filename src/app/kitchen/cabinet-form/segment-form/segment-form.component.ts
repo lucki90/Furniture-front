@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import {
@@ -27,6 +28,8 @@ export class SegmentFormComponent implements OnInit {
   @Input() segmentForm!: FormGroup;
   @Input() segmentIndex!: number;
 
+  private readonly destroyRef = inject(DestroyRef);
+
   @Output() remove = new EventEmitter<void>();
 
   @Input() segmentTypeOptions = SEGMENT_TYPE_OPTIONS;
@@ -39,10 +42,13 @@ export class SegmentFormComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Nasłuchuj zmian typu segmentu
-    this.segmentForm.get('segmentType')?.valueChanges.subscribe(type => {
-      this.onSegmentTypeChange(type);
-    });
+    // Nasłuchuj zmian typu segmentu — takeUntilDestroyed zapobiega wyciekom
+    // gdy segment jest dodawany/usuwany dynamicznie (*ngFor w cabinet-form)
+    this.segmentForm.get('segmentType')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(type => {
+        this.onSegmentTypeChange(type);
+      });
   }
 
   get segmentType(): SegmentType | null {
@@ -138,4 +144,6 @@ export class SegmentFormComponent implements OnInit {
   getFieldError(controlName: string): string | null {
     return getFormError(this.segmentForm.get(controlName));
   }
+
+  protected trackByValue = (_: number, item: { value: string }) => item.value;
 }

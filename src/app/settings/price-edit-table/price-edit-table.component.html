@@ -26,7 +26,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let row of rows" [ngClass]="getRowClass(row)">
+        <tr *ngFor="let row of rows; trackBy: trackById" [ngClass]="getRowClass(row)">
           <!-- Custom row cells (provided by parent) -->
           <ng-container *ngTemplateOutlet="rowCellsTemplate; context: {$implicit: row}"></ng-container>
 

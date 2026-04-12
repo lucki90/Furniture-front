@@ -1,3 +1,6 @@
+// TODO R.9: Factory function for simple preparers — most preparers differ only in default width
+// (400 vs 600mm) and which extra visibility flags they set. A `createSimplePreparer(defaults)`
+// factory would collapse ~8 near-identical concrete classes into a single parameterised instance.
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { CabinetFormVisibility } from './cabinet-form-visibility';
 

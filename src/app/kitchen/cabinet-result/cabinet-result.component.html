@@ -6,7 +6,7 @@
 <p><b>Robocizna:</b> {{ result.jobTotalCost | number:'1.2-2' }} zł</p>
 
 <h4>Formatki</h4>
-<div *ngFor="let b of result.boards">
+<div *ngFor="let b of result.boards; trackBy: trackByIndex">
   {{ b.quantity }}× {{ b.sideX }} x {{ b.sideY }} mm
   ({{ b.boardName }})
 </div>

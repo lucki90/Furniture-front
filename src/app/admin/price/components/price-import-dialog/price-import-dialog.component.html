@@ -61,7 +61,7 @@
     <div *ngIf="hasErrors" class="errors-section">
       <h4>Błędy importu ({{ importResult.errors?.length }})</h4>
       <mat-list dense>
-        <mat-list-item *ngFor="let error of importResult.errors">
+        <mat-list-item *ngFor="let error of importResult.errors; trackBy: trackByIndex">
           <mat-icon matListItemIcon color="warn">error</mat-icon>
           <span matListItemTitle>Wiersz {{ error.rowNumber }}</span>
           <span matListItemLine>{{ error.message }}</span>

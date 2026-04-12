@@ -988,4 +988,10 @@ export class KitchenLayoutComponent {
     if (!diff) return false;
     return Math.abs(diff) > 50; // Powyżej 50mm to znacząca różnica
   }
+
+  // ===== trackBy helpers =====
+  /** Używane dla *ngFor szafek (VisualCabinetPosition) */
+  protected trackByCabinetId = (_: number, pos: VisualCabinetPosition) => pos.cabinetId;
+  /** Używane dla elementów SVG bez unikalnego ID (fronty, uchwyty, nóżki, markery spoin) */
+  protected trackByIndex = (index: number) => index;
 }

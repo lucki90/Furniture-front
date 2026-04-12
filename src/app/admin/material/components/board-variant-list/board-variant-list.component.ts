@@ -48,6 +48,9 @@ import { DIALOG_WIDTH } from '../../../../shared/constants/dialog.constants';
     MatChipsModule
   ]
 })
+// TODO R.11: Ten komponent ma ~80% wspólnej logiki z component-variant-list i job-variant-list
+// (paginacja, wyszukiwanie, dialogi CRUD, pattern delete). Wydzielić do
+// BaseVariantListComponent<T> lub użyć composition z useVariantList() serwisu.
 export class BoardVariantListComponent implements OnInit {
 
   displayedColumns: string[] = ['materialCode', 'thicknessMm', 'colorCode', 'varnished', 'currentPrice', 'active', 'actions'];

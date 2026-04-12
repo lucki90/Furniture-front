@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { KitchenCabinetType } from '../model/kitchen-cabinet-type';
@@ -19,6 +19,7 @@ interface TypeGroup {
   templateUrl: './cabinet-type-picker.component.html',
   styleUrls: ['./cabinet-type-picker.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, MatDialogModule]
 })
 export class CabinetTypePickerComponent {
@@ -69,4 +70,7 @@ export class CabinetTypePickerComponent {
   close(): void {
     this.dialogRef.close(null);
   }
+
+  protected trackByIndex = (index: number) => index;
+  protected trackByType = (_: number, card: TypeCard) => card.type;
 }

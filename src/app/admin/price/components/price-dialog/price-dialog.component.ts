@@ -162,4 +162,6 @@ export class PriceDialogComponent implements OnInit {
   get title(): string {
     return this.isEditMode ? 'Edytuj cenę' : 'Dodaj nową cenę';
   }
+
+  protected trackByIndex = (index: number) => index;
 }

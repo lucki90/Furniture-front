@@ -1,4 +1,4 @@
-import {Component, EventEmitter, forwardRef, Input, Output,} from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR,} from '@angular/forms';
 
 @Component({
@@ -12,7 +12,8 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR,} from '@angular/forms';
       multi: true,
     },
   ],
-  standalone: false
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RadioButtonComponent implements ControlValueAccessor {
   @Input() id: string = '';
@@ -65,5 +66,7 @@ export class RadioButtonComponent implements ControlValueAccessor {
   get hasError(): boolean {
     return !this.isValid() && !this.disabled; // Nie pokazujemy błędu dla wyłączonej kontrolki
   }
+
+  protected trackByValue = (_: number, option: { value: any; label: string }) => option.value;
 
 }

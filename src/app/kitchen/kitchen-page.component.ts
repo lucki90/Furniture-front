@@ -1,4 +1,6 @@
-import { Component, inject, effect } from '@angular/core';
+import { Component, inject, effect, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { switchMap } from 'rxjs';
 import { CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -16,7 +18,7 @@ import { ProjectDetailsAggregatorService, AggregatedBoard, AggregatedComponent, 
 import { CabinetCalculatedEvent, KitchenCabinet } from './model/kitchen-state.model';
 import { FEET_TYPE_OPTIONS } from './model/plinth.model';
 import { MultiWallCalculateResponse, ProjectStatus, getStatusLabel, getStatusColor, PROJECT_STATUSES } from './model/kitchen-project.model';
-import { Board, Component as CabinetComponent, Job } from './cabinet-form/model/kitchen-cabinet-form.model';
+import { Board, CabinetResponse, Component as CabinetComponent, Job } from './cabinet-form/model/kitchen-cabinet-form.model';
 import { ToastService } from '../core/error/toast.service';
 import { ConfirmDialogService } from '../shared/confirm-dialog/confirm-dialog.service';
 import { WallConfigComponent } from './wall-config/wall-config.component';
@@ -69,8 +71,11 @@ export class KitchenPageComponent {
   private confirmDialog = inject(ConfirmDialogService);
   private languageService = inject(LanguageService);
   private translationService = inject(TranslationService);
+  private destroyRef = inject(DestroyRef);
 
-  result: any | null = null;
+  // Single cabinet calculation result shown in the sidebar detail panel
+  // (not the same as projectResult which is a multi-wall aggregation)
+  result: CabinetResponse | null = null;
   editingCabinet: KitchenCabinet | null = null;
 
   // Stan kalkulacji projektu (multi-wall)
@@ -113,6 +118,10 @@ export class KitchenPageComponent {
   isSavingProject = false;
   isChangingStatus = false;
 
+  // trackBy helpers — zapobiegają niepotrzebnemu re-renderowaniu list przy CD
+  protected trackByIndex = (index: number) => index;
+  protected trackByWall = (_: number, wall: import('./model/kitchen-project.model').WallCalculationSummary) => wall.wallType;
+
   /**
    * Tłumaczenia BOM (BOARD_NAME.* i MATERIAL.*) załadowane z backendu w bieżącym języku.
    * Klucze: "BOARD_NAME.SIDE_NAME", "MATERIAL.CHIPBOARD" itp.
@@ -120,14 +129,17 @@ export class KitchenPageComponent {
    */
   private bomTranslations: Record<string, string> = {};
 
-  /** Ładuje tłumaczenia BOM przy inicjalizacji i przy każdej zmianie języka. */
-  private translationLoadEffect = effect(() => {
-    const lang = this.languageService.lang();
-    this.translationService.getByCategories(['BOARD_NAME', 'MATERIAL'], lang)
-      .subscribe(translations => {
-        this.bomTranslations = translations;
-      });
-  });
+  constructor() {
+    // Ładuje tłumaczenia BOM przy każdej zmianie języka.
+    // toObservable + switchMap anuluje poprzedni request przy szybkiej zmianie języka
+    // — eliminuje memory leak który powstawał przy effect() + subscribe().
+    toObservable(this.languageService.lang).pipe(
+      switchMap(lang => this.translationService.getByCategories(['BOARD_NAME', 'MATERIAL'], lang)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(translations => {
+      this.bomTranslations = translations;
+    });
+  }
 
   // Synchronizacja wall-level config → global signals przy zmianie ściany
   private syncEffect = effect(() => {

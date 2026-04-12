@@ -79,14 +79,14 @@
 
         <!-- Blat — podzielony na segmenty w miejscach słupków (TALL_CABINET) -->
         <ng-container *ngIf="showCountertop()">
-          <rect *ngFor="let seg of countertopZoneRects()"
+          <rect *ngFor="let seg of countertopZoneRects(); trackBy: trackByIndex"
                 [attr.x]="seg.x" [attr.y]="counterZoneY"
                 [attr.width]="seg.width" [attr.height]="counterZoneHeight"
                 fill="url(#countertopGradient)" class="countertop-rect">
             <title *ngIf="countertopDimensions()">Blat: {{ countertopDimensions()!.lengthMm }}×{{ countertopDimensions()!.depthMm }}mm</title>
           </rect>
           <!-- Etykiety wymiarów blatu — osobna per segment (podzielona przy słupkach FULL) -->
-          <text *ngFor="let lbl of countertopSegmentLabels()"
+          <text *ngFor="let lbl of countertopSegmentLabels(); trackBy: trackByIndex"
                 [attr.x]="lbl.x"
                 [attr.y]="counterZoneY - 2"
                 class="countertop-dimension-label"
@@ -101,7 +101,7 @@
               class="zone-bg lower-zone-bg"/>
 
         <!-- Szafki -->
-        <g *ngFor="let pos of visualPositions(); let i = index" class="cabinet-group"
+        <g *ngFor="let pos of visualPositions(); let i = index; trackBy: trackByCabinetId" class="cabinet-group"
            [class.editing]="isEditing(pos.cabinetId)"
            [style.display]="!showUpperCabinets() && pos.zone === 'TOP' ? 'none' : null">
 
@@ -139,7 +139,7 @@
 
           <!-- Fronty -->
           <g class="fronts-group">
-            <ng-container *ngFor="let front of pos.fronts">
+            <ng-container *ngFor="let front of pos.fronts; trackBy: trackByIndex">
               <!-- Front normalny (drzwi/szuflada) -->
               <rect *ngIf="front.type !== 'OPEN' && front.type !== 'SHELF_LINE' && front.type !== 'APPLIANCE' && front.type !== 'VERT_DIVIDER'"
                     [attr.x]="front.x"
@@ -194,7 +194,7 @@
 
           <!-- Uchwyty -->
           <g class="handles-group">
-            <line *ngFor="let handle of pos.handles"
+            <line *ngFor="let handle of pos.handles; trackBy: trackByIndex"
                   [attr.x1]="handle.x1"
                   [attr.y1]="handle.y1"
                   [attr.x2]="handle.x2"
@@ -213,7 +213,7 @@
 
           <!-- Nóżki — pionowe bary od korpusu do podłogi -->
           <g *ngIf="pos.feetHeight > 0" class="feet-group">
-            <line *ngFor="let foot of pos.feet"
+            <line *ngFor="let foot of pos.feet; trackBy: trackByIndex"
                   [attr.x1]="foot.x"
                   [attr.y1]="foot.y1"
                   [attr.x2]="foot.x"
@@ -302,7 +302,7 @@
           </rect>
 
           <!-- Znaczniki spojenia blendy górnej (przy długości > 2800mm) -->
-          <ng-container *ngFor="let joinX of fillerJoinXPositions()">
+          <ng-container *ngFor="let joinX of fillerJoinXPositions(); trackBy: trackByIndex">
             <line *ngIf="fillerPosition() as filler"
                   [attr.x1]="joinX" [attr.x2]="joinX"
                   [attr.y1]="filler.y"
@@ -326,7 +326,7 @@
         }
 
         <!-- Znaczniki spojenia cokołu (przy długości > 2800mm) -->
-        <ng-container *ngFor="let joinX of plinthJoinXPositions()">
+        <ng-container *ngFor="let joinX of plinthJoinXPositions(); trackBy: trackByIndex">
           <line *ngIf="plinthPosition() as plinth"
                 [attr.x1]="joinX" [attr.x2]="joinX"
                 [attr.y1]="plinth.y"

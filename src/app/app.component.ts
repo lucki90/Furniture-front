@@ -61,4 +61,6 @@ export class AppComponent implements OnInit {
     const lang = (event.target as HTMLSelectElement).value as AppLanguage;
     this.languageService.setLanguage(lang);
   }
+
+  protected trackByCode = (_: number, item: { code: string }) => item.code;
 }

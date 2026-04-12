@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -12,6 +12,7 @@ import { DictionaryService } from '../../../service/dictionary.service';
 @Component({
   selector: 'app-oven-form',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './oven-form.component.html',
   styleUrls: ['./oven-form.component.css']
@@ -70,4 +71,6 @@ export class OvenFormComponent implements OnInit {
     const ctrl = this.form.get('ovenApronHeightMm');
     if (ctrl) enabled ? ctrl.enable() : ctrl.disable();
   }
+
+  protected trackByCode = (_: number, item: { code: string }) => item.code;
 }

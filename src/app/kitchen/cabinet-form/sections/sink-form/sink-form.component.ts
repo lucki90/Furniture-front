@@ -1,4 +1,4 @@
-import { Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -14,6 +14,7 @@ import { DictionaryService } from '../../../service/dictionary.service';
 @Component({
   selector: 'app-sink-form',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
   templateUrl: './sink-form.component.html',
   styleUrls: ['./sink-form.component.css']
@@ -79,4 +80,6 @@ export class SinkFormComponent implements OnInit {
   getFieldError(controlName: string): string | null {
     return getFormError(this.form.get(controlName));
   }
+
+  protected trackByCode = (_: number, item: { code: string }) => item.code;
 }

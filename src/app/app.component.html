@@ -56,7 +56,7 @@
         (change)="onLanguageChange($event)"
         class="lang-select"
         title="Język / Language">
-        <option *ngFor="let l of languageService.supportedLanguages" [value]="l.code">{{ l.label }}</option>
+        <option *ngFor="let l of languageService.supportedLanguages; trackBy: trackByCode" [value]="l.code">{{ l.label }}</option>
       </select>
     </div>
 

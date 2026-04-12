@@ -19,7 +19,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let cabinet of cabinets; let i = index"
+      <tr *ngFor="let cabinet of cabinets; let i = index; trackBy: trackByCabinetId"
           [class.editing]="isEditing(cabinet.id)">
         <td>{{ i + 1 }}</td>
         <td>{{ cabinet.name || '-' }}</td>

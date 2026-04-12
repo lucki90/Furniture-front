@@ -131,7 +131,7 @@
     <div class="form-group" *ngIf="visibility.openingType !== false">
       <label class="form-label">Typ otwarcia</label>
       <select class="form-control" formControlName="openingType">
-        <option *ngFor="let opt of openingTypes" [value]="opt.value">{{ opt.label }}</option>
+        <option *ngFor="let opt of openingTypes(); trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
       </select>
     </div>
     <!-- Sekcja ogólna "Półki" — ukryta gdy aktywna jest sekcja lodówki (ma własną sekcję Półki) -->
@@ -316,7 +316,7 @@
         <div>
           <strong>Uzupełnij przed dodaniem szafki:</strong>
           <ul class="validation-error-list">
-            <li *ngFor="let err of validationErrors">{{ err }}</li>
+            <li *ngFor="let err of validationErrors; trackBy: trackByIndex">{{ err }}</li>
           </ul>
         </div>
       </div>

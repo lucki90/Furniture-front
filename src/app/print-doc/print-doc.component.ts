@@ -1,5 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {PrintDocService} from './service/print-doc.service';
+import { PrintDocRequest } from '../alone-cabinet/model/cabinet-form.model';
 
 @Component({
   selector: 'app-print-doc',
@@ -8,15 +9,14 @@ import {PrintDocService} from './service/print-doc.service';
   standalone: false
 })
 export class PrintDocComponent {
-  @Input() response: any; // Dane do wysłania w payloadzie
+  @Input() response: PrintDocRequest[] | null = null; // Dane do wysłania w payloadzie
 
   constructor(private printDocService: PrintDocService) {
   }
 
   // Metoda do pobierania pliku Excel
-  downloadExcel(response: any) {
-    console.log("TREEEE")
-    if (response) {
+  downloadExcel(response: PrintDocRequest[] | null) {
+    if (response && this.response) {
       this.printDocService.downloadExcel(this.response).subscribe({
         next: (response) => {
           // Tworzenie linku do pobrania pliku

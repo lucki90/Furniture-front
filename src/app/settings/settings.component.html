@@ -47,19 +47,19 @@
         <div class="form-grid">
           <app-form-field label="Cokół" unit="mm" hint="Wysokość cokołu pod szafkami dolnymi">
             <select class="form-control" [(ngModel)]="plinthHeightMm" [disabled]="saving">
-              <option *ngFor="let opt of plinthOptions" [ngValue]="opt">{{ opt }}</option>
+              <option *ngFor="let opt of plinthOptions; trackBy: trackByIndex" [ngValue]="opt">{{ opt }}</option>
             </select>
           </app-form-field>
 
           <app-form-field label="Blat" unit="mm" hint="Grubość blatu roboczego">
             <select class="form-control" [(ngModel)]="countertopThicknessMm" [disabled]="saving">
-              <option *ngFor="let opt of countertopOptions" [ngValue]="opt">{{ opt }}</option>
+              <option *ngFor="let opt of countertopOptions; trackBy: trackByIndex" [ngValue]="opt">{{ opt }}</option>
             </select>
           </app-form-field>
 
           <app-form-field label="Blenda górna" unit="mm" hint="Przestrzeń nad szafkami wiszącymi (0–150 mm)">
             <select class="form-control" [(ngModel)]="upperFillerHeightMm" [disabled]="saving">
-              <option *ngFor="let opt of upperFillerHeightOptions" [ngValue]="opt">{{ opt }}</option>
+              <option *ngFor="let opt of upperFillerHeightOptions; trackBy: trackByIndex" [ngValue]="opt">{{ opt }}</option>
             </select>
           </app-form-field>
         </div>
@@ -261,7 +261,7 @@
             <div class="color-select-wrapper">
               <ng-container *ngIf="boxColorOptions.length > 0; else boxColorFallback">
                 <select class="form-control" [(ngModel)]="defaultBoxColor" [disabled]="saving">
-                  <option *ngFor="let opt of boxColorOptions" [value]="opt.colorCode">
+                  <option *ngFor="let opt of boxColorOptions; trackBy: trackByColorCode" [value]="opt.colorCode">
                     {{ opt.colorName || opt.colorCode }}
                   </option>
                 </select>
@@ -300,7 +300,7 @@
             <div class="color-select-wrapper">
               <ng-container *ngIf="frontColorOptions.length > 0; else frontColorFallback">
                 <select class="form-control" [(ngModel)]="defaultFrontColor" [disabled]="saving">
-                  <option *ngFor="let opt of frontColorOptions" [value]="opt.colorCode">
+                  <option *ngFor="let opt of frontColorOptions; trackBy: trackByColorCode" [value]="opt.colorCode">
                     {{ opt.colorName || opt.colorCode }}
                   </option>
                 </select>
@@ -424,7 +424,7 @@
               <label class="filter-label">Filtruj kategorie:</label>
               <select class="form-control" style="width:200px;" [(ngModel)]="componentCategoryFilter">
                 <option value="">— wszystkie —</option>
-                <option *ngFor="let cat of componentCategories" [value]="cat">{{ cat }}</option>
+                <option *ngFor="let cat of componentCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
               </select>
               <span *ngIf="componentCategoryFilter" style="font-size:12px; color:#888; margin-left:8px;">
                 {{ filteredComponentPrices.length }} / {{ componentPrices.length }} pozycji
@@ -494,7 +494,7 @@
               <label class="filter-label">Filtruj kategorie:</label>
               <select class="form-control" style="width:200px;" [(ngModel)]="jobCategoryFilter">
                 <option value="">— wszystkie —</option>
-                <option *ngFor="let cat of jobCategories" [value]="cat">{{ cat }}</option>
+                <option *ngFor="let cat of jobCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
               </select>
               <span *ngIf="jobCategoryFilter" style="font-size:12px; color:#888; margin-left:8px;">
                 {{ filteredJobPrices.length }} / {{ jobPrices.length }} pozycji

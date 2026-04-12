@@ -502,4 +502,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       error: () => event.complete(false),
     });
   }
+
+  protected trackByIndex = (index: number) => index;
+  protected trackByColorCode = (_: number, item: { colorCode: string }) => item.colorCode;
 }

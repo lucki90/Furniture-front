@@ -138,4 +138,6 @@ export class PriceEditTableComponent {
     if (price == null) return '—';
     return `${Number(price).toFixed(2)} ${this.priceUnit}`;
   }
+
+  protected trackById = (_: number, row: any) => row.id;
 }

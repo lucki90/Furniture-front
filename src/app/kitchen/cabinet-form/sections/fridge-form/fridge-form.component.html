@@ -9,7 +9,7 @@
       <div class="form-group flex-2">
         <label class="form-label">Typ sekcji</label>
         <select class="form-control" formControlName="fridgeSectionType">
-          <option *ngFor="let o of dictionaryService.data().fridgeSectionTypes" [value]="o.code">{{ o.label }}</option>
+          <option *ngFor="let o of dictionaryService.data().fridgeSectionTypes; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
         </select>
         <span class="form-hint">
           ONE_DOOR = 1 front na całą wysokość; TWO_DOORS = front górny (lodówka) + dolny (zamrażarka)
@@ -41,7 +41,7 @@
       <div class="form-group flex-2">
         <label class="form-label">Typ wizualizacji</label>
         <select class="form-control" formControlName="fridgeFreestandingType">
-          <option *ngFor="let o of dictionaryService.data().fridgeFreestandingTypes" [value]="o.code">{{ o.label }}</option>
+          <option *ngFor="let o of dictionaryService.data().fridgeFreestandingTypes; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
         </select>
         <span class="form-hint">Tylko wizualizacja SVG – lodówka wolnostojąca nie generuje płyt</span>
       </div>

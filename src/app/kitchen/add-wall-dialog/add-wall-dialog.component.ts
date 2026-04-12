@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -37,6 +38,7 @@ export class AddWallDialogComponent {
   private fb = inject(FormBuilder);
   private dialogRef = inject(MatDialogRef<AddWallDialogComponent>);
   private data = inject<AddWallDialogData>(MAT_DIALOG_DATA);
+  private destroyRef = inject(DestroyRef);
 
   form: FormGroup;
   availableTypes = signal<{ value: WallType; label: string }[]>([]);
@@ -63,14 +65,17 @@ export class AddWallDialogComponent {
       heightMm: [defaults.height, [Validators.required, Validators.min(500), Validators.max(4000)]]
     });
 
-    // Update dimensions when type changes
-    this.form.get('type')?.valueChanges.subscribe((type: WallType) => {
-      const dims = this.defaultDimensions[type];
-      this.form.patchValue({
-        widthMm: dims.width,
-        heightMm: dims.height
+    // Update dimensions when type changes — takeUntilDestroyed zapobiega wyciekom pamięci
+    // (dialog może być otwierany wielokrotnie — bez cleanup subskrypcje by się akumulowały)
+    this.form.get('type')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((type: WallType) => {
+        const dims = this.defaultDimensions[type];
+        this.form.patchValue({
+          widthMm: dims.width,
+          heightMm: dims.height
+        });
       });
-    });
   }
 
   onCancel(): void {

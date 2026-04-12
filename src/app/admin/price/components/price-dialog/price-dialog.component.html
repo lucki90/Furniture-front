@@ -20,7 +20,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Jednostka</mat-label>
         <mat-select formControlName="unit">
-          <mat-option *ngFor="let unit of units" [value]="unit">{{ unit }}</mat-option>
+          <mat-option *ngFor="let unit of units; trackBy: trackByIndex" [value]="unit">{{ unit }}</mat-option>
         </mat-select>
         <mat-error *ngIf="form.get('unit')?.hasError('required')">
           Jednostka jest wymagana
@@ -30,7 +30,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Waluta</mat-label>
         <mat-select formControlName="currency">
-          <mat-option *ngFor="let currency of currencies" [value]="currency">{{ currency }}</mat-option>
+          <mat-option *ngFor="let currency of currencies; trackBy: trackByIndex" [value]="currency">{{ currency }}</mat-option>
         </mat-select>
       </mat-form-field>
 

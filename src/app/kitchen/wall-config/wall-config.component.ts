@@ -273,4 +273,7 @@ export class WallConfigComponent {
     this.stateService.updateProjectSettings({ upperFillerHeightMm: value });
     this.emit();
   }
+
+  protected trackByValue = (_: number, item: { value: string | number }) => item.value;
+  protected trackByIndex = (index: number) => index;
 }

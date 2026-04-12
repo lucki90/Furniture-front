@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { resolveVeneerEdges } from './veneer-edge-resolver';
+import { Job } from '../cabinet-form/model/kitchen-cabinet-form.model';
 
 // Polskie fallback-i nazw płyt używane gdy tłumaczenia z backendu nie są jeszcze załadowane.
 // Backend zwraca klucze BOARD_NAME.* (np. "BOARD_NAME.SIDE_NAME").
@@ -119,8 +120,8 @@ export class ProjectDetailsAggregatorService {
 
         // Uwagi auto-generowane na podstawie prac frezarskich szafki
         const cabinetJobs = cabinet.jobs ?? [];
-        const hingeMilling = cabinetJobs.find((j: any) => j.type === 'HINGE_MILLING');
-        const grooveForHdf = cabinetJobs.find((j: any) => j.type === 'GROOVE_FOR_HDF');
+        const hingeMilling = cabinetJobs.find((j: Job) => j.type === 'HINGE_MILLING');
+        const grooveForHdf = cabinetJobs.find((j: Job) => j.type === 'GROOVE_FOR_HDF');
 
         if (cabinet.boards) {
           for (const board of cabinet.boards) {

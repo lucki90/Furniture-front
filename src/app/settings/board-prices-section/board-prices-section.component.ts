@@ -204,4 +204,8 @@ export class BoardPricesSectionComponent implements OnInit {
       pricePerM2: 0
     };
   }
+
+  protected trackByIndex = (index: number) => index;
+  protected trackByCode = (_: number, item: { code: string }) => item.code;
+  protected trackById = (_: number, item: { id: number }) => item.id;
 }

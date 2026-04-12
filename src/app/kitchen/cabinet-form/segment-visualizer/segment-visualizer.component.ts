@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { AbstractControl, FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -13,6 +13,7 @@ import { SegmentType, SEGMENT_COLORS, SEGMENT_TYPE_OPTIONS } from '../model/segm
   templateUrl: './segment-visualizer.component.html',
   styleUrls: ['./segment-visualizer.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule, DragDropModule]
 })
 export class SegmentVisualizerComponent {
@@ -157,4 +158,6 @@ export class SegmentVisualizerComponent {
       this.orderChanged.emit();
     }
   }
+
+  protected trackByIndex = (index: number) => index;
 }

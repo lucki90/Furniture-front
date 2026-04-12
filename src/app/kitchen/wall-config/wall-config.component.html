@@ -11,25 +11,25 @@
       <div class="config-field">
         <label>Materiał</label>
         <select [(ngModel)]="countertopMaterial">
-          <option *ngFor="let opt of countertopMaterialOptions" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of countertopMaterialOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <div class="config-field">
         <label>Grubość</label>
         <select [(ngModel)]="countertopThickness">
-          <option *ngFor="let opt of countertopThicknessOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of countertopThicknessOptions; trackBy: trackByValue" [ngValue]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <div class="config-field">
         <label>Łączenie</label>
         <select [(ngModel)]="countertopJoint">
-          <option *ngFor="let opt of countertopJointOptions" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of countertopJointOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <div class="config-field">
         <label>Krawędź</label>
         <select [(ngModel)]="countertopEdge">
-          <option *ngFor="let opt of countertopEdgeOptions" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of countertopEdgeOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <!-- Głębokość blatu -->
@@ -78,13 +78,13 @@
       <div class="config-field">
         <label>Nóżki</label>
         <select [(ngModel)]="feetType">
-          <option *ngFor="let opt of feetTypeOptions" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of feetTypeOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <div class="config-field">
         <label>Materiał</label>
         <select [(ngModel)]="plinthMaterial">
-          <option *ngFor="let opt of plinthMaterialOptions" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of plinthMaterialOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <div class="config-field">

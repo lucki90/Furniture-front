@@ -125,4 +125,6 @@ export class PriceImportDialogComponent {
     if (!this.importResult || this.importResult.totalRows === 0) return 0;
     return (this.importResult.successfulImports / this.importResult.totalRows) * 100;
   }
+
+  protected trackByIndex = (index: number) => index;
 }

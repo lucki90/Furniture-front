@@ -451,4 +451,6 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     // effect() w konstruktorze automatycznie wywoła loadTranslations(lang)
   }
 
+  protected trackByIndex = (index: number) => index;
+
 }

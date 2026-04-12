@@ -1,3 +1,6 @@
+// TODO R.12: Extract geometry calculations (cabinetPositions, countertopZoneRects, plinthPosition,
+// fillerPosition, computeJoinPositions) into a dedicated KitchenGeometryService to reduce this
+// facade's size (~1040 lines). Geometry has no dependency on wall mutation methods.
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { ProjectRequestBuilderService } from './project-request-builder.service';
 import { ProjectSettingsService } from './project-settings.service';
@@ -33,7 +36,7 @@ import {
 } from '../model/kitchen-project.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
-import { SegmentFormData } from '../cabinet-form/model/segment.model';
+import { SegmentFormData, SegmentRequest } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 import { MaterialDefaults } from '../cabinet-form/type-config/request-mapper/kitchen-cabinet-request-mapper';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
@@ -482,7 +485,7 @@ export class KitchenStateService {
    * Każdy case dostarcza TYLKO pola należące do danego typu — bez (formData as any).
    * Dodanie nowego typu = nowy case w tym switch (TypeScript wymusi obsługę).
    */
-  private buildCabinetFromFormData(formData: CabinetFormData, id: string, calculatedResult: any): KitchenCabinet {
+  private buildCabinetFromFormData(formData: CabinetFormData, id: string, calculatedResult: CabinetResponse): KitchenCabinet {
     const base: KitchenCabinetBase = {
       id,
       name: formData.name,
@@ -628,7 +631,7 @@ export class KitchenStateService {
     return undefined;
   }
 
-  updateCabinet(cabinetId: string, formData: CabinetFormData, calculatedResult: any): void {
+  updateCabinet(cabinetId: string, formData: CabinetFormData, calculatedResult: CabinetResponse): void {
     const updatedCabinet = this.buildCabinetFromFormData(formData, cabinetId, calculatedResult);
     this._walls.update(walls =>
       walls.map(wall => ({
@@ -714,7 +717,7 @@ export class KitchenStateService {
         // Mapuj segmenty (dla TALL_CABINET i BASE_FRIDGE)
         let segments: SegmentFormData[] | undefined;
         if (cabResp.segments && cabResp.segments.length > 0) {
-          segments = cabResp.segments.map((seg: any) => this.mapSegmentResponseToFormData(seg));
+          segments = cabResp.segments.map((seg: SegmentRequest) => this.mapSegmentResponseToFormData(seg));
         }
 
         const baseFromResp: KitchenCabinetBase = {
@@ -1032,11 +1035,11 @@ export class KitchenStateService {
     return this.requestBuilder.enclosureOuterWidthMm(cab, side, this.settingsService.fillerWidthMm());
   }
 
-  private mapCalculationResult(result: any): CabinetCalculationResult | undefined {
+  private mapCalculationResult(result: CabinetResponse): CabinetCalculationResult | undefined {
     return this.requestBuilder.mapCalculationResult(result);
   }
 
-  private mapSegmentResponseToFormData(seg: any): SegmentFormData {
+  private mapSegmentResponseToFormData(seg: SegmentRequest): SegmentFormData {
     return this.requestBuilder.mapSegmentResponseToFormData(seg);
   }
 }

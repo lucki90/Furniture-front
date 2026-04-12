@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { HttpErrorResponse } from '@angular/common/http';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -261,15 +262,15 @@ export class VariantDialogComponent implements OnInit {
     }
   }
 
-  private handleError(err: any): void {
+  private handleError(err: unknown): void {
     this.saving.set(false);
-    if (err?.error?.errors?.length) {
-      const messages = err.error.errors.map((e: any) =>
+    if (err instanceof HttpErrorResponse && err.error?.errors?.length) {
+      const messages = (err.error.errors as { field?: string; code: string }[]).map(e =>
         e.field ? `${e.field}: ${e.code}` : e.code
       );
       this.errorMessage.set(messages.join(', '));
-    } else if (err?.error?.code) {
-      this.errorMessage.set(err.error.code);
+    } else if (err instanceof HttpErrorResponse && err.error?.code) {
+      this.errorMessage.set(err.error.code as string);
     } else {
       this.errorMessage.set('Wystąpił błąd podczas zapisywania');
     }

@@ -9,7 +9,7 @@
       <div class="form-group">
         <label class="form-label">Typ obudowy</label>
         <select class="form-control" formControlName="leftEnclosureType">
-          <option *ngFor="let opt of enclosureOptions" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of enclosureOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <div *ngIf="isLeftParallelFiller" class="form-group enclosure-support-group">
@@ -33,7 +33,7 @@
       <div class="form-group">
         <label class="form-label">Typ obudowy</label>
         <select class="form-control" formControlName="rightEnclosureType">
-          <option *ngFor="let opt of enclosureOptions" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of enclosureOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <div *ngIf="isRightParallelFiller" class="form-group enclosure-support-group">

@@ -11,7 +11,7 @@
     <div class="form-group">
       <label class="form-label">Typ</label>
       <select class="form-control" formControlName="segmentType">
-        <option *ngFor="let opt of segmentTypeOptions" [value]="opt.value">
+        <option *ngFor="let opt of segmentTypeOptions; trackBy: trackByValue" [value]="opt.value">
           {{ opt.icon }} {{ opt.label }}
         </option>
       </select>
@@ -54,7 +54,7 @@
       <div class="form-group">
         <label class="form-label">System szuflad</label>
         <select class="form-control" formControlName="drawerModel">
-          <option *ngFor="let model of drawerModels" [value]="model.value">
+          <option *ngFor="let model of drawerModels; trackBy: trackByValue" [value]="model.value">
             {{ model.label }}
           </option>
         </select>
@@ -66,7 +66,7 @@
       <div class="form-group">
         <label class="form-label">Typ drzwi</label>
         <select class="form-control" formControlName="frontType">
-          <option *ngFor="let opt of doorFrontTypeOptions" [value]="opt.value">
+          <option *ngFor="let opt of doorFrontTypeOptions; trackBy: trackByValue" [value]="opt.value">
             {{ opt.label }}
           </option>
         </select>
