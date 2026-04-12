@@ -22,6 +22,7 @@ import { PlinthRequest, DEFAULT_PLINTH_REQUEST } from '../model/plinth.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { mapSegmentToRequest, SegmentFormData, SegmentRequest, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
 import { EnclosureType } from '../cabinet-form/model/enclosure.model';
+import { PLATE_THICKNESS_MM } from '../kitchen-layout/kitchen-layout.constants';
 
 export interface WallBuildSettings {
   plinthHeightMm: number;
@@ -44,7 +45,7 @@ export class ProjectRequestBuilderService {
       const override = side === 'left' ? cab.leftFillerWidthOverrideMm : cab.rightFillerWidthOverrideMm;
       return override ?? fillerWidthMm;
     }
-    return 18; // SIDE_PLATE_WITH_PLINTH | SIDE_PLATE_TO_FLOOR
+    return PLATE_THICKNESS_MM; // SIDE_PLATE_WITH_PLINTH | SIDE_PLATE_TO_FLOOR
   }
 
   /**

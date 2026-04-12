@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed, DestroyRef } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -30,11 +30,15 @@ import { getFormError } from '../../shared/form-error.util';
 import { CabinetTypePickerComponent } from './cabinet-type-picker/cabinet-type-picker.component';
 import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visibility';
 
+/** Domyślna wysokość nowego segmentu szafki (mm). */
+const DEFAULT_SEGMENT_HEIGHT_MM = 400;
+
 @Component({
   selector: 'app-cabinet-form',
   templateUrl: './cabinet-form.component.html',
   styleUrls: ['./cabinet-form.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule, SegmentFormComponent, SegmentVisualizerComponent,
     CooktopFormComponent, HoodFormComponent, SinkFormComponent, OvenFormComponent,
     FridgeFormComponent, CascadeFormComponent, CornerFormComponent, EnclosureFormComponent,
@@ -54,6 +58,7 @@ export class CabinetFormComponent implements OnChanges {
   private readonly dictionaryService = inject(DictionaryService);
   private readonly dialog = inject(MatDialog);
   readonly stateService = inject(KitchenStateService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   form: FormGroup;
   visibility: CabinetFormVisibility = {} as CabinetFormVisibility;
@@ -431,6 +436,9 @@ export class CabinetFormComponent implements OnChanges {
     const config = KitchenCabinetTypeConfig[type];
     config.preparer.prepare(this.form, this.visibility);
     config.validator.validate(this.form);
+    // OnPush: visibility jest mutowany przez preparer (nie-sygnał) →
+    // musimy ręcznie powiadomić Angular o konieczności sprawdzenia widoku
+    this.cdr.markForCheck();
 
     // Jeśli edytujemy, przywróć wartości po przygotowaniu
     if (this.editingCabinet && this.editingCabinet.type === type) {
@@ -508,46 +516,39 @@ export class CabinetFormComponent implements OnChanges {
       // Przywróć segmenty TALL_CABINET przy edycji
       // (preparer domyślnie ustawia 2 segmenty, trzeba je zastąpić zapisanymi)
       if (type === KitchenCabinetType.TALL_CABINET && editCab.segments?.length) {
-        const segmentsControl = this.form.get('segments') as FormArray;
-        // Wyczyść domyślne segmenty dodane przez preparer
-        while (segmentsControl.length > 0) {
-          segmentsControl.removeAt(0);
-        }
-        // Przywróć zapisane segmenty w tej samej kolejności
-        (editCab.segments as SegmentFormData[]).forEach((seg, i) => {
-          segmentsControl.push(this.fb.group({
-            segmentType: [seg.segmentType],
-            height: [seg.height],
-            orderIndex: [seg.orderIndex ?? i],
-            drawerQuantity: [seg.drawerQuantity ?? null],
-            drawerModel: [seg.drawerModel ?? null],
-            shelfQuantity: [seg.shelfQuantity ?? null],
-            frontType: [seg.frontType ?? null]
-          }));
-        });
+        this.fillSegmentsFromEditingCabinet(editCab.segments as SegmentFormData[]);
         // Rewaliduj po przywróceniu segmentów
         this.tallCabinetValidator.validate(this.form);
       }
 
       // Przywróć sekcje górne BASE_FRIDGE przy edycji
       if (type === KitchenCabinetType.BASE_FRIDGE && editCab.segments?.length) {
-        const segmentsControl = this.form.get('segments') as FormArray;
-        while (segmentsControl.length > 0) {
-          segmentsControl.removeAt(0);
-        }
-        (editCab.segments as SegmentFormData[]).forEach((seg, i) => {
-          segmentsControl.push(this.fb.group({
-            segmentType: [seg.segmentType],
-            height: [seg.height],
-            orderIndex: [seg.orderIndex ?? i],
-            drawerQuantity: [seg.drawerQuantity ?? null],
-            drawerModel: [seg.drawerModel ?? null],
-            shelfQuantity: [seg.shelfQuantity ?? null],
-            frontType: [seg.frontType ?? null]
-          }));
-        });
+        this.fillSegmentsFromEditingCabinet(editCab.segments as SegmentFormData[]);
       }
     }
+  }
+
+  /**
+   * Zastępuje domyślne segmenty formularza segmentami zapisanymi w edytowanej szafce.
+   * Używane dla TALL_CABINET i BASE_FRIDGE — preparer inicjalizuje domyślne segmenty,
+   * które należy nadpisać zapisanym stanem.
+   */
+  private fillSegmentsFromEditingCabinet(segments: SegmentFormData[]): void {
+    const segmentsControl = this.form.get('segments') as FormArray;
+    while (segmentsControl.length > 0) {
+      segmentsControl.removeAt(0);
+    }
+    segments.forEach((seg, i) => {
+      segmentsControl.push(this.fb.group({
+        segmentType: [seg.segmentType],
+        height: [seg.height],
+        orderIndex: [seg.orderIndex ?? i],
+        drawerQuantity: [seg.drawerQuantity ?? null],
+        drawerModel: [seg.drawerModel ?? null],
+        shelfQuantity: [seg.shelfQuantity ?? null],
+        frontType: [seg.frontType ?? null]
+      }));
+    });
   }
 
   /** Zamknij popup edycji segmentu. */
@@ -574,11 +575,13 @@ export class CabinetFormComponent implements OnChanges {
           editingCabinetId: this.editingCabinet?.id
         });
         this.loading = false;
+        this.cdr.markForCheck(); // OnPush: HTTP callback nie jest DOM eventem
       },
       error: err => {
         console.error(err);
         this.toastService.showHttpError(err);
         this.loading = false;
+        this.cdr.markForCheck(); // OnPush: HTTP callback nie jest DOM eventem
       }
     });
   }
@@ -597,7 +600,7 @@ export class CabinetFormComponent implements OnChanges {
   addSegment(): void {
     const newSegment = this.fb.group({
       segmentType: [SegmentType.DOOR],
-      height: [400],
+      height: [DEFAULT_SEGMENT_HEIGHT_MM],
       orderIndex: [this.segmentsArray.length],
       drawerQuantity: [null],
       drawerModel: [null],

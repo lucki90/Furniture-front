@@ -23,7 +23,7 @@
           [class.editing]="isEditing(cabinet.id)">
         <td>{{ i + 1 }}</td>
         <td>{{ cabinet.name || '-' }}</td>
-        <td>{{ getCabinetTypeName(cabinet.type) }}</td>
+        <td>{{ cabinet.type | cabinetTypeName }}</td>
         <td class="dims-col">{{ cabinet.width }}×{{ cabinet.height }}×{{ cabinet.depth }}</td>
         <td>{{ cabinet.positionY || 0 }}</td>
         <td class="cost-col">{{ cabinet.calculatedResult?.boardCosts?.toFixed(0) ?? '-' }}{{ cabinet.calculatedResult?.boardCosts != null ? ' zł' : '' }}</td>

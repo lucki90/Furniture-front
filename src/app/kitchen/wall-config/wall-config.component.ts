@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { KitchenStateService } from '../service/kitchen-state.service';
@@ -19,6 +19,22 @@ import {
   PLINTH_MATERIAL_OPTIONS
 } from '../model/plinth.model';
 
+/** Domyślna konfiguracja blatu — fallback gdy ściana nie ma jeszcze ustawień. */
+const DEFAULT_COUNTERTOP_CONFIG: CountertopConfig = {
+  enabled: true,
+  materialType: 'LAMINATE' as CountertopMaterialType,
+  thicknessMm: 38,
+  jointType: 'ALUMINUM_STRIP' as CountertopJointType,
+  edgeType: 'ABS_EDGE' as CountertopEdgeType
+};
+
+/** Domyślna konfiguracja cokołu — fallback gdy ściana nie ma jeszcze ustawień. */
+const DEFAULT_PLINTH_CONFIG: PlinthConfig = {
+  enabled: true,
+  feetType: 'FEET_100' as FeetType,
+  materialType: 'PVC' as PlinthMaterialType
+};
+
 /**
  * Panel konfiguracji blatu, cokołu i blendy górnej aktualnej ściany.
  * Wydzielony z KitchenPageComponent (R.2.5) — zero zmian zachowania.
@@ -31,6 +47,7 @@ import {
   templateUrl: './wall-config.component.html',
   styleUrls: ['./wall-config.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule],
 })
 export class WallConfigComponent {
@@ -71,26 +88,28 @@ export class WallConfigComponent {
     this.configChanged.emit();
   }
 
-  // ── Computed getters ──────────────────────────────────────────────────────────
+  // ── Computed signals (memoizowane — nie przeliczają się przy każdym CD cycle) ──
 
-  get maxBottomCabinetDepth(): number {
+  /** Maksymalna głębokość szafek dolnych aktualnej ściany. */
+  readonly maxBottomCabinetDepth = computed(() => {
     const wall = this.selectedWall();
     if (!wall || wall.cabinets.length === 0) return 0;
     const bottomCabinets = wall.cabinets.filter(c => !isUpperCabinetType(c.type));
     if (bottomCabinets.length === 0) return 0;
     return Math.max(...bottomCabinets.map(c => c.depth));
-  }
+  });
 
-  get countertopDepthWarning(): boolean {
-    const depth = this.countertopDepth;
-    const maxCabDepth = this.maxBottomCabinetDepth;
-    return maxCabDepth > 0 && depth < maxCabDepth;
-  }
+  /** True gdy głębokość blatu jest mniejsza niż głębokość szafek dolnych. */
+  readonly countertopDepthWarning = computed(() => {
+    const maxCabDepth = this.maxBottomCabinetDepth();
+    return maxCabDepth > 0 && this.countertopDepth < maxCabDepth;
+  });
 
-  get plinthHeight(): number {
+  /** Wysokość panelu cokołu (mm) — zależna od wybranego typu nóżek. */
+  readonly plinthHeight = computed(() => {
     const feetOption = this.feetTypeOptions.find(o => o.value === this.feetType);
     return feetOption?.plinthHeightMm ?? 97;
-  }
+  });
 
   // ── Countertop getters/setters ────────────────────────────────────────────────
 
@@ -101,7 +120,7 @@ export class WallConfigComponent {
   set countertopEnabled(value: boolean) {
     const wallId = this.selectedWallId();
     if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    const current = this.getSelectedWallCountertopConfig() ?? DEFAULT_COUNTERTOP_CONFIG;
     this.stateService.updateCountertopConfig(wallId, { ...current, enabled: value });
     this.emit();
   }
@@ -113,7 +132,7 @@ export class WallConfigComponent {
   set countertopMaterial(value: CountertopMaterialType) {
     const wallId = this.selectedWallId();
     if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    const current = this.getSelectedWallCountertopConfig() ?? DEFAULT_COUNTERTOP_CONFIG;
     this.stateService.updateCountertopConfig(wallId, { ...current, materialType: value });
     this.emit();
   }
@@ -125,7 +144,7 @@ export class WallConfigComponent {
   set countertopThickness(value: number) {
     const wallId = this.selectedWallId();
     if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    const current = this.getSelectedWallCountertopConfig() ?? DEFAULT_COUNTERTOP_CONFIG;
     this.stateService.updateCountertopConfig(wallId, { ...current, thicknessMm: value });
     // Synchronizuj grubość blatu z globalnym sygnałem
     this.stateService.updateProjectSettings({ countertopThicknessMm: value });
@@ -139,7 +158,7 @@ export class WallConfigComponent {
   set countertopJoint(value: CountertopJointType) {
     const wallId = this.selectedWallId();
     if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    const current = this.getSelectedWallCountertopConfig() ?? DEFAULT_COUNTERTOP_CONFIG;
     this.stateService.updateCountertopConfig(wallId, { ...current, jointType: value });
     this.emit();
   }
@@ -151,7 +170,7 @@ export class WallConfigComponent {
   set countertopEdge(value: CountertopEdgeType) {
     const wallId = this.selectedWallId();
     if (!wallId) return;
-    const current = this.getSelectedWallCountertopConfig() ?? { enabled: true, materialType: 'LAMINATE' as CountertopMaterialType, thicknessMm: 38, jointType: 'ALUMINUM_STRIP' as CountertopJointType, edgeType: 'ABS_EDGE' as CountertopEdgeType };
+    const current = this.getSelectedWallCountertopConfig() ?? DEFAULT_COUNTERTOP_CONFIG;
     this.stateService.updateCountertopConfig(wallId, { ...current, edgeType: value });
     this.emit();
   }
@@ -216,7 +235,7 @@ export class WallConfigComponent {
   set plinthEnabled(value: boolean) {
     const wallId = this.selectedWallId();
     if (!wallId) return;
-    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
+    const current = this.getSelectedWallPlinthConfig() ?? DEFAULT_PLINTH_CONFIG;
     this.stateService.updatePlinthConfig(wallId, { ...current, enabled: value });
     this.emit();
   }
@@ -228,7 +247,7 @@ export class WallConfigComponent {
   set feetType(value: FeetType) {
     const wallId = this.selectedWallId();
     if (!wallId) return;
-    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
+    const current = this.getSelectedWallPlinthConfig() ?? DEFAULT_PLINTH_CONFIG;
     this.stateService.updatePlinthConfig(wallId, { ...current, feetType: value });
     // Synchronizuj wysokość nóżek z globalnym sygnałem
     const feetOption = this.feetTypeOptions.find(o => o.value === value);
@@ -243,7 +262,7 @@ export class WallConfigComponent {
   set plinthMaterial(value: PlinthMaterialType) {
     const wallId = this.selectedWallId();
     if (!wallId) return;
-    const current = this.getSelectedWallPlinthConfig() ?? { enabled: true, feetType: 'FEET_100' as FeetType, materialType: 'PVC' as PlinthMaterialType };
+    const current = this.getSelectedWallPlinthConfig() ?? DEFAULT_PLINTH_CONFIG;
     this.stateService.updatePlinthConfig(wallId, { ...current, materialType: value });
     this.emit();
   }

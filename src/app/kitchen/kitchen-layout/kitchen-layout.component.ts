@@ -1,4 +1,4 @@
-import { Component, inject, computed, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, Input, signal } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { KitchenCabinet, CabinetZone, getCabinetZone, requiresCountertop, isFreestandingAppliance } from '../model/kitchen-state.model';
@@ -72,6 +72,7 @@ interface VisualCabinetPosition {
   templateUrl: './kitchen-layout.component.html',
   styleUrls: ['./kitchen-layout.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule]
 })
 export class KitchenLayoutComponent {

@@ -38,8 +38,8 @@
         <input type="number" [(ngModel)]="countertopDepth"
                min="200" max="1200" step="10"
                title="Domyślna głębokość blatu to 600mm. Powinna być ≥ głębokości szafek.">
-        <span *ngIf="countertopDepthWarning" class="warning-hint">
-          ⚠️ Mniej niż głębokość szafek ({{ maxBottomCabinetDepth }}mm)
+        <span *ngIf="countertopDepthWarning()" class="warning-hint">
+          ⚠️ Mniej niż głębokość szafek ({{ maxBottomCabinetDepth() }}mm)
         </span>
       </div>
       <!-- Naddatek boczny -->
@@ -72,7 +72,7 @@
         <input type="checkbox" [(ngModel)]="plinthEnabled">
         <span class="toggle-text">🦶 Cokół</span>
       </label>
-      <span class="config-info" *ngIf="plinthEnabled">({{ plinthHeight }}mm)</span>
+      <span class="config-info" *ngIf="plinthEnabled">({{ plinthHeight() }}mm)</span>
     </div>
     <div class="config-fields" *ngIf="plinthEnabled">
       <div class="config-field">

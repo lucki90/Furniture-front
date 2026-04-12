@@ -43,6 +43,10 @@ const MATERIAL_NAMES_PL: Record<string, string> = {
   GLASS: 'Szkło',
 };
 
+// TODO R.13: Dodać ChangeDetectionStrategy.OnPush po migracji pól na sygnały.
+// Aktualnie result, projectResult, aggregatedBoards/Components/Jobs, isCalculatingProject
+// itp. są zwykłymi polami klasy — zmiany w HTTP callbackach nie wyzwolą CD z OnPush
+// bez inject(ChangeDetectorRef).markForCheck(). Migracja do signal() uprości to znacznie.
 @Component({
   selector: 'app-kitchen-page',
   templateUrl: './kitchen-page.component.html',
@@ -462,7 +466,6 @@ export class KitchenPageComponent {
         this.totalWasteCost = agg.wasteCost;
         this.wasteDetails = agg.wasteDetails;
         this.isCalculatingProject = false;
-        console.log('Multi-wall calculation result:', response);
       },
       error: (err) => {
         console.error('Multi-wall calculation error:', err);
