@@ -61,6 +61,10 @@ export interface FillerPanelResponse {
   veneerCost: number;
   componentsCost: number;
   totalCost: number;
+  /** false gdy brakuje ceny w katalogu — kwoty mogą być zaniżone */
+  pricingComplete?: boolean;
+  /** Kody brakujących cen, np. ["FILLER.SIDE_FILLER.MATERIAL"] */
+  missingPriceEntries?: string[];
 }
 
 // ============ CONSTANTS ============

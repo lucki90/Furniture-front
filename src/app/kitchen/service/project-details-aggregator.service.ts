@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
+import { MultiWallCalculateResponse, WallCalculationSummary } from '../model/kitchen-project.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { resolveVeneerEdges } from './veneer-edge-resolver';
 import { Job } from '../cabinet-form/model/kitchen-cabinet-form.model';
@@ -409,6 +409,29 @@ export class ProjectDetailsAggregatorService {
     const wasteCost = wasteDetails.reduce((sum, w) => sum + w.totalCost, 0);
 
     return { boards, components, jobs, wasteCost, wasteDetails };
+  }
+
+  /**
+   * Collects unique missing price entry codes from all elements of a wall calculation result.
+   * Returns a deduplicated list of missing price keys (e.g. "COUNTERTOP.LAMINATE.MATERIAL").
+   * Used to show a pricing warning when pricingComplete=false on any element.
+   */
+  collectPricingWarnings(wallResult: WallCalculationSummary): string[] {
+    const missing = new Set<string>();
+
+    const collectFrom = (obj: { pricingComplete?: boolean; missingPriceEntries?: string[] } | null | undefined) => {
+      if (obj?.pricingComplete === false && obj.missingPriceEntries) {
+        obj.missingPriceEntries.forEach(e => missing.add(e));
+      }
+    };
+
+    collectFrom(wallResult.countertop);
+    collectFrom(wallResult.plinth);
+    wallResult.fillerPanels?.forEach(fp => collectFrom(fp));
+    wallResult.enclosures?.forEach(enc => collectFrom(enc));
+    collectFrom(wallResult.upperFiller);
+
+    return Array.from(missing);
   }
 
   /**

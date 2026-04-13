@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { KitchenService } from '../service/kitchen.service';
-import { ToastService } from '../../core/error/toast.service';
+import { ApiErrorHandler } from '../../core/error/api-error-handler.service';
 import { DictionaryService } from '../service/dictionary.service';
 import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
@@ -310,7 +310,7 @@ export class CabinetFormComponent implements OnChanges {
     return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_FRIDGE;
   }
 
-  private readonly toastService = inject(ToastService);
+  private readonly errorHandler = inject(ApiErrorHandler);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
@@ -579,7 +579,7 @@ export class CabinetFormComponent implements OnChanges {
       },
       error: err => {
         console.error(err);
-        this.toastService.showHttpError(err);
+        this.errorHandler.handle(err);
         this.loading = false;
         this.cdr.markForCheck(); // OnPush: HTTP callback nie jest DOM eventem
       }

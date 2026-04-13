@@ -32,6 +32,10 @@ export interface EnclosureResponse {
   materialCost: number;
   cuttingCost: number;
   totalCost: number;
+  /** false gdy brakuje ceny w katalogu — kwoty mogą być zaniżone */
+  pricingComplete?: boolean;
+  /** Kody brakujących cen, np. ["ENCLOSURE.SIDE_PLATE.MATERIAL"] */
+  missingPriceEntries?: string[];
 }
 
 // ============ UPPER FILLER (blenda górna) ============
@@ -63,6 +67,10 @@ export interface UpperFillerResponse {
   wasSplit: boolean;
   segments: UpperFillerSegmentDto[];
   totalCost: number;
+  /** false gdy brakuje ceny w katalogu — kwoty mogą być zaniżone */
+  pricingComplete?: boolean;
+  /** Kody brakujących cen, np. ["UPPER_FILLER.MATERIAL"] */
+  missingPriceEntries?: string[];
 }
 
 // ============ POSITIONING MODE ============

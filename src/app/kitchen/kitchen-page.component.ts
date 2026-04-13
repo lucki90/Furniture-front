@@ -20,6 +20,7 @@ import { FEET_TYPE_OPTIONS } from './model/plinth.model';
 import { MultiWallCalculateResponse, ProjectStatus, getStatusLabel, getStatusColor, PROJECT_STATUSES } from './model/kitchen-project.model';
 import { Board, CabinetResponse, Component as CabinetComponent, Job } from './cabinet-form/model/kitchen-cabinet-form.model';
 import { ToastService } from '../core/error/toast.service';
+import { ApiErrorHandler } from '../core/error/api-error-handler.service';
 import { ConfirmDialogService } from '../shared/confirm-dialog/confirm-dialog.service';
 import { WallConfigComponent } from './wall-config/wall-config.component';
 import { ExcelService, ExcelRowRequest } from './service/excel.service';
@@ -72,6 +73,7 @@ export class KitchenPageComponent {
   private pricingService = inject(ProjectPricingService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
+  private errorHandler = inject(ApiErrorHandler);
   private confirmDialog = inject(ConfirmDialogService);
   private languageService = inject(LanguageService);
   private translationService = inject(TranslationService);
@@ -114,6 +116,9 @@ export class KitchenPageComponent {
   includeWasteCost = false;
   totalWasteCost = 0;
   wasteDetails: AggregatedComponent[] = [];
+
+  // Ostrzeżenia o brakujących cenach (pricingComplete=false)
+  pricingWarnings: string[] = [];
 
   // Stan eksportu Excel
   isExporting = false;
@@ -262,7 +267,7 @@ export class KitchenPageComponent {
       error: (err) => {
         console.error('Error changing project status:', err);
         this.isChangingStatus = false;
-        this.toast.showHttpError(err);
+        this.errorHandler.handle(err);
       }
     });
   }
@@ -417,7 +422,7 @@ export class KitchenPageComponent {
           error: (err) => {
             console.error('Error updating project:', err);
             this.isSavingProject = false;
-            this.toast.showHttpError(err);
+            this.errorHandler.handle(err);
           }
         });
       } else {
@@ -433,7 +438,7 @@ export class KitchenPageComponent {
           error: (err) => {
             console.error('Error creating project:', err);
             this.isSavingProject = false;
-            this.toast.showHttpError(err);
+            this.errorHandler.handle(err);
           }
         });
       }
@@ -466,10 +471,19 @@ export class KitchenPageComponent {
         this.totalWasteCost = agg.wasteCost;
         this.wasteDetails = agg.wasteDetails;
         this.isCalculatingProject = false;
+
+        // Zbierz ostrzeżenia o brakujących cenach ze wszystkich ścian
+        const allWarnings = response.walls.flatMap(wall =>
+          this.aggregatorService.collectPricingWarnings(wall)
+        );
+        this.pricingWarnings = [...new Set(allWarnings)];
+        if (this.pricingWarnings.length > 0) {
+          this.toast.warning(`Brak cen katalogowych dla: ${this.pricingWarnings.join(', ')}. Kwoty mogą być zaniżone.`);
+        }
       },
       error: (err) => {
         console.error('Multi-wall calculation error:', err);
-        this.toast.showHttpError(err);
+        this.errorHandler.handle(err);
         this.isCalculatingProject = false;
       }
     });
@@ -483,6 +497,7 @@ export class KitchenPageComponent {
     this.totalWasteCost = 0;
     this.wasteDetails = [];
     this.pricing = null;
+    this.pricingWarnings = [];
   }
 
   // ============ WYCENA PROJEKTU ============

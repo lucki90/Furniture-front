@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth/auth.service';
+import { ErrorTranslationService } from '../core/error/error-translation.service';
 
 @Component({
   selector: 'app-login',
@@ -18,10 +19,9 @@ export class LoginComponent {
   errorMessage = '';
   isLoading = false;
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router
-  ) {}
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly errorTranslation = inject(ErrorTranslationService);
 
   onSubmit(): void {
     if (!this.email || !this.password) {
@@ -38,9 +38,17 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading = false;
-//         TODO wczytywac code i tlumaczyc go a jako fallback brac message z backendu albo defaultowy
-        this.errorMessage = err.error?.message || 'Nieprawidłowy email lub hasło';
+        this.errorMessage = this.translateLoginError(err);
       }
     });
+  }
+
+  private translateLoginError(err: unknown): string {
+    const apiError = this.errorTranslation.extractApiError(err);
+    if (apiError) {
+      const translated = this.errorTranslation.translateApiError(apiError);
+      return translated[0]?.message ?? 'Nieprawidłowy email lub hasło';
+    }
+    return 'Nieprawidłowy email lub hasło';
   }
 }

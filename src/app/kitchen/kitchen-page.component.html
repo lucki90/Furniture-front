@@ -223,6 +223,17 @@
 
     <!-- Wyniki kalkulacji projektu -->
     <div class="project-results" *ngIf="projectResult">
+      <!-- Ostrzeżenie o brakujących cenach katalogowych -->
+      <div class="pricing-warning-banner" *ngIf="pricingWarnings.length > 0">
+        <span class="pricing-warning-icon">⚠️</span>
+        <div class="pricing-warning-content">
+          <strong>Brak cen katalogowych — kwoty mogą być zaniżone</strong>
+          <div class="pricing-warning-entries">
+            Brakujące wpisy: {{ pricingWarnings.join(', ') }}
+          </div>
+        </div>
+      </div>
+
       <!-- Podsumowanie kosztów -->
       <div class="costs-overview card">
         <div class="card-header">

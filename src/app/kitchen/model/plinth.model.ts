@@ -82,6 +82,10 @@ export interface PlinthResponse {
   totalCuttingCost: number;
   totalComponentsCost: number;
   totalCost: number;
+  /** false gdy brakuje ceny w katalogu — kwoty mogą być zaniżone */
+  pricingComplete?: boolean;
+  /** Kody brakujących cen, np. ["PLINTH.PVC.MATERIAL"] */
+  missingPriceEntries?: string[];
 }
 
 // ============ CONSTANTS ============

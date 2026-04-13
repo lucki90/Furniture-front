@@ -15,7 +15,7 @@ import {
   PriceEntryCreateRequest,
   PriceEntryUpdateRequest
 } from '../../model/price-entry.model';
-import { ToastService } from '../../../../core/error/toast.service';
+import { ApiErrorHandler } from '../../../../core/error/api-error-handler.service';
 
 export interface PriceDialogData {
   mode: 'create' | 'edit';
@@ -51,7 +51,7 @@ export class PriceDialogComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly priceService: PriceAdminService,
-    private readonly toast: ToastService,
+    private readonly errorHandler: ApiErrorHandler,
     private readonly dialogRef: MatDialogRef<PriceDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: PriceDialogData
   ) {
@@ -124,7 +124,7 @@ export class PriceDialogComponent implements OnInit {
       },
       error: (err) => {
         this.saving = false;
-        this.toast.showHttpError(err);
+        this.errorHandler.handle(err);
       }
     });
   }
@@ -150,7 +150,7 @@ export class PriceDialogComponent implements OnInit {
       },
       error: (err) => {
         this.saving = false;
-        this.toast.showHttpError(err);
+        this.errorHandler.handle(err);
       }
     });
   }

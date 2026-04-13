@@ -12,7 +12,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EMPTY, Observable, debounceTime, distinctUntilChanged, forkJoin, of, switchMap } from 'rxjs';
 import { MaterialAdminService } from '../../service/material-admin.service';
-import { ToastService } from '../../../../core/error/toast.service';
+import { ApiErrorHandler } from '../../../../core/error/api-error-handler.service';
 import { TranslationService } from '../../../../translation/translation.service';
 import {
   MaterialOptionResponse,
@@ -74,7 +74,7 @@ export class VariantDialogComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<VariantDialogComponent>,
     private materialAdminService: MaterialAdminService,
-    private toast: ToastService,
+    private errorHandler: ApiErrorHandler,
     @Inject(MAT_DIALOG_DATA) public data: VariantDialogData
   ) {}
 
@@ -274,7 +274,7 @@ export class VariantDialogComponent implements OnInit {
     } else {
       this.errorMessage.set('Wystąpił błąd podczas zapisywania');
     }
-    this.toast.showHttpError(err);
+    this.errorHandler.handle(err);
   }
 
   private createVariant(formValue: any): void {
