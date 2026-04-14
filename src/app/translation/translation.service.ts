@@ -21,6 +21,7 @@ export class TranslationService {
   private readonly translationAllUrl = `${environment.apiUrl}/translation/all`;
   private readonly CACHE_TTL = 1000 * 60 * 30; // 30 minut
 
+  // TODO(CODEX): Cache jest trzymany ręcznie w Mapach z własnym TTL opartym o setTimeout. To działa, ale zwiększa złożoność i łatwo tu o trudne do wykrycia problemy z invalidacją/in-flight requestami. Jeśli warstwa tłumaczeń będzie dalej rosła, warto uprościć strategię cache albo jasno wydzielić ją do dedykowanego mechanizmu.
   private readonly cache: CacheStore = {
     single: new Map<string, TranslationCache>(),
     multi: new Map<string, TranslationCache>()

@@ -26,6 +26,7 @@ export class RegisterComponent {
     private readonly router: Router
   ) {}
 
+  // TODO(CODEX): Rejestracja ma własne, ręczne reguły walidacji i zwraca surowe err.error?.message zamiast korzystać ze spójnego tłumaczenia/obsługi błędów jak login i reszta aplikacji. To grozi niespójnym UX oraz mieszaniem komunikatów backendowych z frontendowymi. Warto ujednolicić ten ekran z login/core error handling.
   onSubmit(): void {
     if (!this.email || !this.password || !this.confirmPassword) {
       this.errorMessage = 'Wypełnij wymagane pola';

@@ -77,6 +77,7 @@ interface VisualCabinetPosition {
 })
 export class KitchenLayoutComponent {
 
+  // TODO(CODEX): Komponent layoutu jest bardzo duży i łączy renderowanie, logikę pozycjonowania, interakcje użytkownika oraz szczegóły wielu strategii układu. To kandydat do dalszego podziału na czystsze warstwy: czysta geometria/obliczenia, adapter danych do widoku i lekki komponent prezentacyjny.
   private stateService = inject(KitchenStateService);
 
   /** ID aktualnie edytowanej szafki - do podświetlenia */

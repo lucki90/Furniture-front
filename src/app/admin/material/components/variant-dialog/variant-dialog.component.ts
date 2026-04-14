@@ -133,6 +133,7 @@ export class VariantDialogComponent implements OnInit {
     const ctrl = this.form?.get('translationKey');
     if (!ctrl) return;
 
+    // TODO(CODEX): Ten pipeline nie ma obsługi błędów dla forkJoin(). Jeden błąd backendu może przerwać cały stream valueChanges, zostawić translationLoading=true i wyłączyć dalsze odświeżanie preview tłumaczeń aż do zamknięcia dialogu.
     ctrl.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
       debounceTime(500),

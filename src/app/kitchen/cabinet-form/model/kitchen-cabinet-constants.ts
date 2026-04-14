@@ -2,6 +2,7 @@
  * Zakresy wymiarów szafek kuchennych.
  * Wysokość = wysokość korpusu (użytkownik podaje bezpośrednio, bez cokołu i blatu).
  */
+// TODO(CODEX): Te constraints wyglądają jak twarda wiedza produktowa i reguły oferty, a nie tylko walidacja UI. Front może je dublować dla wygody formularza, ale źródło prawdy powinno być po stronie backendu albo w konfigurowalnym kontrakcie API. Inaczej bardzo łatwo o sytuację, w której frontend pozwala albo blokuje inne wymiary niż te, które backend realnie kalkuluje.
 export const KitchenCabinetConstraints = {
   BASE_ONE_DOOR: {
     WIDTH_MIN: 200,
@@ -196,6 +197,7 @@ export const ProjectSettingsConstraints = {
 /**
  * Typy otwarcia szafki (uchwyt, click, frezowany, brak).
  */
+// TODO(CODEX): To kolejny słownik domenowy trzymany lokalnie na froncie. Jeśli oferta okuć/typów otwarcia ma się zmieniać albo zależeć od konfiguracji firmy, te opcje powinny być dostarczane z backendu razem z innymi słownikami zamiast być zakodowane w aplikacji.
 export const OPENING_TYPES = [
   { value: 'HANDLE', label: 'Uchwyt' },
   { value: 'CLICK', label: 'Click (TIP-ON)' },

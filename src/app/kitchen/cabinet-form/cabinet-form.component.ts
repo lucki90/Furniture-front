@@ -46,6 +46,7 @@ const DEFAULT_SEGMENT_HEIGHT_MM = 400;
 })
 export class CabinetFormComponent implements OnChanges {
 
+  // TODO(CODEX): Formularz szafki ma już bardzo dużą złożoność domenową i wciąż zawiera rzutowania `as any` dla części flow edycji/typów szafek. To sygnał, że model formularza i typowanie nie są już wystarczająco czytelne. Warto iść dalej w stronę silniej typowanych mapperów per typ szafki zamiast dokładać kolejne warunki do jednego komponentu.
   @Input()
   editingCabinet: KitchenCabinet | null = null;
 

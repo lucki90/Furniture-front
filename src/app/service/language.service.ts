@@ -10,6 +10,7 @@ export type AppLanguage = (typeof SUPPORTED_LANGS)[number];
  */
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
+  // TODO(CODEX): Serwis zakłada środowisko przeglądarkowe już podczas inicjalizacji (localStorage + navigator w detectInitialLanguage). Dzisiaj aplikacja działa w przeglądarce, ale to utrudni SSR, testy izolowane i ewentualne uruchamianie poza browserem. Jeśli projekt będzie rozwijany, warto osłonić te zależności albo wstrzyknąć adapter storage/platform.
   private readonly _lang = signal<AppLanguage>(this.detectInitialLanguage());
 
   /** Aktywny język jako readonly signal */

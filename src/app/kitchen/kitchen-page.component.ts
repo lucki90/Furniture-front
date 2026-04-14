@@ -66,6 +66,7 @@ const MATERIAL_NAMES_PL: Record<string, string> = {
 })
 export class KitchenPageComponent {
 
+  // TODO(CODEX): Ten komponent pełni rolę zbyt szerokiej orkiestracji ekranu: zarządza stanem widoku, dialogami, kalkulacją projektu, eksportem Excel/PDF, pricingiem, statusem projektu i częściowo translacjami BOM. Przy dalszym rozwoju będzie coraz trudniejszy do testowania i bezpiecznego zmieniania. Warto rozdzielić workflow projektu/pricingu/eksportu do mniejszych fasad lub feature services.
   private stateService = inject(KitchenStateService);
   private kitchenService = inject(KitchenService);
   private aggregatorService = inject(ProjectDetailsAggregatorService);

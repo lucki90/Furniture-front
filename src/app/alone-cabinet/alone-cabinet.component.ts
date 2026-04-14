@@ -264,6 +264,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     isMany ? this.calculateMany() : this.calculateCabinet();
   }
 
+  // TODO(CODEX): Ten flow requestów wygląda na legacy i jest technicznie niespójny: pojedynczy request HTTP ma jednocześnie retry(2) i throttleTime(3000), a obsługa błędów miesza console.* z lokalnym errorMessage. To utrudnia przewidywanie zachowania przy klikaniu wielokrotnym, timeoutach i błędach sieci. Warto uprościć pipeline i ujednolicić go z nowszym stylem obsługi requestów w aplikacji.
   private calculateCabinet(): void {
     const requestBody = this.prepareRequestBody();
     this.cabinetService.calculateCabinet(requestBody).pipe(

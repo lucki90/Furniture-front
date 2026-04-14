@@ -15,6 +15,7 @@ export class PrintDocComponent {
   }
 
   // Metoda do pobierania pliku Excel
+  // TODO(CODEX): To wygląda jak legacy-owy, bardzo wąski wrapper używany tylko przez alone-cabinet. Metoda ignoruje przekazany argument i operuje na this.response, a przy błędzie loguje tylko do konsoli bez żadnej informacji dla użytkownika. Warto uprościć API komponentu albo włączyć go w nowszy, wspólny mechanizm eksportu plików.
   downloadExcel(response: PrintDocRequest[] | null) {
     if (response && this.response) {
       this.printDocService.downloadExcel(this.response).subscribe({

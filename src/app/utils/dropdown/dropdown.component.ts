@@ -35,6 +35,7 @@ export class DropdownComponent implements ControlValueAccessor {
     }
   }
 
+  // TODO(CODEX): Ten CVA jest podejrzany i warto go uważnie poprawić: korzysta równocześnie z `[(ngModel)]` w template oraz z własnego ControlValueAccessor, a `onSelectionChange()` przyjmuje `Event`, choć z `(ngModelChange)` dostaje już samą wartość. Takie mieszanie dwóch modeli formularzy łatwo rodzi subtelne bugi synchronizacji.
   onSelectionChange(event: Event): void {
     this.value = event;
     this.onChange(this.value);

@@ -23,6 +23,7 @@ export class LoginComponent {
   private readonly router = inject(Router);
   private readonly errorTranslation = inject(ErrorTranslationService);
 
+  // TODO(CODEX): Ten ekran logowania ma bardzo uproszczoną walidację i własny, ręcznie składany flow błędów. Brakuje choćby walidacji formatu email przed requestem i spójności z centralnym podejściem do formularzy/błędów używanym w nowszych częściach aplikacji. Przy dalszym rozwoju warto przenieść to na Reactive Forms i wspólny mechanizm obsługi błędów auth.
   onSubmit(): void {
     if (!this.email || !this.password) {
       this.errorMessage = 'Wypełnij wszystkie pola';

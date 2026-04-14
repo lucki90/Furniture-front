@@ -1,4 +1,5 @@
 <div>
+  <!-- TODO(CODEX): Ten selektor języka jest niespójny z globalnym LanguageService: template porównuje uppercase (PL/EN/DE), podczas gdy stan aplikacji używa lowercase ('pl'/'en'). Dodatkowo opcja 'de' jest tu wystawiona mimo braku realnego wsparcia w komponencie i może wprowadzać nieobsługiwany stan języka. -->
   <label for="language">{{ translations['UI.selectLanguage'] || 'Select Language' }}</label>
   <select id="language" (change)="onLanguageChangeEvent($event)">
     <option value="pl" [selected]="selectedLanguage === 'PL'">Polski</option>

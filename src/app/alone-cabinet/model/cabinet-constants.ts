@@ -2,7 +2,7 @@
  * Stałe definicje opcji wyboru dla formularza szafki
  */
 export class CabinetConstants {
-  //TODO docelowo pobierac z bazy
+  // TODO(CODEX): Ten feature trzyma słowniki domenowe na sztywno po stronie frontu: typy szafek, modele szuflad, materiały, grubości i kolory. To powinno docelowo przychodzić z backendu jako konfigurowalne słowniki, bo dziś każda zmiana oferty albo nomenklatury wymaga redeployu frontu i łatwo o rozjazd z tym, co backend naprawdę obsługuje.
   static readonly CABINET_TYPES = [
     {value: 'STANDARD', label: 'CABINET_TYPE.STANDARD'},
     {value: 'INTERNAL', label: 'CABINET_TYPE.INTERNAL'},

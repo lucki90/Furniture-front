@@ -38,6 +38,7 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
   }
 
   @Input()
+  // TODO(CODEX): Komponent miesza kilka kanałów zmiany stanu naraz (`@Input value`, CVA, `valueChange`, input number i range). To zwiększa ryzyko zapętleń i rozjazdów wartości. Jeśli ma być kontrolką formularzową, lepiej oprzeć go wyłącznie o poprawny ControlValueAccessor i jeden spójny przepływ danych.
   set value(val: number) {
     if (!this._isDisabled) { // Sprawdzamy czy kontrolka nie jest wyłączona
       this._value = val;

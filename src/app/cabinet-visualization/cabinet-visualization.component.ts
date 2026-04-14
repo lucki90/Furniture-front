@@ -13,6 +13,7 @@ export class CabinetVisualizationComponent {
   @Input() frontType: string = 'ONE_DOOR';
   @Input() drawerQuantity: number = 0;
 
+  // TODO(CODEX): Komponent jest spięty z globalnym id canvasa i wymaga imperatywnego wywołania drawCabinet() z rodzica. To utrudnia reużycie, psuje enkapsulację i może powodować konflikty przy wielu instancjach komponentu na jednej stronie. Lepiej oprzeć renderowanie o @ViewChild oraz reagować na zmiany @Input.
   drawCabinet(): void {
     const canvas = document.getElementById('cabinetCanvas') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');

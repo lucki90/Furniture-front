@@ -128,6 +128,7 @@ export class BoardPricesSectionComponent implements OnInit {
     this.editingBoardId = null;
   }
 
+  // TODO(CODEX): W tej sekcji obsługa błędów jest nierówna: edit, import CSV i pobieranie szablonu w części scenariuszy tylko gaszą loading albo kończą się bez żadnego komunikatu dla użytkownika. To psuje UX i utrudnia diagnostykę, bo część operacji zachowuje się jakby "nic się nie stało". Warto ujednolicić feedback błędów z resztą ustawień/core error handling.
   submitEditBoard(bp: BoardPrice): void {
     this.editBoardSaving = true;
     this.boardPriceService.update(bp.id, {

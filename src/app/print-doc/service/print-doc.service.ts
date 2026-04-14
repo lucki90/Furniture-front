@@ -16,6 +16,7 @@ export class PrintDocService {
   }
 
   // Metoda do pobierania pliku Excel
+  // TODO(CODEX): Ten serwis dubluje odpowiedzialność z kitchen/service/excel.service.ts i jest dodatkowo związany z modelem z alone-cabinet. To zwiększa koszt utrzymania dwóch ścieżek eksportu do tego samego endpointu. Warto rozważyć wspólny serwis eksportu albo jasne odseparowanie przypadków użycia.
   downloadExcel(data: PrintDocRequest[]): Observable<Blob> {
 
     const headers = new HttpHeaders({

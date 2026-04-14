@@ -85,6 +85,7 @@ export class CompanyInfoSectionComponent {
    * Wywoływane przez SettingsComponent.ngOnInit() przez @ViewChild — lub opcjonalnie w ngOnInit tutaj.
    * Zostawiamy wywołanie przez parenta dla zachowania kolejności inicjalizacji.
    */
+  // TODO(CODEX): Ten flow obchodzi standardową warstwę HTTP aplikacji: ręcznie czyta token z localStorage i używa `fetch`, zamiast korzystać z HttpClient + authInterceptor. To rozjeżdża odpowiedzialności, utrudnia testy i może powodować niespójne zachowanie auth/błędów względem reszty frontu.
   loadLogo(): void {
     const token = localStorage.getItem('accessToken') ?? '';
     fetch(this.settingsService.getLogoUrl(), {

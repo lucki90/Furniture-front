@@ -25,6 +25,7 @@ const STATUS_ORDER: ProjectStatus[] = [
 })
 export class KitchenProjectsListComponent implements OnInit {
 
+  // TODO(CODEX): Ten ekran listy projektów trzyma w sobie jednocześnie ładowanie danych, kasowanie, otwieranie projektu, flow filtrów/sortowania i logikę prezentacji statusów. Jeszcze działa, ale zaczyna powielać problem "smart componentu od wszystkiego" znany już z głównego kitchen-page. Przy dalszym rozwoju warto wydzielić przynajmniej data/actions facade oraz uprościć obsługę błędów.
   private kitchenService = inject(KitchenService);
   private stateService = inject(KitchenStateService);
   private router = inject(Router);

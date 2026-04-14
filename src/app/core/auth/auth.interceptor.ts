@@ -26,6 +26,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      // TODO(CODEX): Każdy 401 poza /auth/ kończy się pełnym logoutem, a logout czyści też lokalny stan projektów. To oznacza ryzyko utraty niezapisanej pracy przy wygaśnięciu tokena albo chwilowym problemie autoryzacji. Warto rozdzielić "utrata sesji" od "wyczyść lokalne dane użytkownika".
       if (error.status === 401 && !req.url.includes('/auth/')) {
         authService.logout();
         router.navigate(['/login']);

@@ -30,6 +30,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
 
   @ViewChild(CompanyInfoSectionComponent) companyInfoSection?: CompanyInfoSectionComponent;
 
+  // TODO(CODEX): Ten komponent urósł do roli "ekranu wszystkiego" dla ustawień: ładuje dane, trzyma ogromny lokalny stan, składa request zapisu, zarządza cennikami i spina child komponenty przez @ViewChild. To już wyraźny kandydat do dalszego podziału, bo koszt zmian i ryzyko regresji będą rosnąć przy każdym nowym ustawieniu.
   private settingsService = inject(SettingsService);
   private kitchenStateService = inject(KitchenStateService);
   private componentPriceService = inject(ComponentPriceService);
@@ -374,6 +375,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       ...(this.companyInfoSection?.getCompanyData() ?? { offerValidityDays: 14 })
     };
 
+    // TODO(CODEX): `request as any` maskuje niedopasowanie typów między formularzem a kontraktem API. To osłabia TypeScript dokładnie w miejscu, które zapisuje globalne ustawienia aplikacji. Warto doprowadzić model `UserSettings` i składanie requestu do pełnej zgodności bez obchodzenia typowania.
     this.settingsService.updateSettings(request as any).subscribe({
       next: (updated) => {
         // Zaktualizuj globalne defaults — nowe projekty od razu dostaną nowe wartości
