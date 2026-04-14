@@ -524,8 +524,17 @@ export interface MultiWallCalculateResponse {
   totalBoardCost: number;
   /** Koszt komponentów bez odpadu. */
   totalComponentCost: number;
-  /** Koszt odpadu z cięcia płyt (wydzielony). Wliczony już w totalProjectCost. */
+  /**
+   * Globalny koszt odpadu z cięcia płyt dla całego projektu (wydzielony).
+   * Wliczony już w totalProjectCost.
+   * Źródło danych o odpadzie — NIE walls[].cabinets[].components.
+   */
   totalWasteCost: number;
+  /**
+   * Lista pozycji odpadu dla całego projektu — zagregowana globalnie po stronie backendu.
+   * Zastępuje stare podejście zbierania SHEET_WASTE z cabinets[].components.
+   */
+  globalWasteComponents?: Component[];
   totalJobCost: number;
   /** Koszt obudów (płyty boczne, blendy). */
   totalEnclosureCost?: number;

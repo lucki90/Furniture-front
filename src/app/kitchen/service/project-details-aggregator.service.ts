@@ -158,10 +158,10 @@ export class ProjectDetailsAggregatorService {
           }
         }
 
-        // Agreguj komponenty — odpad (SHEET_WASTE) trafia razem z resztą, ale z flagą isWaste
+        // Agreguj komponenty szafki — bez SHEET_WASTE (odpad jest teraz globalny w response.globalWasteComponents)
         if (cabinet.components) {
           for (const comp of cabinet.components) {
-            const isWaste = comp.category === 'SHEET_WASTE';
+            if (comp.category === 'SHEET_WASTE') continue; // pomijamy — backend już tego nie zwraca per szafka, ale guard na wypadek starszego API
             const key = `${comp.category}_${comp.model}`;
             const existing = componentsMap.get(key);
             if (existing) {
@@ -173,8 +173,7 @@ export class ProjectDetailsAggregatorService {
                 type: comp.category,
                 quantity: comp.quantity,
                 unitCost: comp.priceEntry?.price ?? 0,
-                totalCost: comp.totalPrice,
-                isWaste
+                totalCost: comp.totalPrice
               });
             }
           }
@@ -401,12 +400,23 @@ export class ProjectDetailsAggregatorService {
     }
 
     const boards = Array.from(boardsMap.values());
-    // Sortuj: zwykłe komponenty najpierw, odpad na końcu
-    const components = Array.from(componentsMap.values())
-      .sort((a, b) => (a.isWaste ? 1 : 0) - (b.isWaste ? 1 : 0));
     const jobs = Array.from(jobsMap.values());
-    const wasteDetails = components.filter(c => c.isWaste);
-    const wasteCost = wasteDetails.reduce((sum, w) => sum + w.totalCost, 0);
+
+    // Odpad pochodzi globalnie z response.globalWasteComponents (backend agreguje per projekt).
+    // Nie szukamy już SHEET_WASTE w szafkach.
+    const wasteCost = response.totalWasteCost ?? 0;
+    const wasteDetails: AggregatedComponent[] = (response.globalWasteComponents ?? []).map(comp => ({
+      name: comp.model,
+      type: comp.category,
+      quantity: comp.quantity,
+      unitCost: comp.priceEntry?.price ?? 0,
+      totalCost: comp.totalPrice,
+      isWaste: true
+    }));
+
+    // W liście komponentów do wyświetlenia: zwykłe komponenty najpierw, odpad (z isWaste=true) na końcu.
+    // Dzięki temu template może bez zmian używać comp.isWaste do stylizacji i licznika zakładki.
+    const components = [...Array.from(componentsMap.values()), ...wasteDetails];
 
     return { boards, components, jobs, wasteCost, wasteDetails };
   }

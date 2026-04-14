@@ -590,13 +590,13 @@ export class KitchenPageComponent {
 
   /**
    * Całkowity koszt projektu z opcjonalnym kosztem odpadu.
-   * totalProjectCost = boardCost + componentCost + wasteCost + jobCost (z odpadem).
-   * checkbox ZAZNACZONY  → totalProjectCost (z odpadem)
-   * checkbox ODZNACZONY  → totalProjectCost - wasteCost
+   * totalProjectCost (z backendu) = boardCost + componentCost + wasteCost + jobCost.
+   * checkbox ZAZNACZONY  → totalProjectCost (z odpadem, tak jak backend zwrócił)
+   * checkbox ODZNACZONY  → totalProjectCost - totalWasteCost
    */
   get adjustedTotalCost(): number {
     if (!this.projectResult) return 0;
-    const waste = this.projectResult.totalWasteCost ?? this.totalWasteCost;
+    const waste = this.projectResult.totalWasteCost ?? 0;
     return this.includeWasteCost
       ? this.projectResult.totalProjectCost
       : this.projectResult.totalProjectCost - waste;
@@ -604,13 +604,13 @@ export class KitchenPageComponent {
 
   /**
    * Koszt komponentów z opcjonalnym kosztem odpadu.
-   * totalComponentCost = bez odpadu (po wydzieleniu AloneStandingCabinetService).
-   * checkbox ZAZNACZONY  → totalComponentCost + wasteCost (dodajemy odpad)
+   * totalComponentCost (z backendu) = koszt komponentów bez odpadu.
+   * checkbox ZAZNACZONY  → totalComponentCost + totalWasteCost
    * checkbox ODZNACZONY  → totalComponentCost (bez odpadu)
    */
   get adjustedComponentCost(): number {
     if (!this.projectResult) return 0;
-    const waste = this.projectResult.totalWasteCost ?? this.totalWasteCost;
+    const waste = this.projectResult.totalWasteCost ?? 0;
     return this.includeWasteCost
       ? this.projectResult.totalComponentCost + waste
       : this.projectResult.totalComponentCost;

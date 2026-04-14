@@ -451,7 +451,8 @@
                   <span class="wall-status" [class.success]="wall.fits" [class.error]="!wall.fits">
                     {{ wall.fits ? '✓' : '✗' }}
                   </span>
-                  <span class="wall-cost">{{ (wall.wallTotalCost - (includeWasteCost ? 0 : (wall.wasteCost ?? 0))).toFixed(2) }} zł</span>
+                  <!-- wall.wallTotalCost nie zawiera już odpadu (odpad jest globalny w response.totalWasteCost) -->
+                  <span class="wall-cost">{{ wall.wallTotalCost.toFixed(2) }} zł</span>
                 </div>
                 <div class="wall-item-details">
                   <span>Szafki: {{ wall.cabinetCount }}</span>
