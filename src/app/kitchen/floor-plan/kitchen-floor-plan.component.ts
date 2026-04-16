@@ -1,4 +1,4 @@
-import { Component, inject, computed, output, Input } from '@angular/core';
+import { Component, inject, computed, output, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { WallType } from '../model/kitchen-project.model';
@@ -27,8 +27,21 @@ interface CabinetOnFloorPlan {
   width: number;
   depth: number;
   zone: CabinetZone;
-  isCorner: boolean;      // Czy to szafka narożna
+  isCorner: boolean;       // Czy to szafka narożna
   isFreestanding: boolean; // Czy to wolnostojące AGD (kolor srebrny, brak blatu)
+  wallType: WallType;      // Typ ściany — potrzebny do obliczenia łuku otwarcia drzwi
+}
+
+/** Dane łuku otwarcia drzwi w rzucie z góry. */
+interface FloorPlanArc {
+  cabinetId: string;
+  pathD: string;
+  hasCollision: boolean;
+  /** Obwiednia łuku (do detekcji kolizji). */
+  bboxX: number;
+  bboxY: number;
+  bboxW: number;
+  bboxH: number;
 }
 
 interface CountertopOnFloorPlan {
@@ -46,6 +59,18 @@ interface CountertopOnFloorPlan {
   depthLabelY: number;
   // Kierunek etykiet
   isHorizontal: boolean;
+}
+
+/** Wizualizacja narożnego segmentu blatu w rzucie z góry (Faza 13.1). */
+interface CornerCountertopViz {
+  // Prostokąt narożny w SVG (depthA × depthB)
+  x: number;
+  y: number;
+  sizePx: number;
+  // Linia miter (skos 45°)
+  miterX1: number; miterY1: number;
+  miterX2: number; miterY2: number;
+  label: string;
 }
 
 @Component({
@@ -67,6 +92,9 @@ export class KitchenFloorPlanComponent {
   // Przełączniki widoczności (współdzielone z kitchen-layout przez state service)
   readonly showCountertop = this.stateService.showCountertop;
   readonly showUpperCabinets = this.stateService.showUpperCabinets;
+
+  /** Przełącznik wyświetlania łuków otwarcia drzwi w rzucie z góry. */
+  readonly showDoorArcs = signal(false);
 
   addWallRequested = output<void>();
   wallRemoved = output<string>();
@@ -229,6 +257,239 @@ export class KitchenFloorPlanComponent {
 
     return positions;
   });
+
+  /**
+   * Oblicza pozycje narożnych segmentów blatu na widoku z góry (Faza 13.1).
+   *
+   * Dla każdej kombinacji pozioma+pionowa (MAIN+LEFT, MAIN+RIGHT, CORNER_LEFT+LEFT itp.)
+   * rysuje kwadrat blatu narożnego (domyślna głębokość 600mm × 600mm) w kącie styku ścian
+   * oraz linię miter (skos 45°) przez ten kwadrat. Tylko gdy showCountertop()=true.
+   *
+   * TODO(Faza 13.1+): Gdy backend zwróci rzeczywistą głębokość narożnika w CornerCountertopResponse,
+   * użyj jej zamiast COUNTERTOP_STANDARD_DEPTH (wymaga @Input/signal z wynikiem kalkulacji).
+   */
+  readonly cornerCountertopPositions = computed((): CornerCountertopViz[] => {
+    if (!this.showCountertop()) return [];
+
+    const positions = this.wallPositions();
+    const result: CornerCountertopViz[] = [];
+
+    // Wyciągnij pozycje ścian wg typów
+    const main = positions.find(p => p.wall.type === 'MAIN');
+    const cornerLeft = positions.find(p => p.wall.type === 'CORNER_LEFT');
+    const cornerRight = positions.find(p => p.wall.type === 'CORNER_RIGHT');
+    const leftWall = positions.find(p => p.wall.type === 'LEFT');
+    const rightWall = positions.find(p => p.wall.type === 'RIGHT');
+
+    // Ściany poziome mogą być MAIN, CORNER_LEFT lub CORNER_RIGHT
+    const horizontalWalls = [main, cornerLeft, cornerRight].filter(Boolean) as WallPosition[];
+
+    for (const horizontal of horizontalWalls) {
+      if (leftWall) {
+        const corner = this.buildCornerViz(horizontal, leftWall, 'left');
+        if (corner) result.push(corner);
+      }
+      if (rightWall) {
+        const corner = this.buildCornerViz(horizontal, rightWall, 'right');
+        if (corner) result.push(corner);
+      }
+    }
+
+    return result;
+  });
+
+  /**
+   * Buduje wizualizację narożnika dla ściany poziomej i pionowej.
+   * Zwraca null, gdy ściany nie stykają się geometrycznie w tym układzie.
+   */
+  private buildCornerViz(
+    horizontal: WallPosition,
+    vertical: WallPosition,
+    side: 'left' | 'right'
+  ): CornerCountertopViz | null {
+    const scale = horizontal.scale;
+    const depthPx = this.COUNTERTOP_STANDARD_DEPTH * scale;
+
+    // Górna krawędź ściany poziomej (= dół obszaru blatu poziomego)
+    const mainTop = horizontal.y;
+
+    if (side === 'left') {
+      // Narożnik L_CORNER_LEFT: prawy-dolny kąt blatu ściany pionowej styka się
+      // z lewym-dolnym kątem blatu ściany poziomej
+      const cornerX = horizontal.x;                 // lewa krawędź ściany poziomej
+      const cornerY = mainTop - depthPx;             // blat ściany poziomej sięga do mainTop - depthPx
+
+      // Sprawdź czy ściana pionowa faktycznie sięga do tego miejsca
+      const vertRightEdge = vertical.x + vertical.width;
+      if (Math.abs(vertRightEdge - cornerX) > 2) return null; // nie stykają się
+
+      // Narożnik lewy: prostokąt jest wewnątrz kuchni — po prawej stronie lewej ściany
+      // (corner.x = cornerX, prostokąt rozciąga się W PRAWO o depthPx, czyli w głąb kuchni)
+      return {
+        x: cornerX,
+        y: cornerY,
+        sizePx: depthPx,
+        // Linia miter: od dołu-lewego (cornerX, mainTop) do góry-prawego (cornerX+depthPx, cornerY)
+        miterX1: cornerX,           miterY1: mainTop,
+        miterX2: cornerX + depthPx, miterY2: cornerY,
+        label: `${this.COUNTERTOP_STANDARD_DEPTH}×${this.COUNTERTOP_STANDARD_DEPTH}mm`
+      };
+    } else {
+      // Narożnik L_CORNER_RIGHT: prawy kąt ściany poziomej spotyka prawą ścianę pionową
+      const cornerX = horizontal.x + horizontal.width; // prawa krawędź ściany poziomej
+      const cornerY = mainTop - depthPx;
+
+      // Sprawdź czy ściana pionowa faktycznie styka się od prawej
+      const vertLeftEdge = vertical.x;
+      if (Math.abs(vertLeftEdge - cornerX) > 2) return null;
+
+      // Narożnik prawy: prostokąt jest wewnątrz kuchni — po lewej stronie prawej ściany
+      // (corner.x = cornerX - depthPx, prostokąt rozciąga się od cornerX-depthPx do cornerX)
+      return {
+        x: cornerX - depthPx,
+        y: cornerY,
+        sizePx: depthPx,
+        // Linia miter: od dołu-prawego (cornerX, mainTop) do góry-lewego (cornerX-depthPx, cornerY)
+        miterX1: cornerX,           miterY1: mainTop,
+        miterX2: cornerX - depthPx, miterY2: cornerY,
+        label: `${this.COUNTERTOP_STANDARD_DEPTH}×${this.COUNTERTOP_STANDARD_DEPTH}mm`
+      };
+    }
+  }
+
+  /**
+   * Oblicza łuki otwarcia drzwi dla wszystkich szafek (dolnych i słupków) w rzucie z góry.
+   *
+   * Każdy łuk to sektor koła 90° — wizualizacja strefy, w której otwierają się drzwi.
+   * Domyślnie zakładamy lewy zawias (LEFT hinge). Łuk jest czerwony gdy jego obwiednia
+   * zachodzi na sąsiednią szafkę (kolizja), zielony w przeciwnym razie.
+   *
+   * Zwraca pustą tablicę gdy showDoorArcs()=false (lazy evaluation).
+   */
+  readonly doorArcData = computed((): FloorPlanArc[] => {
+    if (!this.showDoorArcs()) return [];
+
+    const positions = this.wallPositions();
+    const arcs: FloorPlanArc[] = [];
+
+    // Zbierz wszystkie prostokąty szafek do detekcji kolizji
+    const allRects: { id: string; x: number; y: number; w: number; h: number }[] = [];
+    for (const pos of positions) {
+      for (const cab of this.getCabinetsForWall(pos)) {
+        allRects.push({ id: cab.cabinetId, x: cab.x, y: cab.y, w: cab.width, h: cab.depth });
+      }
+    }
+
+    // Zbuduj arki — BOTTOM i FULL (dolne + słupki), nie TOP
+    for (const pos of positions) {
+      for (const cab of this.getCabinetsForWall(pos)) {
+        if (cab.isFreestanding) continue;
+        if (cab.zone === 'TOP') continue;
+
+        const arc = this.buildFloorPlanArc(cab);
+        if (arc) arcs.push(arc);
+      }
+    }
+
+    // Wykryj kolizje — arc bounding box ∩ każda szafka (oprócz własnej)
+    for (const arc of arcs) {
+      for (const rect of allRects) {
+        if (rect.id === arc.cabinetId) continue;
+        if (this.rectsOverlap(arc.bboxX, arc.bboxY, arc.bboxW, arc.bboxH,
+                              rect.x, rect.y, rect.w, rect.h)) {
+          arc.hasCollision = true;
+          break;
+        }
+      }
+    }
+
+    return arcs;
+  });
+
+  /**
+   * Buduje łuk otwarcia drzwi dla jednej szafki w rzucie z góry (defaultowy zawias: lewy).
+   *
+   * Matematyka (SVG Y↓):
+   *   MAIN wall (pozioma, front face y = cab.y — strona "do pokoju"):
+   *     LEFT hinge: center=(cab.x, cab.y), start=(cx+r, cy), end=(cx, cy−r), sweep=0
+   *     RIGHT hinge: center=(cab.x+r, cab.y), start=(cx−r, cy), end=(cx, cy−r), sweep=1
+   *   LEFT wall (pionowa, front face x = cab.x + cab.width):
+   *     LEFT hinge: center=(frontX, cab.y+r), start=(frontX, cab.y), end=(frontX+r, cy), sweep=1
+   *   RIGHT wall (pionowa, front face x = cab.x):
+   *     LEFT hinge: center=(frontX, cab.y), start=(frontX, cab.y+r), end=(frontX−r, cy), sweep=1
+   */
+  private buildFloorPlanArc(cab: CabinetOnFloorPlan, hingeSide: 'LEFT' | 'RIGHT' = 'LEFT'): FloorPlanArc | null {
+    let pathD: string;
+    let bboxX: number, bboxY: number, bboxW: number, bboxH: number;
+
+    switch (cab.wallType) {
+      case 'MAIN':
+      case 'CORNER_LEFT':
+      case 'CORNER_RIGHT':
+      case 'ISLAND': {
+        // Pozioma ściana: front face = górna krawędź szafki (y = cab.y), pokój nad/poniżej
+        // Szafki na MAIN stoją przy ścianie (dół SVG) — front face przy mniejszym Y
+        const r = cab.width;
+        const cx = hingeSide === 'LEFT' ? cab.x : cab.x + r;
+        const frontY = cab.y;  // front face = wyższa krawędź (bliżej środka pokoju)
+
+        if (hingeSide === 'LEFT') {
+          // center=(cab.x, frontY), start=(cx+r, frontY), end=(cx, frontY-r), sweep=0
+          pathD = `M ${cx + r},${frontY} A ${r},${r} 0 0 0 ${cx},${frontY - r} L ${cx},${frontY} Z`;
+          bboxX = cx; bboxY = frontY - r; bboxW = r; bboxH = r;
+        } else {
+          // center=(cab.x+r, frontY), start=(cx-r, frontY), end=(cx, frontY-r), sweep=1
+          pathD = `M ${cx - r},${frontY} A ${r},${r} 0 0 1 ${cx},${frontY - r} L ${cx},${frontY} Z`;
+          bboxX = cx - r; bboxY = frontY - r; bboxW = r; bboxH = r;
+        }
+        break;
+      }
+      case 'LEFT': {
+        // Pionowa ściana po lewej stronie: front face = prawa krawędź szafki (x = cab.x + cab.width)
+        const r = cab.depth;
+        const frontX = cab.x + cab.width;
+
+        if (hingeSide === 'LEFT') {
+          // Zawias w dolnym rogu (większy Y) — center=(frontX, cab.y+r)
+          pathD = `M ${frontX},${cab.y} A ${r},${r} 0 0 1 ${frontX + r},${cab.y + r} L ${frontX},${cab.y + r} Z`;
+          bboxX = frontX; bboxY = cab.y; bboxW = r; bboxH = r;
+        } else {
+          // Zawias w górnym rogu (mniejszy Y) — center=(frontX, cab.y)
+          pathD = `M ${frontX},${cab.y + r} A ${r},${r} 0 0 0 ${frontX + r},${cab.y} L ${frontX},${cab.y} Z`;
+          bboxX = frontX; bboxY = cab.y; bboxW = r; bboxH = r;
+        }
+        break;
+      }
+      case 'RIGHT': {
+        // Pionowa ściana po prawej stronie: front face = lewa krawędź szafki (x = cab.x)
+        const r = cab.depth;
+        const frontX = cab.x;
+
+        if (hingeSide === 'LEFT') {
+          // Zawias w górnym rogu (mniejszy Y) — center=(frontX, cab.y)
+          pathD = `M ${frontX},${cab.y + r} A ${r},${r} 0 0 1 ${frontX - r},${cab.y} L ${frontX},${cab.y} Z`;
+          bboxX = frontX - r; bboxY = cab.y; bboxW = r; bboxH = r;
+        } else {
+          // Zawias w dolnym rogu (większy Y) — center=(frontX, cab.y+r)
+          pathD = `M ${frontX},${cab.y} A ${r},${r} 0 0 0 ${frontX - r},${cab.y + r} L ${frontX},${cab.y + r} Z`;
+          bboxX = frontX - r; bboxY = cab.y; bboxW = r; bboxH = r;
+        }
+        break;
+      }
+      default:
+        return null;
+    }
+
+    return { cabinetId: cab.cabinetId, pathD, hasCollision: false, bboxX, bboxY, bboxW, bboxH };
+  }
+
+  /**
+   * AABB collision detection. Touching edges = NO collision.
+   */
+  private rectsOverlap(ax: number, ay: number, aw: number, ah: number,
+                        bx: number, by: number, bw: number, bh: number): boolean {
+    return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+  }
 
   onWallClick(wallId: string): void {
     this.stateService.selectWall(wallId);
@@ -529,7 +790,8 @@ export class KitchenFloorPlanComponent {
         depth: cabinetDepth,
         zone,
         isCorner,
-        isFreestanding
+        isFreestanding,
+        wallType
       };
     } else {
       // Ściana pionowa (LEFT, RIGHT)
@@ -544,7 +806,8 @@ export class KitchenFloorPlanComponent {
           depth: cabinetWidth,
           zone,
           isCorner,
-          isFreestanding
+          isFreestanding,
+          wallType
         };
       } else {
         // RIGHT
@@ -557,7 +820,8 @@ export class KitchenFloorPlanComponent {
           depth: cabinetWidth,
           zone,
           isCorner,
-          isFreestanding
+          isFreestanding,
+          wallType
         };
       }
     }

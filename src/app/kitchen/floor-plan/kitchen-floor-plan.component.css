@@ -104,6 +104,79 @@
   opacity: 1;
 }
 
+/* Narożny segment blatu (Faza 13.1) */
+.corner-countertop-group {
+  pointer-events: none;
+}
+
+.corner-countertop-rect {
+  fill: rgba(141, 110, 99, 0.40); /* ciemniejszy brąz — odróżnia od zwykłego blatu */
+  stroke: #4e342e;
+  stroke-width: 1.5;
+}
+
+.corner-miter-line {
+  stroke: #4e342e;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3; /* przerywana linia = linia cięcia 45° */
+}
+
+.corner-countertop-label {
+  font-size: 7px;
+  font-weight: 700;
+  fill: #4e342e;
+  pointer-events: none;
+}
+
+/* ============================================================
+   ŁUKI OTWARCIA DRZWI (Faza 13.2) — rzut z góry
+   ============================================================ */
+
+.door-arc {
+  pointer-events: none;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+.arc-clear {
+  fill: rgba(76, 175, 80, 0.15);
+  stroke: #4CAF50;
+}
+
+.arc-collision {
+  fill: rgba(244, 67, 54, 0.20);
+  stroke: #f44336;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 2;
+}
+
+/* Toolbar przełączników widoczności rzutu z góry */
+.floor-plan-toolbar {
+  margin-top: 4px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fp-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-secondary, #64748b);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.fp-toggle input[type="checkbox"] {
+  cursor: pointer;
+  accent-color: #1976d2;
+  width: 13px;
+  height: 13px;
+}
+
 /* Legend */
 .legend-item {
   font-size: 7px;

@@ -86,6 +86,7 @@ export type PositioningMode = 'RELATIVE_TO_CEILING' | 'RELATIVE_TO_COUNTERTOP';
 
 export type WallType = 'MAIN' | 'LEFT' | 'RIGHT' | 'CORNER_LEFT' | 'CORNER_RIGHT' | 'ISLAND';
 
+// TODO(CODEX): Etykiety typów ścian są zahardcodowane na froncie. Jeśli te nazwy mają znaczenie biznesowe, mają być tłumaczalne albo konfigurowalne per rynek/produkt, lepiej wystawiać je z backendu lub z backendowego słownika tłumaczeń zamiast utrzymywać osobną definicję tutaj.
 export const WALL_TYPES: { value: WallType; label: string }[] = [
   { value: 'MAIN', label: 'Ściana główna' },
   { value: 'LEFT', label: 'Ściana lewa' },
@@ -99,6 +100,7 @@ export const WALL_TYPES: { value: WallType; label: string }[] = [
 
 export type ProjectStatus = 'DRAFT' | 'OFFER_SENT' | 'ACCEPTED' | 'IN_PRODUCTION' | 'IN_INSTALLATION' | 'COMPLETED' | 'CANCELLED';
 
+// TODO(CODEX): Front definiuje własny słownik statusów projektu razem z labelami i kolorami. To jest ryzykowne, bo status workflow jest domeną backendu: gdy dojdzie nowy status, zmiana nazwy albo inna paleta/semantyka przejść, frontend może się rozjechać z API. Lepiej traktować backend jako źródło prawdy dla metadanych statusów, a front tylko je renderować.
 export const PROJECT_STATUSES: { value: ProjectStatus; label: string; color: string }[] = [
   { value: 'DRAFT', label: 'Szkic', color: '#6b7280' },
   { value: 'OFFER_SENT', label: 'Oferta wysłana', color: '#2563eb' },
@@ -502,6 +504,48 @@ export interface CabinetPlacementResponse {
   displayOrder: number;
 }
 
+// ============ WALL CONNECTIONS (Faza 13.0) ============
+
+/**
+ * Typ połączenia narożnego między dwiema ścianami.
+ * - L_CORNER_LEFT: ściana A (MAIN/CORNER_LEFT) + ściana B (LEFT) — narożnik L w lewo
+ * - L_CORNER_RIGHT: ściana A (MAIN/CORNER_RIGHT) + ściana B (RIGHT) — narożnik L w prawo
+ */
+export type WallConnectionType = 'L_CORNER_LEFT' | 'L_CORNER_RIGHT';
+
+/**
+ * Jedno połączenie narożne między dwiema ścianami.
+ * Indeksy odnoszą się do tablicy walls[] w MultiWallCalculateRequest.
+ */
+export interface WallConnectionRequest {
+  wallIndexA: number;
+  wallIndexB: number;
+  connectionType: WallConnectionType;
+  /** Domyślnie MITER_JOINT — cięcie 45° */
+  cornerJointType?: string;
+}
+
+/**
+ * Wynik kalkulacji narożnego segmentu blatu łączącego dwie ściany (Faza 13.1).
+ * Aktualnie (13.0) wypełniany zerami — implementacja w zadaniu 13.1.
+ */
+export interface CornerCountertopResponse {
+  wallAIndex: number;
+  wallBIndex: number;
+  /** Szerokość narożnego segmentu = głębokość blatu ściany B (depthB, ~600mm). */
+  cornerWidthMm: number;
+  /** Głębokość narożnego segmentu = głębokość blatu ściany A (depthA, ~600mm). */
+  cornerDepthMm: number;
+  thicknessMm: number;
+  jointType: string;
+  materialCost: number;
+  jointCost: number;
+  totalCost: number;
+  components?: Component[];
+  pricingComplete: boolean;
+  missingPriceEntries?: string[];
+}
+
 // ============ MULTI-WALL CALCULATE ============
 
 /**
@@ -509,6 +553,12 @@ export interface CabinetPlacementResponse {
  */
 export interface MultiWallCalculateRequest {
   walls: ProjectWallRequest[];
+  /**
+   * Opcjonalna lista połączeń między ścianami (narożniki L).
+   * Gdy null lub pusta — ściany traktowane niezależnie.
+   * Auto-wykrywana przez ProjectRequestBuilderService.buildConnections().
+   */
+  connections?: WallConnectionRequest[];
 }
 
 /**
@@ -540,8 +590,23 @@ export interface MultiWallCalculateResponse {
   totalEnclosureCost?: number;
   /** Koszt blend górnych (listwy nad szafkami wiszącymi). */
   totalUpperFillerCost?: number;
-  /** Koszt całkowity z odpadem: totalBoardCost + totalComponentCost + totalWasteCost + totalJobCost + totalEnclosureCost + totalUpperFillerCost. */
+  /** Koszt całkowity z odpadem: totalBoardCost + totalComponentCost + totalWasteCost + totalJobCost + totalEnclosureCost + totalUpperFillerCost + totalCornerCountertopCost. */
   totalProjectCost: number;
+
+  // ============ Corner countertops (Faza 13.1) ============
+
+  /**
+   * Narożne segmenty blatu łączące dwie ściany (kuchnie L-kształtne).
+   * Null lub pusta lista = brak połączeń między ścianami.
+   * TODO 13.1: Wypełniane przez CornerCountertopCalculationService po implementacji.
+   */
+  cornerCountertops?: CornerCountertopResponse[];
+
+  /**
+   * Suma kosztów narożnych segmentów blatu.
+   * TODO 13.1: Wliczać do totalProjectCost po implementacji.
+   */
+  totalCornerCountertopCost?: number;
 }
 
 /**

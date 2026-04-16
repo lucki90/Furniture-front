@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MultiWallCalculateResponse, WallCalculationSummary } from '../model/kitchen-project.model';
+import { CornerCountertopResponse, MultiWallCalculateResponse, WallCalculationSummary } from '../model/kitchen-project.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { resolveVeneerEdges } from './veneer-edge-resolver';
 import { Job } from '../cabinet-form/model/kitchen-cabinet-form.model';
@@ -401,6 +401,42 @@ export class ProjectDetailsAggregatorService {
       }
     }
 
+    // 7. Narożne segmenty blatu — Faza 13.1
+    // Backend zwraca null gdy brak połączeń, lub listę gdy są narożniki.
+    if (response.cornerCountertops) {
+      for (const corner of response.cornerCountertops) {
+        // Pomiń wyłączone narożniki (oba blaty disabled → wymiary = 0)
+        if (corner.cornerWidthMm <= 0 || corner.cornerDepthMm <= 0 || corner.thicknessMm <= 0) {
+          continue;
+        }
+        // cornerWidthMm = depthB (ściana pionowa), cornerDepthMm = depthA (ściana pozioma)
+        // W BOM: width = cornerWidthMm, height = cornerDepthMm (analogicznie do segmentów blatu)
+        const label = `Blat narożny [Śc.${corner.wallAIndex + 1}–Śc.${corner.wallBIndex + 1}]`;
+        this.addBoardToMap(boardsMap, {
+          material: label,
+          thickness: corner.thicknessMm,
+          width: corner.cornerWidthMm,
+          height: corner.cornerDepthMm,
+          quantity: 1,
+          unitCost: corner.materialCost,
+          totalCost: corner.materialCost
+        });
+
+        // Komponenty narożnika (śruby łączące miter)
+        if (corner.components) {
+          for (const comp of corner.components) {
+            this.addComponentToMap(componentsMap, {
+              name: comp.model,
+              type: comp.category,
+              quantity: comp.quantity,
+              unitCost: comp.priceEntry?.price ?? 0,
+              totalCost: comp.totalPrice ?? 0
+            });
+          }
+        }
+      }
+    }
+
     const boards = Array.from(boardsMap.values());
     const jobs = Array.from(jobsMap.values());
 
@@ -443,6 +479,22 @@ export class ProjectDetailsAggregatorService {
     wallResult.enclosures?.forEach(enc => collectFrom(enc));
     collectFrom(wallResult.upperFiller);
 
+    return Array.from(missing);
+  }
+
+  /**
+   * Collects pricing warnings from corner countertop segments (Faza 13.1).
+   * Called separately from collectPricingWarnings() because corner data lives
+   * in MultiWallCalculateResponse, not per-wall WallCalculationSummary.
+   */
+  collectCornerCountertopPricingWarnings(cornerCountertops: CornerCountertopResponse[] | null | undefined): string[] {
+    if (!cornerCountertops?.length) return [];
+    const missing = new Set<string>();
+    for (const corner of cornerCountertops) {
+      if (corner.pricingComplete === false && corner.missingPriceEntries) {
+        corner.missingPriceEntries.forEach(e => missing.add(e));
+      }
+    }
     return Array.from(missing);
   }
 

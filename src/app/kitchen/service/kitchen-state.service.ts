@@ -46,6 +46,7 @@ import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.mode
 })
 export class KitchenStateService {
 
+  // TODO(CODEX): To jest już bardzo duża "god service" dla całego feature'a kitchen: trzyma stan, liczy geometrię, mapuje modele, ładuje projekt i buduje requesty. Nawet jeśli część logiki została wydzielona, ten serwis nadal jest zbyt centralny i będzie spowalniał dalsze zmiany. Kolejny sensowny krok to dalsze wydzielenie geometrii, mapowania API i mutacji stanu do osobnych, węższych serwisów/store'ów.
   private requestBuilder = inject(ProjectRequestBuilderService);
   private settingsService = inject(ProjectSettingsService);
   private metadataService = inject(ProjectMetadataService);
@@ -992,10 +993,14 @@ export class KitchenStateService {
 
   /**
    * Buduje request do kalkulacji wielu ścian (bez zapisu).
+   * Automatycznie wykrywa połączenia narożne między ścianami na podstawie typów ścian.
    */
   buildMultiWallCalculateRequest(): MultiWallCalculateRequest {
+    const walls = this._walls();
+    const connections = this.requestBuilder.buildConnections(walls);
     return {
-      walls: this.buildProjectWalls()
+      walls: this.buildProjectWalls(),
+      connections: connections.length > 0 ? connections : undefined
     };
   }
 

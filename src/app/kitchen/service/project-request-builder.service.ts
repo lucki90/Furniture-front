@@ -15,7 +15,10 @@ import {
   ProjectWallRequest,
   DrawerRequest,
   CornerCabinetRequest,
-  CascadeSegmentRequest
+  CascadeSegmentRequest,
+  WallConnectionRequest,
+  WallConnectionType,
+  WallType
 } from '../model/kitchen-project.model';
 import { CountertopRequest, DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
 import { PlinthRequest, DEFAULT_PLINTH_REQUEST } from '../model/plinth.model';
@@ -35,6 +38,7 @@ export interface WallBuildSettings {
 @Injectable({ providedIn: 'root' })
 export class ProjectRequestBuilderService {
 
+  // TODO(CODEX): Ten builder robi dużo sensownej roboty, ale nadal zawiera kilka `as any` oraz sporą ilość wiedzy domenowej o pozycjonowaniu i mapowaniu typów szafek. To miejsce jest krytyczne dla zgodności frontend↔backend, więc warto dalej uszczelniać typy wejścia/wyjścia i ograniczać obejścia typowania, zanim pojawi się więcej wyjątków per typ szafki.
   /**
    * Zwraca szerokość obudowy bocznej dla danej szafki i strony (w mm).
    */
@@ -219,6 +223,49 @@ export class ProjectRequestBuilderService {
         plinth: this.buildPlinthRequest(wall)
       };
     });
+  }
+
+  /**
+   * Automatycznie wykrywa połączenia między ścianami na podstawie ich typów.
+   *
+   * Reguły:
+   *  - ściana LEFT(j) + najbliższa poprzednia ściana MAIN/CORNER_LEFT/CORNER_RIGHT(i) → L_CORNER_LEFT
+   *  - ściana RIGHT(j) + najbliższa poprzednia ściana MAIN/CORNER_LEFT/CORNER_RIGHT(i) → L_CORNER_RIGHT
+   *
+   * Jeśli nie ma poprzedniej ściany poziomej, szukamy kolejnej (po indeksie).
+   * Ściany ISLAND i MAIN bez sąsiada LEFT/RIGHT nie generują połączeń.
+   *
+   * TODO 13.1: Weryfikacja detekcji dla bardziej złożonych układów (np. dwie ściany LEFT lub
+   *   brak ściany MAIN — tylko CORNER_LEFT + LEFT). Rozważyć konfigurowalność per projekt
+   *   zamiast auto-detekcji.
+   */
+  buildConnections(walls: WallWithCabinets[]): WallConnectionRequest[] {
+    const connections: WallConnectionRequest[] = [];
+    const horizontalTypes: WallType[] = ['MAIN', 'CORNER_LEFT', 'CORNER_RIGHT'];
+
+    for (let j = 0; j < walls.length; j++) {
+      const wallB = walls[j];
+      if (wallB.type !== 'LEFT' && wallB.type !== 'RIGHT') continue;
+
+      // Szukaj najbliższej ściany poziomej — najpierw wstecz, potem w przód
+      let aIdx = -1;
+      for (let i = j - 1; i >= 0; i--) {
+        if (horizontalTypes.includes(walls[i].type as WallType)) { aIdx = i; break; }
+      }
+      if (aIdx < 0) {
+        for (let i = j + 1; i < walls.length; i++) {
+          if (horizontalTypes.includes(walls[i].type as WallType)) { aIdx = i; break; }
+        }
+      }
+
+      if (aIdx >= 0) {
+        const connectionType: WallConnectionType =
+          wallB.type === 'LEFT' ? 'L_CORNER_LEFT' : 'L_CORNER_RIGHT';
+        connections.push({ wallIndexA: aIdx, wallIndexB: j, connectionType });
+      }
+    }
+
+    return connections;
   }
 
   /**
