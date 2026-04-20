@@ -1,644 +1,119 @@
-<div class="kitchen-page">
+﻿<div class="kitchen-page">
   <!-- PAGE HEADER -->
-  <header class="page-header">
-    <div class="page-title">
-      <h1>🍳 {{ currentProjectName() || 'Nowy projekt kuchni' }}</h1>
-      <div class="page-subtitle-row">
-        <span class="page-subtitle">
-          <ng-container *ngIf="currentProjectId()">
-            Projekt #{{ currentProjectId() }} • wersja {{ currentProjectVersion() }}
-          </ng-container>
-          <ng-container *ngIf="!currentProjectId()">
-            Projektuj i wyceniaj zabudowę kuchenną
-          </ng-container>
-        </span>
-        <!-- Status badge + dropdown -->
-        <div class="project-status-control" *ngIf="currentProjectId()">
-          <span class="status-badge-inline"
-                [style.background-color]="getStatusColor(currentProjectStatus()) + '18'"
-                [style.color]="getStatusColor(currentProjectStatus())"
-                [style.border-color]="getStatusColor(currentProjectStatus()) + '40'">
-            {{ getStatusLabel(currentProjectStatus()) }}
-          </span>
-          <select
-            *ngIf="currentProjectAllowedTransitions().length > 0"
-            class="status-select"
-            [disabled]="isChangingStatus"
-            (change)="onStatusChange($any($event.target).value); $any($event.target).value = ''"
-            [style.border-color]="getStatusColor(currentProjectStatus()) + '60'">
-            <option value="" disabled selected>{{ isChangingStatus ? 'Zmieniam...' : 'Zmień status...' }}</option>
-            <option *ngFor="let status of currentProjectAllowedTransitions(); trackBy: trackByIndex" [value]="status">
-              {{ getStatusLabel(status) }}
-            </option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="page-actions">
-      <a routerLink="/kitchen/projects" class="btn btn-outline">
-        <span class="btn-icon-text">📁</span>
-        Moje projekty
-      </a>
-      <button class="btn btn-success" (click)="onSaveProject()" [disabled]="totalCabinetCount() === 0 || isSavingProject">
-        <span class="btn-icon-text">💾</span>
-        {{ isSavingProject ? 'Zapisuję...' : (currentProjectId() ? 'Zapisz zmiany' : 'Zapisz projekt') }}
-      </button>
-      <button class="btn btn-secondary" (click)="calculateProject()" [disabled]="totalCabinetCount() === 0 || isCalculatingProject">
-        <span class="btn-icon-text">🧮</span>
-        {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
-      </button>
-    </div>
-  </header>
+  <app-kitchen-page-header
+    [projectDisplayName]="currentProjectName() || 'Nowy projekt kuchni'"
+    [projectId]="currentProjectId()"
+    [projectVersion]="currentProjectVersion()"
+    [projectSubtitle]="'Projektuj i wyceniaj zabudowe kuchenna'"
+    [projectStatusLabel]="currentProjectStatusLabel"
+    [projectStatusColor]="currentProjectStatusColor"
+    [allowedTransitions]="currentProjectTransitionOptions"
+    [isChangingStatus]="isChangingStatus"
+    [isSavingProject]="isSavingProject"
+    [isCalculatingProject]="isCalculatingProject"
+    [totalCabinetCount]="totalCabinetCount()"
+    [hasProjectId]="!!currentProjectId()"
+    (saveProject)="onSaveProject()"
+    (calculateProject)="calculateProject()"
+    (statusChange)="onStatusChange($event)">
+  </app-kitchen-page-header>
 
   <!-- ============ SEKCJA 1: WIZUALIZACJA + FORMULARZ ============ -->
-  <section class="main-workspace">
-    <!-- Lewa kolumna: Floor plan -->
-    <div class="floor-plan-column">
-      <div class="panel-card">
-        <div class="panel-header">
-          <span class="panel-title">Widok z góry</span>
-          <button class="btn btn-sm btn-primary" (click)="onAddWallRequested()">+ Ściana</button>
-        </div>
-        <div class="panel-content">
-          <app-kitchen-floor-plan
-            [editingCabinetId]="editingCabinetId"
-            (addWallRequested)="onAddWallRequested()"
-            (wallRemoved)="onWallRemoved($event)">
-          </app-kitchen-floor-plan>
-        </div>
-        <!-- Wymiary ściany -->
-        <div class="wall-dimensions-bar" *ngIf="selectedWall()">
-          <span class="wall-label">{{ selectedWallLabel }}:</span>
-          <div class="dim-field">
-            <span class="dim-label">Dł.</span>
-            <input type="number" [(ngModel)]="wallLength" (change)="onWallChange()">
-            <span class="dim-unit">mm</span>
-          </div>
-          <div class="dim-field">
-            <span class="dim-label">Wys.</span>
-            <input type="number" [(ngModel)]="wallHeight" (change)="onWallChange()">
-            <span class="dim-unit">mm</span>
-          </div>
-        </div>
-
-        <!-- Konfiguracja blatu i cokołu — delegowane do WallConfigComponent (R.2.5) -->
-        <app-wall-config (configChanged)="onWallConfigChanged()"></app-wall-config>
-      </div>
-    </div>
-
-    <!-- Środkowa kolumna: Widok od frontu -->
-    <div class="front-view-column">
-      <div class="panel-card">
-        <div class="panel-header">
-          <span class="panel-title">Widok od frontu</span>
-          <span class="panel-info" *ngIf="selectedWall()">{{ selectedWallLabel }} • {{ wallLength }}×{{ wallHeight }} mm</span>
-        </div>
-        <div class="panel-content">
-          <app-kitchen-layout [editingCabinetId]="editingCabinetId"></app-kitchen-layout>
-        </div>
-      </div>
-    </div>
-
-    <!-- Prawa kolumna: Formularz -->
-    <div class="form-column">
-      <div class="panel-card form-card">
-        <div class="panel-header">
-          <span class="panel-title">{{ editingCabinet ? '✏️ Edytuj' : '➕ Dodaj szafkę' }}</span>
-          <button *ngIf="editingCabinet" class="btn btn-sm btn-secondary" (click)="onCancelEdit()">Anuluj</button>
-        </div>
-        <div class="panel-content">
-          <app-cabinet-form
-            [editingCabinet]="editingCabinet"
-            (calculated)="onCabinetCalculated($event)"
-            (cancelEdit)="onCancelEdit()">
-          </app-cabinet-form>
-        </div>
-      </div>
-    </div>
-  </section>
+  <app-kitchen-workspace-section
+    [editingCabinetId]="editingCabinetId"
+    [editingCabinet]="editingCabinet"
+    [hasSelectedWall]="!!selectedWall()"
+    [selectedWallLabel]="selectedWallLabel"
+    [wallLength]="wallLength"
+    [wallHeight]="wallHeight"
+    (addWallRequested)="onAddWallRequested()"
+    (wallRemoved)="onWallRemoved($event)"
+    (wallLengthChange)="wallLength = $event"
+    (wallHeightChange)="wallHeight = $event"
+    (wallConfigChanged)="onWallConfigChanged()"
+    (cabinetCalculated)="onCabinetCalculated($event)"
+    (cancelEdit)="onCancelEdit()">
+  </app-kitchen-workspace-section>
 
   <!-- ============ SEKCJA 2: PODSUMOWANIE + LISTA SZAFEK ============ -->
-  <section class="cabinets-section">
-    <!-- Podsumowanie (nad listą) -->
-    <div class="inline-summary" *ngIf="result && !editingCabinet">
-      <div class="summary-badge">
-        <span class="summary-icon">✓</span>
-        <span class="summary-text">Ostatnia szafka: <strong>{{ result.summaryCosts?.toFixed(0) || '0' }} zł</strong></span>
-      </div>
-      <div class="summary-badge" *ngIf="cabinets().length > 0">
-        <span class="summary-icon">🧱</span>
-        <span class="summary-text">{{ selectedWallLabel }}: <strong>{{ cabinets().length }}</strong> szafek, <strong>{{ selectedWallTotalCost().toFixed(0) }} zł</strong></span>
-        <span class="fit-indicator" [class.success]="fitsOnWall()" [class.error]="!fitsOnWall()">
-          {{ fitsOnWall() ? '✓' : '✗' }}
-        </span>
-      </div>
-      <div class="summary-badge highlight">
-        <span class="summary-icon">📐</span>
-        <span class="summary-text">Projekt: <strong>{{ totalCabinetCount() }}</strong> szafek, <strong>{{ totalCost().toFixed(0) }} zł</strong></span>
-      </div>
-    </div>
+  <app-kitchen-cabinets-section
+    [result]="result"
+    [hasEditingCabinet]="!!editingCabinet"
+    [cabinets]="cabinets()"
+    [selectedWallLabel]="selectedWallLabel"
+    [selectedWallTotalCost]="selectedWallTotalCost()"
+    [totalCabinetCount]="totalCabinetCount()"
+    [totalCost]="totalCost()"
+    [fitsOnWall]="fitsOnWall()"
+    [editingCabinetId]="editingCabinetId"
+    (clearSelectedWallCabinets)="clearSelectedWallCabinets()"
+    (editCabinet)="onEditCabinet($event)"
+    (removeCabinet)="onRemoveCabinet($event)"
+    (cloneCabinet)="onCloneCabinet($event)">
+  </app-kitchen-cabinets-section>
 
-    <!-- Lista szafek -->
-    <div class="cabinets-list-card">
-      <div class="list-header">
-        <h3>📋 Szafki: {{ selectedWallLabel }} <span class="count-badge">{{ cabinets().length }}</span></h3>
-        <div class="list-actions">
-          <button
-            *ngIf="cabinets().length > 0"
-            class="btn btn-sm btn-secondary"
-            (click)="clearSelectedWallCabinets()"
-            [disabled]="editingCabinetId !== null">
-            Wyczyść
-          </button>
-        </div>
-      </div>
-      <div class="list-content">
-        <app-kitchen-cabinet-list
-          [cabinets]="cabinets()"
-          [editingCabinetId]="editingCabinetId"
-          (edit)="onEditCabinet($event)"
-          (remove)="onRemoveCabinet($event)"
-          (clone)="onCloneCabinet($event)">
-        </app-kitchen-cabinet-list>
-
-        <div class="empty-list" *ngIf="cabinets().length === 0">
-          <span class="empty-icon">📦</span>
-          <p>Brak szafek na tej ścianie</p>
-          <small>Użyj formularza powyżej, aby dodać szafkę</small>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ SEKCJA 3: MATERIAŁY I KOSZTY ============ -->
-  <section class="costs-section" *ngIf="projectResult || totalCabinetCount() > 0">
-
-    <!-- Podsumowanie przed kalkulacją -->
-    <div class="pre-calculation-summary" *ngIf="!projectResult && totalCabinetCount() > 0">
-      <div class="summary-grid">
-        <!-- Wybrana ściana -->
-        <div class="summary-card" *ngIf="cabinets().length > 0">
-          <div class="summary-card-icon">🧱</div>
-          <div class="summary-card-content">
-            <h4>{{ selectedWallLabel }}</h4>
-            <div class="summary-stats">
-              <span>{{ cabinets().length }} szafek</span>
-              <span>{{ totalWidth() }} mm zajęte</span>
-            </div>
-            <div class="summary-status" [class.success]="fitsOnWall()" [class.error]="!fitsOnWall()">
-              {{ fitsOnWall() ? '✓ Mieści się' : '✗ Nie mieści się!' }}
-              <small>({{ remainingWidth() }} mm wolne)</small>
-            </div>
-          </div>
-          <div class="summary-card-value">{{ selectedWallTotalCost().toFixed(0) }} zł</div>
-        </div>
-
-        <!-- Cały projekt -->
-        <div class="summary-card highlight">
-          <div class="summary-card-icon">📐</div>
-          <div class="summary-card-content">
-            <h4>Cały projekt</h4>
-            <div class="summary-stats">
-              <span>{{ walls().length }} ścian</span>
-              <span>{{ totalCabinetCount() }} szafek</span>
-            </div>
-          </div>
-          <div class="summary-card-value">{{ totalCost().toFixed(0) }} zł</div>
-        </div>
-      </div>
-
-      <div class="calculation-prompt">
-        <p>Kliknij <strong>"Wylicz projekt"</strong>, aby uzyskać szczegółową kalkulację kosztów, listę materiałów i komponentów.</p>
-        <button
-          class="btn btn-lg btn-primary"
-          (click)="calculateProject()"
-          [disabled]="editingCabinetId !== null || isCalculatingProject">
-          {{ isCalculatingProject ? '⏳ Obliczam...' : '🧮 Wylicz cały projekt' }}
-        </button>
-        <button class="btn btn-lg btn-secondary" (click)="clearAll()" [disabled]="editingCabinetId !== null">
-          🗑️ Wyczyść wszystko
-        </button>
-      </div>
-    </div>
-
-    <!-- Wyniki kalkulacji projektu -->
-    <div class="project-results" *ngIf="projectResult">
-      <!-- Ostrzeżenie o brakujących cenach katalogowych -->
-      <div class="pricing-warning-banner" *ngIf="pricingWarnings.length > 0">
-        <span class="pricing-warning-icon">⚠️</span>
-        <div class="pricing-warning-content">
-          <strong>Brak cen katalogowych — kwoty mogą być zaniżone</strong>
-          <div class="pricing-warning-entries">
-            Brakujące wpisy: {{ pricingWarnings.join(', ') }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Podsumowanie kosztów -->
-      <div class="costs-overview card">
-        <div class="card-header">
-          <h2 class="card-title"><span>💰</span> Podsumowanie kosztów</h2>
-          <div class="project-status" [class.success]="projectResult.allFit" [class.warning]="!projectResult.allFit">
-            {{ projectResult.allFit ? '✓ Wszystko mieści się' : '⚠️ Niektóre szafki nie mieszczą się!' }}
-          </div>
-        </div>
-        <div class="card-body">
-          <div class="costs-grid">
-            <div class="cost-card">
-              <span class="cost-icon">🪵</span>
-              <span class="cost-label">Płyty</span>
-              <span class="cost-value">{{ totalAggregatedBoardsCost.toFixed(2) }} zł</span>
-            </div>
-            <div class="cost-card">
-              <span class="cost-icon">🔩</span>
-              <span class="cost-label">Komponenty</span>
-              <span class="cost-value">{{ adjustedComponentCost.toFixed(2) }} zł</span>
-            </div>
-            <div class="cost-card">
-              <span class="cost-icon">🔧</span>
-              <span class="cost-label">Prace</span>
-              <span class="cost-value">{{ totalAggregatedJobsCost.toFixed(2) }} zł</span>
-            </div>
-            <div class="cost-card total">
-              <span class="cost-icon">📊</span>
-              <span class="cost-label">RAZEM</span>
-              <span class="cost-value">{{ adjustedTotalCost.toFixed(2) }} zł</span>
-            </div>
-          </div>
-
-          <!-- Koszt odpadu - osobna sekcja -->
-          <div class="waste-cost-section" *ngIf="totalWasteCost > 0">
-            <div class="waste-toggle">
-              <label class="toggle-label">
-                <input type="checkbox" [(ngModel)]="includeWasteCost">
-                <span class="toggle-text">Wlicz koszt odpadu z cięcia</span>
-              </label>
-              <span class="waste-value" [class.included]="includeWasteCost">
-                {{ includeWasteCost ? '+' : '' }}{{ totalWasteCost.toFixed(2) }} zł
-              </span>
-            </div>
-            <small class="waste-hint">
-              Odpad: {{ wasteDetails[0].quantity.toFixed(2) || 0 }} m²
-              (cena {{ wasteDetails[0].unitCost.toFixed(2) || 0 }} zł/m²)
-              — niektóre hurtownie nie doliczają kosztu odpadu
-            </small>
-          </div>
-
-          <div class="project-info">
-            <span>Ściany: {{ projectResult.wallCount }}</span>
-            <span>•</span>
-            <span>Szafki: {{ projectResult.totalCabinetCount }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Zakładki ze szczegółami -->
-      <div class="details-card card">
-        <div class="tabs">
-          <button
-            class="tab-btn"
-            [class.active]="activeDetailsTab === 'boards'"
-            (click)="activeDetailsTab = 'boards'">
-            🪵 Płyty ({{ aggregatedBoards.length }})
-          </button>
-          <button
-            class="tab-btn"
-            [class.active]="activeDetailsTab === 'components'"
-            (click)="activeDetailsTab = 'components'">
-            🔩 Komponenty ({{ aggregatedComponents.length - wasteDetails.length }}<ng-container *ngIf="wasteDetails.length > 0"> +odpad</ng-container>)
-          </button>
-          <button
-            class="tab-btn"
-            [class.active]="activeDetailsTab === 'jobs'"
-            (click)="activeDetailsTab = 'jobs'">
-            🔧 Prace ({{ aggregatedJobs.length }})
-          </button>
-          <button
-            class="tab-btn"
-            [class.active]="activeDetailsTab === 'walls'"
-            (click)="activeDetailsTab = 'walls'">
-            🧱 Ściany ({{ projectResult.walls.length }})
-          </button>
-          <button
-            *ngIf="currentProjectId()"
-            class="tab-btn"
-            [class.active]="activeDetailsTab === 'pricing'"
-            (click)="activeDetailsTab = 'pricing'; loadPricing()">
-            💸 Wycena
-          </button>
-        </div>
-
-        <div class="tab-content">
-          <!-- Tab: Płyty -->
-          <div class="tab-panel" *ngIf="activeDetailsTab === 'boards'">
-            <div class="table-container" *ngIf="aggregatedBoards.length > 0">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Materiał</th>
-                    <th>Wymiary (mm)</th>
-                    <th>Okleina krawędzi</th>
-                    <th>Ilość</th>
-                    <th>Cena jedn.</th>
-                    <th>Cena całk.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let board of aggregatedBoards; trackBy: trackByIndex">
-                    <td>{{ board.material }} ({{ board.thickness }}mm)</td>
-                    <td>{{ board.width }} × {{ board.height }}</td>
-                    <td>{{ board.veneerEdgeLabel || '—' }}</td>
-                    <td>{{ board.quantity }}</td>
-                    <td>{{ board.unitCost.toFixed(2) }} zł</td>
-                    <td class="text-right font-bold">{{ board.totalCost.toFixed(2) }} zł</td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="5"><strong>Suma płyt (szafki + blat + cokół):</strong></td>
-                    <td class="text-right"><strong>{{ totalAggregatedBoardsCost.toFixed(2) }} zł</strong></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            <div class="empty-tab" *ngIf="aggregatedBoards.length === 0">
-              Brak płyt do wyświetlenia
-            </div>
-          </div>
-
-          <!-- Tab: Komponenty -->
-          <div class="tab-panel" *ngIf="activeDetailsTab === 'components'">
-            <div class="table-container" *ngIf="aggregatedComponents.length > 0">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nazwa</th>
-                    <th>Typ</th>
-                    <th>Ilość</th>
-                    <th>Cena jedn.</th>
-                    <th>Cena całk.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let comp of aggregatedComponents; trackBy: trackByIndex"
-                      [class.waste-row]="comp.isWaste"
-                      [class.waste-excluded]="comp.isWaste && !includeWasteCost">
-                    <td>{{ comp.name }}</td>
-                    <td>{{ comp.type }}</td>
-                    <td>{{ comp.quantity }}</td>
-                    <td>{{ comp.isWaste && !includeWasteCost ? '—' : (comp.unitCost.toFixed(2) + ' zł') }}</td>
-                    <td class="text-right font-bold">
-                      <span *ngIf="!comp.isWaste || includeWasteCost">{{ comp.totalCost.toFixed(2) }} zł</span>
-                      <span *ngIf="comp.isWaste && !includeWasteCost" class="waste-excluded-label">{{ comp.totalCost.toFixed(2) }} zł (nie wliczono)</span>
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="4"><strong>Suma komponentów{{ wasteDetails.length > 0 && includeWasteCost ? ' (z odpadem)' : '' }}:</strong></td>
-                    <td class="text-right"><strong>{{ totalAggregatedComponentsCost.toFixed(2) }} zł</strong></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            <div class="empty-tab" *ngIf="aggregatedComponents.length === 0">
-              Brak komponentów do wyświetlenia
-            </div>
-          </div>
-
-          <!-- Tab: Prace -->
-          <div class="tab-panel" *ngIf="activeDetailsTab === 'jobs'">
-            <div class="table-container" *ngIf="aggregatedJobs.length > 0">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Nazwa</th>
-                    <th>Typ</th>
-                    <th>Ilość</th>
-                    <th>Cena jedn.</th>
-                    <th>Cena całk.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let job of aggregatedJobs; trackBy: trackByIndex">
-                    <td>{{ job.name }}</td>
-                    <td>{{ job.type }}</td>
-                    <td>{{ job.quantity }}</td>
-                    <td>{{ job.unitCost.toFixed(2) }} zł</td>
-                    <td class="text-right font-bold">{{ job.totalCost.toFixed(2) }} zł</td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td colspan="4"><strong>Suma prac:</strong></td>
-                    <td class="text-right"><strong>{{ totalAggregatedJobsCost.toFixed(2) }} zł</strong></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-            <div class="empty-tab" *ngIf="aggregatedJobs.length === 0">
-              Brak prac do wyświetlenia
-            </div>
-          </div>
-
-          <!-- Tab: Ściany -->
-          <div class="tab-panel" *ngIf="activeDetailsTab === 'walls'">
-            <div class="walls-list">
-              <div class="wall-item" *ngFor="let wall of projectResult.walls; trackBy: trackByWall">
-                <div class="wall-item-header">
-                  <h4>{{ wall.wallType }}</h4>
-                  <span class="wall-dims">{{ wall.widthMm }} × {{ wall.heightMm }} mm</span>
-                  <span class="wall-status" [class.success]="wall.fits" [class.error]="!wall.fits">
-                    {{ wall.fits ? '✓' : '✗' }}
-                  </span>
-                  <!-- wall.wallTotalCost nie zawiera już odpadu (odpad jest globalny w response.totalWasteCost) -->
-                  <span class="wall-cost">{{ wall.wallTotalCost.toFixed(2) }} zł</span>
-                </div>
-                <div class="wall-item-details">
-                  <span>Szafki: {{ wall.cabinetCount }}</span>
-                  <span>Dolne: {{ wall.usedWidthBottom }}/{{ wall.widthMm }} mm</span>
-                  <span>Górne: {{ wall.usedWidthTop }}/{{ wall.widthMm }} mm</span>
-                </div>
-                <!-- Szczegóły blatów i cokołów -->
-                <div class="wall-item-extras" *ngIf="wall.countertop?.enabled || wall.plinth?.enabled">
-                  <span *ngIf="wall.countertop?.enabled" class="extra-item">
-                    🍳 Blat: {{ wall.countertop!.totalLengthMm }}×{{ wall.countertop!.depthMm }}mm
-                    <em>({{ wall.countertopCost?.toFixed(0) || 0 }} zł)</em>
-                  </span>
-                  <span *ngIf="wall.plinth?.enabled" class="extra-item">
-                    🦶 Cokół: {{ wall.plinth!.segmentCount }} szt.
-                    <em>({{ wall.plinthCost?.toFixed(0) || 0 }} zł)</em>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Tab: Wycena -->
-          <div class="tab-panel" *ngIf="activeDetailsTab === 'pricing'">
-            <div *ngIf="isPricingLoading" style="color:#888; padding:12px 0;">Ładowanie wyceny...</div>
-
-            <div *ngIf="!isPricingLoading && pricing">
-              <!-- Tabela rozkładu kosztów -->
-              <div class="table-container">
-                <table style="font-size:13px;">
-                  <thead>
-                    <tr>
-                      <th>Kategoria</th>
-                      <th class="text-right">Koszty netto</th>
-                      <th class="text-right">Marża %</th>
-                      <th class="text-right">Kwota marży</th>
-                      <th class="text-right">Łącznie</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>🪵 Płyty</td>
-                      <td class="text-right">{{ pricing.boardsNet.toFixed(2) }} zł</td>
-                      <td class="text-right">{{ pricing.markupMaterialsPct }}%</td>
-                      <td class="text-right">{{ pricing.boardsMarkupAmount.toFixed(2) }} zł</td>
-                      <td class="text-right font-bold">{{ pricing.boardsTotal.toFixed(2) }} zł</td>
-                    </tr>
-                    <tr>
-                      <td>🔩 Komponenty</td>
-                      <td class="text-right">{{ pricing.componentsNet.toFixed(2) }} zł</td>
-                      <td class="text-right">{{ pricing.markupComponentsPct }}%</td>
-                      <td class="text-right">{{ pricing.componentsMarkupAmount.toFixed(2) }} zł</td>
-                      <td class="text-right font-bold">{{ pricing.componentsTotal.toFixed(2) }} zł</td>
-                    </tr>
-                    <tr>
-                      <td>🔧 Robocizna</td>
-                      <td class="text-right">{{ pricing.jobsNet.toFixed(2) }} zł</td>
-                      <td class="text-right">{{ pricing.markupJobsPct }}%</td>
-                      <td class="text-right">{{ pricing.jobsMarkupAmount.toFixed(2) }} zł</td>
-                      <td class="text-right font-bold">{{ pricing.jobsTotal.toFixed(2) }} zł</td>
-                    </tr>
-                  </tbody>
-                  <tfoot>
-                    <tr style="border-top:2px solid #e2e8f0;">
-                      <td colspan="4"><strong>Suma przed rabatem:</strong></td>
-                      <td class="text-right"><strong>{{ pricing.subtotal.toFixed(2) }} zł</strong></td>
-                    </tr>
-                    <tr>
-                      <td colspan="4">Rabat {{ pricing.discountPct }}%:</td>
-                      <td class="text-right" style="color:#dc2626;">−{{ pricing.discountAmount.toFixed(2) }} zł</td>
-                    </tr>
-                    <tr>
-                      <td colspan="4"><strong>Po rabacie:</strong></td>
-                      <td class="text-right"><strong>{{ pricing.afterDiscount.toFixed(2) }} zł</strong></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-
-              <!-- Cena końcowa wyróżniona -->
-              <div style="margin-top:16px; padding:16px; background:linear-gradient(135deg,#1e3a5f,#2563eb); color:#fff; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:15px; font-weight:600;">💰 Cena końcowa</span>
-                <span style="font-size:24px; font-weight:700;">{{ pricing.finalPrice.toFixed(2) }} zł</span>
-              </div>
-              <div *ngIf="pricing.manualPriceOverride != null" style="font-size:12px; color:#888; margin-top:4px; text-align:right;">
-                * nadpisana ręcznie (kalkulowana: {{ pricing.afterDiscount.toFixed(2) }} zł)
-              </div>
-
-              <!-- Edycja rabatu, nadpisania i notatek -->
-              <div style="margin-top:20px; padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
-                <div style="font-weight:600; margin-bottom:12px; font-size:13px;">Edytuj parametry wyceny</div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-                  <div>
-                    <label style="font-size:12px; color:#666; display:block; margin-bottom:4px;">Rabat (%)</label>
-                    <input type="number" style="width:100%; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;"
-                           [(ngModel)]="pricingDiscountPct" min="0" max="100" step="0.5" />
-                  </div>
-                  <div>
-                    <label style="font-size:12px; color:#666; display:block; margin-bottom:4px;">
-                      <input type="checkbox" [(ngModel)]="pricingManualOverrideEnabled" style="margin-right:4px;" />
-                      Nadpisz cenę końcową (zł)
-                    </label>
-                    <input type="number" style="width:100%; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;"
-                           [(ngModel)]="pricingManualOverride" [disabled]="!pricingManualOverrideEnabled" min="0" step="1" />
-                  </div>
-                </div>
-                <div style="margin-bottom:12px;">
-                  <label style="font-size:12px; color:#666; display:block; margin-bottom:4px;">Notatki do oferty</label>
-                  <textarea style="width:100%; padding:6px 8px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; resize:vertical; min-height:70px; box-sizing:border-box;"
-                            [(ngModel)]="pricingOfferNotes" placeholder="Notatki dla klienta, warunki oferty..."></textarea>
-                </div>
-                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                  <button class="btn btn-primary btn-sm" (click)="savePricing()" [disabled]="isPricingSaving">
-                    {{ isPricingSaving ? 'Zapisuję...' : '💾 Zapisz wycenę' }}
-                  </button>
-                  <button class="btn btn-outline btn-sm" (click)="downloadOfferPdf()" [disabled]="isPdfDownloading">
-                    {{ isPdfDownloading ? '⏳ Generuję PDF...' : '📄 Pobierz ofertę PDF' }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- Notatki do oferty (widok) -->
-              <div *ngIf="pricing.offerNotes" style="margin-top:12px; padding:12px; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; font-size:13px; white-space:pre-wrap;">
-                {{ pricing.offerNotes }}
-              </div>
-            </div>
-
-            <div *ngIf="!isPricingLoading && !pricing" style="color:#888; padding:12px 0;">
-              Kliknij zakładkę Wycena ponownie lub zapisz projekt, aby załadować wycenę.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
+  <!-- ============ SEKCJA 3: MATERIALY I KOSZTY ============ -->
+  <app-kitchen-costs-section
+    [projectResult]="projectResult"
+    [totalCabinetCount]="totalCabinetCount()"
+    [selectedWallLabel]="selectedWallLabel"
+    [selectedWallCabinetCount]="cabinets().length"
+    [totalWidth]="totalWidth()"
+    [fitsOnWall]="fitsOnWall()"
+    [remainingWidth]="remainingWidth()"
+    [selectedWallTotalCost]="selectedWallTotalCost()"
+    [wallsCount]="walls().length"
+    [totalCost]="totalCost()"
+    [editingCabinetId]="editingCabinetId"
+    [isCalculatingProject]="isCalculatingProject"
+    [pricingWarnings]="pricingWarnings"
+    [aggregatedBoards]="aggregatedBoards"
+    [aggregatedComponents]="aggregatedComponents"
+    [aggregatedJobs]="aggregatedJobs"
+    [wasteDetails]="wasteDetails"
+    [totalAggregatedBoardsCost]="totalAggregatedBoardsCost"
+    [totalAggregatedComponentsCost]="totalAggregatedComponentsCost"
+    [totalAggregatedJobsCost]="totalAggregatedJobsCost"
+    [adjustedComponentCost]="adjustedComponentCost"
+    [adjustedTotalCost]="adjustedTotalCost"
+    [totalWasteCost]="totalWasteCost"
+    [includeWasteCost]="includeWasteCost"
+    [activeDetailsTab]="activeDetailsTab"
+    [currentProjectId]="currentProjectId()"
+    [pricing]="pricing"
+    [isPricingLoading]="isPricingLoading"
+    [isPricingSaving]="isPricingSaving"
+    [isPdfDownloading]="isPdfDownloading"
+    [pricingDiscountPct]="pricingDiscountPct"
+    [pricingManualOverrideEnabled]="pricingManualOverrideEnabled"
+    [pricingManualOverride]="pricingManualOverride"
+    [pricingOfferNotes]="pricingOfferNotes"
+    (calculateProject)="calculateProject()"
+    (clearAll)="clearAll()"
+    (includeWasteCostChange)="includeWasteCost = $event"
+    (activeDetailsTabChange)="activeDetailsTab = $event"
+    (pricingTabRequested)="loadPricing()"
+    (pricingDiscountPctChange)="pricingDiscountPct = $event"
+    (pricingManualOverrideEnabledChange)="pricingManualOverrideEnabled = $event"
+    (pricingManualOverrideChange)="pricingManualOverride = $event"
+    (pricingOfferNotesChange)="pricingOfferNotes = $event"
+    (savePricing)="savePricing()"
+    (downloadOfferPdf)="downloadOfferPdf()">
+  </app-kitchen-costs-section>
   <!-- ============ STICKY FOOTER - ZAWSZE WIDOCZNY ============ -->
-  <footer class="page-footer" *ngIf="totalCabinetCount() > 0">
-    <div class="footer-info">
-      <span *ngIf="projectResult">
-        💰 <strong>{{ adjustedTotalCost.toFixed(0) }} zł</strong>
-        <span class="footer-details">({{ projectResult.wallCount }} ścian, {{ projectResult.totalCabinetCount }} szafek)</span>
-      </span>
-      <span *ngIf="!projectResult">
-        📐 <strong>{{ totalCabinetCount() }}</strong> szafek
-        <span class="footer-details">({{ walls().length }} ścian)</span>
-      </span>
-    </div>
-    <div class="footer-actions">
-      <!-- Przyciski główne -->
-      <button
-        class="btn btn-success"
-        (click)="onSaveProject()"
-        [disabled]="totalCabinetCount() === 0 || isSavingProject || editingCabinetId !== null">
-        <span>💾</span>
-        {{ isSavingProject ? 'Zapisuję...' : (currentProjectId() ? 'Zapisz' : 'Zapisz projekt') }}
-      </button>
-      <button
-        class="btn btn-primary"
-        (click)="calculateProject()"
-        [disabled]="totalCabinetCount() === 0 || isCalculatingProject || editingCabinetId !== null">
-        <span>🧮</span>
-        {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
-      </button>
-      <button
-        class="btn btn-secondary"
-        (click)="clearAll()"
-        [disabled]="editingCabinetId !== null">
-        <span>🗑️</span> Wyczyść
-      </button>
-
-      <!-- Przyciski eksportu (gdy jest kalkulacja) -->
-      <ng-container *ngIf="projectResult">
-        <div class="footer-divider"></div>
-        <button class="btn btn-outline"
-                (click)="downloadExcel()"
-                [disabled]="isExporting"
-                [title]="isExporting ? 'Generowanie pliku...' : 'Pobierz listę płyt do zamówienia (.xlsx)'">
-          <span>{{ isExporting ? '⏳' : '📊' }}</span>
-          {{ isExporting ? 'Generowanie...' : 'Excel' }}
-        </button>
-        <button class="btn btn-outline">
-          <span>📄</span> PDF
-        </button>
-        <button class="btn btn-outline">
-          <span>📋</span> Instrukcja
-        </button>
-      </ng-container>
-    </div>
-  </footer>
+  <app-kitchen-page-footer
+    [totalCabinetCount]="totalCabinetCount()"
+    [projectResult]="projectResult"
+    [adjustedTotalCost]="adjustedTotalCost"
+    [wallsCount]="walls().length"
+    [isSavingProject]="isSavingProject"
+    [isCalculatingProject]="isCalculatingProject"
+    [editingCabinetId]="editingCabinetId"
+    [currentProjectId]="currentProjectId()"
+    [isExporting]="isExporting"
+    (saveProject)="onSaveProject()"
+    (calculateProject)="calculateProject()"
+    (clearAll)="clearAll()"
+    (downloadExcel)="downloadExcel()">
+  </app-kitchen-page-footer>
 </div>

@@ -1,0 +1,44 @@
+<div class="warnings-panel" *ngIf="isWorkspaceGapViolation || !fitsOnWall || cooktopGapWarning">
+  <div class="warning-item" *ngIf="isWorkspaceGapViolation">
+    <span class="warning-icon">⚠</span>
+    Przestrzeń robocza zbyt mała: <strong>{{ gapMm }} mm</strong>
+    (wymagane min. 450 mm). Zmniejsz wysokość szafek wiszących lub podnieś ich pozycję.
+  </div>
+  <div class="warning-item warning-item--danger" *ngIf="cooktopGapWarning as warning">
+    <span class="warning-icon">🔥</span>
+    <strong>Norma bezpieczeństwa:</strong> {{ warning.message }}.
+    Podnieś szafki wiszące lub zmniejsz ich wysokość.
+  </div>
+  <div class="warning-item" *ngIf="!fitsOnWall">
+    <span class="warning-icon">⚠</span>
+    Szafki nie mieszczą się na ścianie ({{ wallLength }} mm).
+    Sprawdź szerokości w strefie dolnej i górnej.
+  </div>
+</div>
+
+<div class="legend">
+  <span class="legend-item">
+    <span class="legend-box cabinet-bottom-legend"></span> Dolna
+  </span>
+  <span class="legend-item">
+    <span class="legend-box cabinet-hanging-legend"></span> Górna
+  </span>
+  <span class="legend-item">
+    <span class="legend-box cabinet-full-legend"></span> Słupek
+  </span>
+  <span class="legend-item">
+    <span class="legend-box cabinet-corner-legend"></span> Narożna
+  </span>
+  <span class="legend-item">
+    <span class="legend-box counter-legend"></span> Blat
+  </span>
+  <span class="legend-item">
+    <span class="legend-box plinth-legend"></span> Cokół
+  </span>
+  <span class="legend-item">
+    <span class="legend-box filler-legend"></span> Blenda
+  </span>
+  <span class="legend-item legend-indicator">
+    <span class="legend-box indicator-legend"></span> h/d = różnica wys./głęb.
+  </span>
+</div>

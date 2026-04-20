@@ -1,0 +1,49 @@
+<section class="cabinets-section">
+  <div class="inline-summary" *ngIf="result && !hasEditingCabinet">
+    <div class="summary-badge">
+      <span class="summary-icon">✓</span>
+      <span class="summary-text">Ostatnia szafka: <strong>{{ result.summaryCosts.toFixed(0) || '0' }} zl</strong></span>
+    </div>
+    <div class="summary-badge" *ngIf="cabinets.length > 0">
+      <span class="summary-icon">🧱</span>
+      <span class="summary-text">{{ selectedWallLabel }}: <strong>{{ cabinets.length }}</strong> szafek, <strong>{{ selectedWallTotalCost.toFixed(0) }} zl</strong></span>
+      <span class="fit-indicator" [class.success]="fitsOnWall" [class.error]="!fitsOnWall">
+        {{ fitsOnWall ? '✓' : '✗' }}
+      </span>
+    </div>
+    <div class="summary-badge highlight">
+      <span class="summary-icon">📐</span>
+      <span class="summary-text">Projekt: <strong>{{ totalCabinetCount }}</strong> szafek, <strong>{{ totalCost.toFixed(0) }} zl</strong></span>
+    </div>
+  </div>
+
+  <div class="cabinets-list-card">
+    <div class="list-header">
+      <h3>📋 Szafki: {{ selectedWallLabel }} <span class="count-badge">{{ cabinets.length }}</span></h3>
+      <div class="list-actions">
+        <button
+          *ngIf="cabinets.length > 0"
+          class="btn btn-sm btn-secondary"
+          (click)="clearSelectedWallCabinets.emit()"
+          [disabled]="editingCabinetId !== null">
+          Wyczysc
+        </button>
+      </div>
+    </div>
+    <div class="list-content">
+      <app-kitchen-cabinet-list
+        [cabinets]="cabinets"
+        [editingCabinetId]="editingCabinetId"
+        (edit)="editCabinet.emit($event)"
+        (remove)="removeCabinet.emit($event)"
+        (clone)="cloneCabinet.emit($event)">
+      </app-kitchen-cabinet-list>
+
+      <div class="empty-list" *ngIf="cabinets.length === 0">
+        <span class="empty-icon">📦</span>
+        <p>Brak szafek na tej scianie</p>
+        <small>Uzyj formularza powyzej, aby dodac szafke</small>
+      </div>
+    </div>
+  </div>
+</section>

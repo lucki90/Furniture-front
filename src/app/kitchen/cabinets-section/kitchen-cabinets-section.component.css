@@ -1,0 +1,137 @@
+.cabinets-section {
+  margin-bottom: 20px;
+}
+
+.inline-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.summary-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--text-secondary, #64748b);
+}
+
+.summary-badge.highlight {
+  background: var(--primary-color, #1e3a5f);
+  border-color: var(--primary-color, #1e3a5f);
+  color: white;
+}
+
+.summary-icon {
+  font-size: 15px;
+}
+
+.summary-text strong {
+  color: var(--text-primary, #1e293b);
+}
+
+.summary-badge.highlight .summary-text strong {
+  color: #93c5fd;
+}
+
+.fit-indicator {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.fit-indicator.success {
+  background: var(--success-bg, #ecfdf5);
+  color: var(--success-color, #10b981);
+}
+
+.fit-indicator.error {
+  background: var(--error-bg, #fef2f2);
+  color: var(--error-color, #ef4444);
+}
+
+.cabinets-list-card {
+  background: white;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-hover, #f1f5f9);
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.list-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+}
+
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  margin-left: 8px;
+  background: var(--accent-color, #3b82f6);
+  color: white;
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.list-content {
+  padding: 12px;
+}
+
+.empty-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-muted, #94a3b8);
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.empty-list p {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.empty-list small {
+  font-size: 12px;
+}
+
+@media (max-width: 1000px) {
+  .inline-summary {
+    flex-direction: column;
+  }
+
+  .summary-badge {
+    width: 100%;
+  }
+}

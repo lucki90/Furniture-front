@@ -1,71 +1,19 @@
 import { ChangeDetectionStrategy, Component, inject, computed, Input, signal } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
-import { KitchenCabinet, CabinetZone, getCabinetZone, requiresCountertop, isFreestandingAppliance } from '../model/kitchen-state.model';
+import { getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
-import { SegmentFormData } from '../cabinet-form/model/segment.model';
-import { DisplayFront, DisplayHandle, CabinetRenderContext } from './strategies/cabinet-render-context';
-import { CABINET_RENDER_REGISTRY } from './strategies/cabinet-render-registry';
 import {
   PLATE_THICKNESS_MM,
   COUNTERTOP_DEPTH_DEFAULT_MM,
   OVEN_HEIGHT_COMPACT_MM,
   OVEN_HEIGHT_STANDARD_MM
 } from './kitchen-layout.constants';
-
-/**
- * Nóżka do wyświetlania — pionowy bar od korpusu do podłogi
- */
-interface DisplayFoot {
-  x: number;
-  y1: number;  // górna krawędź nóżki (dół korpusu)
-  y2: number;  // dolna krawędź nóżki (podłoga)
-}
-
-interface VisualCabinetPosition {
-  cabinetId: string;
-  name?: string;
-  type: KitchenCabinetType;
-  // Pozycje w mm (oryginalne)
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  depth: number;
-  // Pozycje w px (do wyświetlania)
-  displayX: number;
-  displayY: number;
-  displayWidth: number;
-  displayHeight: number;
-  /** Wysokość korpusu w px (bez strefy cokołu). Dla BOTTOM = displayHeight, dla FULL = displayHeight - feetHeight */
-  bodyHeight: number;
-  // Typ szafki (dolna/górna/słupek)
-  zone: CabinetZone;
-  isOverflow: boolean;
-  // Czy to szafka narożna
-  isCorner: boolean;
-  cornerWidthB?: number;
-  // Elementy wizualne
-  fronts: DisplayFront[];
-  handles: DisplayHandle[];
-  feet: DisplayFoot[];
-  feetHeight: number;
-  drawerQuantity?: number;
-  segments?: SegmentFormData[];
-  // Wskaźniki wymiarów
-  heightDiff?: number;
-  depthDiff?: number;
-  // Obudowy boczne
-  leftEnclosureType?: string;
-  rightEnclosureType?: string;
-  /** Szerokość obudowy w px (0 = brak). Dla płyty bocznej = 18mm×scale, dla blendy = fillerWidth×scale. */
-  leftEnclosureDisplayWidth: number;
-  rightEnclosureDisplayWidth: number;
-  /** Y-pozycja linii separatora piekarnik/sekcja dolna (px). Tylko dla BASE_OVEN gdy jest sekcja dolna. */
-  ovenSeparatorDisplayY?: number;
-  /** Precomputed: true gdy szafka jest wolnostojącym AGD (zmywarka/piekarnik/lodówka wolnostojąca). */
-  isFreestandingAppliance: boolean;
-}
+import { buildCooktopGapWarning, buildKitchenLayoutMetrics } from './kitchen-layout-metrics';
+import { buildVisualCabinetPositions, VisualCabinetPosition } from './kitchen-layout-view-model.builder';
+import { KitchenLayoutCabinetsLayerComponent } from './kitchen-layout-cabinets-layer.component';
+import { KitchenLayoutSurfacesLayerComponent } from './kitchen-layout-surfaces-layer.component';
+import { KitchenLayoutInfoPanelComponent } from './kitchen-layout-info-panel.component';
 
 @Component({
   selector: 'app-kitchen-layout',
@@ -73,7 +21,12 @@ interface VisualCabinetPosition {
   styleUrls: ['./kitchen-layout.component.css'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule]
+  imports: [
+    CommonModule,
+    KitchenLayoutCabinetsLayerComponent,
+    KitchenLayoutSurfacesLayerComponent,
+    KitchenLayoutInfoPanelComponent
+  ]
 })
 export class KitchenLayoutComponent {
 
@@ -106,42 +59,7 @@ export class KitchenLayoutComponent {
   private readonly STANDARD_BOTTOM_DEPTH = 560;
   private readonly STANDARD_TOP_DEPTH = 320;
 
-  // Minimalna przestrzeń robocza
-  private readonly MIN_GAP_MM = 450;
-
   // ===== Dynamiczne wymiary stref (obliczane z sygnałów projektu) =====
-
-  /** Rzeczywista wysokość strefy dolnej: cokół + max(korpus dolnych, 720) */
-  private readonly realBottomZoneMm = computed(() => {
-    const plinth = this.stateService.plinthHeightMm();
-    // Tylko szafki z blatem — wyklucza wolnostojące AGD (fridge/oven/dishwasher freestanding),
-    // żeby ich wysokość nie wpływała na rozmiar strefy dolnej w SVG.
-    const bottomCabs = this.stateService.cabinets().filter(c => requiresCountertop(c.type));
-    const maxH = bottomCabs.length > 0 ? Math.max(...bottomCabs.map(c => c.height)) : 720;
-    return plinth + maxH;
-  });
-
-  /** Rzeczywista wysokość strefy górnej: max(korpus górnych, 720) + blenda */
-  private readonly realTopZoneMm = computed(() => {
-    const filler = this.stateService.upperFillerHeightMm();
-    const topCabs = this.stateService.cabinets().filter(c => getCabinetZone(c) === 'TOP');
-    const maxH = topCabs.length > 0 ? Math.max(...topCabs.map(c => c.height)) : 720;
-    return maxH + filler;
-  });
-
-  /** Grubość blatu z ustawień projektu */
-  private readonly realCounterMm = computed(() => this.stateService.countertopThicknessMm());
-
-  /** Rzeczywista (nieobcięta) przerwa robocza w mm */
-  private readonly actualGapMm = computed(() => {
-    const wallH = this.selectedWall()?.heightMm ?? 2400;
-    return wallH - this.realTopZoneMm() - this.realCounterMm() - this.realBottomZoneMm();
-  });
-
-  /** Czy przerwa robocza narusza minimum 450mm */
-  readonly isWorkspaceGapViolation = computed(() =>
-    this.hasBottomCabinets() && this.hasHangingCabinets() && this.actualGapMm() < this.MIN_GAP_MM
-  );
 
   /**
    * Ostrzeżenie o minimalnej odległości między płytą grzewczą a szafką/okapem powyżej.
@@ -149,52 +67,8 @@ export class KitchenLayoutComponent {
    * Przerwa robocza (actualGapMm) = odległość od blatu do dołu szafek wiszących.
    */
   readonly cooktopGapWarning = computed((): { message: string; minMm: number; actualMm: number } | null => {
-    if (!this.hasHangingCabinets()) return null;  // Brak szafek górnych — nie ma czego mierzyć
-
-    const wall = this.selectedWall();
-    if (!wall) return null;
-
-    const cooktopCab = wall.cabinets.find(c => c.type === 'BASE_COOKTOP');
-    if (!cooktopCab) return null;
-
-    const isGas = cooktopCab.cooktopType === 'GAS';
-    const minMm = isGas ? 750 : 600;
-    const actualMm = Math.round(this.actualGapMm());
-
-    if (actualMm >= minMm) return null;
-
-    const typeName = isGas ? 'gazowej' : 'indukcyjnej';
-    return {
-      message: `Odległość między płytą ${typeName} a szafką powyżej: ${actualMm}mm (wymagane min. ${minMm}mm)`,
-      minMm,
-      actualMm
-    };
+    return buildCooktopGapWarning(this.selectedWall(), this.hasHangingCabinets(), this.layoutMetrics().actualGapMm);
   });
-
-  /** Przerwa robocza: reszta ściany, min MIN_GAP_MM */
-  private readonly realGapMm = computed(() => {
-    return Math.max(this.actualGapMm(), this.MIN_GAP_MM);
-  });
-
-  /** Łączna wysokość stref w mm */
-  private readonly totalRealMm = computed(() =>
-    this.realTopZoneMm() + this.realGapMm() + this.realCounterMm() + this.realBottomZoneMm()
-  );
-
-  /** Skala pionowa: px/mm */
-  private readonly SCALE_VERT = computed(() => this.WALL_DISPLAY_HEIGHT / this.totalRealMm());
-
-  /** Wysokości stref w px */
-  private readonly TOP_ZONE_H = computed(() => Math.round(this.realTopZoneMm() * this.SCALE_VERT()));
-  private readonly GAP_H = computed(() => Math.round(this.realGapMm() * this.SCALE_VERT()));
-  private readonly COUNTER_H = computed(() => Math.round(this.realCounterMm() * this.SCALE_VERT()));
-  private readonly BOTTOM_ZONE_H = computed(() => Math.round(this.realBottomZoneMm() * this.SCALE_VERT()));
-
-  /** Wysokość blendy górnej w px */
-  readonly fillerHeightPx = computed(() => Math.round(this.stateService.upperFillerHeightMm() * this.SCALE_VERT()));
-
-  /** Przerwa robocza w mm (do wyświetlenia na linii wymiarowej — rzeczywista wartość) */
-  readonly gapMm = computed(() => Math.round(this.actualGapMm()));
 
   // Stałe dla elementów wizualnych
   // Uwaga: FEET_HEIGHT_MM jest getter — używa rzeczywistej wysokości cokołu z ustawień projektu
@@ -222,6 +96,38 @@ export class KitchenLayoutComponent {
     return this.wall().length * this.scaleFactor();
   });
 
+  readonly hasHangingCabinets = computed(() => {
+    return this.stateService.cabinets().some(cabinet => {
+      const zone = getCabinetZone(cabinet);
+      return zone === 'TOP' || zone === 'FULL';
+    });
+  });
+
+  readonly hasBottomCabinets = computed(() => {
+    return this.stateService.cabinets().some(cabinet => {
+      const zone = getCabinetZone(cabinet);
+      return zone === 'BOTTOM' || zone === 'FULL';
+    });
+  });
+
+  readonly layoutMetrics = computed(() => {
+    return buildKitchenLayoutMetrics({
+      cabinets: this.stateService.cabinets(),
+      wallHeightMm: this.selectedWall()?.heightMm ?? 2400,
+      plinthHeightMm: this.stateService.plinthHeightMm(),
+      countertopThicknessMm: this.stateService.countertopThicknessMm(),
+      upperFillerHeightMm: this.stateService.upperFillerHeightMm(),
+      wallDisplayWidth: this.wallDisplayWidth(),
+      wallDisplayHeight: this.WALL_DISPLAY_HEIGHT,
+      hasBottomCabinets: this.hasBottomCabinets(),
+      hasHangingCabinets: this.hasHangingCabinets()
+    });
+  });
+
+  readonly isWorkspaceGapViolation = computed(() => this.layoutMetrics().isWorkspaceGapViolation);
+  readonly fillerHeightPx = computed(() => this.layoutMetrics().fillerHeightPx);
+  readonly gapMm = computed(() => this.layoutMetrics().gapMm);
+
   readonly wallLabel = computed(() => {
     const wall = this.selectedWall();
     return wall ? this.stateService.getWallLabel(wall.type) : 'Ściana';
@@ -231,244 +137,21 @@ export class KitchenLayoutComponent {
    * Pozycje szafek z uwzględnieniem stref (BOTTOM, TOP, FULL).
    */
   readonly visualPositions = computed((): VisualCabinetPosition[] => {
-    const cabinets = this.cabinetPositions();
-    const allCabinets = this.stateService.cabinets();
-    const scale = this.scaleFactor();
-    const wallWidth = this.wallDisplayWidth();
-    const sv = this.SCALE_VERT();
-
-    return cabinets.map((cab) => {
-      const originalCabinet = allCabinets.find(c => c.id === cab.cabinetId);
-      const zone: CabinetZone = originalCabinet ? getCabinetZone(originalCabinet) : 'BOTTOM';
-      const cabinetType = originalCabinet?.type || KitchenCabinetType.BASE_ONE_DOOR;
-      const depth = originalCabinet?.depth || 560;
-      // Rzut na any dla pól specyficznych per typ — SVG renderer czyta je jako optional config.
-      // Typowana fabryka buildCabinetFromFormData() gwarantuje poprawność danych w state.
-      const origCabAny = originalCabinet as any;
-
-      const isCorner = cabinetType === KitchenCabinetType.CORNER_CABINET;
-      const cornerWidthB = isCorner ? origCabAny?.cornerWidthB : undefined;
-      const drawerQuantity = origCabAny?.drawerQuantity;
-      const shelfQuantity = originalCabinet?.shelfQuantity;
-      const segments = origCabAny?.segments;
-      const cascadeLowerHeight = origCabAny?.cascadeLowerHeight;
-      const cascadeUpperHeight = origCabAny?.cascadeUpperHeight;
-
-      const displayX = cab.x * scale;
-      const displayWidth = cab.width * scale;
-
-      let displayHeight: number;
-      let displayY: number;
-
-      switch (zone) {
-        case 'FULL':
-          displayHeight = Math.round(cab.height * sv);
-          displayY = this.WALL_DISPLAY_HEIGHT - displayHeight;
-          break;
-        case 'TOP':
-          displayHeight = Math.round(cab.height * sv);
-          // Oblicz Y z rzeczywistego positionY szafki (cab.y = dół szafki od podłogi w mm)
-          // SVG: Y=0 = sufit, Y=WALL_DISPLAY_HEIGHT = podłoga
-          // Sufit szafki = totalRealMm - (cab.y + cab.height) skalowany do px
-          displayY = this.WALL_DISPLAY_HEIGHT - Math.round((cab.y + cab.height) * sv);
-          break;
-        case 'BOTTOM':
-        default:
-          displayHeight = Math.round(cab.height * sv);
-          // Szafki dolne mają dół przy: podłoga − cokół.
-          // Dzięki temu blat dotyka wierzchu najwyższej szafki, a cokół jest poniżej korpusu.
-          const feetHeightPxBottom = Math.round(this.FEET_HEIGHT_MM * sv);
-          displayY = this.WALL_DISPLAY_HEIGHT - feetHeightPxBottom - displayHeight;
-          break;
-      }
-
-      const isOverflow = displayX + displayWidth > wallWidth;
-
-      // Nóżki tylko dla dolnych i słupków
-      const hasFeet = zone === 'BOTTOM' || zone === 'FULL';
-      const feetHeight = hasFeet ? Math.round(this.FEET_HEIGHT_MM * sv) : 0;
-
-      // Wysokość korpusu (bez strefy cokołu/nóżek):
-      // - BOTTOM: displayHeight to już sam korpus (nóżki są poniżej, w osobnej strefie)
-      // - FULL:   displayHeight obejmuje całą wysokość łącznie z nóżkami — odejmujemy feetHeight
-      // - TOP:    feetHeight = 0, więc bodyHeight = displayHeight
-      const bodyHeight = zone === 'FULL' ? displayHeight - feetHeight : displayHeight;
-
-      // Generuj nóżki — pozycja: tuż pod korpusem (w szparze nad cokołem)
-      const feet = this.generateFeet(displayX, displayY + bodyHeight, displayWidth, feetHeight);
-
-      // Dane piekarnika wbudowanego (dla wizualizacji i separatora)
-      const ovenConfig = cabinetType === KitchenCabinetType.BASE_OVEN ? {
-        ovenHeightType: origCabAny?.ovenHeightType,
-        ovenLowerSectionType: origCabAny?.ovenLowerSectionType,
-        ovenApronEnabled: origCabAny?.ovenApronEnabled,
-        ovenApronHeightMm: origCabAny?.ovenApronHeightMm
-      } : undefined;
-
-      // Dane lodówki (dla wizualizacji podziału na strefy)
-      const fridgeConfig = (cabinetType === KitchenCabinetType.BASE_FRIDGE || cabinetType === KitchenCabinetType.BASE_FRIDGE_FREESTANDING) ? {
-        fridgeSectionType: origCabAny?.fridgeSectionType,
-        lowerFrontHeightMm: origCabAny?.lowerFrontHeightMm,
-        fridgeFreestandingType: origCabAny?.fridgeFreestandingType,
-        heightMm: originalCabinet?.height,
-        upperSections: origCabAny?.segments  // sekcje nad lodówką (opcjonalne)
-      } : undefined;
-
-      // Generuj fronty i uchwyty
-      const { fronts, handles } = this.generateVisualElements(
-        cabinetType,
-        displayX,
-        displayY,
-        displayWidth,
-        bodyHeight,
-        drawerQuantity,
-        segments,
-        shelfQuantity,
-        cascadeLowerHeight,
-        cascadeUpperHeight,
-        ovenConfig,
-        fridgeConfig
-      );
-
-      // Separator piekarnik / sekcja dolna (tylko BASE_OVEN, gdy jest sekcja dolna)
-      let ovenSeparatorDisplayY: number | undefined;
-      if (cabinetType === KitchenCabinetType.BASE_OVEN && ovenConfig?.ovenLowerSectionType !== 'NONE') {
-        const apronH = ovenConfig?.ovenApronEnabled ? (ovenConfig?.ovenApronHeightMm ?? 0) : 0;
-        const ovenSlotH = ovenConfig?.ovenHeightType === 'COMPACT' ? OVEN_HEIGHT_COMPACT_MM : OVEN_HEIGHT_STANDARD_MM;
-        ovenSeparatorDisplayY = displayY + Math.round((PLATE_THICKNESS_MM + apronH + ovenSlotH) * sv);
-        // Ogranicz do obszaru korpusu (zapobiegaj wyjściu poza szafkę)
-        if (ovenSeparatorDisplayY >= displayY + bodyHeight || ovenSeparatorDisplayY <= displayY) {
-          ovenSeparatorDisplayY = undefined;
-        }
-      }
-
-      // Oblicz różnice wymiarów
-      const standardHeight = zone === 'TOP' ? this.STANDARD_TOP_HEIGHT : this.STANDARD_BOTTOM_HEIGHT;
-      const standardDepth = zone === 'TOP' ? this.STANDARD_TOP_DEPTH : this.STANDARD_BOTTOM_DEPTH;
-      const heightDiff = cab.height - standardHeight;
-      const depthDiff = depth - standardDepth;
-
-      // Oblicz szerokość obudów w px (0 = brak)
-      const globalFillerW = this.stateService.fillerWidthMm();
-      const leftFillerMm = originalCabinet?.leftFillerWidthOverrideMm ?? globalFillerW;
-      const rightFillerMm = originalCabinet?.rightFillerWidthOverrideMm ?? globalFillerW;
-      const leftEncType = originalCabinet?.leftEnclosureType;
-      const rightEncType = originalCabinet?.rightEnclosureType;
-      const calcEncW = (type: string | undefined, fillerMm: number): number => {
-        if (!type || type === 'NONE') return 0;
-        const widthMm = type === 'PARALLEL_FILLER_STRIP' ? fillerMm : PLATE_THICKNESS_MM;
-        return Math.max(1, Math.round(widthMm * scale));
-      };
-      const leftEnclosureDisplayWidth = calcEncW(leftEncType, leftFillerMm);
-      const rightEnclosureDisplayWidth = calcEncW(rightEncType, rightFillerMm);
-
-      return {
-        cabinetId: cab.cabinetId,
-        name: cab.name,
-        type: cabinetType,
-        x: cab.x,
-        y: cab.y,
-        width: cab.width,
-        height: cab.height,
-        depth,
-        displayX,
-        displayY,
-        displayWidth,
-        displayHeight,
-        bodyHeight,
-        zone,
-        isOverflow,
-        isCorner,
-        cornerWidthB,
-        fronts,
-        handles,
-        feet,
-        feetHeight,
-        drawerQuantity,
-        segments,
-        heightDiff: heightDiff !== 0 ? heightDiff : undefined,
-        depthDiff: depthDiff !== 0 ? depthDiff : undefined,
-        leftEnclosureType: leftEncType,
-        rightEnclosureType: rightEncType,
-        leftEnclosureDisplayWidth,
-        rightEnclosureDisplayWidth,
-        ovenSeparatorDisplayY,
-        isFreestandingAppliance: isFreestandingAppliance(cabinetType)
-      };
+    return buildVisualCabinetPositions({
+      cabinetPositions: this.cabinetPositions(),
+      cabinets: this.stateService.cabinets(),
+      scale: this.scaleFactor(),
+      wallWidth: this.wallDisplayWidth(),
+      wallDisplayHeight: this.WALL_DISPLAY_HEIGHT,
+      scaleVert: this.layoutMetrics().scaleVert,
+      feetHeightMm: this.FEET_HEIGHT_MM,
+      fillerWidthMm: this.stateService.fillerWidthMm(),
+      standardBottomHeight: this.STANDARD_BOTTOM_HEIGHT,
+      standardTopHeight: this.STANDARD_TOP_HEIGHT,
+      standardBottomDepth: this.STANDARD_BOTTOM_DEPTH,
+      standardTopDepth: this.STANDARD_TOP_DEPTH,
+      frontGap: this.FRONT_GAP
     });
-  });
-
-  /**
-   * Generuje pozycje nóżek dla szafki.
-   * Dwie nóżki (lewa i prawa) — pionowe bary od dołu korpusu do podłogi.
-   * Cokół (półprzezroczysty) zasłania większość ich długości,
-   * ale szpara nad cokołem (1px) pozostaje widoczna.
-   */
-  private generateFeet(displayX: number, bottomY: number, displayWidth: number, feetHeight: number): DisplayFoot[] {
-    if (feetHeight <= 0) return [];
-
-    const margin = Math.max(3, displayWidth * 0.1);
-    const floorY = this.WALL_DISPLAY_HEIGHT;
-
-    // Dwie nóżki: lewa i prawa — od dołu korpusu do podłogi
-    return [
-      { x: displayX + margin,               y1: bottomY, y2: floorY },
-      { x: displayX + displayWidth - margin, y1: bottomY, y2: floorY }
-    ];
-  }
-
-  /**
-   * Generuje elementy wizualne (fronty i uchwyty) dla szafki.
-   * Deleguje do CABINET_RENDER_REGISTRY — każdy typ szafki ma własną strategię renderowania.
-   * Brak wpisu w rejestrze = pusty korpus (np. wolnostojące AGD BASE_DISHWASHER_FREESTANDING).
-   * bodyHeight = wysokość korpusu w px (bez strefy nóżek, obliczona zewnętrznie).
-   */
-  private generateVisualElements(
-    type: KitchenCabinetType,
-    displayX: number,
-    displayY: number,
-    displayWidth: number,
-    bodyHeight: number,
-    drawerQuantity?: number,
-    segments?: SegmentFormData[],
-    shelfQuantity?: number,
-    cascadeLowerHeight?: number,
-    cascadeUpperHeight?: number,
-    ovenConfig?: { ovenHeightType?: string; ovenLowerSectionType?: string; ovenApronEnabled?: boolean; ovenApronHeightMm?: number },
-    fridgeConfig?: { fridgeSectionType?: string; lowerFrontHeightMm?: number; fridgeFreestandingType?: string; heightMm?: number; upperSections?: SegmentFormData[] }
-  ): { fronts: DisplayFront[]; handles: DisplayHandle[] } {
-    const fronts: DisplayFront[] = [];
-    const handles: DisplayHandle[] = [];
-
-    const ctx: CabinetRenderContext = {
-      displayX,
-      bodyY: displayY,
-      displayWidth,
-      bodyHeight,
-      frontGap: this.FRONT_GAP,
-      scaleVert: this.SCALE_VERT(),
-      drawerQuantity,
-      segments,
-      shelfQuantity,
-      cascadeLowerHeight,
-      cascadeUpperHeight,
-      ovenConfig,
-      fridgeConfig
-    };
-
-    CABINET_RENDER_REGISTRY[type]?.(ctx, fronts, handles);
-
-    return { fronts, handles };
-  }
-
-  // Czy są szafki górne (TOP lub FULL)
-  readonly hasHangingCabinets = computed(() => {
-    return this.visualPositions().some(p => p.zone === 'TOP' || p.zone === 'FULL');
-  });
-
-  // Czy są szafki dolne (BOTTOM lub FULL)
-  readonly hasBottomCabinets = computed(() => {
-    return this.visualPositions().some(p => p.zone === 'BOTTOM' || p.zone === 'FULL');
   });
 
   /**
@@ -649,7 +332,7 @@ export class KitchenLayoutComponent {
     const feetHeight = plinthPositions[0]?.feetHeight ?? 0;
     if (feetHeight <= 0) return [];
 
-    const sv = this.SCALE_VERT();
+    const sv = this.layoutMetrics().scaleVert;
     const plinthGapPx = Math.max(Math.round(this.PLINTH_PANEL_GAP_MM * sv), 1);
     const plinthPanelH = feetHeight - plinthGapPx;
     const plinthY = this.WALL_DISPLAY_HEIGHT - plinthPanelH;
@@ -716,13 +399,13 @@ export class KitchenLayoutComponent {
 
   // Pozycje stref (dynamiczne)
   get topZoneY(): number { return 0; }
-  get topZoneHeight(): number { return this.TOP_ZONE_H(); }
-  get gapZoneY(): number { return this.TOP_ZONE_H(); }
-  get gapZoneHeight(): number { return this.GAP_H(); }
-  get counterZoneY(): number { return this.TOP_ZONE_H() + this.GAP_H(); }
-  get counterZoneHeight(): number { return this.COUNTER_H(); }
-  get bottomZoneY(): number { return this.TOP_ZONE_H() + this.GAP_H() + this.COUNTER_H(); }
-  get bottomZoneHeight(): number { return this.BOTTOM_ZONE_H(); }
+  get topZoneHeight(): number { return this.layoutMetrics().topZoneHeight; }
+  get gapZoneY(): number { return this.layoutMetrics().gapZoneY; }
+  get gapZoneHeight(): number { return this.layoutMetrics().gapZoneHeight; }
+  get counterZoneY(): number { return this.layoutMetrics().counterZoneY; }
+  get counterZoneHeight(): number { return this.layoutMetrics().counterZoneHeight; }
+  get bottomZoneY(): number { return this.layoutMetrics().bottomZoneY; }
+  get bottomZoneHeight(): number { return this.layoutMetrics().bottomZoneHeight; }
   get totalHeight(): number { return this.WALL_DISPLAY_HEIGHT; }
 
   /**
@@ -878,122 +561,9 @@ export class KitchenLayoutComponent {
    * Wyświetlana gdy są zarówno szafki dolne jak i wiszące.
    */
   readonly gapDimensionLine = computed(() => {
-    if (!this.hasBottomCabinets() || !this.hasHangingCabinets()) return null;
-
-    const topH = this.TOP_ZONE_H();
-    const gapH = this.GAP_H();
-    const wallW = this.wallDisplayWidth();
-
-    const actualGap = this.actualGapMm();
-    const isWarning = actualGap < this.MIN_GAP_MM;
-    return {
-      x: wallW + 4,           // Po prawej stronie wizualizacji
-      y1: topH,                // Dolna krawędź szafek wiszących
-      y2: topH + gapH,         // Górna krawędź blatu
-      label: `${Math.round(actualGap)} mm`,
-      isWarning
-    };
+    return this.layoutMetrics().gapDimensionLine;
   });
 
-  getCabinetLabel(pos: VisualCabinetPosition, index: number): string {
-    const num = index + 1;
-    const suffix = this.getCabinetTypeSuffix(pos.type);
-    if (suffix) {
-      return `${num}(${suffix})`;
-    }
-    return pos.name || `${num}`;
-  }
-
-  private getCabinetTypeSuffix(type: KitchenCabinetType): string | null {
-    switch (type) {
-      case KitchenCabinetType.BASE_DISHWASHER:
-      case KitchenCabinetType.BASE_DISHWASHER_FREESTANDING:
-        return 'zmyw.';
-      case KitchenCabinetType.BASE_SINK:
-        return 'zlew';
-      case KitchenCabinetType.UPPER_HOOD:
-        return 'okap';
-      case KitchenCabinetType.BASE_OVEN:
-      case KitchenCabinetType.BASE_OVEN_FREESTANDING:
-        return 'piek.';
-      case KitchenCabinetType.BASE_FRIDGE:
-        return 'lod.';
-      case KitchenCabinetType.BASE_FRIDGE_FREESTANDING:
-        return 'lod.wol.';
-      default:
-        return null;
-    }
-  }
-
-  /**
-   * Pozycja Y prostokąta obudowy w SVG (w px).
-   *
-   * Reguła dla SIDE_PLATE_TO_FLOOR:
-   * - strefa TOP (szafka wisząca) → płyta sięga DO SUFITU, zaczyna od y=0
-   * - strefa BOTTOM/FULL → zaczyna od displayY (góra korpusu), sięga do podłogi
-   *
-   * Pozostałe typy → zawsze displayY (góra korpusu)
-   */
-  enclosureDisplayY(type: string | undefined, zone: CabinetZone, displayY: number): number {
-    return type === 'SIDE_PLATE_TO_FLOOR' && zone === 'TOP' ? 0 : displayY;
-  }
-
-  /**
-   * Wysokość prostokąta obudowy w px.
-   *
-   * Reguła dla SIDE_PLATE_TO_FLOOR:
-   * - strefa TOP → od sufitu (y=0) do dołu korpusu = displayY + bodyHeight
-   * - strefa BOTTOM/FULL → od góry korpusu do podłogi = bodyHeight + feetHeight
-   *
-   * Pozostałe typy → tylko wysokość korpusu (bodyHeight)
-   */
-  enclosureDisplayHeight(
-    type: string | undefined,
-    zone: CabinetZone,
-    displayY: number,
-    bodyHeight: number,
-    feetHeight: number
-  ): number {
-    if (type === 'SIDE_PLATE_TO_FLOOR') {
-      return zone === 'TOP' ? displayY + bodyHeight : bodyHeight + feetHeight;
-    }
-    return bodyHeight;
-  }
-
-  /**
-   * @deprecated Użyj enclosureDisplayHeight z parametrem zone.
-   */
-  enclosureHeight(type: string | undefined, bodyHeight: number, feetHeight: number): number {
-    return type === 'SIDE_PLATE_TO_FLOOR' ? bodyHeight + feetHeight : bodyHeight;
-  }
-
-  /**
-   * Sprawdza czy szafka jest aktualnie edytowana
-   */
-  isEditing(cabinetId: string): boolean {
-    return this.editingCabinetId === cabinetId;
-  }
-
-  /**
-   * Formatuje różnicę wymiaru do wyświetlenia
-   */
-  formatDimensionDiff(diff: number | undefined): string {
-    if (!diff) return '';
-    const sign = diff > 0 ? '+' : '';
-    return `${sign}${diff}`;
-  }
-
-  /**
-   * Sprawdza czy różnica jest znacząca (wymaga uwagi)
-   */
-  isSignificantDiff(diff: number | undefined): boolean {
-    if (!diff) return false;
-    return Math.abs(diff) > 50; // Powyżej 50mm to znacząca różnica
-  }
-
-  // ===== trackBy helpers =====
-  /** Używane dla *ngFor szafek (VisualCabinetPosition) */
-  protected trackByCabinetId = (_: number, pos: VisualCabinetPosition) => pos.cabinetId;
   /** Używane dla elementów SVG bez unikalnego ID (fronty, uchwyty, nóżki, markery spoin) */
   protected trackByIndex = (index: number) => index;
 }

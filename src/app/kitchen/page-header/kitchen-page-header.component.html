@@ -1,0 +1,48 @@
+<header class="page-header">
+  <div class="page-title">
+    <h1>🍳 {{ projectDisplayName }}</h1>
+    <div class="page-subtitle-row">
+      <span class="page-subtitle">
+        <ng-container *ngIf="projectId; else newProjectSubtitle">
+          Projekt #{{ projectId }} • wersja {{ projectVersion }}
+        </ng-container>
+        <ng-template #newProjectSubtitle>{{ projectSubtitle }}</ng-template>
+      </span>
+
+      <div class="project-status-control" *ngIf="hasProjectId">
+        <span class="status-badge-inline"
+              [style.background-color]="projectStatusColor + '18'"
+              [style.color]="projectStatusColor"
+              [style.border-color]="projectStatusColor + '40'">
+          {{ projectStatusLabel }}
+        </span>
+        <select
+          *ngIf="allowedTransitions.length > 0"
+          class="status-select"
+          [disabled]="isChangingStatus"
+          (change)="onStatusSelect($event)"
+          [style.border-color]="projectStatusColor + '60'">
+          <option value="" disabled selected>{{ isChangingStatus ? 'Zmieniam...' : 'Zmien status...' }}</option>
+          <option *ngFor="let status of allowedTransitions" [value]="status.value">
+            {{ status.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-actions">
+    <a routerLink="/kitchen/projects" class="btn btn-outline">
+      <span class="btn-icon-text">📁</span>
+      Moje projekty
+    </a>
+    <button class="btn btn-success" (click)="saveProject.emit()" [disabled]="totalCabinetCount === 0 || isSavingProject">
+      <span class="btn-icon-text">💾</span>
+      {{ isSavingProject ? 'Zapisuje...' : (projectId ? 'Zapisz zmiany' : 'Zapisz projekt') }}
+    </button>
+    <button class="btn btn-secondary" (click)="calculateProject.emit()" [disabled]="totalCabinetCount === 0 || isCalculatingProject">
+      <span class="btn-icon-text">🧮</span>
+      {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
+    </button>
+  </div>
+</header>

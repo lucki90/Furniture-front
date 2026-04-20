@@ -1,0 +1,70 @@
+﻿@for (front of fronts; track $index) {
+  <svg:g class="front-group">
+    <svg:rect
+      [attr.x]="getFrontX(front)"
+      [attr.y]="getFrontY(front)"
+      [attr.width]="getFrontWidth(front)"
+      [attr.height]="getFrontHeight(front)"
+      fill="url(#frontGradient)"
+      [attr.stroke]="frontStroke"
+      stroke-width="0.5"
+      rx="1"
+      class="front-rect">
+      <title>{{ front.type === 'DRAWER' ? 'Szuflada' : 'Front' }}: {{ front.width }}x{{ front.height }}mm</title>
+    </svg:rect>
+
+    @if (hasHinges(front)) {
+      @for (hinge of getHingePositions(front); track $index) {
+        <svg:rect
+          [attr.x]="hinge.x - 1"
+          [attr.y]="hinge.y - 3"
+          width="2"
+          height="6"
+          [attr.fill]="hingeColor"
+          rx="0.5"
+          class="hinge">
+          <title>Zawias</title>
+        </svg:rect>
+      }
+    }
+
+    @if (getHandlePath(front)) {
+      <svg:path
+        [attr.d]="getHandlePath(front)"
+        [attr.stroke]="getHandleColor(front)"
+        stroke-width="3"
+        stroke-linecap="round"
+        fill="none"
+        class="handle-bar"
+        filter="url(#dropShadow)">
+        <title>Uchwyt</title>
+      </svg:path>
+    }
+
+    @if (isKnobHandle(front)) {
+      <svg:circle
+        [attr.cx]="getKnobX(front)"
+        [attr.cy]="getKnobY(front)"
+        r="4"
+        [attr.fill]="getHandleColor(front)"
+        stroke="#546e7a"
+        stroke-width="0.5"
+        class="handle-knob"
+        filter="url(#dropShadow)">
+        <title>Galka</title>
+      </svg:circle>
+    }
+
+    @if (front.type === 'DRAWER') {
+      <svg:line
+        [attr.x1]="getFrontX(front) + 2"
+        [attr.y1]="getFrontY(front) + getFrontHeight(front) - 1"
+        [attr.x2]="getFrontX(front) + getFrontWidth(front) - 2"
+        [attr.y2]="getFrontY(front) + getFrontHeight(front) - 1"
+        stroke="#bdbdbd"
+        stroke-width="0.5"
+        class="drawer-line"/>
+    }
+  </svg:g>
+}
+

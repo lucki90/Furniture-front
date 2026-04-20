@@ -1,0 +1,105 @@
+<svg:g class="wall-group"
+       [class.selected]="selected"
+       (click)="onWallClick()">
+
+  <svg:rect *ngFor="let cab of cabinets; trackBy: trackByCabinetId"
+            [attr.x]="cab.x"
+            [attr.y]="cab.y"
+            [attr.width]="cab.width"
+            [attr.height]="cab.depth"
+            [attr.fill]="getCabinetFill(cab)"
+            [attr.stroke]="getCabinetStroke(cab)"
+            [attr.stroke-width]="isEditing(cab.cabinetId) ? 2 : 0.5"
+            class="cabinet-rect"
+            [class.editing]="isEditing(cab.cabinetId)"
+            [class.corner]="cab.isCorner"
+            [style.display]="!showUpperCabinets && cab.zone === 'TOP' ? 'none' : null"
+            rx="1">
+    <svg:title>{{ cab.name || cab.cabinetId }} ({{ cab.isCorner ? 'narożna' : cab.zone === 'FULL' ? 'słupek' : cab.zone === 'TOP' ? 'górna' : 'dolna' }})</svg:title>
+  </svg:rect>
+
+  <ng-container *ngIf="showCountertop">
+    <svg:g *ngFor="let countertop of countertops; trackBy: trackByCountertopX" class="countertop-group">
+      <svg:rect
+        [attr.x]="countertop.x"
+        [attr.y]="countertop.y"
+        [attr.width]="countertop.width"
+        [attr.height]="countertop.depth"
+        class="countertop-rect"
+        rx="1">
+        <svg:title>Blat: {{ countertop.lengthMm }}×{{ countertop.depthMm }}mm</svg:title>
+      </svg:rect>
+      <svg:text
+        *ngIf="countertop.isHorizontal; else verticalCountertopLabel"
+        [attr.x]="countertop.lengthLabelX"
+        [attr.y]="countertop.lengthLabelY"
+        class="countertop-dimension"
+        text-anchor="middle">
+        {{ countertop.lengthMm }}
+      </svg:text>
+      <ng-template #verticalCountertopLabel>
+        <svg:text
+          [attr.x]="countertop.lengthLabelX"
+          [attr.y]="countertop.lengthLabelY"
+          class="countertop-dimension countertop-dimension-vertical"
+          text-anchor="middle"
+          [attr.transform]="'rotate(-90,' + countertop.lengthLabelX + ',' + countertop.lengthLabelY + ')'">
+          {{ countertop.lengthMm }}
+        </svg:text>
+      </ng-template>
+    </svg:g>
+  </ng-container>
+
+  <svg:rect
+    [attr.x]="wallPosition.x"
+    [attr.y]="wallPosition.y"
+    [attr.width]="wallPosition.width"
+    [attr.height]="wallPosition.height"
+    [attr.fill]="getWallColor(wallPosition.wall.type, selected)"
+    class="wall-rect"
+    rx="1">
+    <svg:title>{{ getWallTooltip() }}</svg:title>
+  </svg:rect>
+
+  <svg:text
+    [attr.x]="wallPosition.labelX"
+    [attr.y]="wallPosition.labelY"
+    class="wall-label"
+    text-anchor="middle"
+    dominant-baseline="middle">
+    {{ getWallShortLabel(wallPosition.wall.type) }}
+  </svg:text>
+
+  <ng-container *ngIf="wallPosition.wall.cabinets.length > 0">
+    <svg:circle
+      [attr.cx]="wallPosition.x + wallPosition.width - 4"
+      [attr.cy]="wallPosition.y - 4"
+      r="6"
+      class="cabinet-badge"/>
+    <svg:text
+      [attr.x]="wallPosition.x + wallPosition.width - 4"
+      [attr.y]="wallPosition.y - 4"
+      class="cabinet-count"
+      text-anchor="middle"
+      dominant-baseline="middle">
+      {{ wallPosition.wall.cabinets.length }}
+    </svg:text>
+  </ng-container>
+
+  <svg:g *ngIf="selected && canRemoveWall" class="remove-btn" (click)="onRemoveWall($event)">
+    <svg:circle
+      [attr.cx]="wallPosition.x + wallPosition.width + 6"
+      [attr.cy]="wallPosition.y + wallPosition.height / 2"
+      r="6"
+      fill="#f44336"/>
+    <svg:text
+      [attr.x]="wallPosition.x + wallPosition.width + 6"
+      [attr.y]="wallPosition.y + wallPosition.height / 2"
+      fill="white"
+      font-size="8"
+      text-anchor="middle"
+      dominant-baseline="middle">
+      ×
+    </svg:text>
+  </svg:g>
+</svg:g>

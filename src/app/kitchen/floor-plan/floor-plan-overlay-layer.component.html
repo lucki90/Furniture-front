@@ -1,0 +1,41 @@
+<ng-container *ngIf="showCountertop">
+  <svg:g *ngFor="let corner of cornerCountertops; trackBy: trackByCornerX" class="corner-countertop-group">
+    <svg:rect
+      [attr.x]="corner.x"
+      [attr.y]="corner.y"
+      [attr.width]="corner.sizePx"
+      [attr.height]="corner.sizePx"
+      class="corner-countertop-rect">
+      <svg:title>Blat narożny {{ corner.label }}</svg:title>
+    </svg:rect>
+    <svg:line
+      [attr.x1]="corner.miterX1"
+      [attr.y1]="corner.miterY1"
+      [attr.x2]="corner.miterX2"
+      [attr.y2]="corner.miterY2"
+      class="corner-miter-line"/>
+    <svg:text
+      [attr.x]="corner.x + corner.sizePx / 2"
+      [attr.y]="corner.y + corner.sizePx / 2"
+      class="corner-countertop-label"
+      text-anchor="middle"
+      dominant-baseline="middle">
+      45°
+    </svg:text>
+  </svg:g>
+</ng-container>
+
+<ng-container *ngIf="showDoorArcs">
+  <svg:path
+    *ngFor="let arc of doorArcs; trackBy: trackByArcId"
+    [attr.d]="arc.pathD"
+    class="door-arc"
+    [class.arc-clear]="!arc.hasCollision"
+    [class.arc-collision]="arc.hasCollision">
+    <svg:title>{{ arc.hasCollision ? '⚠ Kolizja z sąsiednią szafką' : 'Otwarcie drzwi 90°' }}</svg:title>
+  </svg:path>
+</ng-container>
+
+<svg:g class="legend" transform="translate(5, 5)">
+  <svg:text x="0" y="8" class="legend-item">G-główna L-lewa P-prawa</svg:text>
+</svg:g>

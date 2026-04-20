@@ -1,4 +1,4 @@
-<form [formGroup]="form" class="cabinet-form">
+﻿<form [formGroup]="form" class="cabinet-form">
     <!-- Formularz -->
 
       <!-- Wiersz 1: Nazwa i Typ szafki -->
@@ -15,33 +15,33 @@
             <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
             <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
             <option value="BASE_SINK">Dolna – zlewowa</option>
-            <option value="BASE_COOKTOP">Dolna – pod płytę grzewczą</option>
+            <option value="BASE_COOKTOP">Dolna – pod plyte grzewczą</option>
             <option value="BASE_DISHWASHER">Dolna – zmywarka (front)</option>
             <option value="BASE_DISHWASHER_FREESTANDING">Dolna – zmywarka wolnostojąca</option>
             <option value="BASE_OVEN">Dolna – piekarnik (zabudowany)</option>
             <option value="BASE_OVEN_FREESTANDING">Dolna – piekarnik wolnostojący</option>
-            <option value="BASE_FRIDGE">Słupek – lodówka w zabudowie</option>
-            <option value="BASE_FRIDGE_FREESTANDING">Dolna – lodówka wolnostojąca</option>
+            <option value="BASE_FRIDGE">Slupek – lodowka w zabudowie</option>
+            <option value="BASE_FRIDGE_FREESTANDING">Dolna – lodowka wolnostojąca</option>
             <option value="UPPER_ONE_DOOR">Wisząca – 1 drzwi</option>
             <option value="UPPER_TWO_DOOR">Wisząca – 2 drzwi</option>
-            <option value="UPPER_OPEN_SHELF">Wisząca – otwarta półka</option>
+            <option value="UPPER_OPEN_SHELF">Wisząca – otwarta polka</option>
             <option value="UPPER_CASCADE">Wisząca – kaskadowa</option>
             <option value="UPPER_HOOD">Wisząca – na okap</option>
             <option value="UPPER_DRAINER">Szafka z ociekaczem</option>
-            <option value="TALL_CABINET">Słupek</option>
-            <option value="CORNER_CABINET">Narożna</option>
+            <option value="TALL_CABINET">Slupek</option>
+            <option value="CORNER_CABINET">Narozna</option>
           </select>
           <!-- Widoczny trigger — otwiera dialog pickera -->
           <button type="button" class="type-picker-trigger" (click)="openTypePicker()">
             <span class="type-picker-current">{{ currentTypeLabel }}</span>
-            <span class="type-picker-chevron">▾</span>
+            <span class="type-picker-chevron">v</span>
           </button>
         </div>
       </div>
 
-  <!-- Wiersz 2a: Wymiary UPPER_DRAINER — szerokość jako SELECT z 5 sztywnych wartości -->
+  <!-- Wiersz 2a: Wymiary UPPER_DRAINER - szerokosc jako SELECT z 5 sztywnych wartosci -->
   <div class="form-row" *ngIf="visibility.drainerWidthSelect">
-    <app-form-field class="form-group" label="Szerokość" unit="mm" [errorMessage]="getFieldError('width')">
+    <app-form-field class="form-group" label="Szerokosc" unit="mm" [errorMessage]="getFieldError('width')">
       <select class="form-control" formControlName="width">
         <option [ngValue]="400">400 mm</option>
         <option [ngValue]="500">500 mm</option>
@@ -50,40 +50,40 @@
         <option [ngValue]="900">900 mm</option>
       </select>
     </app-form-field>
-    <app-form-field class="form-group" label="Wysokość" unit="mm" [errorMessage]="getFieldError('height')">
+    <app-form-field class="form-group" label="Wysokosc" unit="mm" [errorMessage]="getFieldError('height')">
       <input type="number" class="form-control" formControlName="height">
     </app-form-field>
-    <app-form-field class="form-group" label="Głębokość" unit="mm" [errorMessage]="getFieldError('depth')">
+    <app-form-field class="form-group" label="Glebokosc" unit="mm" [errorMessage]="getFieldError('depth')">
       <input type="number" class="form-control" formControlName="depth">
     </app-form-field>
   </div>
 
   <!-- Wiersz 2: Wymiary (standardowe) -->
   <div class="form-row" *ngIf="visibility.width !== false">
-    <app-form-field class="form-group" label="Szerokość" unit="mm" [errorMessage]="getFieldError('width')">
+    <app-form-field class="form-group" label="Szerokosc" unit="mm" [errorMessage]="getFieldError('width')">
       <input type="number" class="form-control" formControlName="width">
     </app-form-field>
-    <app-form-field class="form-group" label="Wysokość" unit="mm" [errorMessage]="getFieldError('height')">
+    <app-form-field class="form-group" label="Wysokosc" unit="mm" [errorMessage]="getFieldError('height')">
       <input type="number" class="form-control" formControlName="height">
     </app-form-field>
-    <app-form-field class="form-group" label="Głębokość" unit="mm" [errorMessage]="getFieldError('depth')">
+    <app-form-field class="form-group" label="Glebokosc" unit="mm" [errorMessage]="getFieldError('depth')">
       <input type="number" class="form-control" formControlName="depth">
     </app-form-field>
   </div>
 
-  <!-- Info: obliczona wysokość blatu (dla szafek dolnych BASE_*, z wyjątkiem wolnostojących AGD) -->
+  <!-- Info: obliczona wysokosc blatu (dla szafek dolnych BASE_*, z wyjątkiem wolnostojących AGD) -->
   <div *ngIf="isBaseCabinet && !isFreestandingAppliance && visibility.width !== false" class="countertop-info-bar">
-    Blat na wysokości: <strong>{{ computedCountertopHeight }} mm</strong>
+    Blat na wysokosci: <strong>{{ computedCountertopHeight }} mm</strong>
     <span class="countertop-info-detail">
-      (cokół {{ stateService.plinthHeightMm() }} + korpus {{ form.get('height')?.value }} + blat {{ stateService.countertopThicknessMm() }})
+      (cokol {{ stateService.plinthHeightMm() }} + korpus {{ form.get('height')?.value }} + blat {{ stateService.countertopThicknessMm() }})
     </span>
   </div>
 
   <!-- Info: szafka wisząca (dla szafek UPPER_*) -->
   <div *ngIf="isUpperCabinet && (visibility.width !== false || visibility.drainerWidthSelect)" class="countertop-info-bar upper-info-bar">
-    Szafka wisząca — montaż na szynie, bez cokołu i blatu.
+    Szafka wisząca — montaz na szynie, bez cokolu i blatu.
     <span class="countertop-info-detail">
-      Pozycja Y obliczana automatycznie z ustawień projektu.
+      Pozycja Y obliczana automatycznie z ustawien projektu.
     </span>
   </div>
 
@@ -100,30 +100,30 @@
       </div>
       <app-form-field class="form-group flex-2" *ngIf="isCountertopMode"
           label="Odstęp od blatu" unit="mm"
-          hint="Min. 450 mm (przestrzeń robocza)"
+          hint="Min. 450 mm (przestrzen robocza)"
           [errorMessage]="getFieldError('gapFromCountertopMm')">
         <input type="number" class="form-control" formControlName="gapFromCountertopMm" min="450" step="10">
       </app-form-field>
     </div>
     <div class="positioning-info">
       <ng-container *ngIf="!isCountertopMode">
-        <span class="positioning-info-icon">📐</span>
+        <span class="positioning-info-icon">[sufit]</span>
         <span>
           Szafka przylegnie do sufitu z blendą <strong>{{ stateService.upperFillerHeightMm() }} mm</strong>.
-          Pozycja = wysokość ściany − blenda − wysokość korpusu.
+          Pozycja = wysokosc sciany - blenda - wysokosc korpusu.
         </span>
       </ng-container>
       <ng-container *ngIf="isCountertopMode">
-        <span class="positioning-info-icon">📏</span>
+        <span class="positioning-info-icon">[blat]</span>
         <span>
-          Szafka zawiśnie <strong>{{ form.get('gapFromCountertopMm')?.value }} mm</strong> nad blatem.
-          Blenda górna nie jest używana dla tej szafki.
+          Szafka zawisnie <strong>{{ form.get('gapFromCountertopMm')?.value }} mm</strong> nad blatem.
+          Blenda gorna nie jest uzywana dla tej szafki.
         </span>
       </ng-container>
     </div>
   </div>
 
-  <!-- Sekcja szafki narożnej (CORNER_CABINET) -->
+  <!-- Sekcja szafki naroznej (CORNER_CABINET) -->
   <app-corner-form *ngIf="visibility.cornerWidthA" [form]="form"></app-corner-form>
 
   <!-- Wiersz 3: Opcje dodatkowe -->
@@ -134,9 +134,9 @@
         <option *ngFor="let opt of openingTypes(); trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
       </select>
     </div>
-    <!-- Sekcja ogólna "Półki" — ukryta gdy aktywna jest sekcja lodówki (ma własną sekcję Półki) -->
+    <!-- Sekcja ogolna "Polki" - ukryta gdy aktywna jest sekcja lodowki (ma wlasna sekcje Polki) -->
     <div class="form-group" *ngIf="visibility.shelfQuantity && !visibility.fridgeSectionType">
-      <label class="form-label">Półki</label>
+      <label class="form-label">Polki</label>
       <input type="number" class="form-control" formControlName="shelfQuantity">
       <span class="form-error" *ngIf="form.get('shelfQuantity')?.touched && form.get('shelfQuantity')?.errors">
         <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['min']">Min: {{ form.get('shelfQuantity')?.errors?.['min'].min }}</ng-container>
@@ -144,7 +144,7 @@
       </span>
     </div>
     <div class="form-group" *ngIf="visibility.drawerQuantity">
-      <label class="form-label">Ilość szuflad</label>
+      <label class="form-label">Ilosc szuflad</label>
       <input type="number" class="form-control" formControlName="drawerQuantity">
       <span class="form-error" *ngIf="form.get('drawerQuantity')?.touched && form.get('drawerQuantity')?.errors">
         <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['required']">Wymagane</ng-container>
@@ -159,100 +159,45 @@
         <option value="SEVROLL_BALL">Sevroll Ball</option>
       </select>
     </div>
-    <!-- Pozycja Y jest obliczana automatycznie z ustawień projektu — brak pola UI -->
+    <!-- Pozycja Y jest obliczana automatycznie z ustawien projektu — brak pola UI -->
   </div>
 
-  <!-- Sekcja kaskadowych segmentów (dla UPPER_CASCADE) -->
+  <!-- Sekcja kaskadowych segmentow (dla UPPER_CASCADE) -->
   <app-cascade-form *ngIf="visibility.cascadeSegments" [form]="form"></app-cascade-form>
 
-  <!-- Sekcja segmentów (dla TALL_CABINET i BASE_FRIDGE) -->
-  <div *ngIf="visibility.segments" class="segments-section">
+  <!-- Sekcja segmentow (dla TALL_CABINET i BASE_FRIDGE) -->
+  <app-cabinet-segments-section
+    *ngIf="visibility.segments"
+    [form]="form"
+    [segmentsArray]="segmentsArray"
+    [isFridgeCabinet]="isFridgeCabinet"
+    [netCabinetHeight]="netCabinetHeight"
+    [fridgeSectionHeight]="fridgeSectionVisualHeight"
+    [fridgeUpperSectionsHeightSum]="fridgeUpperSectionsHeightSum"
+    [selectedSegmentIndex]="selectedSegmentIndex"
+    [selectedSegmentForm]="selectedSegmentForm"
+    [activeSegmentTypeOptions]="activeSegmentTypeOptions"
+    [segmentHeightError]="segmentHeightError"
+    (addSegment)="addSegment()"
+    (selectSegment)="selectSegment($event)"
+    (reorderSegments)="onSegmentsReordered()"
+    (closeSegmentPopup)="closeSegmentPopup()"
+    (removeSelectedSegment)="removeSegment(selectedSegmentIndex)">
+  </app-cabinet-segments-section>
 
-    <!-- Tytuł: TALL_CABINET -->
-    <h4 *ngIf="!isFridgeCabinet" class="section-title">
-      Konfiguracja segmentów
-      <span class="segment-count">({{ segmentsArray.length }})</span>
-    </h4>
-
-    <!-- Tytuł: BASE_FRIDGE -->
-    <h4 *ngIf="isFridgeCabinet" class="section-title">
-      Sekcje nad lodówką
-      <span class="segment-count" *ngIf="segmentsArray.length > 0">({{ segmentsArray.length }})</span>
-      <span class="form-hint" *ngIf="segmentsArray.length === 0"> — opcjonalne</span>
-    </h4>
-
-    <!-- Info o sekcji lodówki (BASE_FRIDGE) -->
-    <div *ngIf="isFridgeCabinet" class="fridge-section-info">
-      Sekcja lodówki: <strong>{{ baseFridgeValidator.getFridgeSectionHeight(form) }}mm</strong>
-      <span class="form-hint" *ngIf="segmentsArray.length > 0">
-        ({{ form.get('height')?.value }}mm − {{ baseFridgeValidator.getUpperSectionsHeightSum(form) }}mm sekcji górnych)
-      </span>
-    </div>
-
-    <!-- Wizualizer — pełna szerokość, klik otwiera popup edycji.
-         Dla BASE_FRIDGE: zawsze pokazujemy (blok sekcji lodówki widoczny od razu).
-         Dla TALL_CABINET: tylko gdy są segmenty. -->
-    <div class="segments-visualizer-wrapper" *ngIf="segmentsArray.length > 0 || isFridgeCabinet">
-      <app-segment-visualizer
-        [segmentsArray]="segmentsArray"
-        [netHeight]="netCabinetHeight"
-        [fridgeSectionHeight]="fridgeSectionVisualHeight"
-        [selectedIndex]="selectedSegmentIndex"
-        (segmentSelected)="selectSegment($event)"
-        (orderChanged)="onSegmentsReordered()">
-      </app-segment-visualizer>
-      <p class="visualizer-hint" *ngIf="segmentsArray.length > 0">👆 Kliknij segment, aby edytować</p>
-    </div>
-
-    <button type="button" class="btn btn-secondary btn-add-segment" (click)="addSegment()">
-      <ng-container *ngIf="isFridgeCabinet">+ Dodaj sekcję nad lodówką</ng-container>
-      <ng-container *ngIf="!isFridgeCabinet">+ Dodaj segment</ng-container>
-    </button>
-
-    <!-- Błąd walidacji wysokości segmentów -->
-    <div *ngIf="segmentHeightError" class="segments-error">
-      ⚠ {{ segmentHeightError }}
-    </div>
-  </div>
-
-  <!-- Popup edycji segmentu (fixed overlay) -->
-  <div *ngIf="selectedSegmentIndex >= 0 && visibility.segments"
-       class="segment-popup-backdrop"
-       (click)="closeSegmentPopup()">
-    <div class="segment-popup" (click)="$event.stopPropagation()">
-      <div class="segment-popup-header">
-        <h4 *ngIf="!isFridgeCabinet" class="segment-popup-title">✏️ Edycja segmentu {{ selectedSegmentIndex + 1 }}</h4>
-        <h4 *ngIf="isFridgeCabinet" class="segment-popup-title">✏️ Edycja sekcji {{ selectedSegmentIndex + 1 }}</h4>
-        <button type="button" class="btn-close-popup" (click)="closeSegmentPopup()" title="Zamknij">✕</button>
-      </div>
-      <app-segment-form
-        *ngIf="selectedSegmentForm"
-        [segmentForm]="selectedSegmentForm!"
-        [segmentIndex]="selectedSegmentIndex"
-        [segmentTypeOptions]="activeSegmentTypeOptions"
-        (remove)="removeSegment(selectedSegmentIndex)">
-      </app-segment-form>
-      <div class="segment-popup-footer">
-        <button type="button" class="btn-popup-done" (click)="closeSegmentPopup()">
-          Gotowe
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ Dolny wieniec na podłodze ============ -->
+  <!-- ============ Dolny wieniec na podlodze ============ -->
   <div *ngIf="visibility.bottomWreathOnFloor" class="config-field">
     <label class="form-label enclosure-checkbox-label">
       <input type="checkbox" formControlName="bottomWreathOnFloor" class="enclosure-checkbox" />
-      Dolny wieniec na podłodze
-      <span class="form-hint">(boki oparte na wieńcu dolnym)</span>
+      Dolny wieniec na podlodze
+      <span class="form-hint">(boki oparte na wiencu dolnym)</span>
     </label>
   </div>
 
   <!-- ============ Szafka zlewowa (BASE_SINK) ============ -->
   <app-sink-form *ngIf="visibility.sinkFrontType" [form]="form"></app-sink-form>
 
-  <!-- ============ Szafka pod płytę grzewczą (BASE_COOKTOP) ============ -->
+  <!-- ============ Szafka pod plyte grzewczą (BASE_COOKTOP) ============ -->
   <app-cooktop-form *ngIf="visibility.cooktopType" [form]="form"></app-cooktop-form>
 
   <!-- ============ Szafka wisząca na okap (UPPER_HOOD) ============ -->
@@ -277,7 +222,7 @@
   <!-- ============ Szafka na wbudowany piekarnik (BASE_OVEN) ============ -->
   <app-oven-form *ngIf="visibility.ovenHeightType" [form]="form"></app-oven-form>
 
-  <!-- ============ Szafka na lodówkę (BASE_FRIDGE / BASE_FRIDGE_FREESTANDING) ============ -->
+  <!-- ============ Szafka na lodAlwkę (BASE_FRIDGE / BASE_FRIDGE_FREESTANDING) ============ -->
   <app-fridge-form *ngIf="visibility.fridgeSectionType || visibility.fridgeFreestandingType" [form]="form"></app-fridge-form>
 
   <!-- ============ Opcje frontu szafki wiszącej (UPPER_ONE_DOOR / UPPER_TWO_DOOR) ============ -->
@@ -291,18 +236,18 @@
           <input type="checkbox" formControlName="isLiftUp" class="enclosure-checkbox">
           Klapa lift-up (zamiast drzwi obrotowych)
         </label>
-        <span class="form-hint">Front unoszony ku górze (mechanizm gazowy). Zamiast zawiasów standardowych.</span>
+        <span class="form-hint">Front unoszony ku gorze (mechanizm gazowy). Zamiast zawiasow standardowych.</span>
       </div>
     </div>
 
-    <!-- Przedłużony front -->
+    <!-- Przedluzony front -->
     <div class="form-row" *ngIf="visibility.extendedFront">
       <div class="form-group flex-2">
         <label class="form-label enclosure-checkbox-label">
           <input type="checkbox" formControlName="isFrontExtended" class="enclosure-checkbox">
-          Przedłużony front (wychodzi ponad korpus)
+          Przedluzony front (wychodzi ponad korpus)
         </label>
-        <span class="form-hint">Front wysunięty ponad górny wieniec (wg ustawień technicznych, domyślnie 23 mm). Stosowane przy szafkach do sufitu.</span>
+        <span class="form-hint">Front wysunięty ponad gorny wieniec (wg ustawien technicznych, domyLvnie 23 mm). Stosowane przy szafkach do sufitu.</span>
       </div>
     </div>
   </div>
@@ -310,11 +255,11 @@
   <!-- ============ Obudowa boczna ============ -->
   <app-enclosure-form *ngIf="visibility.enclosureSection" [form]="form"></app-enclosure-form>
 
-      <!-- Podsumowanie błędów walidacji (pokazuje się bez wymogu "touched") -->
+      <!-- Podsumowanie bledow walidacji (pokazuje się bez wymogu "touched") -->
       <div *ngIf="validationErrors.length > 0" class="validation-summary">
         <span class="validation-summary-icon">⚠</span>
         <div>
-          <strong>Uzupełnij przed dodaniem szafki:</strong>
+          <strong>Uzupelnij przed dodaniem szafki:</strong>
           <ul class="validation-error-list">
             <li *ngFor="let err of validationErrors; trackBy: trackByIndex">{{ err }}</li>
           </ul>
@@ -326,7 +271,7 @@
         <button type="button" class="btn btn-primary" (click)="calculate()"
                 [disabled]="loading || form.invalid || (visibility.segments && !!segmentHeightError)">
           <span *ngIf="loading" class="spinner-btn"></span>
-          {{ isEditMode ? '💾 Zapisz' : '➕ Dodaj szafkę' }}
+          {{ isEditMode ? 'dzv Zapisz' : '➕ Dodaj szafkę' }}
         </button>
         <button
           *ngIf="isEditMode"
@@ -339,3 +284,5 @@
       </div>
 
 </form>
+
+

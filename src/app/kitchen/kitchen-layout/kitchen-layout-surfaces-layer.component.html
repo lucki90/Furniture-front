@@ -1,0 +1,61 @@
+<ng-container *ngIf="showCountertop">
+  <svg:rect *ngFor="let seg of countertopZoneRects; trackBy: trackByIndex"
+            [attr.x]="seg.x"
+            [attr.y]="counterZoneY"
+            [attr.width]="seg.width"
+            [attr.height]="counterZoneHeight"
+            fill="url(#countertopGradient)"
+            class="countertop-rect">
+    <svg:title *ngIf="countertopDimensions">Blat: {{ countertopDimensions.lengthMm }}×{{ countertopDimensions.depthMm }}mm</svg:title>
+  </svg:rect>
+
+  <svg:text *ngFor="let lbl of countertopSegmentLabels; trackBy: trackByIndex"
+            [attr.x]="lbl.x"
+            [attr.y]="counterZoneY - 2"
+            class="countertop-dimension-label"
+            text-anchor="middle">
+    {{ lbl.lengthMm }}×{{ lbl.depthMm }}mm
+  </svg:text>
+</ng-container>
+
+<ng-container *ngIf="showUpperCabinets">
+  <svg:rect *ngIf="fillerPosition as filler"
+            [attr.x]="filler.x"
+            [attr.y]="filler.y"
+            [attr.width]="filler.width"
+            [attr.height]="filler.height"
+            class="filler-rect">
+    <svg:title>Blenda górna</svg:title>
+  </svg:rect>
+
+  <ng-container *ngFor="let joinX of fillerJoinXPositions; trackBy: trackByIndex">
+    <svg:line *ngIf="fillerPosition as filler"
+              [attr.x1]="joinX"
+              [attr.x2]="joinX"
+              [attr.y1]="filler.y"
+              [attr.y2]="filler.y + filler.height"
+              class="board-join-line">
+      <svg:title>Połączenie blendy górnej</svg:title>
+    </svg:line>
+  </ng-container>
+</ng-container>
+
+<svg:rect *ngFor="let plinth of plinthSegments; trackBy: trackByRectX"
+          [attr.x]="plinth.x"
+          [attr.y]="plinth.y"
+          [attr.width]="plinth.width"
+          [attr.height]="plinth.height"
+          class="plinth-rect">
+  <svg:title>Cokół</svg:title>
+</svg:rect>
+
+<ng-container *ngFor="let joinX of plinthJoinXPositions; trackBy: trackByIndex">
+  <svg:line *ngIf="plinthPosition as plinth"
+            [attr.x1]="joinX"
+            [attr.x2]="joinX"
+            [attr.y1]="plinth.y"
+            [attr.y2]="plinth.y + plinth.height"
+            class="board-join-line">
+    <svg:title>Połączenie cokołu</svg:title>
+  </svg:line>
+</ng-container>

@@ -1,0 +1,62 @@
+<div class="segments-section">
+  <h4 *ngIf="!isFridgeCabinet" class="section-title">
+    Konfiguracja segmentow
+    <span class="segment-count">({{ segmentsArray.length }})</span>
+  </h4>
+
+  <h4 *ngIf="isFridgeCabinet" class="section-title">
+    Sekcje nad lodowka
+    <span class="segment-count" *ngIf="segmentsArray.length > 0">({{ segmentsArray.length }})</span>
+    <span class="form-hint" *ngIf="segmentsArray.length === 0"> - opcjonalne</span>
+  </h4>
+
+  <div *ngIf="isFridgeCabinet" class="fridge-section-info">
+    Sekcja lodowki: <strong>{{ fridgeSectionHeight }}mm</strong>
+    <span class="form-hint" *ngIf="segmentsArray.length > 0">
+      ({{ form.get('height')?.value }}mm - {{ fridgeUpperSectionsHeightSum }}mm sekcji gornych)
+    </span>
+  </div>
+
+  <div class="segments-visualizer-wrapper" *ngIf="segmentsArray.length > 0 || isFridgeCabinet">
+    <app-segment-visualizer
+      [segmentsArray]="segmentsArray"
+      [netHeight]="netCabinetHeight"
+      [fridgeSectionHeight]="fridgeSectionHeight"
+      [selectedIndex]="selectedSegmentIndex"
+      (segmentSelected)="selectSegment.emit($event)"
+      (orderChanged)="reorderSegments.emit()">
+    </app-segment-visualizer>
+    <p class="visualizer-hint" *ngIf="segmentsArray.length > 0">Kliknij segment, aby edytowac</p>
+  </div>
+
+  <button type="button" class="btn-add-segment" (click)="addSegment.emit()">
+    <ng-container *ngIf="isFridgeCabinet">+ Dodaj sekcje nad lodowka</ng-container>
+    <ng-container *ngIf="!isFridgeCabinet">+ Dodaj segment</ng-container>
+  </button>
+
+  <div *ngIf="segmentHeightError" class="segments-error">
+    {{ segmentHeightError }}
+  </div>
+</div>
+
+<div *ngIf="selectedSegmentIndex >= 0" class="segment-popup-backdrop" (click)="closeSegmentPopup.emit()">
+  <div class="segment-popup" (click)="$event.stopPropagation()">
+    <div class="segment-popup-header">
+      <h4 *ngIf="!isFridgeCabinet" class="segment-popup-title">Edycja segmentu {{ selectedSegmentIndex + 1 }}</h4>
+      <h4 *ngIf="isFridgeCabinet" class="segment-popup-title">Edycja sekcji {{ selectedSegmentIndex + 1 }}</h4>
+      <button type="button" class="btn-close-popup" (click)="closeSegmentPopup.emit()" title="Zamknij">x</button>
+    </div>
+    <app-segment-form
+      *ngIf="selectedSegmentForm"
+      [segmentForm]="selectedSegmentForm"
+      [segmentIndex]="selectedSegmentIndex"
+      [segmentTypeOptions]="activeSegmentTypeOptions"
+      (remove)="removeSelectedSegment.emit()">
+    </app-segment-form>
+    <div class="segment-popup-footer">
+      <button type="button" class="btn-popup-done" (click)="closeSegmentPopup.emit()">
+        Gotowe
+      </button>
+    </div>
+  </div>
+</div>

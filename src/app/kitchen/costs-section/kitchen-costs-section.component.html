@@ -1,0 +1,372 @@
+<section class="costs-section" *ngIf="projectResult || totalCabinetCount > 0">
+  <div class="pre-calculation-summary" *ngIf="!projectResult && totalCabinetCount > 0">
+    <div class="summary-grid">
+      <div class="summary-card" *ngIf="selectedWallCabinetCount > 0">
+        <div class="summary-card-icon">🧱</div>
+        <div class="summary-card-content">
+          <h4>{{ selectedWallLabel }}</h4>
+          <div class="summary-stats">
+            <span>{{ selectedWallCabinetCount }} szafek</span>
+            <span>{{ totalWidth }} mm zajęte</span>
+          </div>
+          <div class="summary-status" [class.success]="fitsOnWall" [class.error]="!fitsOnWall">
+            {{ fitsOnWall ? '✓ Mieści się' : '✗ Nie mieści się!' }}
+            <small>({{ remainingWidth }} mm wolne)</small>
+          </div>
+        </div>
+        <div class="summary-card-value">{{ selectedWallTotalCost.toFixed(0) }} zł</div>
+      </div>
+
+      <div class="summary-card highlight">
+        <div class="summary-card-icon">📐</div>
+        <div class="summary-card-content">
+          <h4>Cały projekt</h4>
+          <div class="summary-stats">
+            <span>{{ wallsCount }} ścian</span>
+            <span>{{ totalCabinetCount }} szafek</span>
+          </div>
+        </div>
+        <div class="summary-card-value">{{ totalCost.toFixed(0) }} zł</div>
+      </div>
+    </div>
+
+    <div class="calculation-prompt">
+      <p>Kliknij <strong>"Wylicz projekt"</strong>, aby uzyskać szczegółową kalkulację kosztów, listę materiałów i komponentów.</p>
+      <button
+        class="btn btn-lg btn-primary"
+        type="button"
+        (click)="calculateProject.emit()"
+        [disabled]="editingCabinetId !== null || isCalculatingProject">
+        {{ isCalculatingProject ? '⏳ Obliczam...' : '🧮 Wylicz cały projekt' }}
+      </button>
+      <button class="btn btn-lg btn-secondary" type="button" (click)="clearAll.emit()" [disabled]="editingCabinetId !== null">
+        🗑️ Wyczyść wszystko
+      </button>
+    </div>
+  </div>
+
+  <div class="project-results" *ngIf="projectResult">
+    <div class="pricing-warning-banner" *ngIf="pricingWarnings.length > 0">
+      <span class="pricing-warning-icon">⚠️</span>
+      <div class="pricing-warning-content">
+        <strong>Brak cen katalogowych — kwoty mogą być zaniżone</strong>
+        <div class="pricing-warning-entries">
+          Brakujące wpisy: {{ pricingWarnings.join(', ') }}
+        </div>
+      </div>
+    </div>
+
+    <div class="costs-overview card">
+      <div class="card-header">
+        <h2 class="card-title"><span>💰</span> Podsumowanie kosztów</h2>
+        <div class="project-status" [class.success]="projectResult.allFit" [class.warning]="!projectResult.allFit">
+          {{ projectResult.allFit ? '✓ Wszystko mieści się' : '⚠️ Niektóre szafki nie mieszczą się!' }}
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="costs-grid">
+          <div class="cost-card">
+            <span class="cost-icon">🪵</span>
+            <span class="cost-label">Płyty</span>
+            <span class="cost-value">{{ totalAggregatedBoardsCost.toFixed(2) }} zł</span>
+          </div>
+          <div class="cost-card">
+            <span class="cost-icon">🔩</span>
+            <span class="cost-label">Komponenty</span>
+            <span class="cost-value">{{ adjustedComponentCost.toFixed(2) }} zł</span>
+          </div>
+          <div class="cost-card">
+            <span class="cost-icon">🔧</span>
+            <span class="cost-label">Prace</span>
+            <span class="cost-value">{{ totalAggregatedJobsCost.toFixed(2) }} zł</span>
+          </div>
+          <div class="cost-card total">
+            <span class="cost-icon">📊</span>
+            <span class="cost-label">RAZEM</span>
+            <span class="cost-value">{{ adjustedTotalCost.toFixed(2) }} zł</span>
+          </div>
+        </div>
+
+        <div class="waste-cost-section" *ngIf="totalWasteCost > 0">
+          <div class="waste-toggle">
+            <label class="toggle-label">
+              <input type="checkbox" [ngModel]="includeWasteCost" (ngModelChange)="onIncludeWasteCostChange($event)">
+              <span class="toggle-text">Wlicz koszt odpadu z cięcia</span>
+            </label>
+            <span class="waste-value" [class.included]="includeWasteCost">
+              {{ includeWasteCost ? '+' : '' }}{{ totalWasteCost.toFixed(2) }} zł
+            </span>
+          </div>
+          <small class="waste-hint" *ngIf="wasteDetails.length > 0">
+            Odpad: {{ wasteDetails[0].quantity.toFixed(2) || 0 }} m²
+            (cena {{ wasteDetails[0].unitCost.toFixed(2) || 0 }} zł/m²)
+            — niektóre hurtownie nie doliczają kosztu odpadu
+          </small>
+        </div>
+
+        <div class="project-info">
+          <span>Ściany: {{ projectResult.wallCount }}</span>
+          <span>•</span>
+          <span>Szafki: {{ projectResult.totalCabinetCount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="details-card card">
+      <div class="tabs">
+        <button class="tab-btn" [class.active]="activeDetailsTab === 'boards'" type="button" (click)="setActiveTab('boards')">
+          🪵 Płyty ({{ aggregatedBoards.length }})
+        </button>
+        <button class="tab-btn" [class.active]="activeDetailsTab === 'components'" type="button" (click)="setActiveTab('components')">
+          🔩 Komponenty ({{ aggregatedComponents.length - wasteDetails.length }}<ng-container *ngIf="wasteDetails.length > 0"> +odpad</ng-container>)
+        </button>
+        <button class="tab-btn" [class.active]="activeDetailsTab === 'jobs'" type="button" (click)="setActiveTab('jobs')">
+          🔧 Prace ({{ aggregatedJobs.length }})
+        </button>
+        <button class="tab-btn" [class.active]="activeDetailsTab === 'walls'" type="button" (click)="setActiveTab('walls')">
+          🧱 Ściany ({{ projectResult.walls.length }})
+        </button>
+        <button *ngIf="currentProjectId" class="tab-btn" [class.active]="activeDetailsTab === 'pricing'" type="button" (click)="setActiveTab('pricing')">
+          💸 Wycena
+        </button>
+      </div>
+
+      <div class="tab-content">
+        <div class="tab-panel" *ngIf="activeDetailsTab === 'boards'">
+          <div class="table-container" *ngIf="aggregatedBoards.length > 0; else emptyBoards">
+            <table>
+              <thead>
+                <tr>
+                  <th>Materiał</th>
+                  <th>Wymiary (mm)</th>
+                  <th>Okleina krawędzi</th>
+                  <th>Ilość</th>
+                  <th>Cena jedn.</th>
+                  <th>Cena całk.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let board of aggregatedBoards; trackBy: trackByIndex">
+                  <td>{{ board.material }} ({{ board.thickness }}mm)</td>
+                  <td>{{ board.width }} × {{ board.height }}</td>
+                  <td>{{ board.veneerEdgeLabel || '—' }}</td>
+                  <td>{{ board.quantity }}</td>
+                  <td>{{ board.unitCost.toFixed(2) }} zł</td>
+                  <td class="text-right font-bold">{{ board.totalCost.toFixed(2) }} zł</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="5"><strong>Suma płyt (szafki + blat + cokół):</strong></td>
+                  <td class="text-right"><strong>{{ totalAggregatedBoardsCost.toFixed(2) }} zł</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <ng-template #emptyBoards><div class="empty-tab">Brak płyt do wyświetlenia</div></ng-template>
+        </div>
+
+        <div class="tab-panel" *ngIf="activeDetailsTab === 'components'">
+          <div class="table-container" *ngIf="aggregatedComponents.length > 0; else emptyComponents">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nazwa</th>
+                  <th>Typ</th>
+                  <th>Ilość</th>
+                  <th>Cena jedn.</th>
+                  <th>Cena całk.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let comp of aggregatedComponents; trackBy: trackByIndex"
+                    [class.waste-row]="comp.isWaste"
+                    [class.waste-excluded]="comp.isWaste && !includeWasteCost">
+                  <td>{{ comp.name }}</td>
+                  <td>{{ comp.type }}</td>
+                  <td>{{ comp.quantity }}</td>
+                  <td>{{ comp.isWaste && !includeWasteCost ? '—' : (comp.unitCost.toFixed(2) + ' zł') }}</td>
+                  <td class="text-right font-bold">
+                    <span *ngIf="!comp.isWaste || includeWasteCost">{{ comp.totalCost.toFixed(2) }} zł</span>
+                    <span *ngIf="comp.isWaste && !includeWasteCost" class="waste-excluded-label">{{ comp.totalCost.toFixed(2) }} zł (nie wliczono)</span>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4"><strong>Suma komponentów{{ wasteDetails.length > 0 && includeWasteCost ? ' (z odpadem)' : '' }}:</strong></td>
+                  <td class="text-right"><strong>{{ totalAggregatedComponentsCost.toFixed(2) }} zł</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <ng-template #emptyComponents><div class="empty-tab">Brak komponentów do wyświetlenia</div></ng-template>
+        </div>
+
+        <div class="tab-panel" *ngIf="activeDetailsTab === 'jobs'">
+          <div class="table-container" *ngIf="aggregatedJobs.length > 0; else emptyJobs">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nazwa</th>
+                  <th>Typ</th>
+                  <th>Ilość</th>
+                  <th>Cena jedn.</th>
+                  <th>Cena całk.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let job of aggregatedJobs; trackBy: trackByIndex">
+                  <td>{{ job.name }}</td>
+                  <td>{{ job.type }}</td>
+                  <td>{{ job.quantity }}</td>
+                  <td>{{ job.unitCost.toFixed(2) }} zł</td>
+                  <td class="text-right font-bold">{{ job.totalCost.toFixed(2) }} zł</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="4"><strong>Suma prac:</strong></td>
+                  <td class="text-right"><strong>{{ totalAggregatedJobsCost.toFixed(2) }} zł</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <ng-template #emptyJobs><div class="empty-tab">Brak prac do wyświetlenia</div></ng-template>
+        </div>
+
+        <div class="tab-panel" *ngIf="activeDetailsTab === 'walls'">
+          <div class="walls-list">
+            <div class="wall-item" *ngFor="let wall of projectResult.walls; trackBy: trackByWall">
+              <div class="wall-item-header">
+                <h4>{{ wall.wallType }}</h4>
+                <span class="wall-dims">{{ wall.widthMm }} × {{ wall.heightMm }} mm</span>
+                <span class="wall-status" [class.success]="wall.fits" [class.error]="!wall.fits">
+                  {{ wall.fits ? '✓' : '✗' }}
+                </span>
+                <span class="wall-cost">{{ wall.wallTotalCost.toFixed(2) }} zł</span>
+              </div>
+              <div class="wall-item-details">
+                <span>Szafki: {{ wall.cabinetCount }}</span>
+                <span>Dolne: {{ wall.usedWidthBottom }}/{{ wall.widthMm }} mm</span>
+                <span>Górne: {{ wall.usedWidthTop }}/{{ wall.widthMm }} mm</span>
+              </div>
+              <div class="wall-item-extras" *ngIf="wall.countertop?.enabled || wall.plinth?.enabled">
+                <span *ngIf="wall.countertop?.enabled" class="extra-item">
+                  🍳 Blat: {{ wall.countertop!.totalLengthMm }}×{{ wall.countertop!.depthMm }}mm
+                  <em>({{ wall.countertopCost?.toFixed(0) || 0 }} zł)</em>
+                </span>
+                <span *ngIf="wall.plinth?.enabled" class="extra-item">
+                  🦶 Cokół: {{ wall.plinth!.segmentCount }} szt.
+                  <em>({{ wall.plinthCost?.toFixed(0) || 0 }} zł)</em>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" *ngIf="activeDetailsTab === 'pricing'">
+          <div *ngIf="isPricingLoading" class="pricing-loading">Ładowanie wyceny...</div>
+
+          <div *ngIf="!isPricingLoading && pricing">
+            <div class="table-container">
+              <table class="pricing-table">
+                <thead>
+                  <tr>
+                    <th>Kategoria</th>
+                    <th class="text-right">Koszty netto</th>
+                    <th class="text-right">Marża %</th>
+                    <th class="text-right">Kwota marży</th>
+                    <th class="text-right">Łącznie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>🪵 Płyty</td>
+                    <td class="text-right">{{ pricing.boardsNet.toFixed(2) }} zł</td>
+                    <td class="text-right">{{ pricing.markupMaterialsPct }}%</td>
+                    <td class="text-right">{{ pricing.boardsMarkupAmount.toFixed(2) }} zł</td>
+                    <td class="text-right font-bold">{{ pricing.boardsTotal.toFixed(2) }} zł</td>
+                  </tr>
+                  <tr>
+                    <td>🔩 Komponenty</td>
+                    <td class="text-right">{{ pricing.componentsNet.toFixed(2) }} zł</td>
+                    <td class="text-right">{{ pricing.markupComponentsPct }}%</td>
+                    <td class="text-right">{{ pricing.componentsMarkupAmount.toFixed(2) }} zł</td>
+                    <td class="text-right font-bold">{{ pricing.componentsTotal.toFixed(2) }} zł</td>
+                  </tr>
+                  <tr>
+                    <td>🔧 Robocizna</td>
+                    <td class="text-right">{{ pricing.jobsNet.toFixed(2) }} zł</td>
+                    <td class="text-right">{{ pricing.markupJobsPct }}%</td>
+                    <td class="text-right">{{ pricing.jobsMarkupAmount.toFixed(2) }} zł</td>
+                    <td class="text-right font-bold">{{ pricing.jobsTotal.toFixed(2) }} zł</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="pricing-subtotal-row">
+                    <td colspan="4"><strong>Suma przed rabatem:</strong></td>
+                    <td class="text-right"><strong>{{ pricing.subtotal.toFixed(2) }} zł</strong></td>
+                  </tr>
+                  <tr>
+                    <td colspan="4">Rabat {{ pricing.discountPct }}%:</td>
+                    <td class="text-right pricing-discount-amount">−{{ pricing.discountAmount.toFixed(2) }} zł</td>
+                  </tr>
+                  <tr>
+                    <td colspan="4"><strong>Po rabacie:</strong></td>
+                    <td class="text-right"><strong>{{ pricing.afterDiscount.toFixed(2) }} zł</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <div class="pricing-final">
+              <span>💰 Cena końcowa</span>
+              <span>{{ pricing.finalPrice.toFixed(2) }} zł</span>
+            </div>
+            <div *ngIf="pricing.manualPriceOverride != null" class="pricing-manual-note">
+              * nadpisana ręcznie (kalkulowana: {{ pricing.afterDiscount.toFixed(2) }} zł)
+            </div>
+
+            <div class="pricing-editor">
+              <div class="pricing-editor-title">Edytuj parametry wyceny</div>
+              <div class="pricing-grid">
+                <div>
+                  <label>Rabat (%)</label>
+                  <input type="number" [ngModel]="pricingDiscountPct" (ngModelChange)="onPricingDiscountPctChange($event)" min="0" max="100" step="0.5" />
+                </div>
+                <div>
+                  <label>
+                    <input type="checkbox" [ngModel]="pricingManualOverrideEnabled" (ngModelChange)="onPricingManualOverrideEnabledChange($event)" />
+                    Nadpisz cenę końcową (zł)
+                  </label>
+                  <input type="number" [ngModel]="pricingManualOverride" (ngModelChange)="onPricingManualOverrideChange($event)" [disabled]="!pricingManualOverrideEnabled" min="0" step="1" />
+                </div>
+              </div>
+              <div class="pricing-notes">
+                <label>Notatki do oferty</label>
+                <textarea [ngModel]="pricingOfferNotes" (ngModelChange)="onPricingOfferNotesChange($event)" placeholder="Notatki dla klienta, warunki oferty..."></textarea>
+              </div>
+              <div class="pricing-actions">
+                <button class="btn btn-primary btn-sm" type="button" (click)="savePricing.emit()" [disabled]="isPricingSaving">
+                  {{ isPricingSaving ? 'Zapisuję...' : '💾 Zapisz wycenę' }}
+                </button>
+                <button class="btn btn-outline btn-sm" type="button" (click)="downloadOfferPdf.emit()" [disabled]="isPdfDownloading">
+                  {{ isPdfDownloading ? '⏳ Generuję PDF...' : '📄 Pobierz ofertę PDF' }}
+                </button>
+              </div>
+            </div>
+
+            <div *ngIf="pricing.offerNotes" class="pricing-offer-notes">
+              {{ pricing.offerNotes }}
+            </div>
+          </div>
+
+          <div *ngIf="!isPricingLoading && !pricing" class="pricing-loading">
+            Kliknij zakładkę Wycena ponownie lub zapisz projekt, aby załadować wycenę.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

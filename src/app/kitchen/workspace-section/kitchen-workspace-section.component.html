@@ -1,0 +1,61 @@
+<section class="main-workspace">
+  <div class="floor-plan-column">
+    <div class="panel-card">
+      <div class="panel-header">
+        <span class="panel-title">Widok z gory</span>
+        <button class="btn btn-sm btn-primary" type="button" (click)="addWallRequested.emit()">+ Sciana</button>
+      </div>
+      <div class="panel-content">
+        <app-kitchen-floor-plan
+          [editingCabinetId]="editingCabinetId"
+          (addWallRequested)="addWallRequested.emit()"
+          (wallRemoved)="wallRemoved.emit($event)">
+        </app-kitchen-floor-plan>
+      </div>
+
+      <div class="wall-dimensions-bar" *ngIf="hasSelectedWall">
+        <span class="wall-label">{{ selectedWallLabel }}:</span>
+        <div class="dim-field">
+          <span class="dim-label">Dlug.</span>
+          <input type="number" [ngModel]="wallLength" (ngModelChange)="onWallLengthInput($event)">
+          <span class="dim-unit">mm</span>
+        </div>
+        <div class="dim-field">
+          <span class="dim-label">Wys.</span>
+          <input type="number" [ngModel]="wallHeight" (ngModelChange)="onWallHeightInput($event)">
+          <span class="dim-unit">mm</span>
+        </div>
+      </div>
+
+      <app-wall-config (configChanged)="wallConfigChanged.emit()"></app-wall-config>
+    </div>
+  </div>
+
+  <div class="front-view-column">
+    <div class="panel-card">
+      <div class="panel-header">
+        <span class="panel-title">Widok od frontu</span>
+        <span class="panel-info" *ngIf="hasSelectedWall">{{ selectedWallLabel }} - {{ wallLength }}x{{ wallHeight }} mm</span>
+      </div>
+      <div class="panel-content">
+        <app-kitchen-layout [editingCabinetId]="editingCabinetId"></app-kitchen-layout>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-column">
+    <div class="panel-card form-card">
+      <div class="panel-header">
+        <span class="panel-title">{{ editingCabinet ? 'Edytuj' : 'Dodaj szafke' }}</span>
+        <button *ngIf="editingCabinet" class="btn btn-sm btn-secondary" type="button" (click)="cancelEdit.emit()">Anuluj</button>
+      </div>
+      <div class="panel-content">
+        <app-cabinet-form
+          [editingCabinet]="editingCabinet"
+          (calculated)="cabinetCalculated.emit($event)"
+          (cancelEdit)="cancelEdit.emit()">
+        </app-cabinet-form>
+      </div>
+    </div>
+  </div>
+</section>

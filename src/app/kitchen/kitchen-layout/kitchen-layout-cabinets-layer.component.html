@@ -1,0 +1,159 @@
+<svg:g *ngFor="let pos of positions; let i = index; trackBy: trackByCabinetId"
+       class="cabinet-group"
+       [class.editing]="isEditing(pos.cabinetId)"
+       [style.display]="!showUpperCabinets && pos.zone === 'TOP' ? 'none' : null">
+
+  <svg:rect *ngIf="pos.leftEnclosureDisplayWidth > 0"
+            [attr.x]="pos.displayX - pos.leftEnclosureDisplayWidth"
+            [attr.y]="enclosureDisplayY(pos.leftEnclosureType, pos.zone, pos.displayY)"
+            [attr.width]="pos.leftEnclosureDisplayWidth"
+            [attr.height]="enclosureDisplayHeight(pos.leftEnclosureType, pos.zone, pos.displayY, pos.bodyHeight, pos.feetHeight)"
+            [attr.class]="'enclosure-plate cabinet-' + pos.zone.toLowerCase()" />
+
+  <svg:rect *ngIf="pos.rightEnclosureDisplayWidth > 0"
+            [attr.x]="pos.displayX + pos.displayWidth"
+            [attr.y]="enclosureDisplayY(pos.rightEnclosureType, pos.zone, pos.displayY)"
+            [attr.width]="pos.rightEnclosureDisplayWidth"
+            [attr.height]="enclosureDisplayHeight(pos.rightEnclosureType, pos.zone, pos.displayY, pos.bodyHeight, pos.feetHeight)"
+            [attr.class]="'enclosure-plate cabinet-' + pos.zone.toLowerCase()" />
+
+  <svg:rect [attr.x]="pos.displayX"
+            [attr.y]="pos.displayY"
+            [attr.width]="pos.displayWidth"
+            [attr.height]="pos.bodyHeight"
+            [class.cabinet-body]="true"
+            [class.cabinet-bottom]="pos.zone === 'BOTTOM' && !pos.isFreestandingAppliance"
+            [class.cabinet-top]="pos.zone === 'TOP'"
+            [class.cabinet-full]="pos.zone === 'FULL'"
+            [class.cabinet-corner]="pos.isCorner"
+            [class.cabinet-appliance-freestanding]="pos.isFreestandingAppliance"
+            [class.overflow]="pos.isOverflow"
+            rx="1">
+    <svg:title>{{ (pos.name ? pos.name + ': ' : '') + pos.width + '×' + pos.height + '×' + pos.depth + 'mm' }}</svg:title>
+  </svg:rect>
+
+  <svg:g class="fronts-group">
+    <ng-container *ngFor="let front of pos.fronts; trackBy: trackByIndex">
+      <svg:rect *ngIf="front.type !== 'OPEN' && front.type !== 'SHELF_LINE' && front.type !== 'APPLIANCE' && front.type !== 'VERT_DIVIDER'"
+                [attr.x]="front.x"
+                [attr.y]="front.y"
+                [attr.width]="front.width"
+                [attr.height]="front.height"
+                fill="url(#frontGradient)"
+                class="front-rect"
+                [class.drawer-front]="front.type === 'DRAWER'"
+                rx="0.5">
+      </svg:rect>
+      <svg:rect *ngIf="front.type === 'OPEN'"
+                [attr.x]="front.x"
+                [attr.y]="front.y"
+                [attr.width]="front.width"
+                [attr.height]="front.height"
+                fill="url(#openFrontGradient)"
+                class="front-rect open-front"
+                stroke="#bdbdbd"
+                stroke-dasharray="2 2"
+                rx="0.5">
+      </svg:rect>
+      <svg:rect *ngIf="front.type === 'APPLIANCE'"
+                [attr.x]="front.x"
+                [attr.y]="front.y"
+                [attr.width]="front.width"
+                [attr.height]="front.height"
+                fill="#e0e0e0"
+                class="front-rect appliance-slot"
+                stroke="#9e9e9e"
+                stroke-width="0.5"
+                rx="0.5">
+      </svg:rect>
+      <svg:line *ngIf="front.type === 'SHELF_LINE'"
+                [attr.x1]="front.x"
+                [attr.y1]="front.y"
+                [attr.x2]="front.x + front.width"
+                [attr.y2]="front.y"
+                class="shelf-line"/>
+      <svg:line *ngIf="front.type === 'VERT_DIVIDER'"
+                [attr.x1]="front.x"
+                [attr.y1]="front.y"
+                [attr.x2]="front.x"
+                [attr.y2]="front.y + front.height"
+                class="shelf-line"/>
+    </ng-container>
+  </svg:g>
+
+  <svg:g class="handles-group">
+    <svg:line *ngFor="let handle of pos.handles; trackBy: trackByIndex"
+              [attr.x1]="handle.x1"
+              [attr.y1]="handle.y1"
+              [attr.x2]="handle.x2"
+              [attr.y2]="handle.y2"
+              class="handle-line"
+              stroke-linecap="round"/>
+  </svg:g>
+
+  <svg:line *ngIf="pos.ovenSeparatorDisplayY"
+            [attr.x1]="pos.displayX + 1"
+            [attr.y1]="pos.ovenSeparatorDisplayY"
+            [attr.x2]="pos.displayX + pos.displayWidth - 1"
+            [attr.y2]="pos.ovenSeparatorDisplayY"
+            class="oven-separator-line"/>
+
+  <svg:g *ngIf="pos.feetHeight > 0" class="feet-group">
+    <svg:line *ngFor="let foot of pos.feet; trackBy: trackByIndex"
+              [attr.x1]="foot.x"
+              [attr.y1]="foot.y1"
+              [attr.x2]="foot.x"
+              [attr.y2]="foot.y2"
+              class="foot-line">
+    </svg:line>
+  </svg:g>
+
+  <svg:text *ngIf="showCabinetLabels"
+            [attr.x]="pos.displayX + pos.displayWidth / 2"
+            [attr.y]="pos.displayY + pos.bodyHeight / 2"
+            class="cabinet-label-text"
+            text-anchor="middle"
+            dominant-baseline="middle">
+    {{ getCabinetLabel(pos, i) }}
+  </svg:text>
+
+  <svg:text *ngIf="pos.isCorner"
+            [attr.x]="pos.displayX + pos.displayWidth - 6"
+            [attr.y]="pos.displayY + 8"
+            class="corner-icon-text"
+            text-anchor="middle">⭔</svg:text>
+
+  <svg:g *ngIf="pos.heightDiff" class="dimension-indicator">
+    <svg:rect [attr.x]="pos.displayX + pos.displayWidth - 18"
+              [attr.y]="pos.displayY + 2"
+              width="16"
+              height="10"
+              [class.indicator-bg]="true"
+              [class.indicator-warning]="isSignificantDiff(pos.heightDiff)"
+              rx="2"/>
+    <svg:text [attr.x]="pos.displayX + pos.displayWidth - 10"
+              [attr.y]="pos.displayY + 9"
+              class="indicator-text"
+              text-anchor="middle"
+              [class.indicator-warning-text]="isSignificantDiff(pos.heightDiff)">
+      h{{ formatDimensionDiff(pos.heightDiff) }}
+    </svg:text>
+  </svg:g>
+
+  <svg:g *ngIf="pos.depthDiff" class="dimension-indicator">
+    <svg:rect [attr.x]="pos.displayX + 2"
+              [attr.y]="pos.displayY + 2"
+              width="16"
+              height="10"
+              [class.indicator-bg]="true"
+              [class.indicator-warning]="isSignificantDiff(pos.depthDiff)"
+              rx="2"/>
+    <svg:text [attr.x]="pos.displayX + 10"
+              [attr.y]="pos.displayY + 9"
+              class="indicator-text"
+              text-anchor="middle"
+              [class.indicator-warning-text]="isSignificantDiff(pos.depthDiff)">
+      d{{ formatDimensionDiff(pos.depthDiff) }}
+    </svg:text>
+  </svg:g>
+</svg:g>

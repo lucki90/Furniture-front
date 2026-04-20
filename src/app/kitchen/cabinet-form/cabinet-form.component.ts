@@ -1,21 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed, DestroyRef } from '@angular/core';
+﻿import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { KitchenService } from '../service/kitchen.service';
 import { ApiErrorHandler } from '../../core/error/api-error-handler.service';
 import { DictionaryService } from '../service/dictionary.service';
-import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
 import { CommonModule } from "@angular/common";
-import { CabinetCalculatedEvent, KitchenCabinet, KCabinetFridge, KCabinetFridgeFreestanding, KCabinetCorner, KCabinetCascade, KCabinetTall, cabinetHasSegments, CabinetZone, isBaseCabinetType, isUpperCabinetType, isFreestandingAppliance } from '../model/kitchen-state.model';
+import { CabinetCalculatedEvent, KitchenCabinet, isBaseCabinetType, isUpperCabinetType, isFreestandingAppliance } from '../model/kitchen-state.model';
 import { KitchenStateService } from '../service/kitchen-state.service';
-import { SegmentFormComponent } from './segment-form/segment-form.component';
-import { SegmentVisualizerComponent } from './segment-visualizer/segment-visualizer.component';
-import { SegmentFormData, SegmentType, SEGMENT_TYPE_OPTIONS } from './model/segment.model';
-import { TallCabinetValidator } from './types/tall-cabinet/tall-cabinet-validator';
-import { BaseFridgeCabinetValidator } from './types/base-fridge/base-fridge-cabinet-validator';
+import { SegmentType, SEGMENT_TYPE_OPTIONS } from './model/segment.model';
 // Sub-komponenty sekcji formularza
 import { CooktopFormComponent } from './sections/cooktop-form/cooktop-form.component';
 import { HoodFormComponent } from './sections/hood-form/hood-form.component';
@@ -29,9 +23,13 @@ import { FormFieldComponent } from '../../shared/form-field/form-field.component
 import { getFormError } from '../../shared/form-error.util';
 import { CabinetTypePickerComponent } from './cabinet-type-picker/cabinet-type-picker.component';
 import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visibility';
-
-/** Domyślna wysokość nowego segmentu szafki (mm). */
-const DEFAULT_SEGMENT_HEIGHT_MM = 400;
+import { CabinetSegmentsFormService } from './cabinet-segments-form.service';
+import { CabinetFormEditingService } from './cabinet-form-editing.service';
+import { CabinetFormTypeLifecycleService } from './cabinet-form-type-lifecycle.service';
+import { CabinetFormValidationErrorsService } from './cabinet-form-validation-errors.service';
+import { CabinetFormCalculationService } from './cabinet-form-calculation.service';
+import { CabinetSegmentValidationService } from './cabinet-segment-validation.service';
+import { CabinetSegmentsSectionComponent } from './sections/cabinet-segments-section/cabinet-segments-section.component';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -39,14 +37,16 @@ const DEFAULT_SEGMENT_HEIGHT_MM = 400;
   styleUrls: ['./cabinet-form.component.css'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, SegmentFormComponent, SegmentVisualizerComponent,
+  imports: [CommonModule, ReactiveFormsModule,
     CooktopFormComponent, HoodFormComponent, SinkFormComponent, OvenFormComponent,
     FridgeFormComponent, CascadeFormComponent, CornerFormComponent, EnclosureFormComponent,
-    FormFieldComponent]
+    FormFieldComponent, CabinetSegmentsSectionComponent]
 })
 export class CabinetFormComponent implements OnChanges {
 
-  // TODO(CODEX): Formularz szafki ma już bardzo dużą złożoność domenową i wciąż zawiera rzutowania `as any` dla części flow edycji/typów szafek. To sygnał, że model formularza i typowanie nie są już wystarczająco czytelne. Warto iść dalej w stronę silniej typowanych mapperów per typ szafki zamiast dokładać kolejne warunki do jednego komponentu.
+  // TODO(CODEX): Cabinet form still has high domain complexity and a few `as any` casts
+  // in the editing/type-switch flow. This suggests the form model and typing are still too
+  // loose; the next step should be stronger per-type mappers instead of growing this component.
   @Input()
   editingCabinet: KitchenCabinet | null = null;
 
@@ -60,11 +60,17 @@ export class CabinetFormComponent implements OnChanges {
   private readonly dialog = inject(MatDialog);
   readonly stateService = inject(KitchenStateService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly segmentsFormService = inject(CabinetSegmentsFormService);
+  private readonly cabinetFormEditingService = inject(CabinetFormEditingService);
+  private readonly typeLifecycleService = inject(CabinetFormTypeLifecycleService);
+  private readonly validationErrorsService = inject(CabinetFormValidationErrorsService);
+  private readonly calculationService = inject(CabinetFormCalculationService);
+  private readonly segmentValidationService = inject(CabinetSegmentValidationService);
 
   form: FormGroup;
   visibility: CabinetFormVisibility = {} as CabinetFormVisibility;
   loading = false;
-  /** Typy otwarcia z DictionaryService (memoizowane — nie tworzy nowej tablicy przy każdym CD cycle) */
+  /** Opening types from DictionaryService, memoized to avoid rebuilding arrays on every CD cycle. */
   readonly openingTypes = computed(() =>
     this.dictionaryService.data().openingTypes.map(item => ({
       value: item.code,
@@ -72,10 +78,8 @@ export class CabinetFormComponent implements OnChanges {
     }))
   );
 
-  // Dla segmentów
+  // Segment UI state
   selectedSegmentIndex = -1;
-  private tallCabinetValidator = new TallCabinetValidator();
-  readonly baseFridgeValidator = new BaseFridgeCabinetValidator();
 
   get isEditMode(): boolean {
     return this.editingCabinet !== null;
@@ -85,71 +89,63 @@ export class CabinetFormComponent implements OnChanges {
     return this.form.get('segments') as FormArray;
   }
 
-  /**
-   * Całkowita wysokość szafki przekazywana do wizualizera segmentów.
-   * Zawsze jest to całkowita wysokość — wizualizer używa jej do skalowania proporcjonalnego.
-   */
+  /** Total cabinet height passed to the segment visualizer. */
   get netCabinetHeight(): number {
     return this.form.get('height')?.value ?? 0;
   }
 
-  /**
-   * Wysokość sekcji lodówki (tylko dla BASE_FRIDGE) — przekazywana do wizualizera.
-   * Wizualizer wyświetla blok sekcji lodówki na dole proporcjonalnie do tej wartości.
-   */
+  /** Fridge section height passed to the visualizer for BASE_FRIDGE. */
   get fridgeSectionVisualHeight(): number {
     if (this.isFridgeCabinet) {
-      return this.baseFridgeValidator.getFridgeSectionHeight(this.form);
+      return this.segmentValidationService.getFridgeSectionHeight(this.form);
     }
     return 0;
   }
 
-  /**
-   * Opcje typów segmentów dostępne dla sekcji nad lodówką (BASE_FRIDGE).
-   * Tylko DOOR i OPEN_SHELF — bez szuflad i wnęk AGD.
-   * computed() — stała referencja tablicy, nie tworzy nowej instancji przy każdym CD cycle.
-   */
+  get fridgeUpperSectionsHeightSum(): number {
+    if (this.isFridgeCabinet) {
+      return this.segmentValidationService.getUpperSectionsHeightSum(this.form);
+    }
+    return 0;
+  }
+
+  /** Segment types allowed above the fridge section. */
   readonly fridgeSegmentTypeOptions = computed(() =>
     SEGMENT_TYPE_OPTIONS.filter(opt =>
       opt.value === SegmentType.DOOR || opt.value === SegmentType.OPEN_SHELF
     )
   );
 
-  /**
-   * Aktywne opcje typów segmentów — zależne od aktualnego typu szafki.
-   */
+  /** Segment type options depend on the currently selected cabinet type. */
   get activeSegmentTypeOptions() {
     return this.isFridgeCabinet ? this.fridgeSegmentTypeOptions() : SEGMENT_TYPE_OPTIONS;
   }
 
-  /**
-   * Zwraca komunikat błędu dla podanego pola formularza (po touched).
-   * Obsługuje standardowe błędy Angular: required, min, max, widthStep + custom message.
-   */
+  /** Returns inline error text for a single form field. */
   getFieldError(controlName: string): string | null {
     return getFormError(this.form.get(controlName));
   }
 
   private readonly TYPE_LABELS: Record<KitchenCabinetType, string> = {
-    [KitchenCabinetType.BASE_TWO_DOOR]:               'Dolna – 2 drzwi',
-    [KitchenCabinetType.BASE_ONE_DOOR]:               'Dolna – 1 drzwi',
-    [KitchenCabinetType.BASE_WITH_DRAWERS]:           'Dolna – szuflady',
-    [KitchenCabinetType.BASE_SINK]:                   'Dolna – zlewowa',
-    [KitchenCabinetType.BASE_COOKTOP]:                'Dolna – pod płytę grzewczą',
-    [KitchenCabinetType.BASE_DISHWASHER]:             'Dolna – zmywarka (front)',
-    [KitchenCabinetType.BASE_DISHWASHER_FREESTANDING]:'Dolna – zmywarka wolnostojąca',
-    [KitchenCabinetType.BASE_OVEN]:                   'Dolna – piekarnik (zabudowany)',
-    [KitchenCabinetType.BASE_OVEN_FREESTANDING]:      'Dolna – piekarnik wolnostojący',
-    [KitchenCabinetType.BASE_FRIDGE]:                 'Słupek – lodówka w zabudowie',
-    [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]:    'Dolna – lodówka wolnostojąca',
-    [KitchenCabinetType.UPPER_ONE_DOOR]:              'Wisząca – 1 drzwi',
-    [KitchenCabinetType.UPPER_TWO_DOOR]:              'Wisząca – 2 drzwi',
-    [KitchenCabinetType.UPPER_OPEN_SHELF]:            'Wisząca – otwarta półka',
-    [KitchenCabinetType.UPPER_CASCADE]:               'Wisząca – kaskadowa',
-    [KitchenCabinetType.UPPER_HOOD]:                  'Wisząca – na okap',
+    [KitchenCabinetType.BASE_TWO_DOOR]:               'Dolna - 2 drzwi',
+    [KitchenCabinetType.BASE_ONE_DOOR]:               'Dolna - 1 drzwi',
+    [KitchenCabinetType.BASE_WITH_DRAWERS]:           'Dolna - szuflady',
+    [KitchenCabinetType.BASE_SINK]:                   'Dolna - zlewowa',
+    [KitchenCabinetType.BASE_COOKTOP]:                'Dolna - pod plyte grzewcza',
+    [KitchenCabinetType.BASE_DISHWASHER]:             'Dolna - zmywarka (front)',
+    [KitchenCabinetType.BASE_DISHWASHER_FREESTANDING]:'Dolna - zmywarka wolnostojaca',
+    [KitchenCabinetType.BASE_OVEN]:                   'Dolna - piekarnik (zabudowany)',
+    [KitchenCabinetType.BASE_OVEN_FREESTANDING]:      'Dolna - piekarnik wolnostojacy',
+    [KitchenCabinetType.BASE_FRIDGE]:                 'Slupek - lodowka w zabudowie',
+    [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]:    'Dolna - lodowka wolnostojaca',
+    [KitchenCabinetType.UPPER_ONE_DOOR]:              'Wiszaca - 1 drzwi',
+    [KitchenCabinetType.UPPER_TWO_DOOR]:              'Wiszaca - 2 drzwi',
+    [KitchenCabinetType.UPPER_OPEN_SHELF]:            'Wiszaca - otwarta polka',
+    [KitchenCabinetType.UPPER_CASCADE]:               'Wiszaca - kaskadowa',
+    [KitchenCabinetType.UPPER_HOOD]:                  'Wiszaca - na okap',
     [KitchenCabinetType.UPPER_DRAINER]:               'Szafka z ociekaczem',
-    [KitchenCabinetType.TALL_CABINET]:                'Słupek',
-    [KitchenCabinetType.CORNER_CABINET]:              'Narożna',
+    [KitchenCabinetType.TALL_CABINET]:                'Slupek',
+    [KitchenCabinetType.CORNER_CABINET]:              'Narozna',
   };
 
   get currentTypeLabel(): string {
@@ -170,43 +166,30 @@ export class CabinetFormComponent implements OnChanges {
     });
   }
 
-  /**
-   * Czy aktualny typ to szafka dolna (BASE_*) — wyświetlamy info o blacie.
-   */
+  /** Whether the current type is a base cabinet. */
   get isBaseCabinet(): boolean {
     const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
     return isBaseCabinetType(type);
   }
 
-  /**
-   * Czy aktualny typ to szafka wisząca (UPPER_*) — wyświetlamy info o montażu.
-   */
+  /** Whether the current type is an upper cabinet. */
   get isUpperCabinet(): boolean {
     const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
     return isUpperCabinetType(type);
   }
 
-  /**
-   * Czy aktualny typ to wolnostojące urządzenie AGD lub lodówka w zabudowie (strefa FULL).
-   * Dla tych typów nie pokazujemy "Blat na wysokości" — brak blatu lub strefa FULL.
-   * BASE_FRIDGE jest tu zachowane explicite — to nie jest wolnostojące AGD, ale też nie ma blatu.
-   */
+  /** Whether the current type should be treated like a freestanding/full-height appliance in UI. */
   get isFreestandingAppliance(): boolean {
     const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
     return isFreestandingAppliance(type) || type === KitchenCabinetType.BASE_FRIDGE;
   }
 
-  /**
-   * Czy tryb pozycjonowania to WZGLĘDEM_BLATU — pokazujemy pole odstępu.
-   */
+  /** Whether upper cabinet position is defined relative to countertop. */
   get isCountertopMode(): boolean {
     return this.form.get('positioningMode')?.value === 'RELATIVE_TO_COUNTERTOP';
   }
 
-  /**
-   * Obliczona wysokość blatu od podłogi:
-   * cokół + wysokość korpusu + grubość blatu
-   */
+  /** Computed countertop height from floor level. */
   get computedCountertopHeight(): number {
     const corpusHeight = this.form.get('height')?.value ?? 0;
     const plinth = this.stateService.plinthHeightMm();
@@ -214,99 +197,22 @@ export class CabinetFormComponent implements OnChanges {
     return plinth + corpusHeight + countertop;
   }
 
-  /**
-   * Zwraca błąd walidacji sumy wysokości segmentów.
-   * Dla TALL_CABINET: suma musi być równa wysokości netto (±5mm).
-   * Dla BASE_FRIDGE: sekcje górne nie mogą być zbyt wysokie (lodówka musi mieć min. 400mm).
-   */
+  /** Returns validation error for total segment heights. */
   get segmentHeightError(): string | null {
-    if (this.isFridgeCabinet) {
-      return this.baseFridgeValidator.getUpperSectionsError(this.form);
-    }
-    return this.tallCabinetValidator.getSegmentsHeightError(this.form);
+    const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
+    return this.segmentValidationService.getSegmentHeightError(this.form, type);
   }
 
-  /**
-   * Zwraca listę błędów walidacji dla podsumowania nad przyciskiem.
-   * Nie wymaga stanu "touched" — pokazuje błędy od razu.
-   */
+  /** Returns validation errors for summary panel above the submit button. */
   get validationErrors(): string[] {
-    const errors: string[] = [];
-
-    // Wymiary (tylko gdy sekcja widoczna)
-    if (this.visibility.width !== false) {
-      const w = this.form.get('width');
-      const h = this.form.get('height');
-      const d = this.form.get('depth');
-
-      if (w?.invalid) {
-        if (w.errors?.['widthStep']) errors.push(w.errors['widthStep'].message);
-        else if (w.errors?.['min']) errors.push(`Szerokość: min ${w.errors['min'].min} mm`);
-        else if (w.errors?.['max']) errors.push(`Szerokość: max ${w.errors['max'].max} mm`);
-        else if (w.errors?.['required']) errors.push('Szerokość jest wymagana');
-      }
-      if (h?.invalid) {
-        if (h.errors?.['min']) errors.push(`Wysokość: min ${h.errors['min'].min} mm`);
-        else if (h.errors?.['max']) errors.push(`Wysokość: max ${h.errors['max'].max} mm`);
-        else errors.push('Wysokość: nieprawidłowa wartość');
-      }
-      if (d?.invalid) {
-        if (d.errors?.['min']) errors.push(`Głębokość: min ${d.errors['min'].min} mm`);
-        else if (d.errors?.['max']) errors.push(`Głębokość: max ${d.errors['max'].max} mm`);
-        else errors.push('Głębokość: nieprawidłowa wartość');
-      }
-    }
-
-    // Front zamrażarki (BASE_FRIDGE TWO_DOORS)
-    if (this.visibility.lowerFrontHeightMm) {
-      const lf = this.form.get('lowerFrontHeightMm');
-      if (lf?.invalid) {
-        if (lf.errors?.['min']) errors.push(`Front zamrażarki: min ${lf.errors['min'].min} mm`);
-        else if (lf.errors?.['max']) errors.push(`Front zamrażarki: max ${lf.errors['max'].max} mm`);
-        else if (lf.errors?.['required']) errors.push('Wysokość frontu zamrażarki jest wymagana');
-      }
-    }
-
-    // Narożnik
-    if (this.visibility.cornerWidthA) {
-      const ca = this.form.get('cornerWidthA');
-      const cb = this.form.get('cornerWidthB');
-      if (ca?.invalid) {
-        if (ca.errors?.['min']) errors.push(`Szerokość A: min ${ca.errors['min'].min} mm`);
-        else if (ca.errors?.['max']) errors.push(`Szerokość A: max ${ca.errors['max'].max} mm`);
-      }
-      if (cb?.invalid) {
-        if (cb.errors?.['min']) errors.push(`Szerokość B: min ${cb.errors['min'].min} mm`);
-        else if (cb.errors?.['max']) errors.push(`Szerokość B: max ${cb.errors['max'].max} mm`);
-      }
-    }
-
-    // Segmenty (TALL_CABINET)
-    if (this.visibility.segments) {
-      const segErr = this.segmentHeightError;
-      if (segErr) errors.push(segErr);
-
-      if (this.segmentsArray) {
-        this.segmentsArray.controls.forEach((seg, i) => {
-          const fg = seg as import('@angular/forms').FormGroup;
-          if (fg.get('height')?.invalid) {
-            const minVal = fg.get('height')?.errors?.['min']?.min;
-            errors.push(`Segment ${i + 1}: wysokość poza zakresem` + (minVal ? ` (min ${minVal} mm)` : ''));
-          }
-          if (fg.get('drawerQuantity')?.invalid) {
-            errors.push(`Segment ${i + 1}: nieprawidłowa liczba szuflad`);
-          }
-        });
-      }
-    }
-
-    return errors;
+    return this.validationErrorsService.getValidationErrors(
+      this.form,
+      this.visibility,
+      this.segmentHeightError
+    );
   }
 
-  /**
-   * Czy aktualny typ to szafka na lodówkę w zabudowie (BASE_FRIDGE).
-   * Używany do przełączania UI sekcji segmentów między TALL_CABINET a BASE_FRIDGE.
-   */
+  /** Whether the current cabinet is a built-in fridge cabinet. */
   get isFridgeCabinet(): boolean {
     return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_FRIDGE;
   }
@@ -315,8 +221,7 @@ export class CabinetFormComponent implements OnChanges {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    private fb: FormBuilder,
-    private kitchenService: KitchenService
+    private fb: FormBuilder
   ) {
     this.form = DefaultKitchenFormFactory.create(this.fb);
 
@@ -335,221 +240,19 @@ export class CabinetFormComponent implements OnChanges {
   }
 
   private fillFormWithCabinet(cabinet: KitchenCabinet): void {
-    // Jeden cast na całą operację wypełniania formularza — patchValue ignoruje pola nieistniejące
-    // w formularzu. Właściwa type-safety jest w buildCabinetFromFormData / buildTypeSpecificFields.
-    const c = cabinet as any;
-    this.form.patchValue({
-      name: c.name || '',
-      kitchenCabinetType: c.type,
-      openingType: c.openingType,
-      width: c.width,
-      height: c.height,
-      depth: c.depth,
-      positionY: c.positionY ?? 0,
-      shelfQuantity: c.shelfQuantity,
-      drawerQuantity: c.drawerQuantity,
-      drawerModel: c.drawerModel,
-      positioningMode: c.positioningMode ?? 'RELATIVE_TO_CEILING',
-      gapFromCountertopMm: c.gapFromCountertopMm ?? 500,
-      cascadeLowerHeight: c.cascadeLowerHeight ?? 400,
-      cascadeLowerDepth: c.cascadeLowerDepth ?? 400,
-      cascadeUpperHeight: c.cascadeUpperHeight ?? 320,
-      cascadeUpperDepth: c.cascadeUpperDepth ?? 300,
-      leftEnclosureType: c.leftEnclosureType ?? 'NONE',
-      rightEnclosureType: c.rightEnclosureType ?? 'NONE',
-      leftSupportPlate: c.leftSupportPlate ?? false,
-      rightSupportPlate: c.rightSupportPlate ?? false,
-      distanceFromWallMm: c.distanceFromWallMm ?? null,
-      leftFillerWidthOverrideMm: c.leftFillerWidthOverrideMm ?? null,
-      rightFillerWidthOverrideMm: c.rightFillerWidthOverrideMm ?? null,
-      bottomWreathOnFloor: c.bottomWreathOnFloor ?? false,
-      sinkFrontType: c.sinkFrontType ?? 'TWO_DOORS',
-      sinkApronEnabled: c.sinkApronEnabled ?? true,
-      sinkApronHeightMm: c.sinkApronHeightMm ?? 150,
-      sinkDrawerModel: c.sinkDrawerModel ?? 'ANTARO_TANDEMBOX',
-      cooktopType: c.cooktopType ?? 'INDUCTION',
-      cooktopFrontType: c.cooktopFrontType ?? 'DRAWERS',
-      hoodFrontType: c.hoodFrontType ?? 'FLAP',
-      hoodScreenEnabled: c.hoodScreenEnabled ?? false,
-      hoodScreenHeightMm: c.hoodScreenHeightMm ?? 100,
-      ovenHeightType: c.ovenHeightType ?? 'STANDARD',
-      ovenLowerSectionType: c.ovenLowerSectionType ?? 'LOW_DRAWER',
-      ovenApronEnabled: c.ovenApronEnabled ?? false,
-      ovenApronHeightMm: c.ovenApronHeightMm ?? 60,
-      fridgeSectionType: c.fridgeSectionType ?? 'TWO_DOORS',
-      lowerFrontHeightMm: c.lowerFrontHeightMm ?? 713,
-      fridgeFreestandingType: c.fridgeFreestandingType ?? 'TWO_DOORS',
-      cornerOpeningType: c.cornerOpeningType ?? 'TWO_DOORS',
-      cornerFrontUchylnyWidthMm: c.cornerFrontUchylnyWidthMm ?? 500,
-      isLiftUp: c.isLiftUp ?? false,
-      isFrontExtended: c.isFrontExtended ?? false,
-      drainerFrontType: c.drainerFrontType ?? 'OPEN'
-    });
-
+    this.cabinetFormEditingService.patchFormForEditing(this.form, cabinet);
     this.onTypeChange(cabinet.type);
   }
 
   private onTypeChange(type: KitchenCabinetType): void {
-    // Resetuj WSZYSTKIE flagi widoczności przed wywołaniem preparera —
-    // dzięki temu zmiana typu zawsze czyści pola poprzedniego typu
-    this.visibility = {
-      width: false,
-      shelfQuantity: false,
-      drawerQuantity: false,
-      drawerModel: false,
-      segments: false,
-      cornerWidthA: false,
-      cornerWidthB: false,
-      cornerMechanism: false,
-      cornerShelfQuantity: false,
-      isUpperCorner: false,
-      positioningMode: false,
-      gapFromCountertopMm: false,
-      cascadeSegments: false,
-      enclosureSection: false,
-      bottomWreathOnFloor: false,
-      sinkFrontType: false,
-      sinkApron: false,
-      sinkApronHeight: false,
-      sinkDrawerModel: false,
-      cooktopType: false,
-      cooktopFrontType: false,
-      hoodFrontType: false,
-      hoodScreenEnabled: false,
-      hoodScreenHeight: false,
-      ovenHeightType: false,
-      ovenLowerSectionType: false,
-      ovenApronEnabled: false,
-      ovenApronHeight: false,
-      ovenDrawerModel: false,
-      fridgeSectionType: false,
-      lowerFrontHeightMm: false,
-      fridgeFreestandingType: false,
-      cornerOpeningType: false,
-      cornerFrontUchylnyWidth: false,
-      liftUp: false,
-      extendedFront: false,
-      drainerFrontType: false,
-      drainerWidthSelect: false,
-      openingType: true   // domyślnie widoczny; preparery wolnostojących urządzeń ustawiają false
-    };
-
-    const config = KitchenCabinetTypeConfig[type];
-    config.preparer.prepare(this.form, this.visibility);
-    config.validator.validate(this.form);
-    // OnPush: visibility jest mutowany przez preparer (nie-sygnał) →
-    // musimy ręcznie powiadomić Angular o konieczności sprawdzenia widoku
+    const lifecycleResult = this.typeLifecycleService.applyTypeChange(this.form, type, this.editingCabinet);
+    this.visibility = lifecycleResult.visibility;
+    // OnPush: visibility is updated outside signals, so the view needs manual refresh.
     this.cdr.markForCheck();
 
-    // Jeśli edytujemy, przywróć wartości po przygotowaniu
-    if (this.editingCabinet && this.editingCabinet.type === type) {
-      // Rzut na any — patchValue ignoruje nieznane pola, więc dostęp do pól specyficznych dla
-      // danego typu szafki jest bezpieczny w kontekście formularza. Typowana fabryka
-      // buildCabinetFromFormData() w kitchen-state.service.ts gwarantuje poprawne dane w state.
-      const editCab = this.editingCabinet as any;
-      this.form.patchValue({
-        name: editCab.name || '',
-        openingType: editCab.openingType,
-        width: editCab.width,
-        height: editCab.height,
-        depth: editCab.depth,
-        positionY: editCab.positionY ?? 0,
-        shelfQuantity: editCab.shelfQuantity,
-        drawerQuantity: editCab.drawerQuantity,
-        drawerModel: editCab.drawerModel,
-        positioningMode: editCab.positioningMode ?? 'RELATIVE_TO_CEILING',
-        gapFromCountertopMm: editCab.gapFromCountertopMm ?? 500
-      });
-
-      // Przywróć wartości narożnika przy edycji
-      if (type === KitchenCabinetType.CORNER_CABINET) {
-        this.form.patchValue({
-          cornerWidthA: editCab.cornerWidthA,
-          cornerWidthB: editCab.cornerWidthB,
-          cornerMechanism: editCab.cornerMechanism,
-          cornerShelfQuantity: editCab.cornerShelfQuantity,
-          isUpperCorner: editCab.isUpperCorner,
-          cornerOpeningType: editCab.cornerOpeningType ?? 'TWO_DOORS',
-          cornerFrontUchylnyWidthMm: editCab.cornerFrontUchylnyWidthMm ?? 500
-        });
-      }
-
-      // Przywróć wartości segmentów kaskadowych przy edycji
-      if (type === KitchenCabinetType.UPPER_CASCADE) {
-        this.form.patchValue({
-          cascadeLowerHeight: editCab.cascadeLowerHeight ?? 400,
-          cascadeLowerDepth: editCab.cascadeLowerDepth ?? 400,
-          cascadeUpperHeight: editCab.cascadeUpperHeight ?? 320,
-          cascadeUpperDepth: editCab.cascadeUpperDepth ?? 300
-        });
-        // CascadeFormComponent obsłuży przeliczenie przez valueChanges
-      }
-
-      // Przywróć pola obudowy przy edycji
-      this.form.patchValue({
-        leftEnclosureType: this.editingCabinet.leftEnclosureType ?? 'NONE',
-        rightEnclosureType: this.editingCabinet.rightEnclosureType ?? 'NONE',
-        leftSupportPlate: this.editingCabinet.leftSupportPlate ?? false,
-        rightSupportPlate: this.editingCabinet.rightSupportPlate ?? false,
-        distanceFromWallMm: this.editingCabinet.distanceFromWallMm ?? null,
-        leftFillerWidthOverrideMm: this.editingCabinet.leftFillerWidthOverrideMm ?? null,
-        rightFillerWidthOverrideMm: this.editingCabinet.rightFillerWidthOverrideMm ?? null
-      });
-
-      // Przywróć pola lodówki w zabudowie przy edycji
-      // (preparer nadpisuje je defaults — przywróć TUTAJ, po prepare())
-      if (type === KitchenCabinetType.BASE_FRIDGE) {
-        const fridgeCab = this.editingCabinet as KCabinetFridge;
-        this.form.patchValue({
-          fridgeSectionType: fridgeCab.fridgeSectionType,
-          lowerFrontHeightMm: fridgeCab.lowerFrontHeightMm,
-          shelfQuantity: fridgeCab.shelfQuantity ?? 0
-        });
-        // FridgeFormComponent obsłuży enable/disable lowerFrontHeightMm przez ngOnInit → valueChanges
-      }
-
-      // Przywróć pola wolnostojącej lodówki przy edycji
-      if (type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING) {
-        const fridgeFSCab = this.editingCabinet as KCabinetFridgeFreestanding;
-        this.form.patchValue({ fridgeFreestandingType: fridgeFSCab.fridgeFreestandingType });
-      }
-
-      // Przywróć segmenty TALL_CABINET przy edycji
-      // (preparer domyślnie ustawia 2 segmenty, trzeba je zastąpić zapisanymi)
-      if (type === KitchenCabinetType.TALL_CABINET && editCab.segments?.length) {
-        this.fillSegmentsFromEditingCabinet(editCab.segments as SegmentFormData[]);
-        // Rewaliduj po przywróceniu segmentów
-        this.tallCabinetValidator.validate(this.form);
-      }
-
-      // Przywróć sekcje górne BASE_FRIDGE przy edycji
-      if (type === KitchenCabinetType.BASE_FRIDGE && editCab.segments?.length) {
-        this.fillSegmentsFromEditingCabinet(editCab.segments as SegmentFormData[]);
-      }
+    if (lifecycleResult.restoreApplied) {
+      this.segmentValidationService.validate(this.form, type);
     }
-  }
-
-  /**
-   * Zastępuje domyślne segmenty formularza segmentami zapisanymi w edytowanej szafce.
-   * Używane dla TALL_CABINET i BASE_FRIDGE — preparer inicjalizuje domyślne segmenty,
-   * które należy nadpisać zapisanym stanem.
-   */
-  private fillSegmentsFromEditingCabinet(segments: SegmentFormData[]): void {
-    const segmentsControl = this.form.get('segments') as FormArray;
-    while (segmentsControl.length > 0) {
-      segmentsControl.removeAt(0);
-    }
-    segments.forEach((seg, i) => {
-      segmentsControl.push(this.fb.group({
-        segmentType: [seg.segmentType],
-        height: [seg.height],
-        orderIndex: [seg.orderIndex ?? i],
-        drawerQuantity: [seg.drawerQuantity ?? null],
-        drawerModel: [seg.drawerModel ?? null],
-        shelfQuantity: [seg.shelfQuantity ?? null],
-        frontType: [seg.frontType ?? null]
-      }));
-    });
   }
 
   /** Zamknij popup edycji segmentu. */
@@ -558,23 +261,22 @@ export class CabinetFormComponent implements OnChanges {
   }
 
   calculate(): void {
-    // Oznacz wszystkie kontrolki jako touched — pokazuje błędy inline
+    // Oznacz wszystkie kontrolki jako touched - pokazuje bledy inline
     this.form.markAllAsTouched();
 
     this.loading = true;
 
     const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;
-    const mapper = KitchenCabinetTypeConfig[type].requestMapper;
     const formData = this.form.getRawValue();
-    const request = mapper.map(formData, this.stateService.materialDefaults());
 
-    this.kitchenService.calculateCabinet(request).subscribe({
-      next: res => {
-        this.calculated.emit({
-          formData: formData,
-          result: res,
-          editingCabinetId: this.editingCabinet?.id
-        });
+    this.calculationService.calculateCabinet(
+      type,
+      formData,
+      this.stateService.materialDefaults(),
+      this.editingCabinet?.id
+    ).subscribe({
+      next: event => {
+        this.calculated.emit(event);
         this.loading = false;
         this.cdr.markForCheck(); // OnPush: HTTP callback nie jest DOM eventem
       },
@@ -591,59 +293,35 @@ export class CabinetFormComponent implements OnChanges {
     this.cancelEdit.emit();
   }
 
-  // ====== Metody dla segmentów ======
+  // ====== Segment actions ======
 
-  /**
-   * Dodaje nowy segment do listy.
-   * Dla BASE_FRIDGE: dodaje sekcję nad lodówką (DOOR/OPEN_SHELF), domyślnie DOOR 400mm.
-   * Dla TALL_CABINET: dodaje segment dowolnego typu.
-   */
+  /** Adds a new segment to the form. */
   addSegment(): void {
-    const newSegment = this.fb.group({
-      segmentType: [SegmentType.DOOR],
-      height: [DEFAULT_SEGMENT_HEIGHT_MM],
-      orderIndex: [this.segmentsArray.length],
-      drawerQuantity: [null],
-      drawerModel: [null],
-      shelfQuantity: [0],
-      frontType: ['ONE_DOOR']
-    });
-
-    this.segmentsArray.push(newSegment);
+    this.segmentsArray.push(this.segmentsFormService.createDefaultSegment(this.fb, this.segmentsArray.length));
     this.selectedSegmentIndex = this.segmentsArray.length - 1;
 
-    // Rewaliduj — walidator zależy od typu szafki
-    if (this.isFridgeCabinet) {
-      this.baseFridgeValidator.validate(this.form);
-    } else {
-      this.tallCabinetValidator.validate(this.form);
-    }
+    this.segmentValidationService.validate(
+      this.form,
+      this.form.get('kitchenCabinetType')?.value as KitchenCabinetType
+    );
   }
 
   /**
    * Usuwa segment o podanym indeksie.
    */
   removeSegment(index: number): void {
-    this.segmentsArray.removeAt(index);
+    this.segmentsFormService.removeSegment(this.segmentsArray, index);
 
-    // Zaktualizuj orderIndex dla pozostałych segmentów
-    this.segmentsArray.controls.forEach((control, i) => {
-      (control as FormGroup).patchValue({ orderIndex: i });
-    });
-
-    // Odznacz jeśli usunięty był zaznaczony
     if (this.selectedSegmentIndex === index) {
       this.selectedSegmentIndex = -1;
     } else if (this.selectedSegmentIndex > index) {
       this.selectedSegmentIndex--;
     }
 
-    // Rewaliduj
-    if (this.isFridgeCabinet) {
-      this.baseFridgeValidator.validate(this.form);
-    } else {
-      this.tallCabinetValidator.validate(this.form);
-    }
+    this.segmentValidationService.validate(
+      this.form,
+      this.form.get('kitchenCabinetType')?.value as KitchenCabinetType
+    );
   }
 
   /**
@@ -653,28 +331,22 @@ export class CabinetFormComponent implements OnChanges {
     this.selectedSegmentIndex = index;
   }
 
-  /**
-   * Reaguje na zmianę kolejności segmentów (drag & drop).
-   */
+  /** Reacts to drag-and-drop reorder of segments. */
   onSegmentsReordered(): void {
-    // Rewaliduj po zmianie kolejności
-    if (this.isFridgeCabinet) {
-      this.baseFridgeValidator.validate(this.form);
-    } else {
-      this.tallCabinetValidator.validate(this.form);
-    }
+    this.segmentValidationService.validate(
+      this.form,
+      this.form.get('kitchenCabinetType')?.value as KitchenCabinetType
+    );
   }
 
   /**
    * Zwraca FormGroup wybranego segmentu.
    */
   get selectedSegmentForm(): FormGroup | null {
-    if (this.selectedSegmentIndex < 0 || this.selectedSegmentIndex >= this.segmentsArray.length) {
-      return null;
-    }
-    return this.segmentsArray.at(this.selectedSegmentIndex) as FormGroup;
+    return this.segmentsFormService.getSelectedSegmentForm(this.segmentsArray, this.selectedSegmentIndex);
   }
 
   protected trackByValue = (_: number, item: { value: string }) => item.value;
   protected trackByIndex = (index: number) => index;
 }
+

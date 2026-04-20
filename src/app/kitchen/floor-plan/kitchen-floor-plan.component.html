@@ -1,6 +1,5 @@
 <div class="floor-plan-container">
   <svg class="floor-plan-svg" [attr.viewBox]="'0 0 320 240'">
-    <!-- Grid background -->
     <defs>
       <pattern id="grid" width="16" height="16" patternUnits="userSpaceOnUse">
         <path d="M 16 0 L 0 0 0 16" fill="none" stroke="#e8e8e8" stroke-width="0.5"/>
@@ -8,181 +7,31 @@
     </defs>
     <rect width="100%" height="100%" fill="url(#grid)"/>
 
-    <!-- Walls and cabinets -->
     @for (pos of wallPositions(); track pos.wall.id) {
-      <g class="wall-group"
-         [class.selected]="isSelected(pos.wall.id)"
-         (click)="onWallClick(pos.wall.id)">
-
-        <!-- Szafki na ścianie (renderowane w kolejności: dolne -> słupki -> górne) -->
-        @for (cab of getCabinetsForWall(pos); track cab.cabinetId) {
-          <rect
-            [attr.x]="cab.x"
-            [attr.y]="cab.y"
-            [attr.width]="cab.width"
-            [attr.height]="cab.depth"
-            [attr.fill]="getCabinetFill(cab)"
-            [attr.stroke]="getCabinetStroke(cab)"
-            [attr.stroke-width]="isEditing(cab.cabinetId) ? 2 : 0.5"
-            class="cabinet-rect"
-            [class.editing]="isEditing(cab.cabinetId)"
-            [class.corner]="cab.isCorner"
-            [style.display]="!showUpperCabinets() && cab.zone === 'TOP' ? 'none' : null"
-            rx="1">
-            <title>{{ cab.name || cab.cabinetId }} ({{ cab.isCorner ? 'narożna' : cab.zone === 'FULL' ? 'słupek' : cab.zone === 'TOP' ? 'górna' : 'dolna' }})</title>
-          </rect>
-        }
-
-        <!-- Blat (countertop) - segmenty nad ciągłymi przejazdami szafek dolnych -->
-        @if (showCountertop()) {
-          @for (countertop of getCountertopsForWall(pos); track countertop.x) {
-            <g class="countertop-group">
-              <rect
-                [attr.x]="countertop.x"
-                [attr.y]="countertop.y"
-                [attr.width]="countertop.width"
-                [attr.height]="countertop.depth"
-                class="countertop-rect"
-                rx="1">
-                <title>Blat: {{ countertop.lengthMm }}×{{ countertop.depthMm }}mm</title>
-              </rect>
-              <!-- Etykieta długości blatu -->
-              @if (countertop.isHorizontal) {
-                <text
-                  [attr.x]="countertop.lengthLabelX"
-                  [attr.y]="countertop.lengthLabelY"
-                  class="countertop-dimension"
-                  text-anchor="middle">
-                  {{ countertop.lengthMm }}
-                </text>
-              } @else {
-                <text
-                  [attr.x]="countertop.lengthLabelX"
-                  [attr.y]="countertop.lengthLabelY"
-                  class="countertop-dimension countertop-dimension-vertical"
-                  text-anchor="middle"
-                  [attr.transform]="'rotate(-90,' + countertop.lengthLabelX + ',' + countertop.lengthLabelY + ')'">
-                  {{ countertop.lengthMm }}
-                </text>
-              }
-            </g>
-          }
-        }
-
-        <!-- Wall rectangle -->
-        <rect
-          [attr.x]="pos.x"
-          [attr.y]="pos.y"
-          [attr.width]="pos.width"
-          [attr.height]="pos.height"
-          [attr.fill]="getWallColor(pos.wall, isSelected(pos.wall.id))"
-          class="wall-rect"
-          rx="1">
-          <title>{{ getWallTooltip(pos.wall) }}</title>
-        </rect>
-
-        <!-- Wall label (short) -->
-        <text
-          [attr.x]="pos.labelX"
-          [attr.y]="pos.labelY"
-          class="wall-label"
-          text-anchor="middle"
-          dominant-baseline="middle">
-          {{ getWallShortLabel(pos.wall.type) }}
-        </text>
-
-        <!-- Cabinet count badge -->
-        @if (pos.wall.cabinets.length > 0) {
-          <circle
-            [attr.cx]="pos.x + pos.width - 4"
-            [attr.cy]="pos.y - 4"
-            r="6"
-            class="cabinet-badge"/>
-          <text
-            [attr.x]="pos.x + pos.width - 4"
-            [attr.y]="pos.y - 4"
-            class="cabinet-count"
-            text-anchor="middle"
-            dominant-baseline="middle">
-            {{ pos.wall.cabinets.length }}
-          </text>
-        }
-
-        <!-- Remove button (only when selected and can remove) -->
-        @if (isSelected(pos.wall.id) && canRemoveWall()) {
-          <g class="remove-btn" (click)="onRemoveWall(pos.wall.id, $event)">
-            <circle
-              [attr.cx]="pos.x + pos.width + 6"
-              [attr.cy]="pos.y + pos.height / 2"
-              r="6"
-              fill="#f44336"/>
-            <text
-              [attr.x]="pos.x + pos.width + 6"
-              [attr.y]="pos.y + pos.height / 2"
-              fill="white"
-              font-size="8"
-              text-anchor="middle"
-              dominant-baseline="middle">
-              ×
-            </text>
-          </g>
-        }
+      <g
+        appFloorPlanWallGroup
+        [wallPosition]="pos"
+        [cabinets]="getCabinetsForWall(pos)"
+        [countertops]="getCountertopsForWall(pos)"
+        [selected]="isSelected(pos.wall.id)"
+        [canRemoveWall]="canRemoveWall()"
+        [editingCabinetId]="editingCabinetId"
+        [showCountertop]="showCountertop()"
+        [showUpperCabinets]="showUpperCabinets()"
+        (wallSelected)="onWallClick($event)"
+        (wallRemoved)="onRemoveWall($event)">
       </g>
     }
 
-    <!-- Narożne segmenty blatu (Faza 13.1) — renderowane nad wszystkim w SVG -->
-    @if (showCountertop()) {
-      @for (corner of cornerCountertopPositions(); track corner.x) {
-        <g class="corner-countertop-group">
-          <!-- Prostokąt narożnego segmentu blatu -->
-          <rect
-            [attr.x]="corner.x"
-            [attr.y]="corner.y"
-            [attr.width]="corner.sizePx"
-            [attr.height]="corner.sizePx"
-            class="corner-countertop-rect">
-            <title>Blat narożny {{ corner.label }}</title>
-          </rect>
-          <!-- Linia miter (cięcie 45°) — przerywana -->
-          <line
-            [attr.x1]="corner.miterX1"
-            [attr.y1]="corner.miterY1"
-            [attr.x2]="corner.miterX2"
-            [attr.y2]="corner.miterY2"
-            class="corner-miter-line"/>
-          <!-- Etykieta narożnika -->
-          <text
-            [attr.x]="corner.x + corner.sizePx / 2"
-            [attr.y]="corner.y + corner.sizePx / 2"
-            class="corner-countertop-label"
-            text-anchor="middle"
-            dominant-baseline="middle">
-            45°
-          </text>
-        </g>
-      }
-    }
-
-    <!-- Łuki otwarcia drzwi (Faza 13.2) — renderowane nad wszystkim, pod legendą -->
-    @if (showDoorArcs()) {
-      @for (arc of doorArcData(); track arc.cabinetId) {
-        <path
-          [attr.d]="arc.pathD"
-          class="door-arc"
-          [class.arc-clear]="!arc.hasCollision"
-          [class.arc-collision]="arc.hasCollision">
-          <title>{{ arc.hasCollision ? '⚠ Kolizja z sąsiednią szafką' : 'Otwarcie drzwi 90°' }}</title>
-        </path>
-      }
-    }
-
-    <!-- Legend (compact) -->
-    <g class="legend" transform="translate(5, 5)">
-      <text x="0" y="8" class="legend-item">G-główna L-lewa P-prawa</text>
+    <g
+      appFloorPlanOverlayLayer
+      [showCountertop]="showCountertop()"
+      [showDoorArcs]="showDoorArcs()"
+      [cornerCountertops]="cornerCountertopPositions()"
+      [doorArcs]="doorArcData()">
     </g>
   </svg>
 
-  <!-- Toolbar przełączników widoczności rzutu z góry -->
   <div class="floor-plan-toolbar">
     <label class="fp-toggle">
       <input type="checkbox" [checked]="showDoorArcs()" (change)="showDoorArcs.set(!showDoorArcs())">
@@ -190,7 +39,6 @@
     </label>
   </div>
 
-  <!-- Wall info panel -->
   <div class="selected-wall-info">
     @for (pos of wallPositions(); track pos.wall.id) {
       @if (isSelected(pos.wall.id)) {

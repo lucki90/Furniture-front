@@ -1,0 +1,56 @@
+<footer class="page-footer" *ngIf="totalCabinetCount > 0">
+  <div class="footer-info">
+    <span *ngIf="projectResult">
+      💰 <strong>{{ adjustedTotalCost.toFixed(0) }} zł</strong>
+      <span class="footer-details">({{ projectResult.wallCount }} ścian, {{ projectResult.totalCabinetCount }} szafek)</span>
+    </span>
+    <span *ngIf="!projectResult">
+      📐 <strong>{{ totalCabinetCount }}</strong> szafek
+      <span class="footer-details">({{ wallsCount }} ścian)</span>
+    </span>
+  </div>
+  <div class="footer-actions">
+    <button
+      class="btn btn-success"
+      type="button"
+      (click)="saveProject.emit()"
+      [disabled]="totalCabinetCount === 0 || isSavingProject || editingCabinetId !== null">
+      <span>💾</span>
+      {{ isSavingProject ? 'Zapisuję...' : (currentProjectId ? 'Zapisz' : 'Zapisz projekt') }}
+    </button>
+    <button
+      class="btn btn-primary"
+      type="button"
+      (click)="calculateProject.emit()"
+      [disabled]="totalCabinetCount === 0 || isCalculatingProject || editingCabinetId !== null">
+      <span>🧮</span>
+      {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
+    </button>
+    <button
+      class="btn btn-secondary"
+      type="button"
+      (click)="clearAll.emit()"
+      [disabled]="editingCabinetId !== null">
+      <span>🗑️</span> Wyczyść
+    </button>
+
+    <ng-container *ngIf="projectResult">
+      <div class="footer-divider"></div>
+      <button
+        class="btn btn-outline"
+        type="button"
+        (click)="downloadExcel.emit()"
+        [disabled]="isExporting"
+        [title]="isExporting ? 'Generowanie pliku...' : 'Pobierz listę płyt do zamówienia (.xlsx)'">
+        <span>{{ isExporting ? '⏳' : '📊' }}</span>
+        {{ isExporting ? 'Generowanie...' : 'Excel' }}
+      </button>
+      <button class="btn btn-outline" type="button" disabled>
+        <span>📄</span> PDF
+      </button>
+      <button class="btn btn-outline" type="button" disabled>
+        <span>📋</span> Instrukcja
+      </button>
+    </ng-container>
+  </div>
+</footer>
