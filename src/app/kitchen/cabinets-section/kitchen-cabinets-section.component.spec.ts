@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+﻿import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { KitchenCabinetsSectionComponent } from './kitchen-cabinets-section.component';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 
@@ -56,3 +56,4 @@ describe('KitchenCabinetsSectionComponent', () => {
     expect(component.clearSelectedWallCabinets.emit).toHaveBeenCalled();
   });
 });
+

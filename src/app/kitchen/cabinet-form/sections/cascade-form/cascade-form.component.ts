@@ -7,6 +7,7 @@ import { UpperCascadeCabinetPreparer } from '../../types/upper-cascade/upper-cas
 import { UpperCascadeCabinetValidator } from '../../types/upper-cascade/upper-cascade-cabinet-validator';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
 import { getFormError } from '../../../../shared/form-error.util';
+import { SectionHeaderComponent } from '../../shared/section-header.component';
 
 /**
  * Sekcja konfiguracji szafki kaskadowej (UPPER_CASCADE).
@@ -17,7 +18,7 @@ import { getFormError } from '../../../../shared/form-error.util';
   selector: 'app-cascade-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent, SectionHeaderComponent],
   templateUrl: './cascade-form.component.html',
   styleUrls: ['./cascade-form.component.css']
 })

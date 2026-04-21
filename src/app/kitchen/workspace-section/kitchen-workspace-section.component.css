@@ -1,3 +1,7 @@
+:host {
+  display: block;
+}
+
 .main-workspace {
   display: grid;
   grid-template-columns: 340px 1fr 360px;

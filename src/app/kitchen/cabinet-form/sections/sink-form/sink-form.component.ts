@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
 import { getFormError } from '../../../../shared/form-error.util';
 import { DictionaryService } from '../../../service/dictionary.service';
+import { SectionHeaderComponent } from '../../shared/section-header.component';
 
 /**
  * Sekcja konfiguracji szafki zlewowej (BASE_SINK).
@@ -15,7 +16,7 @@ import { DictionaryService } from '../../../service/dictionary.service';
   selector: 'app-sink-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent, SectionHeaderComponent],
   templateUrl: './sink-form.component.html',
   styleUrls: ['./sink-form.component.css']
 })

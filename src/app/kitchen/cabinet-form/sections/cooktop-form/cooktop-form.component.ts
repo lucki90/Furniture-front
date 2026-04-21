@@ -3,6 +3,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DictionaryService } from '../../../service/dictionary.service';
+import { SectionHeaderComponent } from '../../shared/section-header.component';
 
 /**
  * Sekcja konfiguracji szafki pod płytę grzewczą (BASE_COOKTOP).
@@ -13,7 +14,7 @@ import { DictionaryService } from '../../../service/dictionary.service';
   selector: 'app-cooktop-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SectionHeaderComponent],
   templateUrl: './cooktop-form.component.html',
   styleUrls: ['./cooktop-form.component.css']
 })

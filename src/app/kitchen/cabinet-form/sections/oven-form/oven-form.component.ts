@@ -3,6 +3,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DictionaryService } from '../../../service/dictionary.service';
+import { SectionHeaderComponent } from '../../shared/section-header.component';
 
 /**
  * Sekcja konfiguracji szafki na wbudowany piekarnik (BASE_OVEN).
@@ -13,7 +14,7 @@ import { DictionaryService } from '../../../service/dictionary.service';
   selector: 'app-oven-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SectionHeaderComponent],
   templateUrl: './oven-form.component.html',
   styleUrls: ['./oven-form.component.css']
 })

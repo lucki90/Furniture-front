@@ -3,6 +3,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DictionaryService } from '../../../service/dictionary.service';
+import { SectionHeaderComponent } from '../../shared/section-header.component';
 
 /**
  * Sekcja konfiguracji szafki wiszącej na okap (UPPER_HOOD).
@@ -13,7 +14,7 @@ import { DictionaryService } from '../../../service/dictionary.service';
   selector: 'app-hood-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SectionHeaderComponent],
   templateUrl: './hood-form.component.html',
   styleUrls: ['./hood-form.component.css']
 })

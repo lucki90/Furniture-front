@@ -6,6 +6,7 @@ import { getEnclosureTypeOptions, EnclosureType } from '../../model/enclosure.mo
 import { isUpperCabinetType } from '../../../model/kitchen-state.model';
 import { KitchenStateService } from '../../../service/kitchen-state.service';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
+import { SectionHeaderComponent } from '../../shared/section-header.component';
 
 /**
  * Sekcja konfiguracji obudowy bocznej szafki.
@@ -16,7 +17,7 @@ import { FormFieldComponent } from '../../../../shared/form-field/form-field.com
   selector: 'app-enclosure-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent, SectionHeaderComponent],
   templateUrl: './enclosure-form.component.html',
   styleUrls: ['./enclosure-form.component.css']
 })

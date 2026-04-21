@@ -1,14 +1,12 @@
-<div class="segments-section">
-  <h4 *ngIf="!isFridgeCabinet" class="section-title">
-    Konfiguracja segmentow
+﻿<div class="segments-section">
+  <app-cabinet-section-header *ngIf="!isFridgeCabinet" title="Konfiguracja segmentow">
     <span class="segment-count">({{ segmentsArray.length }})</span>
-  </h4>
+  </app-cabinet-section-header>
 
-  <h4 *ngIf="isFridgeCabinet" class="section-title">
-    Sekcje nad lodowka
+  <app-cabinet-section-header *ngIf="isFridgeCabinet" title="Sekcje nad lodowka">
     <span class="segment-count" *ngIf="segmentsArray.length > 0">({{ segmentsArray.length }})</span>
     <span class="form-hint" *ngIf="segmentsArray.length === 0"> - opcjonalne</span>
-  </h4>
+  </app-cabinet-section-header>
 
   <div *ngIf="isFridgeCabinet" class="fridge-section-info">
     Sekcja lodowki: <strong>{{ fridgeSectionHeight }}mm</strong>

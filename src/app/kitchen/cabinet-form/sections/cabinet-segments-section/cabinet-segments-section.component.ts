@@ -4,11 +4,12 @@ import { FormArray, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { SEGMENT_TYPE_OPTIONS } from '../../model/segment.model';
 import { SegmentFormComponent } from '../../segment-form/segment-form.component';
 import { SegmentVisualizerComponent } from '../../segment-visualizer/segment-visualizer.component';
+import { SectionHeaderComponent } from '../../shared/section-header.component';
 
 @Component({
   selector: 'app-cabinet-segments-section',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SegmentFormComponent, SegmentVisualizerComponent],
+  imports: [CommonModule, ReactiveFormsModule, SegmentFormComponent, SegmentVisualizerComponent, SectionHeaderComponent],
   templateUrl: './cabinet-segments-section.component.html',
   styleUrls: ['./cabinet-segments-section.component.css']
 })

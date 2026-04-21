@@ -9,6 +9,7 @@ import {
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { CabinetZone } from '../model/kitchen-state.model';
 import { CabinetDetailFrontsLayerComponent } from './cabinet-detail-fronts-layer.component';
+import { EmptyStateComponent } from '../../shared/empty-state/empty-state.component';
 import {
   buildCabinetDetailGeometry,
   buildDefaultCabinetVisualConfig,
@@ -34,7 +35,7 @@ export interface CabinetDetailInput {
   selector: 'app-cabinet-detail-visualizer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CabinetDetailFrontsLayerComponent],
+  imports: [CommonModule, CabinetDetailFrontsLayerComponent, EmptyStateComponent],
   templateUrl: './cabinet-detail-visualizer.component.html',
   styleUrls: ['./cabinet-detail-visualizer.component.css']
 })

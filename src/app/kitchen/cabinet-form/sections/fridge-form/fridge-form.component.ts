@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
 import { DictionaryService } from '../../../service/dictionary.service';
+import { SectionHeaderComponent } from '../../shared/section-header.component';
 
 /**
  * Sekcja konfiguracji szafki na lodówkę (BASE_FRIDGE i BASE_FRIDGE_FREESTANDING).
@@ -14,7 +15,7 @@ import { DictionaryService } from '../../../service/dictionary.service';
   selector: 'app-fridge-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SectionHeaderComponent],
   templateUrl: './fridge-form.component.html',
   styleUrls: ['./fridge-form.component.css']
 })

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import { KitchenCabinet } from '../model/kitchen-state.model';
@@ -28,3 +28,4 @@ export class KitchenCabinetsSectionComponent {
   @Output() removeCabinet = new EventEmitter<string>();
   @Output() cloneCabinet = new EventEmitter<string>();
 }
+

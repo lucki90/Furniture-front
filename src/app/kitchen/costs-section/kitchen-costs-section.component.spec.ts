@@ -125,4 +125,19 @@ describe('KitchenCostsSectionComponent', () => {
     expect(component.pricingOfferNotesChange.emit).toHaveBeenCalledWith('Nowa notatka');
     expect(component.savePricing.emit).toHaveBeenCalled();
   });
+
+  it('renders empty boards tab state when there are no aggregated boards', () => {
+    component.projectResult = {
+      allFit: true,
+      wallCount: 1,
+      totalCabinetCount: 1,
+      walls: []
+    } as any;
+    component.activeDetailsTab = 'boards';
+    component.aggregatedBoards = [];
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Brak płyt do wyświetlenia');
+  });
 });

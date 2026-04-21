@@ -2,7 +2,7 @@
 
   <!-- ============ Szafka na wbudowaną lodówkę (BASE_FRIDGE) ============ -->
   <div *ngIf="isBuiltInFridge" class="sink-section">
-    <h4 class="section-title">Konfiguracja szafki na lodówkę</h4>
+    <app-cabinet-section-header title="Konfiguracja szafki na lodówkę"></app-cabinet-section-header>
 
     <!-- Typ sekcji: 1-drzwiowa / 2-drzwiowa -->
     <div class="form-row">
@@ -35,7 +35,7 @@
 
   <!-- ============ Lodówka wolnostojąca (BASE_FRIDGE_FREESTANDING) ============ -->
   <div *ngIf="isFreestandingFridge" class="sink-section">
-    <h4 class="section-title">Konfiguracja lodówki wolnostojącej</h4>
+    <app-cabinet-section-header title="Konfiguracja lodówki wolnostojącej"></app-cabinet-section-header>
 
     <div class="form-row">
       <div class="form-group flex-2">
