@@ -3,6 +3,12 @@ import { WallType } from '../model/kitchen-project.model';
 import { CabinetOnFloorPlan } from './floor-plan-door-arcs';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 
+/** Settings needed for UPPER auto-repositioning in the floor plan. */
+export interface FloorPlanCabinetsSettings {
+  plinthHeightMm: number;
+  upperFillerHeightMm: number;
+}
+
 export interface WallPosition {
   wall: WallWithCabinets;
   x: number;
@@ -172,11 +178,61 @@ export function buildWallPositions(
   return positions;
 }
 
-export function buildCabinetsForWall(pos: WallPosition, wallThickness: number): CabinetOnFloorPlan[] {
+/**
+ * Returns the raw X (in mm) past all anchors that this UPPER cabinet can't fit above.
+ * Used for auto-repositioning: when positionY from ceiling < anchor.tallTop, the UPPER
+ * is placed beside the anchor instead of overlapping it.
+ */
+function skipPastConflictingAnchors(
+  startX: number,
+  upperWidth: number,
+  upperHeight: number,
+  wallHeightMm: number,
+  settings: FloorPlanCabinetsSettings,
+  anchors: Array<{ xStart: number; xEnd: number; tallTop: number }>
+): number {
+  const ceilingY = wallHeightMm - settings.upperFillerHeightMm - upperHeight;
+  let candidateX = startX;
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const anchor of anchors) {
+      if (anchor.xStart < candidateX + upperWidth && anchor.xEnd > candidateX) {
+        if (anchor.tallTop > ceilingY) {
+          candidateX = anchor.xEnd;
+          changed = true;
+          break;
+        }
+      }
+    }
+  }
+  return candidateX;
+}
+
+export function buildCabinetsForWall(
+  pos: WallPosition,
+  wallThickness: number,
+  cabSettings?: FloorPlanCabinetsSettings
+): CabinetOnFloorPlan[] {
   const wall = pos.wall;
   const scale = pos.scale;
   let currentXBottom = 0;
   let currentXTop = 0;
+
+  // Pre-scan: collect FULL-zone anchor positions for UPPER auto-repositioning.
+  // Simplified (no enclosure widths) — adequate precision for floor plan display.
+  const anchors: Array<{ xStart: number; xEnd: number; tallTop: number }> = [];
+  if (cabSettings) {
+    let scanX = 0;
+    for (const cab of wall.cabinets) {
+      const zone = getCabinetZone(cab);
+      if (zone === 'TOP') continue; // TOP cabs don't advance the bottom X cursor
+      if (zone === 'FULL') {
+        anchors.push({ xStart: scanX, xEnd: scanX + cab.width, tallTop: cabSettings.plinthHeightMm + cab.height });
+      }
+      scanX += cab.width; // BOTTOM and FULL both advance bottom X
+    }
+  }
 
   const bottomCabinets: CabinetOnFloorPlan[] = [];
   const topCabinets: CabinetOnFloorPlan[] = [];
@@ -191,14 +247,21 @@ export function buildCabinetsForWall(pos: WallPosition, wallThickness: number): 
     let posX: number;
     switch (zone) {
       case 'FULL':
-        posX = Math.max(currentXBottom, currentXTop);
-        currentXBottom = posX + cabinet.width;
-        currentXTop = posX + cabinet.width;
+        // FULL (TALL_CABINET / BASE_FRIDGE) advances only the BOTTOM X cursor.
+        // currentXTop stays unchanged — UPPER cabinets can overlay FULL in X when they fit.
+        posX = currentXBottom;
+        currentXBottom += cabinet.width;
         break;
-      case 'TOP':
-        posX = currentXTop;
-        currentXTop += cabinet.width;
+      case 'TOP': {
+        // Auto-reposition: if UPPER doesn't fit above an anchor (ceilingY < tallTop),
+        // advance past the anchor so the UPPER is displayed beside it.
+        const rawX = (cabSettings && cabinet.positioningMode !== 'RELATIVE_TO_COUNTERTOP')
+          ? skipPastConflictingAnchors(currentXTop, cabinet.width, cabinet.height, wall.heightMm, cabSettings, anchors)
+          : currentXTop;
+        posX = rawX;
+        currentXTop = rawX + cabinet.width;
         break;
+      }
       case 'BOTTOM':
       default:
         posX = currentXBottom;
@@ -239,36 +302,22 @@ export function buildCabinetsForWall(pos: WallPosition, wallThickness: number): 
 
 export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorPlanLayoutSettings, 'wallThickness' | 'countertopOverhang' | 'countertopStandardDepth'>): CountertopOnFloorPlan[] {
   const wall = pos.wall;
+  // Only the BOTTOM X cursor matters here — TOP (wiszące) are skipped entirely,
+  // and FULL (TALL/fridge) advances currentXBottom just like a BOTTOM cabinet.
+  // Using Math.max(currentXBottom, currentXTop) for FULL was wrong: a wide UPPER
+  // could push currentXTop ahead and cause subsequent FULL/BOTTOM cabinets to be
+  // placed further right than the actual cabinet layer.
   let currentXBottom = 0;
-  let currentXTop = 0;
   const result: CountertopOnFloorPlan[] = [];
   let runStartMm: number | null = null;
   let runWidthMm = 0;
 
   for (const cabinet of wall.cabinets) {
     const zone = getCabinetZone(cabinet);
+    if (zone === 'TOP') continue; // Wiszące nie wpływają na pozycje blatów
 
-    let posX: number;
-    switch (zone) {
-      case 'FULL':
-        posX = Math.max(currentXBottom, currentXTop);
-        currentXBottom = posX + cabinet.width;
-        currentXTop = posX + cabinet.width;
-        break;
-      case 'TOP':
-        posX = currentXTop;
-        currentXTop += cabinet.width;
-        break;
-      case 'BOTTOM':
-      default:
-        posX = currentXBottom;
-        currentXBottom += cabinet.width;
-        break;
-    }
-
-    if (zone === 'TOP') {
-      continue;
-    }
+    const posX = currentXBottom;
+    currentXBottom += cabinet.width;
 
     if (requiresCountertop(cabinet.type)) {
       if (runStartMm === null) {

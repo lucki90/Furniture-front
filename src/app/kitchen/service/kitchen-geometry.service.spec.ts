@@ -103,12 +103,12 @@ describe('KitchenGeometryService', () => {
     ]);
   });
 
-  it('should place top cabinets relative to ceiling and ignore tall cabinets when computing countertop height', () => {
+  it('should auto-reposition UPPER beside TALL when it cannot fit above (ceilingY < tallTop)', () => {
     const tallCabinet = buildCabinet({
       id: 'tall',
       type: KitchenCabinetType.TALL_CABINET,
       width: 600,
-      height: 2300
+      height: 2300  // tallTop = 100+2300 = 2400
     });
     const baseCabinet = buildCabinet({
       id: 'base',
@@ -125,6 +125,7 @@ describe('KitchenGeometryService', () => {
       height: 900,
       depth: 320,
       positioningMode: 'RELATIVE_TO_CEILING'
+      // ceilingY = 2600 - 50 - 900 = 1650 < tallTop(2400) → doesn't fit → auto-reposition to X=600
     });
     const relativeCabinet = buildCabinet({
       id: 'upper-gap',
@@ -138,7 +139,32 @@ describe('KitchenGeometryService', () => {
 
     const result = service.calculateCabinetPositions([tallCabinet, baseCabinet, upperCabinet, relativeCabinet], settings);
 
+    // TALL too tall → UPPER auto-repositioned to X=600 (beside TALL), y stays at ceiling formula
+    // upper-gap (COUNTERTOP mode): no skip → starts after upper at X=600+400=1000
+    // countertopH = 100 + 760 + 38 = 898; y = 898+300 = 1198
     expect(result[2]).toEqual(jasmine.objectContaining({ cabinetId: 'upper', x: 600, y: 1650 }));
     expect(result[3]).toEqual(jasmine.objectContaining({ cabinetId: 'upper-gap', x: 1000, y: 1198 }));
+  });
+
+  it('should keep UPPER at X=0 (overlapping TALL in X) when it fits above (ceilingY >= tallTop)', () => {
+    const tallCabinet = buildCabinet({
+      id: 'tall',
+      type: KitchenCabinetType.TALL_CABINET,
+      width: 600,
+      height: 1500  // tallTop = 100+1500 = 1600
+    });
+    const upperCabinet = buildCabinet({
+      id: 'upper',
+      type: KitchenCabinetType.UPPER_ONE_DOOR,
+      width: 400,
+      height: 900,
+      depth: 320,
+      positioningMode: 'RELATIVE_TO_CEILING'
+      // ceilingY = 2600 - 50 - 900 = 1650 > tallTop(1600) → fits above → stays at X=0
+    });
+
+    const result = service.calculateCabinetPositions([tallCabinet, upperCabinet], settings);
+
+    expect(result[1]).toEqual(jasmine.objectContaining({ cabinetId: 'upper', x: 0, y: 1650 }));
   });
 });

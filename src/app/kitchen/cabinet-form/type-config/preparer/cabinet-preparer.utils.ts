@@ -52,6 +52,7 @@ export function setUpperExtraVisibility(v: CabinetFormVisibility, liftUpVisible:
   v.bottomWreathOnFloor = false;
   v.positioningMode = true;
   v.gapFromCountertopMm = true;
+  v.gapFromAnchorMm = true;   // Odstęp od słupka (dla RELATIVE_TO_CEILING nad TALL)
   v.liftUp = liftUpVisible;
   v.extendedFront = true;
 }

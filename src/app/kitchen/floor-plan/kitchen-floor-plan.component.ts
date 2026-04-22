@@ -120,7 +120,10 @@ export class KitchenFloorPlanComponent {
   }
 
   getCabinetsForWall(pos: WallPosition) {
-    return buildCabinetsForWall(pos, this.WALL_THICKNESS);
+    return buildCabinetsForWall(pos, this.WALL_THICKNESS, {
+      plinthHeightMm: this.stateService.plinthHeightMm(),
+      upperFillerHeightMm: this.stateService.upperFillerHeightMm()
+    });
   }
 
   getCountertopsForWall(pos: WallPosition): CountertopOnFloorPlan[] {

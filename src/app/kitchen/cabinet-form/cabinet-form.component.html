@@ -104,6 +104,12 @@
           [errorMessage]="getFieldError('gapFromCountertopMm')">
         <input type="number" class="form-control" formControlName="gapFromCountertopMm" min="450" step="10">
       </app-form-field>
+      <app-form-field class="form-group flex-2" *ngIf="visibility.gapFromAnchorMm && !isCountertopMode"
+          label="Min. odległość od słupka" unit="mm"
+          hint="Minimalny wymagany odstęp między wierzchołkiem słupka/lodówki a dołem szafki. Tylko walidacja — nie zmienia pozycji (0–500 mm)."
+          [errorMessage]="getFieldError('gapFromAnchorMm')">
+        <input type="number" class="form-control" formControlName="gapFromAnchorMm" min="0" max="500" step="5">
+      </app-form-field>
     </div>
     <div class="positioning-info">
       <ng-container *ngIf="!isCountertopMode">

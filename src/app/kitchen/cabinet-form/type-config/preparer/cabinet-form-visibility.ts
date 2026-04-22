@@ -17,6 +17,7 @@ export interface CabinetFormVisibility {
   // Pola pozycjonowania szafek wiszących (UPPER_*)
   positioningMode: boolean;       // Tryb: SUFIT / BLAT
   gapFromCountertopMm: boolean;   // Odstęp od blatu (tylko dla trybu BLAT)
+  gapFromAnchorMm: boolean;       // Odstęp od słupka (dla trybu SUFIT gdy TALL w zasięgu X)
 
   // Pola szafki kaskadowej (UPPER_CASCADE)
   cascadeSegments: boolean;       // Sekcja segmentów kaskadowych (dolny + górny)

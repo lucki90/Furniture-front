@@ -29,6 +29,7 @@ export class DefaultKitchenFormFactory {
       // Pola pozycjonowania szafek wiszących (UPPER_*)
       positioningMode: ['RELATIVE_TO_CEILING'],  // RELATIVE_TO_CEILING | RELATIVE_TO_COUNTERTOP
       gapFromCountertopMm: [500],                // Odstęp od blatu (min 450mm)
+      gapFromAnchorMm: [0],                      // Odstęp od wierzchołka słupka (0–500mm, tylko nad TALL)
 
       // Pola kaskadowe (dla UPPER_CASCADE)
       cascadeLowerHeight: [400],   // Wysokość dolnego (głębszego) segmentu

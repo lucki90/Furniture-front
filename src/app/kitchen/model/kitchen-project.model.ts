@@ -156,6 +156,7 @@ export interface ProjectCabinetRequest {
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;  // null dla szafek dolnych i słupków
   gapFromCountertopMm?: number;       // odstęp od blatu (dla RELATIVE_TO_COUNTERTOP)
+  gapFromAnchorMm?: number;           // odstęp od wierzchołka słupka (dla RELATIVE_TO_CEILING nad TALL)
 
   // Obudowa boczna (lewa i prawa strona)
   leftEnclosure?: EnclosureConfig;
@@ -465,6 +466,7 @@ export interface CabinetPlacementResponse {
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;
   gapFromCountertopMm?: number;
+  gapFromAnchorMm?: number;
 
   // Obudowa boczna
   leftEnclosure?: EnclosureConfig;

@@ -48,6 +48,7 @@ export class CabinetFormTypeLifecycleService {
       isUpperCorner: false,
       positioningMode: false,
       gapFromCountertopMm: false,
+      gapFromAnchorMm: false,
       cascadeSegments: false,
       enclosureSection: false,
       bottomWreathOnFloor: false,

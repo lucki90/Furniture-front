@@ -31,6 +31,16 @@ export function isTallCabinetType(type: KitchenCabinetType): boolean {
   return type === KitchenCabinetType.TALL_CABINET;
 }
 
+/**
+ * Czy szafka pełnowysoka może być kotwicą dla szafek wiszących (UPPER nad nią).
+ * Obejmuje TALL_CABINET i BASE_FRIDGE (lodówka w zabudowie — pełna wysokość, FULL zone).
+ * Nie obejmuje BASE_FRIDGE_FREESTANDING (strefa BOTTOM, nie siedzi na cokole jak słupek).
+ * Analogicznie do backendu: isFullHeightAnchor() w CabinetPositionCalculator i PlacementValidator.
+ */
+export function isFullHeightAnchor(type: KitchenCabinetType): boolean {
+  return type === KitchenCabinetType.TALL_CABINET || type === KitchenCabinetType.BASE_FRIDGE;
+}
+
 export function requiresPlinth(type: KitchenCabinetType): boolean {
   if (type === KitchenCabinetType.BASE_OVEN_FREESTANDING || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING) return false;
   return isBaseCabinetType(type) || isTallCabinetType(type) || type === KitchenCabinetType.BASE_FRIDGE;
@@ -97,6 +107,7 @@ export interface KitchenCabinetBase {
   // Pozycjonowanie szafek wiszących (ignorowane dla dolnych/FULL)
   positioningMode?: PositioningMode;
   gapFromCountertopMm?: number;
+  gapFromAnchorMm?: number;  // odstęp od wierzchołka słupka (dla RELATIVE_TO_CEILING nad TALL)
 
   // Obudowa boczna (wszystkie typy mogą mieć obudowę)
   leftEnclosureType?: string;   // 'NONE' | 'SIDE_PLATE_WITH_PLINTH' | 'SIDE_PLATE_TO_FLOOR' | 'PARALLEL_FILLER_STRIP'
@@ -386,6 +397,7 @@ export interface CabinetFormData {
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;
   gapFromCountertopMm?: number;
+  gapFromAnchorMm?: number;
 
   // Obudowa boczna
   leftEnclosureType?: string;

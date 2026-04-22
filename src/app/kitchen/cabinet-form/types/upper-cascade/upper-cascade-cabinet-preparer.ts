@@ -33,6 +33,7 @@ export class UpperCascadeCabinetPreparer implements KitchenCabinetPreparer {
     // Pokaż pola pozycjonowania szafek wiszących
     v.positioningMode = true;
     v.gapFromCountertopMm = true;
+    v.gapFromAnchorMm = true;
 
     // Pokaż sekcję segmentów kaskadowych
     v.cascadeSegments = true;

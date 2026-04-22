@@ -3,6 +3,8 @@ import {
   KitchenCabinet,
   WallWithCabinets,
   isUpperCabinetType,
+  isFullHeightAnchor,
+  requiresCountertop,
   cabinetHasSegments
 } from '../model/kitchen-state.model';
 import {
@@ -29,15 +31,25 @@ export class ProjectWallCabinetsBuilder {
     const wallHeightMm = wall.heightMm;
     const countertopHeightMm = this.calculateCountertopHeight(wall, plinthHeightMm, countertopThicknessMm);
 
+    // Pre-scan: collect FULL-zone anchor positions for UPPER auto-repositioning.
+    const anchors = this.buildAnchorPositions(wall.cabinets, plinthHeightMm, fillerWidthMm);
+
     return wall.cabinets.map(cab => {
       const isTop = isUpperCabinetType(cab.type);
       const leftEncW = this.addonsBuilder.enclosureOuterWidthMm(cab, 'left', fillerWidthMm);
       const rightEncW = this.addonsBuilder.enclosureOuterWidthMm(cab, 'right', fillerWidthMm);
-      const positionX = isTop ? currentXTop + leftEncW : currentXBottom + leftEncW;
 
+      let positionX: number;
       if (isTop) {
+        // CEILING mode: auto-reposition UPPER beside any anchor it can't fit above.
+        // leftEncW is passed so the overlap check targets the UPPER body, not the raw cursor.
+        const rawX = (cab.positioningMode !== 'RELATIVE_TO_COUNTERTOP')
+          ? this.skipPastConflictingAnchors(currentXTop, leftEncW, cab.width, cab.height, wallHeightMm, upperFillerHeightMm, anchors)
+          : currentXTop;
+        positionX = rawX + leftEncW;
         currentXTop = positionX + cab.width + rightEncW;
       } else {
+        positionX = currentXBottom + leftEncW;
         currentXBottom = positionX + cab.width + rightEncW;
       }
 
@@ -49,7 +61,9 @@ export class ProjectWallCabinetsBuilder {
         width: cab.width,
         depth: cab.depth,
         positionX,
-        positionY: this.calculatePositionY(cab, wallHeightMm, upperFillerHeightMm, countertopHeightMm),
+        positionY: this.calculatePositionY(
+          cab, wallHeightMm, upperFillerHeightMm, countertopHeightMm, plinthHeightMm
+        ),
         shelfQuantity: cab.shelfQuantity,
         // TODO: per-projekt overrides - gdy projekt/szafka ma nadpisane materiały/kolory/okleiny,
         //   użyj ich zamiast globalnych defaults `materialDefaults`. Patrz kitchen-state.service.ts -> TODO ProjectMaterialOverrides.
@@ -71,6 +85,7 @@ export class ProjectWallCabinetsBuilder {
         cornerRequest: this.buildCornerRequest(cab),
         positioningMode: cab.positioningMode,
         gapFromCountertopMm: cab.gapFromCountertopMm,
+        gapFromAnchorMm: cab.gapFromAnchorMm ?? undefined,
         leftEnclosure: this.mapEnclosure(cab, 'left'),
         rightEnclosure: this.mapEnclosure(cab, 'right'),
         distanceFromWallMm: cab.distanceFromWallMm ?? null,
@@ -85,25 +100,102 @@ export class ProjectWallCabinetsBuilder {
     plinthHeightMm: number,
     countertopThicknessMm: number
   ): number {
-    const bottomCabinets = wall.cabinets.filter(cab => !isUpperCabinetType(cab.type));
+    // Uwzględniaj tylko szafki z blatem (BASE_*), wyklucz TALL_CABINET i BASE_FRIDGE (FULL zone)
+    // oraz wolnostojące AGD — spójne z backendem CabinetPositionCalculator.findMaxBaseCorpusHeight()
+    const bottomCabinets = wall.cabinets.filter(cab => requiresCountertop(cab.type));
     const maxBaseCorpusH = bottomCabinets.length > 0 ? Math.max(...bottomCabinets.map(cab => cab.height)) : 720;
     return plinthHeightMm + maxBaseCorpusH + countertopThicknessMm;
+  }
+
+  /**
+   * Pre-scan: compute FULL-zone anchor (TALL_CABINET / BASE_FRIDGE) body positions
+   * in sequential bottom-X order. Used for UPPER auto-repositioning.
+   */
+  private buildAnchorPositions(
+    cabinets: KitchenCabinet[],
+    plinthHeightMm: number,
+    fillerWidthMm: number
+  ): Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number }> {
+    let scanX = 0;
+    const result: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number }> = [];
+
+    for (const cab of cabinets) {
+      if (isUpperCabinetType(cab.type)) continue; // TOP cabs don't advance the bottom X cursor
+      const leftEncW = this.addonsBuilder.enclosureOuterWidthMm(cab, 'left', fillerWidthMm);
+      const rightEncW = this.addonsBuilder.enclosureOuterWidthMm(cab, 'right', fillerWidthMm);
+      const xBodyStart = scanX + leftEncW;
+      const xBodyEnd = xBodyStart + cab.width;
+      const xAfterAnchor = xBodyEnd + rightEncW;
+
+      if (isFullHeightAnchor(cab.type)) {
+        result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop: plinthHeightMm + cab.height });
+      }
+      scanX = xAfterAnchor;
+    }
+    return result;
+  }
+
+  /**
+   * Returns the raw start-X (in mm, before adding UPPER's left enclosure) past all
+   * FULL-zone anchors that this UPPER cabinet cannot fit above in CEILING mode.
+   * When positionY from ceiling < anchor.tallTop, jump past the anchor so the UPPER
+   * is placed beside it rather than overlapping.
+   *
+   * @param leftBodyOffset - UPPER's left enclosure width; body starts this far from rawX.
+   *   Overlap is checked against the actual UPPER body [rawX+offset, rawX+offset+width],
+   *   not the raw cursor, to avoid false conflicts when a left filler pushes the body clear.
+   */
+  private skipPastConflictingAnchors(
+    startX: number,
+    leftBodyOffset: number,
+    upperWidth: number,
+    upperHeight: number,
+    wallHeightMm: number,
+    upperFillerHeightMm: number,
+    anchors: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number }>
+  ): number {
+    const upperCeilingY = wallHeightMm - upperFillerHeightMm - upperHeight;
+    let candidateX = startX;
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const anchor of anchors) {
+        const upperBodyStart = candidateX + leftBodyOffset;
+        const upperBodyEnd = upperBodyStart + upperWidth;
+        if (anchor.xBodyStart < upperBodyEnd && anchor.xBodyEnd > upperBodyStart) {
+          if (anchor.tallTop > upperCeilingY) {
+            candidateX = anchor.xAfterAnchor;
+            changed = true;
+            break; // restart scan from new candidateX
+          }
+        }
+      }
+    }
+    return candidateX;
   }
 
   private calculatePositionY(
     cab: KitchenCabinet,
     wallHeightMm: number,
     upperFillerHeightMm: number,
-    countertopHeightMm: number
+    countertopHeightMm: number,
+    plinthHeightMm: number
   ): number {
     if (!isUpperCabinetType(cab.type)) {
-      return 0;
+      // Szafki pełnowysoke (TALL_CABINET, BASE_FRIDGE) fizycznie stoją NA cokole → positionY = plinthH.
+      // Spójne z backendem: CabinetPositionCalculator zwraca plinthH dla isBaseCabinet || isTallCabinet,
+      // a PlacementValidator zakłada anchor.positionY = plinthH przy obliczaniu anchorTop.
+      // Pozostałe szafki dolne (BASE_*) — positionY = 0 (podłoga, cokół renderowany osobno).
+      return isFullHeightAnchor(cab.type) ? plinthHeightMm : 0;
     }
 
     if (cab.positioningMode === 'RELATIVE_TO_COUNTERTOP') {
       return countertopHeightMm + (cab.gapFromCountertopMm ?? 500);
     }
 
+    // RELATIVE_TO_CEILING: szafka wisząca zawsze pozycjonowana od sufitu w dół.
+    // gapFromAnchorMm służy wyłącznie do walidacji minimalnego odstępu od kotwicy (TALL/BASE_FRIDGE)
+    // — nie wpływa na obliczoną pozycję.
     return wallHeightMm - upperFillerHeightMm - cab.height;
   }
 
