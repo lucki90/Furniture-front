@@ -28,6 +28,9 @@ export class TallCabinetPreparer implements KitchenCabinetPreparer {
     // Pokaż sekcję obudowy bocznej
     v.enclosureSection = true;
 
+    // Blokada szafek wiszących — słupek może blokować miejsce powyżej
+    v.blockUpperAbove = true;
+
     // Wartości domyślne dla słupka
     form.patchValue({
       width: 450,

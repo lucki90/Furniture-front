@@ -33,6 +33,9 @@ export class BaseFridgeCabinetPreparer implements KitchenCabinetPreparer {
     // Obudowa boczna — szafka stojąca od podłogi do sufitu
     v.enclosureSection = true;
 
+    // Blokada szafek wiszących — lodówka może blokować miejsce powyżej
+    v.blockUpperAbove = true;
+
     // Bez frontu lift-up, bez przedłużonego frontu
     v.liftUp = false;
     v.extendedFront = false;

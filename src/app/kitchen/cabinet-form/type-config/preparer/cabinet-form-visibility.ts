@@ -19,6 +19,9 @@ export interface CabinetFormVisibility {
   gapFromCountertopMm: boolean;   // Odstęp od blatu (tylko dla trybu BLAT)
   gapFromAnchorMm: boolean;       // Odstęp od słupka (dla trybu SUFIT gdy TALL w zasięgu X)
 
+  // Blokada szafek wiszących (TALL_CABINET, BASE_FRIDGE)
+  blockUpperAbove: boolean;       // Gdy true: żadna UPPER nie może być umieszczona powyżej
+
   // Pola szafki kaskadowej (UPPER_CASCADE)
   cascadeSegments: boolean;       // Sekcja segmentów kaskadowych (dolny + górny)
 

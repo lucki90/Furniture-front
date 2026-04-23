@@ -25,6 +25,7 @@ export class BaseSinkCabinetPreparer implements KitchenCabinetPreparer {
 
     // Pokaż opcję dolnego wieńca na podłodze (identycznie jak BASE_ONE/TWO/WITH_DRAWERS)
     v.bottomWreathOnFloor = true;
+    v.blockUpperAbove = true;
 
     // Pokaż sekcję specyficzną dla szafki zlewowej
     v.sinkFrontType = true;    // selector frontu (1 drzwi / 2 drzwi / szuflada)

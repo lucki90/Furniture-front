@@ -200,6 +200,15 @@
     </label>
   </div>
 
+  <!-- ============ Blokada szafek wiszacych powyzej (TALL_CABINET, BASE_FRIDGE) ============ -->
+  <div *ngIf="visibility.blockUpperAbove" class="config-field">
+    <label class="form-label enclosure-checkbox-label">
+      <input type="checkbox" formControlName="blockUpperAbove" class="enclosure-checkbox" />
+      Brak szafki wiszącej powyżej
+      <span class="form-hint">(blokuje umieszczenie wiszących nad tym elementem)</span>
+    </label>
+  </div>
+
   <!-- ============ Szafka zlewowa (BASE_SINK) ============ -->
   <app-sink-form *ngIf="visibility.sinkFrontType" [form]="form"></app-sink-form>
 

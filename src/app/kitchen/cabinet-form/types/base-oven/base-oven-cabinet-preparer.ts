@@ -35,6 +35,7 @@ export class BaseOvenCabinetPreparer implements KitchenCabinetPreparer {
 
     // Bez wieńca dolnego na podłodze
     v.bottomWreathOnFloor = false;
+    v.blockUpperAbove = true;
 
     // Ukryj pola innych typów
     v.sinkFrontType = false;

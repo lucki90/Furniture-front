@@ -53,6 +53,9 @@ export class DefaultKitchenFormFactory {
       // Nowy sposób liczenia dolnych: dolny wieniec na podłodze
       bottomWreathOnFloor: [false],
 
+      // Blokada szafek wiszących powyżej (TALL_CABINET, BASE_FRIDGE)
+      blockUpperAbove: [false],
+
       // Pola szafki zlewowej (BASE_SINK)
       sinkFrontType:     ['TWO_DOORS'],       // ONE_DOOR | TWO_DOORS | DRAWER
       sinkApronEnabled:  [true],              // blenda maskująca ON/OFF

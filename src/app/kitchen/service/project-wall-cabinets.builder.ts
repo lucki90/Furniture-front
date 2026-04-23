@@ -4,6 +4,7 @@ import {
   WallWithCabinets,
   isUpperCabinetType,
   isFullHeightAnchor,
+  getCabinetZone,
   requiresCountertop,
   cabinetHasSegments
 } from '../model/kitchen-state.model';
@@ -41,11 +42,13 @@ export class ProjectWallCabinetsBuilder {
 
       let positionX: number;
       if (isTop) {
-        // CEILING mode: auto-reposition UPPER beside any anchor it can't fit above.
-        // leftEncW is passed so the overlap check targets the UPPER body, not the raw cursor.
-        const rawX = (cab.positioningMode !== 'RELATIVE_TO_COUNTERTOP')
-          ? this.skipPastConflictingAnchors(currentXTop, leftEncW, cab.width, cab.height, wallHeightMm, upperFillerHeightMm, anchors)
-          : currentXTop;
+        // Auto-reposition UPPER beside any anchor it can't or must not be above.
+        // For RELATIVE_TO_COUNTERTOP: geometric check (tallTop > ceilingY) doesn't apply —
+        // only explicit blockUpperAbove=true anchors still force repositioning.
+        const effectiveAnchors = (cab.positioningMode === 'RELATIVE_TO_COUNTERTOP')
+          ? anchors.filter(a => a.blockUpperAbove)
+          : anchors;
+        const rawX = this.skipPastConflictingAnchors(currentXTop, leftEncW, cab.width, cab.height, wallHeightMm, upperFillerHeightMm, effectiveAnchors);
         positionX = rawX + leftEncW;
         currentXTop = positionX + cab.width + rightEncW;
       } else {
@@ -86,6 +89,7 @@ export class ProjectWallCabinetsBuilder {
         positioningMode: cab.positioningMode,
         gapFromCountertopMm: cab.gapFromCountertopMm,
         gapFromAnchorMm: cab.gapFromAnchorMm ?? undefined,
+        blockUpperAbove: cab.blockUpperAbove ?? false,
         leftEnclosure: this.mapEnclosure(cab, 'left'),
         rightEnclosure: this.mapEnclosure(cab, 'right'),
         distanceFromWallMm: cab.distanceFromWallMm ?? null,
@@ -115,12 +119,13 @@ export class ProjectWallCabinetsBuilder {
     cabinets: KitchenCabinet[],
     plinthHeightMm: number,
     fillerWidthMm: number
-  ): Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number }> {
+  ): Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number; blockUpperAbove: boolean }> {
     let scanX = 0;
-    const result: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number }> = [];
+    const result: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number; blockUpperAbove: boolean }> = [];
 
     for (const cab of cabinets) {
-      if (isUpperCabinetType(cab.type)) continue; // TOP cabs don't advance the bottom X cursor
+      // getCabinetZone handles CORNER_CABINET with isUpperCorner=true → 'TOP' (isUpperCabinetType does not)
+      if (getCabinetZone(cab) === 'TOP') continue; // TOP cabs don't advance the bottom X cursor
       const leftEncW = this.addonsBuilder.enclosureOuterWidthMm(cab, 'left', fillerWidthMm);
       const rightEncW = this.addonsBuilder.enclosureOuterWidthMm(cab, 'right', fillerWidthMm);
       const xBodyStart = scanX + leftEncW;
@@ -128,7 +133,11 @@ export class ProjectWallCabinetsBuilder {
       const xAfterAnchor = xBodyEnd + rightEncW;
 
       if (isFullHeightAnchor(cab.type)) {
-        result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop: plinthHeightMm + cab.height });
+        result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop: plinthHeightMm + cab.height, blockUpperAbove: cab.blockUpperAbove ?? false });
+      } else if (cab.blockUpperAbove) {
+        // BOTTOM cabinet with explicit block — tallTop (plinthH + baseH ≈ 820mm) never exceeds
+        // ceilingY, so only blockUpperAbove flag drives repositioning. Added so skipPast... fires.
+        result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop: plinthHeightMm + cab.height, blockUpperAbove: true });
       }
       scanX = xAfterAnchor;
     }
@@ -152,7 +161,7 @@ export class ProjectWallCabinetsBuilder {
     upperHeight: number,
     wallHeightMm: number,
     upperFillerHeightMm: number,
-    anchors: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number }>
+    anchors: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number; blockUpperAbove: boolean }>
   ): number {
     const upperCeilingY = wallHeightMm - upperFillerHeightMm - upperHeight;
     let candidateX = startX;
@@ -163,7 +172,8 @@ export class ProjectWallCabinetsBuilder {
         const upperBodyStart = candidateX + leftBodyOffset;
         const upperBodyEnd = upperBodyStart + upperWidth;
         if (anchor.xBodyStart < upperBodyEnd && anchor.xBodyEnd > upperBodyStart) {
-          if (anchor.tallTop > upperCeilingY) {
+          // Przesuń obok kotwicy gdy: (a) geometrycznie nie mieści się, lub (b) blokada jawna
+          if (anchor.tallTop > upperCeilingY || anchor.blockUpperAbove) {
             candidateX = anchor.xAfterAnchor;
             changed = true;
             break; // restart scan from new candidateX

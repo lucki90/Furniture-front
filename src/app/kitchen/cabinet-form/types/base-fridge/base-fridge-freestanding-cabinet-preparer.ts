@@ -30,6 +30,7 @@ export class BaseFridgeFreestandingCabinetPreparer implements KitchenCabinetPrep
     v.liftUp = false;
     v.extendedFront = false;
     v.bottomWreathOnFloor = false;
+    v.blockUpperAbove = true;
 
     v.sinkFrontType = false;
     v.sinkApron = false;

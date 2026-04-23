@@ -182,6 +182,7 @@ export function buildWallPositions(
  * Returns the raw X (in mm) past all anchors that this UPPER cabinet can't fit above.
  * Used for auto-repositioning: when positionY from ceiling < anchor.tallTop, the UPPER
  * is placed beside the anchor instead of overlapping it.
+ * Also skips when anchor.blockUpperAbove=true (explicit user-configured block).
  */
 function skipPastConflictingAnchors(
   startX: number,
@@ -189,7 +190,7 @@ function skipPastConflictingAnchors(
   upperHeight: number,
   wallHeightMm: number,
   settings: FloorPlanCabinetsSettings,
-  anchors: Array<{ xStart: number; xEnd: number; tallTop: number }>
+  anchors: Array<{ xStart: number; xEnd: number; tallTop: number; blockUpperAbove: boolean }>
 ): number {
   const ceilingY = wallHeightMm - settings.upperFillerHeightMm - upperHeight;
   let candidateX = startX;
@@ -198,7 +199,7 @@ function skipPastConflictingAnchors(
     changed = false;
     for (const anchor of anchors) {
       if (anchor.xStart < candidateX + upperWidth && anchor.xEnd > candidateX) {
-        if (anchor.tallTop > ceilingY) {
+        if (anchor.tallTop > ceilingY || anchor.blockUpperAbove) {
           candidateX = anchor.xEnd;
           changed = true;
           break;
@@ -221,14 +222,18 @@ export function buildCabinetsForWall(
 
   // Pre-scan: collect FULL-zone anchor positions for UPPER auto-repositioning.
   // Simplified (no enclosure widths) — adequate precision for floor plan display.
-  const anchors: Array<{ xStart: number; xEnd: number; tallTop: number }> = [];
+  const anchors: Array<{ xStart: number; xEnd: number; tallTop: number; blockUpperAbove: boolean }> = [];
   if (cabSettings) {
     let scanX = 0;
     for (const cab of wall.cabinets) {
       const zone = getCabinetZone(cab);
       if (zone === 'TOP') continue; // TOP cabs don't advance the bottom X cursor
       if (zone === 'FULL') {
-        anchors.push({ xStart: scanX, xEnd: scanX + cab.width, tallTop: cabSettings.plinthHeightMm + cab.height });
+        anchors.push({ xStart: scanX, xEnd: scanX + cab.width, tallTop: cabSettings.plinthHeightMm + cab.height, blockUpperAbove: cab.blockUpperAbove ?? false });
+      } else if (zone === 'BOTTOM' && (cab.blockUpperAbove ?? false)) {
+        // BOTTOM cabinet with explicit block — tallTop won't exceed ceilingY (BASE heights ≤ 950mm),
+        // only blockUpperAbove flag drives repositioning.
+        anchors.push({ xStart: scanX, xEnd: scanX + cab.width, tallTop: cabSettings.plinthHeightMm + cab.height, blockUpperAbove: true });
       }
       scanX += cab.width; // BOTTOM and FULL both advance bottom X
     }
@@ -253,11 +258,16 @@ export function buildCabinetsForWall(
         currentXBottom += cabinet.width;
         break;
       case 'TOP': {
-        // Auto-reposition: if UPPER doesn't fit above an anchor (ceilingY < tallTop),
-        // advance past the anchor so the UPPER is displayed beside it.
-        const rawX = (cabSettings && cabinet.positioningMode !== 'RELATIVE_TO_COUNTERTOP')
-          ? skipPastConflictingAnchors(currentXTop, cabinet.width, cabinet.height, wall.heightMm, cabSettings, anchors)
-          : currentXTop;
+        // Auto-reposition: advance UPPER past anchors it can't or must not be above.
+        // For RELATIVE_TO_COUNTERTOP: geometric check doesn't apply — only blockUpperAbove=true
+        // anchors still force repositioning.
+        let rawX = currentXTop;
+        if (cabSettings) {
+          const effectiveAnchors = (cabinet.positioningMode === 'RELATIVE_TO_COUNTERTOP')
+            ? anchors.filter(a => a.blockUpperAbove)
+            : anchors;
+          rawX = skipPastConflictingAnchors(currentXTop, cabinet.width, cabinet.height, wall.heightMm, cabSettings, effectiveAnchors);
+        }
         posX = rawX;
         currentXTop = rawX + cabinet.width;
         break;

@@ -22,6 +22,7 @@ export class BaseCooktopCabinetPreparer implements KitchenCabinetPreparer {
 
     // Pokaż dolny wieniec na podłodze (jak inne BASE)
     v.bottomWreathOnFloor = true;
+    v.blockUpperAbove = true;
 
     // Pokaż sekcję specyficzną dla szafki pod płytę
     v.cooktopType = true;       // typ płyty: GAS | INDUCTION

@@ -35,6 +35,7 @@ export function setStandardDoorVisibility(v: CabinetFormVisibility): void {
  */
 export function setBaseExtraVisibility(v: CabinetFormVisibility): void {
   v.bottomWreathOnFloor = true;
+  v.blockUpperAbove = true;  // Blokada szafek wiszących powyżej
   v.positioningMode = false;
   v.gapFromCountertopMm = false;
   v.liftUp = false;

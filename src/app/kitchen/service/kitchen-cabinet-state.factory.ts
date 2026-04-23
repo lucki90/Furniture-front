@@ -40,6 +40,7 @@ export class KitchenCabinetStateFactory {
       leftFillerWidthOverrideMm: formData.leftFillerWidthOverrideMm,
       rightFillerWidthOverrideMm: formData.rightFillerWidthOverrideMm,
       bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
+      blockUpperAbove: formData.blockUpperAbove ?? false,
       calculatedResult: this.requestBuilder.mapCalculationResult(calculatedResult)
     };
 
@@ -197,6 +198,7 @@ export class KitchenCabinetStateFactory {
       rightFillerWidthOverrideMm: cabResp.rightEnclosure?.fillerWidthOverrideMm,
       distanceFromWallMm: cabResp.distanceFromWallMm,
       bottomWreathOnFloor: cabResp.bottomWreathOnFloor ?? false,
+      blockUpperAbove: cabResp.blockUpperAbove ?? false,
       calculatedResult: this.mapPlacementCalculationResult(cabResp)
     };
 

@@ -212,4 +212,109 @@ describe('ProjectWallCabinetsBuilder', () => {
       expect(upperReq.positionX).toBe(0);
     });
   });
+
+  // ── blockUpperAbove ───────────────────────────────────────────────────────
+
+  describe('blockUpperAbove — forced repositioning regardless of positioning mode', () => {
+
+    const makeTallBlocked = (id = 'tall-blocked', width = 600, height = 2000): KitchenCabinet =>
+      makeCabinet({ id, type: KitchenCabinetType.TALL_CABINET, width, height, depth: 560, blockUpperAbove: true });
+
+    it('CEILING + blockUpperAbove=true: UPPER geometrycznie mieści się (ceilingY==tallTop) → przesuwa obok', () => {
+      // tallTop = 100 + 2000 = 2100; ceilingY = 2600 - 100 - 400 = 2100 → równe (fits geometrically)
+      // ale blockUpperAbove=true wymusza przesunięcie obok
+      const tall = makeTallBlocked('tall-1', 600, 2000);
+      const upper = makeUpper('upper-1', { height: 400, positioningMode: 'RELATIVE_TO_CEILING' });
+
+      const requests = buildRequests([tall, upper]);
+      const upperReq = requests.find(r => r.cabinetId === 'upper-1')!;
+
+      expect(upperReq.positionX).toBe(600);  // przesuwa obok TALL mimo, że geometrycznie by się zmieścił
+    });
+
+    it('RELATIVE_TO_COUNTERTOP + blockUpperAbove=true: UPPER pozycjonowana od blatu → nadal przesuwa X obok', () => {
+      // Kluczowy test P1 — bez poprawki COUNTERTOP mode omijał skipPastConflictingAnchors.
+      // TALL: X=[0,600], blockUpperAbove=true. UPPER: RELATIVE_TO_COUNTERTOP, starts at X=0.
+      const tall = makeTallBlocked('tall-1', 600, 2000);
+      const upper = makeUpper('upper-1', {
+        positioningMode: 'RELATIVE_TO_COUNTERTOP',
+        gapFromCountertopMm: 500
+      });
+
+      const requests = buildRequests([tall, upper]);
+      const upperReq = requests.find(r => r.cabinetId === 'upper-1')!;
+
+      // positionX: przesuwa obok TALL (X=600) mimo trybu COUNTERTOP
+      expect(upperReq.positionX).toBe(600);
+      // positionY: nadal obliczona jako countertopH + gapFromCountertopMm (nie zmieniona)
+      // countertopH = plinthH(100) + maxBaseH(720 default) + countertopT(38) = 858
+      expect(upperReq.positionY).toBe(1358);  // 858 + 500
+    });
+
+    it('RELATIVE_TO_COUNTERTOP + blockUpperAbove=false: brak przesunięcia (TALL geometrycznie pasuje)', () => {
+      // Normalny TALL (blockUpperAbove=false) w COUNTERTOP mode → nie przesuwa
+      const tall = makeTall('tall-1', 600, 2000);  // blockUpperAbove domyślnie false/undefined
+      const upper = makeUpper('upper-1', {
+        positioningMode: 'RELATIVE_TO_COUNTERTOP',
+        gapFromCountertopMm: 500
+      });
+
+      const requests = buildRequests([tall, upper]);
+      const upperReq = requests.find(r => r.cabinetId === 'upper-1')!;
+
+      // Brak przesunięcia — geometryczny check (tallTop > ceilingY) nie dotyczy COUNTERTOP mode
+      expect(upperReq.positionX).toBe(0);
+    });
+
+    it('blockUpperAbove=true + UPPER obok TALL (inny X-range) → brak przesunięcia', () => {
+      // UPPER zaczyna za TALL (X=600+) — brak X-overlap → blockUpperAbove nie ma efektu
+      const base = makeCabinet({ id: 'base-1', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600 });
+      const tall = makeTallBlocked('tall-1', 600, 2000);
+      const upper = makeUpper('upper-1', { positioningMode: 'RELATIVE_TO_COUNTERTOP', gapFromCountertopMm: 500 });
+      // UPPER currentXTop=0, TALL X=[600,1200] → overlap [0,600] ∩ [600,1200] = touching, nie overlap
+      // (strict: anchor.xBodyStart < upperBodyEnd && anchor.xBodyEnd > upperBodyStart)
+
+      const requests = buildRequests([base, tall, upper]);
+      const upperReq = requests.find(r => r.cabinetId === 'upper-1')!;
+
+      // UPPER X=[0,600], TALL X=[600,1200]: xBodyStart(600) < upperBodyEnd(600)? NO (not strictly)
+      // → brak przesunięcia
+      expect(upperReq.positionX).toBe(0);
+    });
+
+    it('BASE_ONE_DOOR blockUpperAbove=true: UPPER przesuwa obok zwykłej szafki dolnej', () => {
+      // Nowy scenariusz: BOTTOM cabinet (nie FULL-zone) z blockUpperAbove=true.
+      // BASE: X=[0,600], height=720 → tallTop=820 << ceilingY=2100 (geometry nie blokuje).
+      // Ale blockUpperAbove=true → UPPER musi zostać przesunięty za BASE (X=600).
+      const base = makeCabinet({ id: 'base-1', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, blockUpperAbove: true });
+      const upper = makeUpper('upper-1', { positioningMode: 'RELATIVE_TO_CEILING' });
+
+      const requests = buildRequests([base, upper]);
+      const upperReq = requests.find(r => r.cabinetId === 'upper-1')!;
+
+      // UPPER musi zostać przesunięty poza BASE (X=600)
+      expect(upperReq.positionX).toBe(600);
+    });
+
+    it('BASE_ONE_DOOR blockUpperAbove=true + brak X-overlap: UPPER zostaje w miejscu', () => {
+      // BASE: X=[0,600]. Dwie szafki dolne: UPPER startuje od currentXTop=0,
+      // ale base2 (X=[600,1200]) nie ma blockUpperAbove — więc UPPER=0 i base nakłada się na X?
+      // Uproszczony test: BASE blocked na X=[600,1200], UPPER zaczyna od X=0 (currentXTop=0),
+      // więc nie pokrywa się z blocked BASE → brak przesunięcia.
+      const base1 = makeCabinet({ id: 'base-1', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600 });
+      const base2 = makeCabinet({ id: 'base-2', type: KitchenCabinetType.BASE_ONE_DOOR, width: 400, blockUpperAbove: true });
+      // base1 zajmuje X=[0,600], base2 zajmuje X=[600,1000] i ma blockUpperAbove=true.
+      // UPPER (width=600) zaczyna od currentXTop=0 → body X=[0,600].
+      // base2 body X=[600,1000] → 600 < 600+600? YES. 1000 > 0? YES.
+      // WAIT: 600 < 1200? YES. 1000 > 0? YES. Overlap jest! → przesuwa.
+      // Zmiana: użyj UPPER width=400, body=[0,400]. base2=[600,1000] → 600 < 400? NO → brak overlap.
+      const upper = makeUpper('upper-1', { width: 400, positioningMode: 'RELATIVE_TO_CEILING' });
+
+      const requests = buildRequests([base1, base2, upper]);
+      const upperReq = requests.find(r => r.cabinetId === 'upper-1')!;
+
+      // UPPER body X=[0,400] nie pokrywa się z base2 X=[600,1000] → brak przesunięcia
+      expect(upperReq.positionX).toBe(0);
+    });
+  });
 });

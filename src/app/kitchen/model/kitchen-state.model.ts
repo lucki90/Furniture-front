@@ -109,6 +109,9 @@ export interface KitchenCabinetBase {
   gapFromCountertopMm?: number;
   gapFromAnchorMm?: number;  // odstęp od wierzchołka słupka (dla RELATIVE_TO_CEILING nad TALL)
 
+  // Blokada szafek wiszących powyżej (FULL-zone: TALL_CABINET, BASE_FRIDGE)
+  blockUpperAbove?: boolean;
+
   // Obudowa boczna (wszystkie typy mogą mieć obudowę)
   leftEnclosureType?: string;   // 'NONE' | 'SIDE_PLATE_WITH_PLINTH' | 'SIDE_PLATE_TO_FLOOR' | 'PARALLEL_FILLER_STRIP'
   rightEnclosureType?: string;
@@ -398,6 +401,9 @@ export interface CabinetFormData {
   positioningMode?: PositioningMode;
   gapFromCountertopMm?: number;
   gapFromAnchorMm?: number;
+
+  // Blokada szafek wiszących powyżej (FULL-zone: TALL_CABINET, BASE_FRIDGE)
+  blockUpperAbove?: boolean;
 
   // Obudowa boczna
   leftEnclosureType?: string;

@@ -52,6 +52,7 @@ export class CabinetFormEditingService {
       leftFillerWidthOverrideMm: c.leftFillerWidthOverrideMm ?? null,
       rightFillerWidthOverrideMm: c.rightFillerWidthOverrideMm ?? null,
       bottomWreathOnFloor: c.bottomWreathOnFloor ?? false,
+      blockUpperAbove: c.blockUpperAbove ?? false,
       sinkFrontType: c.sinkFrontType ?? 'TWO_DOORS',
       sinkApronEnabled: c.sinkApronEnabled ?? true,
       sinkApronHeightMm: c.sinkApronHeightMm ?? 150,

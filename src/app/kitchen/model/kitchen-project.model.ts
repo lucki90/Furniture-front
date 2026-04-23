@@ -158,6 +158,9 @@ export interface ProjectCabinetRequest {
   gapFromCountertopMm?: number;       // odstęp od blatu (dla RELATIVE_TO_COUNTERTOP)
   gapFromAnchorMm?: number;           // odstęp od wierzchołka słupka (dla RELATIVE_TO_CEILING nad TALL)
 
+  // Blokada szafek wiszących powyżej (TALL_CABINET, BASE_FRIDGE)
+  blockUpperAbove?: boolean;          // gdy true: żadna UPPER nie może być umieszczona powyżej
+
   // Obudowa boczna (lewa i prawa strona)
   leftEnclosure?: EnclosureConfig;
   rightEnclosure?: EnclosureConfig;
@@ -467,6 +470,9 @@ export interface CabinetPlacementResponse {
   positioningMode?: PositioningMode;
   gapFromCountertopMm?: number;
   gapFromAnchorMm?: number;
+
+  // Blokada szafek wiszących powyżej (TALL_CABINET, BASE_FRIDGE)
+  blockUpperAbove?: boolean;
 
   // Obudowa boczna
   leftEnclosure?: EnclosureConfig;

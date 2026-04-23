@@ -25,6 +25,7 @@ export class BaseWithDrawersCabinetPreparer implements KitchenCabinetPreparer {
 
     // Pokaż opcję dolnego wieńca na podłodze
     v.bottomWreathOnFloor = true;
+    v.blockUpperAbove = true;
 
     // wartości domyślne dla szafki z szufladami
     form.patchValue({

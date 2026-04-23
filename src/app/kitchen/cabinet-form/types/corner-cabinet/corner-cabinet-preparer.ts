@@ -34,6 +34,7 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
     v.cornerWidthA = true;
     v.cornerMechanism = true;
     v.enclosureSection = true;
+    v.blockUpperAbove = true;
 
     // Wstępna konfiguracja na podstawie bieżącego mechanizmu
     const mechanism = (form.get('cornerMechanism')?.value ?? CornerMechanismType.FIXED_SHELVES) as CornerMechanismType;

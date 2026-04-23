@@ -61,11 +61,13 @@ export class KitchenGeometryService {
           const leftW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
           const rightW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
 
-          // CEILING mode: auto-reposition UPPER beside any anchor it can't fit above.
-          // leftW is passed so the overlap check targets the UPPER body, not the raw cursor.
-          const rawX = (cabinet.positioningMode !== 'RELATIVE_TO_COUNTERTOP')
-            ? this.skipPastConflictingAnchors(currentXTop, leftW, cabinet.width, cabinet.height, settings, anchors)
-            : currentXTop;
+          // Auto-reposition UPPER beside any anchor it can't or must not be above.
+          // For RELATIVE_TO_COUNTERTOP: geometric check (tallTop > ceilingY) doesn't apply —
+          // only explicit blockUpperAbove=true anchors still force repositioning.
+          const effectiveAnchors = (cabinet.positioningMode === 'RELATIVE_TO_COUNTERTOP')
+            ? anchors.filter(a => a.blockUpperAbove)
+            : anchors;
+          const rawX = this.skipPastConflictingAnchors(currentXTop, leftW, cabinet.width, cabinet.height, settings, effectiveAnchors);
 
           x = rawX + leftW;
           currentXTop = x + cabinet.width + rightW;
@@ -109,9 +111,9 @@ export class KitchenGeometryService {
   private buildAnchorPositions(
     cabinets: KitchenCabinet[],
     settings: KitchenGeometrySettings
-  ): Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number }> {
+  ): Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number; blockUpperAbove: boolean }> {
     let scanX = 0;
-    const result: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number }> = [];
+    const result: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number; blockUpperAbove: boolean }> = [];
 
     for (const cabinet of cabinets) {
       const zone = getCabinetZone(cabinet);
@@ -123,7 +125,11 @@ export class KitchenGeometryService {
       const xAfterAnchor = xBodyEnd + rightW;
 
       if (zone === 'FULL') {
-        result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop: settings.plinthHeightMm + cabinet.height });
+        result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop: settings.plinthHeightMm + cabinet.height, blockUpperAbove: cabinet.blockUpperAbove ?? false });
+      } else if (cabinet.blockUpperAbove) {
+        // BOTTOM cabinet with explicit block — tallTop (plinthH + baseH ≈ 820mm) never exceeds
+        // ceilingY, so only blockUpperAbove flag drives repositioning. Added so skipPast... fires.
+        result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop: settings.plinthHeightMm + cabinet.height, blockUpperAbove: true });
       }
       scanX = xAfterAnchor;
     }
@@ -146,7 +152,7 @@ export class KitchenGeometryService {
     upperWidth: number,
     upperHeight: number,
     settings: KitchenGeometrySettings,
-    anchors: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number }>
+    anchors: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number; blockUpperAbove: boolean }>
   ): number {
     const upperCeilingY = settings.wallHeightMm - settings.upperFillerHeightMm - upperHeight;
     let candidateX = startX;
@@ -157,7 +163,8 @@ export class KitchenGeometryService {
         const upperBodyStart = candidateX + leftBodyOffset;
         const upperBodyEnd = upperBodyStart + upperWidth;
         if (anchor.xBodyStart < upperBodyEnd && anchor.xBodyEnd > upperBodyStart) {
-          if (anchor.tallTop > upperCeilingY) {
+          // Przesuń obok kotwicy gdy: (a) geometrycznie nie mieści się, lub (b) blokada jawna
+          if (anchor.tallTop > upperCeilingY || anchor.blockUpperAbove) {
             candidateX = anchor.xAfterAnchor;
             changed = true;
             break;

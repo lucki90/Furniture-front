@@ -18,6 +18,7 @@ export class BaseDishwasherFreestandingCabinetPreparer implements KitchenCabinet
     v.isUpperCorner = false;
     v.bottomWreathOnFloor = false;
     v.enclosureSection = true;
+    v.blockUpperAbove = true;
 
     v.sinkFrontType = false;
     v.sinkApron = false;

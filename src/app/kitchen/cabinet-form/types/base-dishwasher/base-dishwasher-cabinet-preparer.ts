@@ -18,6 +18,7 @@ export class BaseDishwasherCabinetPreparer implements KitchenCabinetPreparer {
     v.isUpperCorner = false;
     v.bottomWreathOnFloor = false; // brak korpusu → nie dotyczy
     v.enclosureSection = true;
+    v.blockUpperAbove = true;
 
     // Pola specyficzne dla szafki zlewowej — ukryte
     v.sinkFrontType = false;
