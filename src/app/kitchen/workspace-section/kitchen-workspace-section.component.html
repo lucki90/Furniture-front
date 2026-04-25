@@ -8,6 +8,7 @@
       <div class="panel-content">
         <app-kitchen-floor-plan
           [editingCabinetId]="editingCabinetId"
+          [projectResult]="projectResult"
           (addWallRequested)="addWallRequested.emit()"
           (wallRemoved)="wallRemoved.emit($event)">
         </app-kitchen-floor-plan>

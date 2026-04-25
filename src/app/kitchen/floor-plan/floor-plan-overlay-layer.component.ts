@@ -5,7 +5,8 @@ import { FloorPlanArc } from './floor-plan-door-arcs';
 export interface CornerCountertopOverlay {
   x: number;
   y: number;
-  sizePx: number;
+  widthPx: number;
+  depthPx: number;
   miterX1: number;
   miterY1: number;
   miterX2: number;

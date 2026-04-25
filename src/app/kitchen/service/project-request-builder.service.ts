@@ -54,7 +54,10 @@ export class ProjectRequestBuilderService {
     });
   }
 
-  // TODO(CODEX): Ta auto-detekcja zwraca dzis najwyzej jedno polaczenie dla kazdej sciany LEFT/RIGHT. To moze sie rozjechac z widokiem floor-plan, ktory umie narysowac wiecej niz jeden naroznik dla tego samego boku ukladu. W bardziej zlozonych ukladach L/U backend dostanie niepelny zestaw polaczen i kalkulacja naroznych blatow bedzie niekompletna.
+  // TODO(CODEX): Faza 13.6 domknela klasyczny U-shape (jedno L_CORNER_LEFT + jedno L_CORNER_RIGHT),
+  // ale ta auto-detekcja nadal zaklada najwyzej jedno polaczenie dla kazdej sciany LEFT/RIGHT.
+  // Przy bardziej niestandardowych ukladach wielosciennych warto docelowo oprzec to o jawny model
+  // polaczen w UI zamiast o heurystyke "najblizszej" sciany poziomej.
   buildConnections(walls: WallWithCabinets[]): WallConnectionRequest[] {
     return this.wallConnectionBuilder.buildConnections(walls);
   }

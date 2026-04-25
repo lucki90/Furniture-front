@@ -32,12 +32,13 @@
 
   <!-- ============ SEKCJA 1: WIZUALIZACJA + FORMULARZ ============ -->
   <app-kitchen-workspace-section
-    [editingCabinetId]="editingCabinetId"
-    [editingCabinet]="editingCabinet"
-    [hasSelectedWall]="!!selectedWall()"
-    [selectedWallLabel]="selectedWallLabel"
-    [wallLength]="wallLength"
-    [wallHeight]="wallHeight"
+      [editingCabinetId]="editingCabinetId"
+      [editingCabinet]="editingCabinet"
+      [hasSelectedWall]="!!selectedWall()"
+      [projectResult]="projectResult"
+      [selectedWallLabel]="selectedWallLabel"
+      [wallLength]="wallLength"
+      [wallHeight]="wallHeight"
     (addWallRequested)="onAddWallRequested()"
     (wallRemoved)="onWallRemoved($event)"
     (wallLengthChange)="wallLength = $event"

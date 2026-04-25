@@ -115,6 +115,19 @@ describe('ProjectRequestBuilderService', () => {
 
       expect(service.buildConnections(walls)).toEqual([]);
     });
+
+    it('should use the nearest previous corner wall as the horizontal anchor when MAIN is absent', () => {
+      const walls: WallWithCabinets[] = [
+        buildWall({ id: 'left-side', type: 'LEFT' }),
+        buildWall({ id: 'corner-left', type: 'CORNER_LEFT' }),
+        buildWall({ id: 'right-side', type: 'RIGHT' })
+      ];
+
+      expect(service.buildConnections(walls)).toEqual([
+        { wallIndexA: 1, wallIndexB: 0, connectionType: 'L_CORNER_LEFT' },
+        { wallIndexA: 1, wallIndexB: 2, connectionType: 'L_CORNER_RIGHT' }
+      ]);
+    });
   });
 
   describe('buildCountertopRequest', () => {

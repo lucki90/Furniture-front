@@ -3,8 +3,8 @@
     <svg:rect
       [attr.x]="corner.x"
       [attr.y]="corner.y"
-      [attr.width]="corner.sizePx"
-      [attr.height]="corner.sizePx"
+      [attr.width]="corner.widthPx"
+      [attr.height]="corner.depthPx"
       class="corner-countertop-rect">
       <svg:title>Blat narożny {{ corner.label }}</svg:title>
     </svg:rect>
@@ -15,8 +15,8 @@
       [attr.y2]="corner.miterY2"
       class="corner-miter-line"/>
     <svg:text
-      [attr.x]="corner.x + corner.sizePx / 2"
-      [attr.y]="corner.y + corner.sizePx / 2"
+      [attr.x]="corner.x + corner.widthPx / 2"
+      [attr.y]="corner.y + corner.depthPx / 2"
       class="corner-countertop-label"
       text-anchor="middle"
       dominant-baseline="middle">

@@ -1,6 +1,7 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {NumericInputComponent} from './numeric-input.component';
-import {ReactiveFormsModule} from '@angular/forms'; // 👈 to dodaj
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NgControl, ReactiveFormsModule } from '@angular/forms';
+import { MaxLengthForNumberDirective } from '../directives/maxLengthForNumberDirective';
+import { NumericInputComponent } from './numeric-input.component';
 
 describe('NumericInputComponent', () => {
   let component: NumericInputComponent;
@@ -8,8 +9,18 @@ describe('NumericInputComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [NumericInputComponent],
-      imports: [ReactiveFormsModule], // 👈 to dodaj
+      declarations: [NumericInputComponent, MaxLengthForNumberDirective],
+      imports: [ReactiveFormsModule],
+      providers: [
+        {
+          provide: NgControl,
+          useValue: {
+            control: {
+              setValue: () => undefined
+            }
+          }
+        }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(NumericInputComponent);

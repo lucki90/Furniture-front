@@ -1,5 +1,10 @@
-import { Component, computed, inject, Input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, computed, inject, Input, output, signal } from '@angular/core';
+import {
+  CornerCountertopResponse,
+  MultiWallCalculateResponse
+} from '../model/kitchen-project.model';
+import { WallWithCabinets } from '../model/kitchen-state.model';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { buildFloorPlanArcs, FloorPlanArc } from './floor-plan-door-arcs';
 import {
@@ -9,13 +14,14 @@ import {
   CountertopOnFloorPlan,
   WallPosition
 } from './floor-plan-layout.builder';
-import { FloorPlanWallGroupComponent } from './floor-plan-wall-group.component';
 import { FloorPlanOverlayLayerComponent } from './floor-plan-overlay-layer.component';
+import { FloorPlanWallGroupComponent } from './floor-plan-wall-group.component';
 
 interface CornerCountertopViz {
   x: number;
   y: number;
-  sizePx: number;
+  widthPx: number;
+  depthPx: number;
   miterX1: number;
   miterY1: number;
   miterX2: number;
@@ -31,9 +37,14 @@ interface CornerCountertopViz {
   styleUrls: ['./kitchen-floor-plan.component.css']
 })
 export class KitchenFloorPlanComponent {
-  private stateService = inject(KitchenStateService);
+  private readonly stateService = inject(KitchenStateService);
+  private readonly projectResultSignal = signal<MultiWallCalculateResponse | null>(null);
 
   @Input() editingCabinetId: string | null = null;
+
+  @Input() set projectResult(value: MultiWallCalculateResponse | null) {
+    this.projectResultSignal.set(value);
+  }
 
   readonly walls = this.stateService.walls;
   readonly selectedWallId = this.stateService.selectedWallId;
@@ -51,45 +62,33 @@ export class KitchenFloorPlanComponent {
   private readonly COUNTERTOP_OVERHANG = 30;
   private readonly COUNTERTOP_STANDARD_DEPTH = 600;
 
-  readonly wallPositions = computed((): WallPosition[] => {
-    return buildWallPositions(this.walls(), {
+  readonly wallPositions = computed((): WallPosition[] =>
+    buildWallPositions(this.walls(), {
       svgWidth: this.SVG_WIDTH,
       svgHeight: this.SVG_HEIGHT,
       wallThickness: this.WALL_THICKNESS,
       padding: this.PADDING
-    });
-  });
+    })
+  );
 
   readonly cornerCountertopPositions = computed((): CornerCountertopViz[] => {
-    if (!this.showCountertop()) return [];
-
-    const positions = this.wallPositions();
-    const result: CornerCountertopViz[] = [];
-
-    const main = positions.find(p => p.wall.type === 'MAIN');
-    const cornerLeft = positions.find(p => p.wall.type === 'CORNER_LEFT');
-    const cornerRight = positions.find(p => p.wall.type === 'CORNER_RIGHT');
-    const leftWall = positions.find(p => p.wall.type === 'LEFT');
-    const rightWall = positions.find(p => p.wall.type === 'RIGHT');
-
-    const horizontalWalls = [main, cornerLeft, cornerRight].filter(Boolean) as WallPosition[];
-
-    for (const horizontal of horizontalWalls) {
-      if (leftWall) {
-        const corner = this.buildCornerViz(horizontal, leftWall, 'left');
-        if (corner) result.push(corner);
-      }
-      if (rightWall) {
-        const corner = this.buildCornerViz(horizontal, rightWall, 'right');
-        if (corner) result.push(corner);
-      }
+    const projectResult = this.projectResultSignal();
+    if (!this.showCountertop() || !projectResult?.cornerCountertops?.length) {
+      return [];
     }
 
-    return result;
+    const positions = this.wallPositions();
+    const walls = this.walls();
+
+    return projectResult.cornerCountertops
+      .map(cornerCountertop => this.buildCornerViz(cornerCountertop, positions, walls))
+      .filter((corner): corner is CornerCountertopViz => corner !== null);
   });
 
   readonly doorArcData = computed((): FloorPlanArc[] => {
-    if (!this.showDoorArcs()) return [];
+    if (!this.showDoorArcs()) {
+      return [];
+    }
 
     const cabinets = this.wallPositions().flatMap(position => this.getCabinetsForWall(position));
     return buildFloorPlanArcs(cabinets);
@@ -136,46 +135,75 @@ export class KitchenFloorPlanComponent {
   }
 
   private buildCornerViz(
-    horizontal: WallPosition,
-    vertical: WallPosition,
-    side: 'left' | 'right'
+    cornerCountertop: CornerCountertopResponse,
+    positions: WallPosition[],
+    walls: WallWithCabinets[]
   ): CornerCountertopViz | null {
+    const wallA = walls[cornerCountertop.wallAIndex];
+    const wallB = walls[cornerCountertop.wallBIndex];
+    if (!wallA || !wallB) {
+      return null;
+    }
+
+    const horizontal = positions.find(position => position.wall.id === wallA.id);
+    const vertical = positions.find(position => position.wall.id === wallB.id);
+    if (!horizontal || !vertical) {
+      return null;
+    }
+
+    const side = wallB.type === 'LEFT'
+      ? 'left'
+      : wallB.type === 'RIGHT'
+        ? 'right'
+        : null;
+    if (!side) {
+      return null;
+    }
+
     const scale = horizontal.scale;
-    const depthPx = this.COUNTERTOP_STANDARD_DEPTH * scale;
+    const widthPx = cornerCountertop.cornerWidthMm * scale;
+    const depthPx = cornerCountertop.cornerDepthMm * scale;
     const mainTop = horizontal.y;
+    const label = `${cornerCountertop.cornerWidthMm}x${cornerCountertop.cornerDepthMm}mm`;
 
     if (side === 'left') {
       const cornerX = horizontal.x;
       const cornerY = mainTop - depthPx;
-      const vertRightEdge = vertical.x + vertical.width;
-      if (Math.abs(vertRightEdge - cornerX) > 2) return null;
+      const verticalRightEdge = vertical.x + vertical.width;
+      if (Math.abs(verticalRightEdge - cornerX) > 2) {
+        return null;
+      }
 
       return {
         x: cornerX,
         y: cornerY,
-        sizePx: depthPx,
+        widthPx,
+        depthPx,
         miterX1: cornerX,
         miterY1: mainTop,
-        miterX2: cornerX + depthPx,
+        miterX2: cornerX + widthPx,
         miterY2: cornerY,
-        label: `${this.COUNTERTOP_STANDARD_DEPTH}×${this.COUNTERTOP_STANDARD_DEPTH}mm`
+        label
       };
     }
 
     const cornerX = horizontal.x + horizontal.width;
     const cornerY = mainTop - depthPx;
-    const vertLeftEdge = vertical.x;
-    if (Math.abs(vertLeftEdge - cornerX) > 2) return null;
+    const verticalLeftEdge = vertical.x;
+    if (Math.abs(verticalLeftEdge - cornerX) > 2) {
+      return null;
+    }
 
     return {
-      x: cornerX - depthPx,
+      x: cornerX - widthPx,
       y: cornerY,
-      sizePx: depthPx,
+      widthPx,
+      depthPx,
       miterX1: cornerX,
       miterY1: mainTop,
-      miterX2: cornerX - depthPx,
+      miterX2: cornerX - widthPx,
       miterY2: cornerY,
-      label: `${this.COUNTERTOP_STANDARD_DEPTH}×${this.COUNTERTOP_STANDARD_DEPTH}mm`
+      label
     };
   }
 }

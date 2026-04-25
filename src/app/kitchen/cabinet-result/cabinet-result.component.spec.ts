@@ -14,6 +14,13 @@ describe('CabinetResultComponent', () => {
 
     fixture = TestBed.createComponent(CabinetResultComponent);
     component = fixture.componentInstance;
+    component.result = {
+      summaryCosts: 0,
+      boardTotalCost: 0,
+      componentTotalCost: 0,
+      jobTotalCost: 0,
+      boards: []
+    } as never;
     fixture.detectChanges();
   });
 

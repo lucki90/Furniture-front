@@ -1,9 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { BrowserDownloadService } from '../../shared/browser-download.service';
-import { KitchenProjectExportFacade } from './kitchen-project-export.facade';
 import { ExcelService } from './excel.service';
+import { KitchenProjectExportFacade } from './kitchen-project-export.facade';
 import { KitchenProjectPricingFacade } from './kitchen-project-pricing.facade';
+import { buildBoardExcelFilename } from './kitchen-project-summary.utils';
 import { AggregatedBoard, AggregatedComponent, AggregatedJob } from './project-details-aggregator.service';
 
 describe('KitchenProjectExportFacade', () => {
@@ -36,7 +37,7 @@ describe('KitchenProjectExportFacade', () => {
       [{ unitCost: 5 } as AggregatedJob]
     );
 
-    expect(warning).toBe('Brak cen dla: 1 płyt, 1 komponentów. Wycena będzie niepełna.');
+    expect(warning).toBe('Brak cen dla: 1 p\u0142yt, 1 komponent\u00f3w. Wycena b\u0119dzie niepe\u0142na.');
   });
 
   it('should build excel rows and call excel export service', (done) => {
@@ -60,7 +61,7 @@ describe('KitchenProjectExportFacade', () => {
           veneerEdgeLabel: 'ABS'
         } as AggregatedBoard
       ],
-      bomTranslations: { 'MATERIAL.CHIPBOARD': 'Płyta wiórowa' },
+      bomTranslations: { 'MATERIAL.CHIPBOARD': 'P\u0142yta wi\u00f3rowa' },
       fallbackMaterialNames: { CHIPBOARD: 'Fallback' },
       projectName: 'Projekt / klient',
       language: 'pl'
@@ -69,11 +70,11 @@ describe('KitchenProjectExportFacade', () => {
       const [rows, filename, language] = excelService.downloadBoardList.calls.mostRecent().args;
       expect(rows).toEqual([
         jasmine.objectContaining({
-          symbol: 'Płyta wiórowa',
+          symbol: 'P\u0142yta wi\u00f3rowa',
           sticker: 'Bok (S1)'
         })
       ]);
-      expect(filename).toBe('kuchnia_plyty_Projekt___klient_20260417.xlsx');
+      expect(filename).toBe(buildBoardExcelFilename('Projekt / klient'));
       expect(language).toBe('pl');
       done();
     });

@@ -24,7 +24,8 @@ class TestHostComponent {
   cornerCountertops = [{
     x: 20,
     y: 30,
-    sizePx: 24,
+    widthPx: 24,
+    depthPx: 24,
     miterX1: 20,
     miterY1: 54,
     miterX2: 44,

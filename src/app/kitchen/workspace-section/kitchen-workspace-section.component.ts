@@ -6,6 +6,7 @@ import { KitchenLayoutComponent } from '../kitchen-layout/kitchen-layout.compone
 import { CabinetFormComponent } from '../cabinet-form/cabinet-form.component';
 import { WallConfigComponent } from '../wall-config/wall-config.component';
 import { CabinetCalculatedEvent, KitchenCabinet } from '../model/kitchen-state.model';
+import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 
 @Component({
   selector: 'app-kitchen-workspace-section',
@@ -29,6 +30,7 @@ export class KitchenWorkspaceSectionComponent {
   @Input() selectedWallLabel = '';
   @Input() wallLength = 3600;
   @Input() wallHeight = 2600;
+  @Input() projectResult: MultiWallCalculateResponse | null = null;
 
   @Output() addWallRequested = new EventEmitter<void>();
   @Output() wallRemoved = new EventEmitter<string>();

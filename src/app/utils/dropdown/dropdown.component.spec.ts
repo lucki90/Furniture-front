@@ -1,11 +1,6 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-
-import {DropdownComponent} from './dropdown.component';
-import {provideHttpClient} from '@angular/common/http';
-import {provideHttpClientTesting} from '@angular/common/http/testing';
-import {importProvidersFrom} from '@angular/core';
-import {MatListModule} from '@angular/material/list';
-import {provideAnimations} from '@angular/platform-browser/animations';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
+import { DropdownComponent } from './dropdown.component';
 
 describe('DropdownComponent', () => {
   let component: DropdownComponent;
@@ -14,14 +9,8 @@ describe('DropdownComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [DropdownComponent],
-      providers: [
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        importProvidersFrom(MatListModule),
-        provideAnimations()
-      ]
-    })
-    .compileComponents();
+      imports: [FormsModule]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(DropdownComponent);
     component = fixture.componentInstance;
