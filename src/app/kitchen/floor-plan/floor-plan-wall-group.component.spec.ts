@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CabinetOnFloorPlan } from './floor-plan-door-arcs';
 import { FloorPlanWallGroupComponent } from './floor-plan-wall-group.component';
 import { WallPosition } from './floor-plan-layout.builder';
 import { WallWithCabinets } from '../model/kitchen-state.model';
@@ -27,7 +28,7 @@ import { WallWithCabinets } from '../model/kitchen-state.model';
 })
 class TestHostComponent {
   wallPosition!: WallPosition;
-  cabinets = [
+  cabinets: CabinetOnFloorPlan[] = [
     {
       cabinetId: 'cab-1',
       name: 'Szafka dolna',
@@ -37,7 +38,8 @@ class TestHostComponent {
       depth: 25,
       zone: 'BOTTOM' as const,
       isCorner: false,
-      isFreestanding: false
+      isFreestanding: false,
+      wallType: 'MAIN' as const
     },
     {
       cabinetId: 'cab-2',
@@ -48,7 +50,8 @@ class TestHostComponent {
       depth: 20,
       zone: 'TOP' as const,
       isCorner: false,
-      isFreestanding: false
+      isFreestanding: false,
+      wallType: 'MAIN' as const
     }
   ];
   countertops = [{
@@ -138,5 +141,28 @@ describe('FloorPlanWallGroupComponent', () => {
 
     const cabinets = fixture.nativeElement.querySelectorAll('.cabinet-rect') as NodeListOf<SVGRectElement>;
     expect(cabinets[1].style.display).toBe('none');
+  });
+
+  it('renders depth collision cabinets with red stroke', () => {
+    host.cabinets = [
+      {
+        cabinetId: 'cab-1',
+        name: 'Kolizja',
+        x: 40,
+        y: 70,
+        width: 50,
+        depth: 25,
+        zone: 'BOTTOM' as const,
+        isCorner: false,
+        isFreestanding: false,
+        wallType: 'MAIN' as const,
+        hasDepthCollision: true
+      }
+    ];
+    fixture.detectChanges();
+
+    const cabinet = fixture.nativeElement.querySelector('.cabinet-rect') as SVGRectElement;
+    expect(cabinet.getAttribute('fill')).toBe('#ffcdd2');
+    expect(cabinet.getAttribute('stroke')).toBe('#c62828');
   });
 });

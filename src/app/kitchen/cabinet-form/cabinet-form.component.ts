@@ -224,18 +224,29 @@ export class CabinetFormComponent implements OnChanges {
 
   private readonly errorHandler = inject(ApiErrorHandler);
   private readonly destroyRef = inject(DestroyRef);
+  private previousWallType: string | null = null;
+  private previousCabinetType: KitchenCabinetType | null = null;
 
   constructor(
     private fb: FormBuilder
   ) {
     this.form = DefaultKitchenFormFactory.create(this.fb);
+    this.previousWallType = this.stateService.selectedWall()?.type ?? null;
+    this.previousCabinetType = this.form.value.kitchenCabinetType;
 
     this.onTypeChange(this.form.value.kitchenCabinetType);
 
     this.form.get('kitchenCabinetType')!
       .valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(type => this.onTypeChange(type as KitchenCabinetType));
+      .subscribe(type => {
+        const nextType = type as KitchenCabinetType;
+        if (!this.editingCabinet && this.previousCabinetType !== null && nextType !== this.previousCabinetType) {
+          this.resetGapBeforeMm();
+        }
+        this.previousCabinetType = nextType;
+        this.onTypeChange(nextType);
+      });
 
     // Gdy user przełącza zakładkę FRONT/BACK wyspy i nie edytuje istniejącej szafki,
     // domyślnie ustaw cabinetSide zgodnie z aktywną zakładką.
@@ -244,6 +255,21 @@ export class CabinetFormComponent implements OnChanges {
       if (!this.editingCabinet && this.isIslandWall) {
         this.form.get('cabinetSide')?.setValue(side, { emitEvent: false });
       }
+    });
+
+    effect(() => {
+      const wallType = this.stateService.selectedWall()?.type ?? null;
+
+      if (!this.editingCabinet) {
+        if (this.previousWallType !== null && wallType !== this.previousWallType) {
+          this.resetGapBeforeMm();
+          if (wallType !== 'ISLAND') {
+            this.form.get('cabinetSide')?.setValue('FRONT', { emitEvent: false });
+          }
+        }
+      }
+
+      this.previousWallType = wallType;
     });
   }
 
@@ -267,6 +293,10 @@ export class CabinetFormComponent implements OnChanges {
     if (lifecycleResult.restoreApplied) {
       this.segmentValidationService.validate(this.form, type);
     }
+  }
+
+  private resetGapBeforeMm(): void {
+    this.form.get('gapBeforeMm')?.setValue(0, { emitEvent: false });
   }
 
   /** Zamknij popup edycji segmentu. */

@@ -370,9 +370,12 @@ function buildIslandCabinetsForWall(
     }
   }
 
-  return pos.wall.cabinets
+  const islandCabinets = pos.wall.cabinets
     .map(cabinet => requestsById.get(cabinet.id))
     .filter((cabinet): cabinet is CabinetOnFloorPlan => !!cabinet);
+
+  markIslandDepthCollisions(islandCabinets);
+  return islandCabinets;
 }
 
 export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorPlanLayoutSettings, 'wallThickness' | 'countertopOverhang' | 'countertopStandardDepth' | 'fillerWidthMm'>): CountertopOnFloorPlan[] {
@@ -396,15 +399,16 @@ export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorP
     const zone = getCabinetZone(cabinet);
     if (zone === 'TOP') continue; // Wiszące nie wpływają na pozycje blatów
 
-    const posX = currentXBottom;
-    currentXBottom += cabinet.width;
+    const gapBeforeMm = Math.max(0, cabinet.gapBeforeMm ?? 0);
+    const posX = currentXBottom + gapBeforeMm;
+    currentXBottom = posX + cabinet.width;
 
     if (requiresCountertop(cabinet.type)) {
       if (runStartMm === null) {
         runStartMm = posX;
         runWidthMm = cabinet.width;
       } else {
-        runWidthMm += cabinet.width;
+        runWidthMm = posX + cabinet.width - runStartMm;
       }
     } else if (runStartMm !== null) {
       result.push(buildCountertopSegment(pos, runStartMm, runWidthMm, settings));
@@ -642,4 +646,27 @@ function createCabinetOnFloorPlan(
     wallType,
     cabinetSide
   };
+}
+
+function markIslandDepthCollisions(cabinets: CabinetOnFloorPlan[]): void {
+  const frontCabinets = cabinets.filter(cabinet => cabinet.cabinetSide !== 'BACK');
+  const backCabinets = cabinets.filter(cabinet => cabinet.cabinetSide === 'BACK');
+
+  for (const front of frontCabinets) {
+    for (const back of backCabinets) {
+      if (!rectanglesOverlap(front, back)) {
+        continue;
+      }
+
+      front.hasDepthCollision = true;
+      back.hasDepthCollision = true;
+    }
+  }
+}
+
+function rectanglesOverlap(a: Pick<CabinetOnFloorPlan, 'x' | 'y' | 'width' | 'depth'>, b: Pick<CabinetOnFloorPlan, 'x' | 'y' | 'width' | 'depth'>): boolean {
+  return a.x < b.x + b.width
+    && a.x + a.width > b.x
+    && a.y < b.y + b.depth
+    && a.y + a.depth > b.y;
 }

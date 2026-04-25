@@ -11,6 +11,7 @@ export interface CabinetOnFloorPlan {
   zone: CabinetZone;
   isCorner: boolean;
   isFreestanding: boolean;
+  hasDepthCollision?: boolean;
   wallType: WallType;
   cabinetSide?: CabinetSide;
   isReversed?: boolean;

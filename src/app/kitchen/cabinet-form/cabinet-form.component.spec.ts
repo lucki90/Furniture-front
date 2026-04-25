@@ -50,15 +50,37 @@ describe('CabinetFormComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Strona wyspy');
+    expect(fixture.nativeElement.textContent).toContain('Pusta przestrzeń przed (mm)');
 
     stateService.selectedWallSignal.set(buildWall('MAIN'));
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).not.toContain('Strona wyspy');
+    expect(fixture.nativeElement.textContent).toContain('Pusta przestrzeń przed (mm)');
   });
 
   it('defaults cabinet side control to FRONT', () => {
     expect(component.form.get('cabinetSide')?.value).toBe('FRONT');
+  });
+
+  it('resets gap before when selected wall changes', () => {
+    stateService.selectedWallSignal.set(buildWall('ISLAND'));
+    fixture.detectChanges();
+    component.form.get('gapBeforeMm')?.setValue(900);
+
+    stateService.selectedWallSignal.set(buildWall('MAIN'));
+    fixture.detectChanges();
+
+    expect(component.form.get('gapBeforeMm')?.value).toBe(0);
+  });
+
+  it('resets gap before when cabinet type changes in create mode', () => {
+    component.form.get('gapBeforeMm')?.setValue(900);
+
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_WITH_DRAWERS);
+    fixture.detectChanges();
+
+    expect(component.form.get('gapBeforeMm')?.value).toBe(0);
   });
 });
 
@@ -81,6 +103,7 @@ class DictionaryServiceStub {
 class KitchenStateServiceStub {
   readonly selectedWallSignal = signal<WallWithCabinets | null>(buildWall('MAIN'));
   readonly selectedWall = this.selectedWallSignal;
+  readonly visibleIslandSide = signal<'FRONT' | 'BACK'>('FRONT');
   readonly plinthHeightMm = signal(100);
   readonly countertopThicknessMm = signal(38);
   readonly upperFillerHeightMm = signal(100);

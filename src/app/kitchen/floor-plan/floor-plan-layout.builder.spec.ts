@@ -88,6 +88,32 @@ describe('floor-plan-layout.builder', () => {
     expect(countertops[1].lengthMm).toBe(930);
   });
 
+  it('should shift countertop run together with base cabinet gapBefore on a linear wall', () => {
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        cabinets: [
+          { id: 'base-1', type: KitchenCabinetType.BASE_ONE_DOOR, width: 800, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1, gapBeforeMm: 900 } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const cabinets = buildCabinetsForWall(wallPosition, 10);
+    const countertops = buildCountertopsForWall(wallPosition, {
+      wallThickness: 10,
+      countertopOverhang: 30,
+      countertopStandardDepth: 600
+    });
+
+    expect(countertops).toHaveSize(1);
+    expect(countertops[0].x).toBeCloseTo(cabinets[0].x - (15 * wallPosition.scale), 3);
+    expect(countertops[0].lengthMm).toBe(830);
+  });
+
   it('should render island depth from configuration and place FRONT/BACK rows separately', () => {
     const [wallPosition] = buildWallPositions([
       createWall({
@@ -293,5 +319,59 @@ describe('floor-plan-layout.builder', () => {
 
     // depth = 900 + DEFAULT frontOverhang(30) + DEFAULT backOverhang(0) = 930
     expect(countertops[0].depthMm).toBe(930);
+  });
+
+  it('should mark both island cabinets in red state when FRONT and BACK depths collide', () => {
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 900,
+        cabinets: [
+          { id: 'front', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1, cabinetSide: 'FRONT' } as any,
+          { id: 'back', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 400, height: 720, openingType: 'LEFT', shelfQuantity: 1, cabinetSide: 'BACK' } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const cabinets = buildCabinetsForWall(wallPosition, 10, {
+      plinthHeightMm: 100,
+      upperFillerHeightMm: 100
+    });
+
+    expect(cabinets.find(cab => cab.cabinetId === 'front')?.hasDepthCollision).toBeTrue();
+    expect(cabinets.find(cab => cab.cabinetId === 'back')?.hasDepthCollision).toBeTrue();
+  });
+
+  it('should not mark island cabinets when FRONT and BACK depths fit inside island depth', () => {
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 900,
+        cabinets: [
+          { id: 'front', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 400, height: 720, openingType: 'LEFT', shelfQuantity: 1, cabinetSide: 'FRONT' } as any,
+          { id: 'back', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 400, height: 720, openingType: 'LEFT', shelfQuantity: 1, cabinetSide: 'BACK' } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const cabinets = buildCabinetsForWall(wallPosition, 10, {
+      plinthHeightMm: 100,
+      upperFillerHeightMm: 100
+    });
+
+    expect(cabinets.find(cab => cab.cabinetId === 'front')?.hasDepthCollision).not.toBeTrue();
+    expect(cabinets.find(cab => cab.cabinetId === 'back')?.hasDepthCollision).not.toBeTrue();
   });
 });
