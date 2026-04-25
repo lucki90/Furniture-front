@@ -33,6 +33,7 @@
     <div class="list-content">
       <app-kitchen-cabinet-list
         [cabinets]="cabinets"
+        [wallType]="selectedWallType"
         [editingCabinetId]="editingCabinetId"
         (edit)="editCabinet.emit($event)"
         (remove)="removeCabinet.emit($event)"

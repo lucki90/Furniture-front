@@ -227,6 +227,33 @@ export class KitchenPageComponent {
     return this.editingCabinet?.id ?? null;
   }
 
+  get roomWidthMm(): number | null {
+    return this.stateService.currentProjectRoomWidthMm();
+  }
+
+  set roomWidthMm(value: number | null) {
+    this.stateService.updateRoomDimensions(value, this.roomDepthMm);
+    this.resetProjectResult();
+  }
+
+  get roomDepthMm(): number | null {
+    return this.stateService.currentProjectRoomDepthMm();
+  }
+
+  set roomDepthMm(value: number | null) {
+    this.stateService.updateRoomDimensions(this.roomWidthMm, value);
+    this.resetProjectResult();
+  }
+
+  parseOptionalDimension(value: string | number | null): number | null {
+    if (value === '' || value === null) {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
 
   get selectedWallLabel(): string {
     const wall = this.selectedWall();
@@ -299,7 +326,13 @@ export class KitchenPageComponent {
 
     dialogRef.afterClosed().subscribe((result: AddWallDialogResult | undefined) => {
       if (result) {
-        this.stateService.addWall(result.type, result.widthMm, result.heightMm);
+        this.stateService.addWall(
+          result.type,
+          result.widthMm,
+          result.heightMm,
+          result.islandDepthMm,
+          result.adjacentToWall
+        );
         this.toast.success(`Dodano sciane: ${this.stateService.getWallLabel(result.type)}`);
         this.resetProjectResult();
       }
@@ -460,7 +493,7 @@ export class KitchenPageComponent {
         this.isCalculatingProject = false;
 
         if (this.pricingWarnings.length > 0) {
-          this.toast.warning('Brak cen katalogowych dla: ' + this.pricingWarnings.join(', ') + '. Kwoty moga byc zanizone.');
+          this.toast.warning('Uwagi projektu: ' + this.pricingWarnings.join(', '));
         }
       },
       error: (err) => {

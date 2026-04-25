@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { KitchenCabinetType } from '../model/kitchen-cabinet-type';
+import { isUpperCabinetType } from '../../model/kitchen-state.model';
 
 interface TypeCard {
   type: KitchenCabinetType;
@@ -25,8 +26,11 @@ interface TypeGroup {
 export class CabinetTypePickerComponent {
 
   private dialogRef = inject(MatDialogRef<CabinetTypePickerComponent>);
+  private readonly dialogData = inject<{ isIslandWall?: boolean } | null>(MAT_DIALOG_DATA, { optional: true });
+  /** Na wyspie blokujemy szafki wiszące i słupki (brak zasilania/odprowadzenia od sufitu). */
+  private readonly isIslandWall = this.dialogData?.isIslandWall ?? false;
 
-  readonly groups: TypeGroup[] = [
+  private readonly allGroups: TypeGroup[] = [
     {
       title: 'Szafki dolne',
       types: [
@@ -62,6 +66,23 @@ export class CabinetTypePickerComponent {
       ]
     }
   ];
+
+  /** Grupy widoczne dla aktualnego typu ściany — wyszące i słupki ukryte na wyspie. */
+  get groups(): TypeGroup[] {
+    if (!this.isIslandWall) {
+      return this.allGroups;
+    }
+    return this.allGroups
+      .map(group => ({
+        ...group,
+        types: group.types.filter(card => this.isAllowedOnIsland(card.type))
+      }))
+      .filter(group => group.types.length > 0);
+  }
+
+  private isAllowedOnIsland(type: KitchenCabinetType): boolean {
+    return !isUpperCabinetType(type) && type !== KitchenCabinetType.TALL_CABINET;
+  }
 
   select(type: KitchenCabinetType): void {
     this.dialogRef.close(type);

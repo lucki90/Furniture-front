@@ -50,6 +50,11 @@ describe('ProjectRequestBuilderService', () => {
     widthMm: overrides.widthMm ?? 3000,
     heightMm: overrides.heightMm ?? 2500,
     cabinets: overrides.cabinets ?? [],
+    islandDepthMm: overrides.islandDepthMm,
+    adjacentToWall: overrides.adjacentToWall,
+    leftSidePanelEnabled: overrides.leftSidePanelEnabled,
+    rightSidePanelEnabled: overrides.rightSidePanelEnabled,
+    backBlendaEnabled: overrides.backBlendaEnabled,
     countertopConfig: overrides.countertopConfig,
     plinthConfig: overrides.plinthConfig
   });
@@ -294,6 +299,57 @@ describe('ProjectRequestBuilderService', () => {
       const [result] = service.buildProjectWalls([wall], settings);
 
       expect(result.cabinets[0].positionY).toBe(1750);
+    });
+
+    it('should keep island FRONT and BACK layout independent and map island fields', () => {
+      const islandFront = buildCabinet({
+        id: 'front-1',
+        name: 'front-1',
+        type: KitchenCabinetType.BASE_ONE_DOOR,
+        width: 600,
+        cabinetSide: 'FRONT'
+      } as Partial<KitchenCabinet>);
+      const islandBack = buildCabinet({
+        id: 'back-1',
+        name: 'back-1',
+        type: KitchenCabinetType.BASE_ONE_DOOR,
+        width: 800,
+        cabinetSide: 'BACK'
+      } as Partial<KitchenCabinet>);
+      const wall = buildWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        heightMm: 900,
+        islandDepthMm: 950,
+        adjacentToWall: 'RIGHT',
+        leftSidePanelEnabled: true,
+        rightSidePanelEnabled: false,
+        backBlendaEnabled: true,
+        cabinets: [islandFront, islandBack],
+        countertopConfig: {
+          enabled: true,
+          manualDepthMm: 950,
+          frontOverhangMm: 35,
+          backOverhangMm: 25,
+          sideOverhangExtraMm: 10
+        }
+      });
+
+      const [result] = service.buildProjectWalls([wall], settings);
+
+      expect(result.islandDepthMm).toBe(950);
+      expect(result.adjacentToWall).toBe('RIGHT');
+      expect(result.leftSidePanelEnabled).toBeTrue();
+      expect(result.backBlendaEnabled).toBeTrue();
+      expect(result.countertop?.rightOverhangMm).toBe(0);
+      expect(result.cabinets.find(cab => cab.cabinetId === 'front-1')).toEqual(jasmine.objectContaining({
+        cabinetSide: 'FRONT',
+        positionX: 0
+      }));
+      expect(result.cabinets.find(cab => cab.cabinetId === 'back-1')).toEqual(jasmine.objectContaining({
+        cabinetSide: 'BACK',
+        positionX: 0
+      }));
     });
   });
 

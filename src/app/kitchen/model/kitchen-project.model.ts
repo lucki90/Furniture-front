@@ -81,6 +81,8 @@ export interface UpperFillerResponse {
  * - RELATIVE_TO_COUNTERTOP: dół szafki = countertopHeight + gap
  */
 export type PositioningMode = 'RELATIVE_TO_CEILING' | 'RELATIVE_TO_COUNTERTOP';
+export type CabinetSide = 'FRONT' | 'BACK';
+export type IslandAdjacentSide = 'NONE' | 'LEFT' | 'RIGHT' | 'BACK';
 
 // ============ WALL TYPES ============
 
@@ -160,6 +162,9 @@ export interface ProjectCabinetRequest {
 
   // Blokada szafek wiszących powyżej (TALL_CABINET, BASE_FRIDGE)
   blockUpperAbove?: boolean;          // gdy true: żadna UPPER nie może być umieszczona powyżej
+  cabinetSide?: CabinetSide;
+  // Pusta przestrzeń (mm) wstawiona przed szafką w auto-layoutie (głównie wyspy, default 0)
+  gapBeforeMm?: number;
 
   // Obudowa boczna (lewa i prawa strona)
   leftEnclosure?: EnclosureConfig;
@@ -315,6 +320,8 @@ export interface CreateKitchenProjectRequest {
   plinthHeightMm?: number;           // Wysokość cokołu (domyślnie 100mm)
   countertopThicknessMm?: number;    // Grubość blatu (domyślnie 38mm)
   upperFillerHeightMm?: number;      // Wysokość blendy górnej (domyślnie 100mm, 0=brak)
+  roomWidthMm?: number;
+  roomDepthMm?: number;
 }
 
 export interface ProjectWallRequest {
@@ -325,6 +332,11 @@ export interface ProjectWallRequest {
   countertop?: CountertopRequest;
   plinth?: PlinthRequest;
   fillerPanels?: FillerPanelRequest[];
+  islandDepthMm?: number;
+  adjacentToWall?: IslandAdjacentSide;
+  leftSidePanelEnabled?: boolean;
+  rightSidePanelEnabled?: boolean;
+  backBlendaEnabled?: boolean;
 }
 
 /**
@@ -346,6 +358,9 @@ export interface UpdateKitchenProjectRequest {
   plinthHeightMm?: number;
   countertopThicknessMm?: number;
   upperFillerHeightMm?: number;
+  // Pozwalamy na jawny null, żeby PUT mógł wyczyścić wcześniej zapisane wymiary pomieszczenia.
+  roomWidthMm?: number | null;
+  roomDepthMm?: number | null;
 }
 
 /**
@@ -387,6 +402,8 @@ export interface KitchenProjectDetailResponse {
   plinthHeightMm?: number;
   countertopThicknessMm?: number;
   upperFillerHeightMm?: number;
+  roomWidthMm?: number;
+  roomDepthMm?: number;
 
   totalCost: number;
   totalBoardsCost: number;
@@ -413,6 +430,11 @@ export interface WallDetailResponse {
   widthMm: number;
   heightMm: number;
   wallCost: number;
+  islandDepthMm?: number;
+  adjacentToWall?: IslandAdjacentSide;
+  leftSidePanelEnabled?: boolean;
+  rightSidePanelEnabled?: boolean;
+  backBlendaEnabled?: boolean;
 
   cabinets: CabinetPlacementResponse[];
 
@@ -473,6 +495,9 @@ export interface CabinetPlacementResponse {
 
   // Blokada szafek wiszących powyżej (TALL_CABINET, BASE_FRIDGE)
   blockUpperAbove?: boolean;
+  cabinetSide?: CabinetSide;
+  // Pusta przestrzeń (mm) wstawiona przed szafką w auto-layoutie (głównie wyspy)
+  gapBeforeMm?: number;
 
   // Obudowa boczna
   leftEnclosure?: EnclosureConfig;
@@ -567,6 +592,8 @@ export interface MultiWallCalculateRequest {
    * Auto-wykrywana przez ProjectRequestBuilderService.buildConnections().
    */
   connections?: WallConnectionRequest[];
+  roomWidthMm?: number;
+  roomDepthMm?: number;
 }
 
 /**
@@ -615,6 +642,7 @@ export interface MultiWallCalculateResponse {
    * TODO 13.1: Wliczać do totalProjectCost po implementacji.
    */
   totalCornerCountertopCost?: number;
+  islandWarnings?: string[];
 }
 
 /**

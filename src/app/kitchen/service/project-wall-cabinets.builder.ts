@@ -9,6 +9,7 @@ import {
   cabinetHasSegments
 } from '../model/kitchen-state.model';
 import {
+  CabinetSide,
   ProjectCabinetRequest,
   DrawerRequest,
   CornerCabinetRequest,
@@ -24,6 +25,43 @@ export class ProjectWallCabinetsBuilder {
   constructor(private readonly addonsBuilder: ProjectWallAddonsRequestBuilder) {}
 
   buildCabinets(wall: WallWithCabinets, settings: WallBuildSettings): ProjectCabinetRequest[] {
+    if (wall.type === 'ISLAND') {
+      return this.buildIslandCabinets(wall, settings);
+    }
+
+    return this.buildCabinetsForSide(wall, wall.cabinets, settings, 'FRONT');
+  }
+
+  private buildIslandCabinets(wall: WallWithCabinets, settings: WallBuildSettings): ProjectCabinetRequest[] {
+    // Klucz scalania = stabilny `cab.id` z frontendu (NIE `cabinetId`/`name`!).
+    // `request.cabinetId = cab.name || cab.id`, a `name` jest edytowalna i nieunikalna —
+    // dwie szafki wyspy o tej samej nazwie kasowalyby sie w mapie i druga gubilaby sie
+    // w finalnej rekonstrukcji kolejnosci.
+    const requestsByCabinetUiId = new Map<string, ProjectCabinetRequest>();
+
+    for (const side of ['FRONT', 'BACK'] as CabinetSide[]) {
+      const cabinetsForSide = wall.cabinets.filter(cabinet => (cabinet.cabinetSide ?? 'FRONT') === side);
+      const requests = this.buildCabinetsForSide(wall, cabinetsForSide, settings, side);
+      // `buildCabinetsForSide` zachowuje kolejnosc wejscia, wiec mozemy zipowac po indeksie.
+      cabinetsForSide.forEach((cabinet, index) => {
+        const request = requests[index];
+        if (request) {
+          requestsByCabinetUiId.set(cabinet.id, request);
+        }
+      });
+    }
+
+    return wall.cabinets
+      .map(cabinet => requestsByCabinetUiId.get(cabinet.id))
+      .filter((request): request is ProjectCabinetRequest => !!request);
+  }
+
+  private buildCabinetsForSide(
+    wall: WallWithCabinets,
+    cabinets: KitchenCabinet[],
+    settings: WallBuildSettings,
+    cabinetSide: CabinetSide
+  ): ProjectCabinetRequest[] {
     let currentXBottom = 0;
     let currentXTop = 0;
 
@@ -33,12 +71,16 @@ export class ProjectWallCabinetsBuilder {
     const countertopHeightMm = this.calculateCountertopHeight(wall, plinthHeightMm, countertopThicknessMm);
 
     // Pre-scan: collect FULL-zone anchor positions for UPPER auto-repositioning.
-    const anchors = this.buildAnchorPositions(wall.cabinets, plinthHeightMm, fillerWidthMm);
+    const anchors = this.buildAnchorPositions(cabinets, plinthHeightMm, fillerWidthMm);
 
-    return wall.cabinets.map(cab => {
+    return cabinets.map(cab => {
       const isTop = isUpperCabinetType(cab.type);
       const leftEncW = this.addonsBuilder.enclosureOuterWidthMm(cab, 'left', fillerWidthMm);
       const rightEncW = this.addonsBuilder.enclosureOuterWidthMm(cab, 'right', fillerWidthMm);
+
+      // Opcjonalna pusta przestrzeń wstawiona PRZED tą szafką (głównie dla wysp).
+      // Stosujemy tylko do BOTTOM/FULL — szafki górne (TOP) na wyspie i tak nie występują.
+      const gapBeforeMm = Math.max(0, cab.gapBeforeMm ?? 0);
 
       let positionX: number;
       if (isTop) {
@@ -52,7 +94,7 @@ export class ProjectWallCabinetsBuilder {
         positionX = rawX + leftEncW;
         currentXTop = positionX + cab.width + rightEncW;
       } else {
-        positionX = currentXBottom + leftEncW;
+        positionX = currentXBottom + gapBeforeMm + leftEncW;
         currentXBottom = positionX + cab.width + rightEncW;
       }
 
@@ -90,6 +132,8 @@ export class ProjectWallCabinetsBuilder {
         gapFromCountertopMm: cab.gapFromCountertopMm,
         gapFromAnchorMm: cab.gapFromAnchorMm ?? undefined,
         blockUpperAbove: cab.blockUpperAbove ?? false,
+        gapBeforeMm: gapBeforeMm,
+        cabinetSide,
         leftEnclosure: this.mapEnclosure(cab, 'left'),
         rightEnclosure: this.mapEnclosure(cab, 'right'),
         distanceFromWallMm: cab.distanceFromWallMm ?? null,

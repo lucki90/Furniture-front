@@ -32,6 +32,7 @@ export class KitchenCabinetStateFactory {
       positioningMode: formData.positioningMode,
       gapFromCountertopMm: formData.gapFromCountertopMm,
       gapFromAnchorMm: formData.gapFromAnchorMm,
+      cabinetSide: formData.cabinetSide,
       leftEnclosureType: formData.leftEnclosureType,
       rightEnclosureType: formData.rightEnclosureType,
       leftSupportPlate: formData.leftSupportPlate,
@@ -41,6 +42,7 @@ export class KitchenCabinetStateFactory {
       rightFillerWidthOverrideMm: formData.rightFillerWidthOverrideMm,
       bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
       blockUpperAbove: formData.blockUpperAbove ?? false,
+      gapBeforeMm: formData.gapBeforeMm ?? 0,
       calculatedResult: this.requestBuilder.mapCalculationResult(calculatedResult)
     };
 
@@ -190,6 +192,7 @@ export class KitchenCabinetStateFactory {
       positioningMode: cabResp.positioningMode,
       gapFromCountertopMm: cabResp.gapFromCountertopMm,
       gapFromAnchorMm: cabResp.gapFromAnchorMm,
+      cabinetSide: cabResp.cabinetSide,
       leftEnclosureType: cabResp.leftEnclosure?.type,
       rightEnclosureType: cabResp.rightEnclosure?.type,
       leftSupportPlate: cabResp.leftEnclosure?.supportPlate,
@@ -199,6 +202,7 @@ export class KitchenCabinetStateFactory {
       distanceFromWallMm: cabResp.distanceFromWallMm,
       bottomWreathOnFloor: cabResp.bottomWreathOnFloor ?? false,
       blockUpperAbove: cabResp.blockUpperAbove ?? false,
+      gapBeforeMm: cabResp.gapBeforeMm ?? 0,
       calculatedResult: this.mapPlacementCalculationResult(cabResp)
     };
 

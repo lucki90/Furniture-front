@@ -1,8 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { ProjectRequestBuilderService } from './project-request-builder.service';
 import { CabinetPosition, CabinetZone, KitchenCabinet, getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
+import { WallType } from '../model/kitchen-project.model';
 
 export interface KitchenGeometrySettings {
+  wallType?: WallType;
   wallHeightMm: number;
   plinthHeightMm: number;
   countertopThicknessMm: number;
@@ -16,7 +18,16 @@ export interface KitchenGeometrySettings {
 export class KitchenGeometryService {
   private requestBuilder = inject(ProjectRequestBuilderService);
 
-  calculateUsedWidth(cabinets: KitchenCabinet[], zone: Extract<CabinetZone, 'BOTTOM' | 'TOP'>, fillerWidthMm: number): number {
+  calculateUsedWidth(
+    cabinets: KitchenCabinet[],
+    zone: Extract<CabinetZone, 'BOTTOM' | 'TOP'>,
+    fillerWidthMm: number,
+    wallType?: WallType
+  ): number {
+    if (wallType === 'ISLAND') {
+      return this.calculateIslandUsedWidth(cabinets, zone, fillerWidthMm);
+    }
+
     let currentX = 0;
 
     for (const cabinet of cabinets) {
@@ -24,7 +35,9 @@ export class KitchenGeometryService {
       if (zone === 'BOTTOM' && cabinetZone !== 'BOTTOM' && cabinetZone !== 'FULL') continue;
       if (zone === 'TOP' && cabinetZone !== 'TOP' && cabinetZone !== 'FULL') continue;
 
-      currentX += this.requestBuilder.enclosureOuterWidthMm(cabinet, 'left', fillerWidthMm)
+      const gapBeforeMm = (cabinetZone === 'TOP') ? 0 : Math.max(0, cabinet.gapBeforeMm ?? 0);
+      currentX += gapBeforeMm
+        + this.requestBuilder.enclosureOuterWidthMm(cabinet, 'left', fillerWidthMm)
         + cabinet.width
         + this.requestBuilder.enclosureOuterWidthMm(cabinet, 'right', fillerWidthMm);
     }
@@ -33,6 +46,10 @@ export class KitchenGeometryService {
   }
 
   calculateCabinetPositions(cabinets: KitchenCabinet[], settings: KitchenGeometrySettings): CabinetPosition[] {
+    if (settings.wallType === 'ISLAND') {
+      return this.calculateIslandCabinetPositions(cabinets, settings);
+    }
+
     const positions: CabinetPosition[] = [];
     let currentXBottom = 0;
     let currentXTop = 0;
@@ -43,6 +60,8 @@ export class KitchenGeometryService {
 
     for (const cabinet of cabinets) {
       const zone = getCabinetZone(cabinet);
+      // Pusta przestrzeń wstawiana PRZED tą szafką (głównie dla wysp). BOTTOM/FULL only.
+      const gapBeforeMm = Math.max(0, cabinet.gapBeforeMm ?? 0);
       let x: number;
       let y: number;
 
@@ -52,7 +71,7 @@ export class KitchenGeometryService {
           // NIE przesuwamy currentXTop: szafki wiszące mogą leżeć nad słupkiem w tym samym X gdy się mieszczą.
           const leftW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
           const rightW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
-          x = currentXBottom + leftW;
+          x = currentXBottom + gapBeforeMm + leftW;
           currentXBottom = x + cabinet.width + rightW;
           y = settings.plinthHeightMm;
           break;
@@ -84,7 +103,116 @@ export class KitchenGeometryService {
         case 'BOTTOM':
         default: {
           const leftW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
-          x = currentXBottom + leftW;
+          x = currentXBottom + gapBeforeMm + leftW;
+          currentXBottom = x + cabinet.width + this.requestBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
+          y = settings.plinthHeightMm;
+          break;
+        }
+      }
+
+      positions.push({
+        cabinetId: cabinet.id,
+        name: cabinet.name,
+        x,
+        y,
+        width: cabinet.width,
+        height: cabinet.height
+      });
+    }
+
+    return positions;
+  }
+
+  private calculateIslandUsedWidth(
+    cabinets: KitchenCabinet[],
+    zone: Extract<CabinetZone, 'BOTTOM' | 'TOP'>,
+    fillerWidthMm: number
+  ): number {
+    const cabinetSides = ['FRONT', 'BACK'] as const;
+
+    return cabinetSides.reduce((maxWidth, cabinetSide) => {
+      let currentX = 0;
+      for (const cabinet of cabinets) {
+        if ((cabinet.cabinetSide ?? 'FRONT') !== cabinetSide) {
+          continue;
+        }
+
+        const cabinetZone = getCabinetZone(cabinet);
+        if (zone === 'BOTTOM' && cabinetZone !== 'BOTTOM' && cabinetZone !== 'FULL') continue;
+        if (zone === 'TOP' && cabinetZone !== 'TOP' && cabinetZone !== 'FULL') continue;
+
+        const gapBeforeMm = (cabinetZone === 'TOP') ? 0 : Math.max(0, cabinet.gapBeforeMm ?? 0);
+        currentX += gapBeforeMm
+          + this.requestBuilder.enclosureOuterWidthMm(cabinet, 'left', fillerWidthMm)
+          + cabinet.width
+          + this.requestBuilder.enclosureOuterWidthMm(cabinet, 'right', fillerWidthMm);
+      }
+
+      return Math.max(maxWidth, currentX);
+    }, 0);
+  }
+
+  private calculateIslandCabinetPositions(cabinets: KitchenCabinet[], settings: KitchenGeometrySettings): CabinetPosition[] {
+    const positionsById = new Map<string, CabinetPosition>();
+
+    for (const cabinetSide of ['FRONT', 'BACK'] as const) {
+      const sideCabinets = cabinets.filter(cabinet => (cabinet.cabinetSide ?? 'FRONT') === cabinetSide);
+      const sidePositions = this.calculateLinearCabinetPositions(sideCabinets, settings);
+      for (const position of sidePositions) {
+        positionsById.set(position.cabinetId, position);
+      }
+    }
+
+    return cabinets
+      .map(cabinet => positionsById.get(cabinet.id))
+      .filter((position): position is CabinetPosition => !!position);
+  }
+
+  private calculateLinearCabinetPositions(cabinets: KitchenCabinet[], settings: KitchenGeometrySettings): CabinetPosition[] {
+    const positions: CabinetPosition[] = [];
+    let currentXBottom = 0;
+    let currentXTop = 0;
+    const countertopHeight = this.calculateCountertopHeight(cabinets, settings);
+    const anchors = this.buildAnchorPositions(cabinets, settings);
+
+    for (const cabinet of cabinets) {
+      const zone = getCabinetZone(cabinet);
+      // Pusta przestrzeń wstawiana PRZED tą szafką (głównie dla wysp). BOTTOM/FULL only.
+      const gapBeforeMm = Math.max(0, cabinet.gapBeforeMm ?? 0);
+      let x: number;
+      let y: number;
+
+      switch (zone) {
+        case 'FULL': {
+          const leftW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
+          const rightW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
+          x = currentXBottom + gapBeforeMm + leftW;
+          currentXBottom = x + cabinet.width + rightW;
+          y = settings.plinthHeightMm;
+          break;
+        }
+        case 'TOP': {
+          const leftW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
+          const rightW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
+          const effectiveAnchors = (cabinet.positioningMode === 'RELATIVE_TO_COUNTERTOP')
+            ? anchors.filter(anchor => anchor.blockUpperAbove)
+            : anchors;
+          const rawX = this.skipPastConflictingAnchors(currentXTop, leftW, cabinet.width, cabinet.height, settings, effectiveAnchors);
+
+          x = rawX + leftW;
+          currentXTop = x + cabinet.width + rightW;
+
+          if (cabinet.positioningMode === 'RELATIVE_TO_COUNTERTOP') {
+            y = countertopHeight + (cabinet.gapFromCountertopMm ?? 500);
+          } else {
+            y = settings.wallHeightMm - settings.upperFillerHeightMm - cabinet.height;
+          }
+          break;
+        }
+        case 'BOTTOM':
+        default: {
+          const leftW = this.requestBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
+          x = currentXBottom + gapBeforeMm + leftW;
           currentXBottom = x + cabinet.width + this.requestBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
           y = settings.plinthHeightMm;
           break;

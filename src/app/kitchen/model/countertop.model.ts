@@ -110,9 +110,14 @@ export interface CountertopResponse {
   enabled: boolean;
   totalLengthMm: number;
   depthMm: number;
+  frontOverhangMm?: number;
+  backOverhangMm?: number;
+  leftOverhangMm?: number;
+  rightOverhangMm?: number;
   thicknessMm: number;
   materialType: CountertopMaterialType;
   colorCode?: string;
+  islandSurfaceM2?: number;
   segments: CountertopSegmentResponse[];
   segmentCount: number;
   wasSplit: boolean;

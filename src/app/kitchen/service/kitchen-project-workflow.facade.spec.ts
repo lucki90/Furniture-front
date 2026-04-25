@@ -97,6 +97,7 @@ describe('KitchenProjectWorkflowFacade', () => {
     const response = {
       walls: [{ wallType: 'MAIN' }, { wallType: 'LEFT' }],
       cornerCountertops: [{ wallAIndex: 0, wallBIndex: 1 }],
+      islandWarnings: ['warning.island.clearance.insufficient'],
       totalProjectCost: 1000
     } as unknown as MultiWallCalculateResponse;
     const aggregation = {
@@ -121,7 +122,8 @@ describe('KitchenProjectWorkflowFacade', () => {
       expect(result.pricingWarnings).toEqual([
         'PLINTH.MATERIAL',
         'COUNTERTOP.MATERIAL',
-        'CORNER_COUNTERTOP.JOINT'
+        'CORNER_COUNTERTOP.JOINT',
+        'warning.island.clearance.insufficient'
       ]);
       done();
     });

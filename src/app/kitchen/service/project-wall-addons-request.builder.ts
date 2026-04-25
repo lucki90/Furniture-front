@@ -24,17 +24,26 @@ export class ProjectWallAddonsRequestBuilder {
     const edgeType = config.edgeType ?? DEFAULT_COUNTERTOP_REQUEST.frontEdgeType;
     const sideExtra = config.sideOverhangExtraMm ?? 5;
 
+    const adjacentSide = wall.adjacentToWall ?? 'NONE';
+    const sideExtraAppliedLeft = adjacentSide === 'LEFT' ? 0 : sideExtra;
+    const sideExtraAppliedRight = adjacentSide === 'RIGHT' ? 0 : sideExtra;
+    // FRONT strona wyspy nie może być "adjacent" (user stoi przodem) — overhang zawsze z configu.
+    const frontOverhangMm = config.frontOverhangMm ?? DEFAULT_COUNTERTOP_REQUEST.frontOverhangMm;
+    const backOverhangMm = adjacentSide === 'BACK'
+      ? 0
+      : (config.backOverhangMm ?? DEFAULT_COUNTERTOP_REQUEST.backOverhangMm);
+
     return {
       enabled: true,
       materialType: config.materialType ?? DEFAULT_COUNTERTOP_REQUEST.materialType,
       colorCode: config.colorCode,
       thicknessMm: config.thicknessMm ?? DEFAULT_COUNTERTOP_REQUEST.thicknessMm,
       manualLengthMm: config.manualLengthMm,
-      manualDepthMm: config.manualDepthMm ?? 600,
-      frontOverhangMm: config.frontOverhangMm ?? DEFAULT_COUNTERTOP_REQUEST.frontOverhangMm,
-      backOverhangMm: DEFAULT_COUNTERTOP_REQUEST.backOverhangMm,
-      leftOverhangMm: leftOverhangMm + sideExtra,
-      rightOverhangMm: rightOverhangMm + sideExtra,
+      manualDepthMm: config.manualDepthMm ?? wall.islandDepthMm ?? 600,
+      frontOverhangMm,
+      backOverhangMm,
+      leftOverhangMm: adjacentSide === 'LEFT' ? 0 : leftOverhangMm + sideExtraAppliedLeft,
+      rightOverhangMm: adjacentSide === 'RIGHT' ? 0 : rightOverhangMm + sideExtraAppliedRight,
       jointType,
       frontEdgeType: edgeType,
       leftEdgeType: DEFAULT_COUNTERTOP_REQUEST.leftEdgeType,

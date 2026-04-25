@@ -109,5 +109,5 @@ export function collectProjectPricingWarnings(
 ): string[] {
   const wallWarnings = response.walls.flatMap(wall => aggregatorService.collectPricingWarnings(wall));
   const cornerWarnings = aggregatorService.collectCornerCountertopPricingWarnings(response.cornerCountertops);
-  return [...new Set([...wallWarnings, ...cornerWarnings])];
+  return [...new Set([...wallWarnings, ...cornerWarnings, ...(response.islandWarnings ?? [])])];
 }

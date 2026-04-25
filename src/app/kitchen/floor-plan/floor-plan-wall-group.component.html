@@ -2,6 +2,19 @@
        [class.selected]="selected"
        (click)="onWallClick()">
 
+  <!-- Prostokąt ściany/wyspy — renderowany PIERWSZY, by szafki i blat były na wierzchu -->
+  <svg:rect
+    [attr.x]="wallPosition.x"
+    [attr.y]="wallPosition.y"
+    [attr.width]="wallPosition.width"
+    [attr.height]="wallPosition.height"
+    [attr.fill]="getWallColor(wallPosition.wall.type, selected)"
+    [class.island-wall-rect]="wallPosition.wall.type === 'ISLAND'"
+    class="wall-rect"
+    rx="1">
+    <svg:title>{{ getWallTooltip() }}</svg:title>
+  </svg:rect>
+
   <svg:rect *ngFor="let cab of cabinets; trackBy: trackByCabinetId"
             [attr.x]="cab.x"
             [attr.y]="cab.y"
@@ -49,17 +62,6 @@
       </ng-template>
     </svg:g>
   </ng-container>
-
-  <svg:rect
-    [attr.x]="wallPosition.x"
-    [attr.y]="wallPosition.y"
-    [attr.width]="wallPosition.width"
-    [attr.height]="wallPosition.height"
-    [attr.fill]="getWallColor(wallPosition.wall.type, selected)"
-    class="wall-rect"
-    rx="1">
-    <svg:title>{{ getWallTooltip() }}</svg:title>
-  </svg:rect>
 
   <svg:text
     [attr.x]="wallPosition.labelX"

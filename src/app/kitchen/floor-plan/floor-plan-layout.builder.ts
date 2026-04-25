@@ -1,7 +1,14 @@
-import { CabinetZone, getCabinetZone, requiresCountertop, WallWithCabinets } from '../model/kitchen-state.model';
+import { CabinetZone, getCabinetZone, KitchenCabinet, requiresCountertop, WallWithCabinets } from '../model/kitchen-state.model';
 import { WallType } from '../model/kitchen-project.model';
 import { CabinetOnFloorPlan } from './floor-plan-door-arcs';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { PLATE_THICKNESS_MM } from '../kitchen-layout/kitchen-layout.constants';
+import { DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
+
+/** Default w `ProjectWallAddonsRequestBuilder.buildCountertopRequest` (sideOverhangExtraMm). */
+const DEFAULT_SIDE_OVERHANG_EXTRA_MM = 5;
+/** Default fillerWidthMm gdy ustawienia uzytkownika nie sa propagowane do floor plan. */
+const DEFAULT_FILLER_WIDTH_MM = 50;
 
 /** Settings needed for UPPER auto-repositioning in the floor plan. */
 export interface FloorPlanCabinetsSettings {
@@ -43,6 +50,8 @@ export interface FloorPlanLayoutSettings {
   padding: number;
   countertopOverhang: number;
   countertopStandardDepth: number;
+  /** Globalna szerokosc blendy bocznej (mm). Uzywana do liczenia overhangow LEFT/RIGHT na wyspie. */
+  fillerWidthMm?: number;
 }
 
 export function buildWallPositions(
@@ -160,7 +169,8 @@ export function buildWallPositions(
 
   if (island) {
     const width = island.widthMm * scale;
-    const depth = 600 * scale;
+    const islandDepthMm = island.islandDepthMm ?? island.countertopConfig?.manualDepthMm ?? 900;
+    const depth = islandDepthMm * scale;
     positions.push({
       wall: island,
       x: centerX - width / 2,
@@ -215,6 +225,19 @@ export function buildCabinetsForWall(
   wallThickness: number,
   cabSettings?: FloorPlanCabinetsSettings
 ): CabinetOnFloorPlan[] {
+  if (pos.wall.type === 'ISLAND') {
+    return buildIslandCabinetsForWall(pos, wallThickness, cabSettings);
+  }
+
+  return buildLinearCabinetsForWall(pos, wallThickness, cabSettings, pos.wall.cabinets);
+}
+
+function buildLinearCabinetsForWall(
+  pos: WallPosition,
+  wallThickness: number,
+  cabSettings: FloorPlanCabinetsSettings | undefined,
+  cabinets: WallWithCabinets['cabinets']
+): CabinetOnFloorPlan[] {
   const wall = pos.wall;
   const scale = pos.scale;
   let currentXBottom = 0;
@@ -225,7 +248,7 @@ export function buildCabinetsForWall(
   const anchors: Array<{ xStart: number; xEnd: number; tallTop: number; blockUpperAbove: boolean }> = [];
   if (cabSettings) {
     let scanX = 0;
-    for (const cab of wall.cabinets) {
+    for (const cab of cabinets) {
       const zone = getCabinetZone(cab);
       if (zone === 'TOP') continue; // TOP cabs don't advance the bottom X cursor
       if (zone === 'FULL') {
@@ -243,19 +266,23 @@ export function buildCabinetsForWall(
   const topCabinets: CabinetOnFloorPlan[] = [];
   const fullCabinets: CabinetOnFloorPlan[] = [];
 
-  for (const cabinet of wall.cabinets) {
+  for (const cabinet of cabinets) {
     const zone = getCabinetZone(cabinet);
     const cabinetWidth = cabinet.width * scale;
     const cabinetDepth = cabinet.depth * scale;
     const isCorner = cabinet.type === KitchenCabinetType.CORNER_CABINET;
+
+    // Pusta przestrzeń wstawiona PRZED tą szafką (głównie dla wysp). Stosujemy do BOTTOM/FULL —
+    // TOP nie ma sensu (na wyspie nie ma górnych, na ścianie i tak nie chcemy gapów w górnym pasie).
+    const gapBeforeMm = Math.max(0, cabinet.gapBeforeMm ?? 0);
 
     let posX: number;
     switch (zone) {
       case 'FULL':
         // FULL (TALL_CABINET / BASE_FRIDGE) advances only the BOTTOM X cursor.
         // currentXTop stays unchanged — UPPER cabinets can overlay FULL in X when they fit.
-        posX = currentXBottom;
-        currentXBottom += cabinet.width;
+        posX = currentXBottom + gapBeforeMm;
+        currentXBottom = posX + cabinet.width;
         break;
       case 'TOP': {
         // Auto-reposition: advance UPPER past anchors it can't or must not be above.
@@ -274,8 +301,8 @@ export function buildCabinetsForWall(
       }
       case 'BOTTOM':
       default:
-        posX = currentXBottom;
-        currentXBottom += cabinet.width;
+        posX = currentXBottom + gapBeforeMm;
+        currentXBottom = posX + cabinet.width;
         break;
     }
 
@@ -291,7 +318,8 @@ export function buildCabinetsForWall(
       zone,
       isCorner,
       isFreestanding,
-      wallThickness
+      wallThickness,
+      cabinet.cabinetSide ?? 'FRONT'
     );
 
     switch (zone) {
@@ -310,8 +338,50 @@ export function buildCabinetsForWall(
   return [...bottomCabinets, ...fullCabinets, ...topCabinets];
 }
 
-export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorPlanLayoutSettings, 'wallThickness' | 'countertopOverhang' | 'countertopStandardDepth'>): CountertopOnFloorPlan[] {
+function buildIslandCabinetsForWall(
+  pos: WallPosition,
+  wallThickness: number,
+  cabSettings?: FloorPlanCabinetsSettings
+): CabinetOnFloorPlan[] {
+  const requestsById = new Map<string, CabinetOnFloorPlan>();
+
+  for (const cabinetSide of ['FRONT', 'BACK'] as const) {
+    const sideCabinets = pos.wall.cabinets.filter(cabinet => (cabinet.cabinetSide ?? 'FRONT') === cabinetSide);
+    const sideRequests = buildLinearCabinetsForWall(pos, wallThickness, cabSettings, sideCabinets).map(cabinet => {
+      if (!pos.isHorizontal) {
+        return cabinet;
+      }
+
+      const cabinetDepth = cabinet.depth;
+      const y = cabinetSide === 'BACK'
+        ? pos.y
+        : pos.y + pos.height - cabinetDepth;
+
+      return {
+        ...cabinet,
+        y,
+        cabinetSide,
+        isReversed: cabinetSide === 'BACK'
+      };
+    });
+
+    for (const request of sideRequests) {
+      requestsById.set(request.cabinetId, request);
+    }
+  }
+
+  return pos.wall.cabinets
+    .map(cabinet => requestsById.get(cabinet.id))
+    .filter((cabinet): cabinet is CabinetOnFloorPlan => !!cabinet);
+}
+
+export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorPlanLayoutSettings, 'wallThickness' | 'countertopOverhang' | 'countertopStandardDepth' | 'fillerWidthMm'>): CountertopOnFloorPlan[] {
   const wall = pos.wall;
+  if (wall.type === 'ISLAND') {
+    if (wall.countertopConfig?.enabled === false) return [];
+    return [buildIslandCountertop(pos, settings)];
+  }
+
   // Only the BOTTOM X cursor matters here — TOP (wiszące) are skipped entirely,
   // and FULL (TALL/fridge) advances currentXBottom just like a BOTTOM cabinet.
   // Using Math.max(currentXBottom, currentXTop) for FULL was wrong: a wide UPPER
@@ -348,6 +418,105 @@ export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorP
   }
 
   return result;
+}
+
+function buildIslandCountertop(
+  pos: WallPosition,
+  settings: Pick<FloorPlanLayoutSettings, 'countertopStandardDepth' | 'fillerWidthMm'>
+): CountertopOnFloorPlan {
+  const wall = pos.wall;
+  // Priorytet MUSI byc identyczny z `ProjectWallAddonsRequestBuilder.buildCountertopRequest`:
+  // manualDepthMm (jesli user ustawil) > islandDepthMm (korpus wyspy) > standard. Inaczej rzut z gory
+  // klamie wzgledem requestu — user moze ustawic blat plytszy/glebszy od korpusu, a floor plan
+  // pokaze sam korpus.
+  const baseDepthMm = wall.countertopConfig?.manualDepthMm ?? wall.islandDepthMm ?? settings.countertopStandardDepth;
+  const baseWidthMm = wall.widthMm;
+
+  // 4D overhangi musza odzwierciedlac to, co `ProjectWallAddonsRequestBuilder.buildCountertopRequest`
+  // wysyla do backendu — inaczej rzut z gory klamie wzgledem BOM/cen.
+  const overhangs = computeIslandOverhangs(wall, settings.fillerWidthMm ?? DEFAULT_FILLER_WIDTH_MM);
+  const widthMm = baseWidthMm + overhangs.leftMm + overhangs.rightMm;
+  const depthMm = baseDepthMm + overhangs.frontMm + overhangs.backMm;
+
+  const width = widthMm * pos.scale;
+  const depth = depthMm * pos.scale;
+  // FRONT na floor planie = dol prostokata (pos.y + pos.height); BACK = gora (pos.y).
+  // Overhang BACK rosnie do gory (zmniejsza y), LEFT rosnie w lewo (zmniejsza x).
+  const x = pos.x - overhangs.leftMm * pos.scale;
+  const y = pos.y - overhangs.backMm * pos.scale;
+
+  return {
+    x,
+    y,
+    width,
+    depth,
+    lengthMm: widthMm,
+    depthMm,
+    lengthLabelX: x + width / 2,
+    lengthLabelY: y + depth + 10,
+    depthLabelX: x - 5,
+    depthLabelY: y + depth / 2,
+    isHorizontal: true
+  };
+}
+
+interface IslandOverhangs {
+  frontMm: number;
+  backMm: number;
+  leftMm: number;
+  rightMm: number;
+}
+
+function computeIslandOverhangs(wall: WallWithCabinets, fillerWidthMm: number): IslandOverhangs {
+  const config = wall.countertopConfig;
+  // Brak configu (jeszcze niezapisany blat) → renderujemy "bazowy" prostokat wyspy bez naddatkow.
+  // To pozwala zachowac obecne zachowanie dla niezdefiniowanego blatu (test: depthMm == islandDepthMm).
+  if (!config) {
+    return { frontMm: 0, backMm: 0, leftMm: 0, rightMm: 0 };
+  }
+
+  const adjacentSide = wall.adjacentToWall ?? 'NONE';
+  const sideExtra = config.sideOverhangExtraMm ?? DEFAULT_SIDE_OVERHANG_EXTRA_MM;
+  // Defaulty MUSZA byc identyczne z `ProjectWallAddonsRequestBuilder.buildCountertopRequest`
+  // (front = DEFAULT_COUNTERTOP_REQUEST.frontOverhangMm = 30, back = DEFAULT_COUNTERTOP_REQUEST.backOverhangMm = 0),
+  // zeby floor plan rysowal dokladnie to, co poleci do backendu.
+  const frontMm = config.frontOverhangMm ?? DEFAULT_COUNTERTOP_REQUEST.frontOverhangMm;
+  const backMm = adjacentSide === 'BACK'
+    ? 0
+    : (config.backOverhangMm ?? DEFAULT_COUNTERTOP_REQUEST.backOverhangMm);
+
+  // LEFT/RIGHT overhang = max(enclosure outer width FRONT, enclosure outer width BACK) + sideExtra,
+  // 0 jesli ten bok jest peninsula (przyklejony do sciany).
+  const leftMm = adjacentSide === 'LEFT'
+    ? 0
+    : computeIslandSideEnclosureMm(wall, 'left', fillerWidthMm) + sideExtra;
+  const rightMm = adjacentSide === 'RIGHT'
+    ? 0
+    : computeIslandSideEnclosureMm(wall, 'right', fillerWidthMm) + sideExtra;
+
+  return { frontMm, backMm, leftMm, rightMm };
+}
+
+function computeIslandSideEnclosureMm(wall: WallWithCabinets, side: 'left' | 'right', fillerWidthMm: number): number {
+  const cabinetSides = ['FRONT', 'BACK'] as const;
+  return cabinetSides.reduce((maxMm, cabinetSide) => {
+    const sideCabinets = wall.cabinets.filter(cabinet =>
+      (cabinet.cabinetSide ?? 'FRONT') === cabinetSide && requiresCountertop(cabinet.type)
+    );
+    if (sideCabinets.length === 0) return maxMm;
+    const edge = side === 'left' ? sideCabinets[0] : sideCabinets[sideCabinets.length - 1];
+    return Math.max(maxMm, enclosureOuterWidthMm(edge, side, fillerWidthMm));
+  }, 0);
+}
+
+function enclosureOuterWidthMm(cab: KitchenCabinet, side: 'left' | 'right', fillerWidthMm: number): number {
+  const type = side === 'left' ? cab.leftEnclosureType : cab.rightEnclosureType;
+  if (!type || type === 'NONE') return 0;
+  if (type === 'PARALLEL_FILLER_STRIP') {
+    const override = side === 'left' ? cab.leftFillerWidthOverrideMm : cab.rightFillerWidthOverrideMm;
+    return override ?? fillerWidthMm;
+  }
+  return PLATE_THICKNESS_MM;
 }
 
 function buildCountertopSegment(
@@ -424,7 +593,8 @@ function createCabinetOnFloorPlan(
   zone: CabinetZone,
   isCorner: boolean,
   isFreestanding: boolean,
-  wallThickness: number
+  wallThickness: number,
+  cabinetSide: 'FRONT' | 'BACK' = 'FRONT'
 ): CabinetOnFloorPlan {
   if (pos.isHorizontal) {
     return {
@@ -437,7 +607,9 @@ function createCabinetOnFloorPlan(
       zone,
       isCorner,
       isFreestanding,
-      wallType
+      wallType,
+      cabinetSide,
+      isReversed: wallType === 'ISLAND' && cabinetSide === 'BACK'
     };
   }
 
@@ -452,7 +624,8 @@ function createCabinetOnFloorPlan(
       zone,
       isCorner,
       isFreestanding,
-      wallType
+      wallType,
+      cabinetSide
     };
   }
 
@@ -466,6 +639,7 @@ function createCabinetOnFloorPlan(
     zone,
     isCorner,
     isFreestanding,
-    wallType
+    wallType,
+    cabinetSide
   };
 }

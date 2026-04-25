@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import { KitchenCabinet } from '../model/kitchen-state.model';
 import { KitchenCabinetListComponent } from '../cabinet-list/kitchen-cabinet-list.component';
+import { WallType } from '../model/kitchen-project.model';
 
 @Component({
   selector: 'app-kitchen-cabinets-section',
@@ -16,6 +17,7 @@ export class KitchenCabinetsSectionComponent {
   @Input() result: CabinetResponse | null = null;
   @Input() hasEditingCabinet = false;
   @Input() cabinets: KitchenCabinet[] = [];
+  @Input() selectedWallType: WallType = 'MAIN';
   @Input() selectedWallLabel = '';
   @Input() selectedWallTotalCost = 0;
   @Input() totalCabinetCount = 0;

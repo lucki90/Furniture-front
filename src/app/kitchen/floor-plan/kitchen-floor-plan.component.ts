@@ -130,7 +130,8 @@ export class KitchenFloorPlanComponent {
     return buildCountertopsForWall(pos, {
       wallThickness: this.WALL_THICKNESS,
       countertopOverhang: this.COUNTERTOP_OVERHANG,
-      countertopStandardDepth: this.COUNTERTOP_STANDARD_DEPTH
+      countertopStandardDepth: this.COUNTERTOP_STANDARD_DEPTH,
+      fillerWidthMm: this.stateService.fillerWidthMm()
     });
   }
 

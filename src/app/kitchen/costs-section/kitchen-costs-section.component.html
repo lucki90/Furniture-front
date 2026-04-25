@@ -49,9 +49,9 @@
     <div class="pricing-warning-banner" *ngIf="pricingWarnings.length > 0">
       <span class="pricing-warning-icon">⚠️</span>
       <div class="pricing-warning-content">
-        <strong>Brak cen katalogowych — kwoty mogą być zaniżone</strong>
+        <strong>Uwagi i ostrzeżenia projektu</strong>
         <div class="pricing-warning-entries">
-          Brakujące wpisy: {{ pricingWarnings.join(', ') }}
+          {{ pricingWarnings.join(', ') }}
         </div>
       </div>
     </div>

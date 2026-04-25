@@ -1,6 +1,6 @@
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
-import { WallType, PositioningMode } from './kitchen-project.model';
+import { WallType, PositioningMode, CabinetSide, IslandAdjacentSide } from './kitchen-project.model';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 import { CabinetVisualConfig } from '../cabinet-form/model/cabinet-visual-elements.model';
@@ -111,6 +111,12 @@ export interface KitchenCabinetBase {
 
   // Blokada szafek wiszących powyżej (FULL-zone: TALL_CABINET, BASE_FRIDGE)
   blockUpperAbove?: boolean;
+  cabinetSide?: CabinetSide;
+
+  // Pusta przestrzeń (mm) WSTAWIONA PRZED tą szafką w trakcie auto-layoutu na ścianie.
+  // Używane głównie dla wysp (np. środek strony BACK pusty pod krzesła).
+  // Builder przesuwa positionX o tę wartość przed ustawieniem szafki.
+  gapBeforeMm?: number;
 
   // Obudowa boczna (wszystkie typy mogą mieć obudowę)
   leftEnclosureType?: string;   // 'NONE' | 'SIDE_PLATE_WITH_PLINTH' | 'SIDE_PLATE_TO_FLOOR' | 'PARALLEL_FILLER_STRIP'
@@ -319,6 +325,11 @@ export interface WallWithCabinets {
   widthMm: number;
   heightMm: number;
   cabinets: KitchenCabinet[];
+  islandDepthMm?: number;
+  adjacentToWall?: IslandAdjacentSide;
+  leftSidePanelEnabled?: boolean;
+  rightSidePanelEnabled?: boolean;
+  backBlendaEnabled?: boolean;
 
   // Konfiguracja blatu dla tej ściany
   countertopConfig?: CountertopConfig;
@@ -338,6 +349,7 @@ export interface CountertopConfig {
   manualLengthMm?: number;
   manualDepthMm?: number;
   frontOverhangMm?: number;
+  backOverhangMm?: number;
   jointType?: CountertopJointType;
   edgeType?: CountertopEdgeType;
   /** Naddatek boczny z każdej strony ponad blendy (mm). Default: 5mm. */
@@ -404,6 +416,10 @@ export interface CabinetFormData {
 
   // Blokada szafek wiszących powyżej (FULL-zone: TALL_CABINET, BASE_FRIDGE)
   blockUpperAbove?: boolean;
+  cabinetSide?: CabinetSide;
+
+  // Pusta przestrzeń przed szafką (mm) — głównie dla wysp; przesuwa positionX przy auto-layoucie.
+  gapBeforeMm?: number;
 
   // Obudowa boczna
   leftEnclosureType?: string;

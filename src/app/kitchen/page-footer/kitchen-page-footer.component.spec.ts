@@ -25,8 +25,8 @@ describe('KitchenPageFooterComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('12345 zl');
-    expect(text).toContain('2 scian, 4 szafek');
+    expect(text).toContain('12345 zł');
+    expect(text).toContain('2 ścian, 4 szafek');
   });
 
   it('emits footer actions', () => {

@@ -27,6 +27,8 @@ export class ProjectMetadataService {
   private _currentProjectVersion = signal<number>(0);
   private _currentProjectStatus = signal<ProjectStatus>('DRAFT');
   private _currentProjectAllowedTransitions = signal<ProjectStatus[]>([]);
+  private _currentProjectRoomWidthMm = signal<number | null>(null);
+  private _currentProjectRoomDepthMm = signal<number | null>(null);
 
   // ============ PUBLIC READONLY SIGNALS ============
 
@@ -39,6 +41,8 @@ export class ProjectMetadataService {
   readonly currentProjectVersion = this._currentProjectVersion.asReadonly();
   readonly currentProjectStatus = this._currentProjectStatus.asReadonly();
   readonly currentProjectAllowedTransitions = this._currentProjectAllowedTransitions.asReadonly();
+  readonly currentProjectRoomWidthMm = this._currentProjectRoomWidthMm.asReadonly();
+  readonly currentProjectRoomDepthMm = this._currentProjectRoomDepthMm.asReadonly();
 
   // ============ METHODS ============
 
@@ -54,7 +58,9 @@ export class ProjectMetadataService {
     allowedTransitions?: ProjectStatus[],
     clientName?: string,
     clientPhone?: string,
-    clientEmail?: string
+    clientEmail?: string,
+    roomWidthMm?: number,
+    roomDepthMm?: number
   ): void {
     this._currentProjectId.set(projectId);
     this._currentProjectName.set(projectName);
@@ -65,6 +71,12 @@ export class ProjectMetadataService {
     this._currentProjectVersion.set(version);
     if (status) this._currentProjectStatus.set(status);
     if (allowedTransitions) this._currentProjectAllowedTransitions.set(allowedTransitions);
+    if (roomWidthMm !== undefined) {
+      this._currentProjectRoomWidthMm.set(roomWidthMm ?? null);
+    }
+    if (roomDepthMm !== undefined) {
+      this._currentProjectRoomDepthMm.set(roomDepthMm ?? null);
+    }
   }
 
   /**
@@ -80,6 +92,8 @@ export class ProjectMetadataService {
     version: number;
     status: ProjectStatus;
     allowedTransitions?: ProjectStatus[];
+    roomWidthMm?: number;
+    roomDepthMm?: number;
   }): void {
     this._currentProjectId.set(project.id);
     this._currentProjectName.set(project.name);
@@ -90,6 +104,13 @@ export class ProjectMetadataService {
     this._currentProjectVersion.set(project.version);
     this._currentProjectStatus.set(project.status);
     this._currentProjectAllowedTransitions.set(project.allowedTransitions ?? []);
+    this._currentProjectRoomWidthMm.set(project.roomWidthMm ?? null);
+    this._currentProjectRoomDepthMm.set(project.roomDepthMm ?? null);
+  }
+
+  updateRoomDimensions(roomWidthMm?: number | null, roomDepthMm?: number | null): void {
+    this._currentProjectRoomWidthMm.set(roomWidthMm ?? null);
+    this._currentProjectRoomDepthMm.set(roomDepthMm ?? null);
   }
 
   /**
@@ -106,5 +127,7 @@ export class ProjectMetadataService {
     this._currentProjectVersion.set(0);
     this._currentProjectStatus.set('DRAFT');
     this._currentProjectAllowedTransitions.set([]);
+    this._currentProjectRoomWidthMm.set(null);
+    this._currentProjectRoomDepthMm.set(null);
   }
 }

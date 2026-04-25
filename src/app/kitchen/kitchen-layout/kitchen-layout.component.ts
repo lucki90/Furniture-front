@@ -14,6 +14,7 @@ import { buildVisualCabinetPositions, VisualCabinetPosition } from './kitchen-la
 import { KitchenLayoutCabinetsLayerComponent } from './kitchen-layout-cabinets-layer.component';
 import { KitchenLayoutSurfacesLayerComponent } from './kitchen-layout-surfaces-layer.component';
 import { KitchenLayoutInfoPanelComponent } from './kitchen-layout-info-panel.component';
+import { CabinetSide } from '../model/kitchen-project.model';
 
 @Component({
   selector: 'app-kitchen-layout',
@@ -41,6 +42,8 @@ export class KitchenLayoutComponent {
   // showCountertop i showUpperCabinets współdzielone ze state service (wpływają też na floor plan)
   readonly showCountertop = this.stateService.showCountertop;
   readonly showUpperCabinets = this.stateService.showUpperCabinets;
+  // visibleIslandSide współdzielony ze state service — cabinet-form używa go jako default cabinetSide
+  readonly visibleIslandSide = this.stateService.visibleIslandSide;
 
   readonly wall = this.stateService.wall;
   readonly selectedWall = this.stateService.selectedWall;
@@ -97,22 +100,71 @@ export class KitchenLayoutComponent {
   });
 
   readonly hasHangingCabinets = computed(() => {
-    return this.stateService.cabinets().some(cabinet => {
+    return this.filteredCabinets().some(cabinet => {
       const zone = getCabinetZone(cabinet);
       return zone === 'TOP' || zone === 'FULL';
     });
   });
 
   readonly hasBottomCabinets = computed(() => {
-    return this.stateService.cabinets().some(cabinet => {
+    return this.filteredCabinets().some(cabinet => {
       const zone = getCabinetZone(cabinet);
       return zone === 'BOTTOM' || zone === 'FULL';
     });
   });
 
+  readonly filteredCabinets = computed(() => {
+    const wall = this.selectedWall();
+    const cabinets = this.stateService.cabinets();
+    if (wall?.type !== 'ISLAND') {
+      return cabinets;
+    }
+
+    return cabinets.filter(cabinet => (cabinet.cabinetSide ?? 'FRONT') === this.visibleIslandSide());
+  });
+
+  readonly filteredCabinetPositions = computed(() => {
+    const filteredIds = new Set(this.filteredCabinets().map(cabinet => cabinet.id));
+    return this.cabinetPositions().filter(position => filteredIds.has(position.cabinetId));
+  });
+
+  /** Szafki z DRUGIEJ strony wyspy — renderowane jako cień (ghosting) gdy brak szafek po aktywnej stronie. */
+  readonly ghostCabinets = computed(() => {
+    const wall = this.selectedWall();
+    if (wall?.type !== 'ISLAND') return [];
+    const cabinets = this.stateService.cabinets();
+    const otherSide: CabinetSide = this.visibleIslandSide() === 'FRONT' ? 'BACK' : 'FRONT';
+    return cabinets.filter(cabinet => (cabinet.cabinetSide ?? 'FRONT') === otherSide);
+  });
+
+  readonly ghostCabinetPositions = computed(() => {
+    const ghostIds = new Set(this.ghostCabinets().map(cabinet => cabinet.id));
+    return this.cabinetPositions().filter(position => ghostIds.has(position.cabinetId));
+  });
+
+  readonly ghostVisualPositions = computed((): VisualCabinetPosition[] => {
+    const ghosts = this.ghostCabinets();
+    if (ghosts.length === 0) return [];
+    return buildVisualCabinetPositions({
+      cabinets: ghosts,
+      cabinetPositions: this.ghostCabinetPositions(),
+      scale: this.scaleFactor(),
+      wallWidth: this.wallDisplayWidth(),
+      wallDisplayHeight: this.WALL_DISPLAY_HEIGHT,
+      scaleVert: this.layoutMetrics().scaleVert,
+      feetHeightMm: this.FEET_HEIGHT_MM,
+      fillerWidthMm: this.stateService.fillerWidthMm(),
+      standardBottomHeight: this.STANDARD_BOTTOM_HEIGHT,
+      standardTopHeight: this.STANDARD_TOP_HEIGHT,
+      standardBottomDepth: this.STANDARD_BOTTOM_DEPTH,
+      standardTopDepth: this.STANDARD_TOP_DEPTH,
+      frontGap: this.FRONT_GAP
+    });
+  });
+
   readonly layoutMetrics = computed(() => {
     return buildKitchenLayoutMetrics({
-      cabinets: this.stateService.cabinets(),
+      cabinets: this.filteredCabinets(),
       wallHeightMm: this.selectedWall()?.heightMm ?? 2400,
       plinthHeightMm: this.stateService.plinthHeightMm(),
       countertopThicknessMm: this.stateService.countertopThicknessMm(),
@@ -138,8 +190,8 @@ export class KitchenLayoutComponent {
    */
   readonly visualPositions = computed((): VisualCabinetPosition[] => {
     return buildVisualCabinetPositions({
-      cabinetPositions: this.cabinetPositions(),
-      cabinets: this.stateService.cabinets(),
+      cabinets: this.filteredCabinets(),
+      cabinetPositions: this.filteredCabinetPositions(),
       scale: this.scaleFactor(),
       wallWidth: this.wallDisplayWidth(),
       wallDisplayHeight: this.WALL_DISPLAY_HEIGHT,
@@ -161,9 +213,9 @@ export class KitchenLayoutComponent {
    * Długość = szerokość szafek + blendy boczne + naddatek boczny (sideOverhangExtraMm, default 5mm z każdej strony).
    */
   readonly countertopDimensions = computed(() => {
-    const cabinets = this.stateService.cabinets();
+    const filteredCabinets = this.filteredCabinets();
     // Tylko szafki z blatem — wyklucza wolnostojące AGD i BASE_FRIDGE (brak blatu nad nimi).
-    const bottomCabinets = cabinets.filter(cab => requiresCountertop(cab.type));
+    const bottomCabinets = filteredCabinets.filter(cab => requiresCountertop(cab.type));
 
     if (bottomCabinets.length === 0) {
       return null;
@@ -205,8 +257,8 @@ export class KitchenLayoutComponent {
    * Celowo NIE używa visualPositions() (heavy signal) — korzysta bezpośrednio z cabinetPositions().
    */
   readonly countertopZoneRects = computed((): { x: number; width: number }[] => {
-    const cabPositions = this.cabinetPositions();
-    const allCabinets = this.stateService.cabinets();
+    const cabPositions = this.filteredCabinetPositions();
+    const allCabinets = this.filteredCabinets();
     const sf = this.scaleFactor();
     const wallW = this.wallDisplayWidth();
 
@@ -273,8 +325,8 @@ export class KitchenLayoutComponent {
     }
 
     // Wiele segmentów — oblicz długość per segment
-    const cabPositions = this.cabinetPositions();
-    const allCabinets = this.stateService.cabinets();
+    const filteredPositions = this.filteredCabinetPositions();
+    const allCabinets = this.filteredCabinets();
     const sf = this.scaleFactor();
     const sideExtra = wall.countertopConfig?.sideOverhangExtraMm ?? 5;
 
@@ -293,7 +345,7 @@ export class KitchenLayoutComponent {
 
       // Szafki z blatem w zakresie segmentu (środek szafki musi być w przedziale).
       // Wyklucza wolnostojące AGD — nie wnoszą do długości blatu.
-      const segCabs = cabPositions.filter(cab => {
+      const segCabs = filteredPositions.filter(cab => {
         const orig = allCabinets.find(c => c.id === cab.cabinetId);
         if (!orig || !requiresCountertop(orig.type)) return false;
         const cabCenter = cab.x + cab.width / 2;

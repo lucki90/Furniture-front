@@ -1,5 +1,5 @@
 import { CabinetZone } from '../model/kitchen-state.model';
-import { WallType } from '../model/kitchen-project.model';
+import { CabinetSide, WallType } from '../model/kitchen-project.model';
 
 export interface CabinetOnFloorPlan {
   cabinetId: string;
@@ -12,6 +12,8 @@ export interface CabinetOnFloorPlan {
   isCorner: boolean;
   isFreestanding: boolean;
   wallType: WallType;
+  cabinetSide?: CabinetSide;
+  isReversed?: boolean;
 }
 
 export interface FloorPlanArc {
@@ -70,20 +72,45 @@ export function buildFloorPlanArc(cabinet: CabinetOnFloorPlan, hingeSide: 'LEFT'
     case 'ISLAND': {
       const radius = cabinet.width;
       const centerX = hingeSide === 'LEFT' ? cabinet.x : cabinet.x + radius;
-      const frontY = cabinet.y;
 
-      if (hingeSide === 'LEFT') {
-        pathD = `M ${centerX + radius},${frontY} A ${radius},${radius} 0 0 0 ${centerX},${frontY - radius} L ${centerX},${frontY} Z`;
-        bboxX = centerX;
-        bboxY = frontY - radius;
-        bboxW = radius;
-        bboxH = radius;
+      // Kierunek otwierania szafki na floor planie zależy od umiejscowienia frontu względem korpusu:
+      // - MAIN / CORNER_*: front zawsze "do góry" (od ściany w stronę pomieszczenia).
+      // - ISLAND FRONT: front szafki jest po DOLNEJ stronie korpusu (cabinet.y + depth) i otwiera się
+      //   w dół (na zewnątrz wyspy, w stronę kuchni).
+      // - ISLAND BACK: front jest po GÓRNEJ stronie korpusu (cabinet.y) i otwiera się w górę
+      //   (na zewnątrz wyspy, po przeciwnej stronie). Bez tego rozróżnienia łuk wskazywałby
+      //   "do środka" wyspy, gdzie jest druga szafka — fizycznie niemożliwe.
+      const opensDownward = cabinet.wallType === 'ISLAND' && cabinet.cabinetSide === 'FRONT';
+      const frontY = opensDownward ? cabinet.y + cabinet.depth : cabinet.y;
+
+      if (opensDownward) {
+        if (hingeSide === 'LEFT') {
+          pathD = `M ${centerX + radius},${frontY} A ${radius},${radius} 0 0 1 ${centerX},${frontY + radius} L ${centerX},${frontY} Z`;
+          bboxX = centerX;
+          bboxY = frontY;
+          bboxW = radius;
+          bboxH = radius;
+        } else {
+          pathD = `M ${centerX - radius},${frontY} A ${radius},${radius} 0 0 0 ${centerX},${frontY + radius} L ${centerX},${frontY} Z`;
+          bboxX = centerX - radius;
+          bboxY = frontY;
+          bboxW = radius;
+          bboxH = radius;
+        }
       } else {
-        pathD = `M ${centerX - radius},${frontY} A ${radius},${radius} 0 0 1 ${centerX},${frontY - radius} L ${centerX},${frontY} Z`;
-        bboxX = centerX - radius;
-        bboxY = frontY - radius;
-        bboxW = radius;
-        bboxH = radius;
+        if (hingeSide === 'LEFT') {
+          pathD = `M ${centerX + radius},${frontY} A ${radius},${radius} 0 0 0 ${centerX},${frontY - radius} L ${centerX},${frontY} Z`;
+          bboxX = centerX;
+          bboxY = frontY - radius;
+          bboxW = radius;
+          bboxH = radius;
+        } else {
+          pathD = `M ${centerX - radius},${frontY} A ${radius},${radius} 0 0 1 ${centerX},${frontY - radius} L ${centerX},${frontY} Z`;
+          bboxX = centerX - radius;
+          bboxY = frontY - radius;
+          bboxW = radius;
+          bboxH = radius;
+        }
       }
       break;
     }

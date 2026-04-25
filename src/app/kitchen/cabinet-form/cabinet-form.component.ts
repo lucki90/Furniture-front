@@ -1,4 +1,4 @@
-﻿import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed, DestroyRef } from '@angular/core';
+﻿import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed, effect, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -157,7 +157,8 @@ export class CabinetFormComponent implements OnChanges {
     const ref = this.dialog.open(CabinetTypePickerComponent, {
       width: '600px',
       maxHeight: '80vh',
-      panelClass: 'cabinet-picker-dialog'
+      panelClass: 'cabinet-picker-dialog',
+      data: { isIslandWall: this.isIslandWall }
     });
     ref.afterClosed().subscribe((type: KitchenCabinetType | null) => {
       if (type) {
@@ -187,6 +188,10 @@ export class CabinetFormComponent implements OnChanges {
   /** Whether upper cabinet position is defined relative to countertop. */
   get isCountertopMode(): boolean {
     return this.form.get('positioningMode')?.value === 'RELATIVE_TO_COUNTERTOP';
+  }
+
+  get isIslandWall(): boolean {
+    return this.stateService.selectedWall()?.type === 'ISLAND';
   }
 
   /** Computed countertop height from floor level. */
@@ -231,6 +236,15 @@ export class CabinetFormComponent implements OnChanges {
       .valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(type => this.onTypeChange(type as KitchenCabinetType));
+
+    // Gdy user przełącza zakładkę FRONT/BACK wyspy i nie edytuje istniejącej szafki,
+    // domyślnie ustaw cabinetSide zgodnie z aktywną zakładką.
+    effect(() => {
+      const side = this.stateService.visibleIslandSide();
+      if (!this.editingCabinet && this.isIslandWall) {
+        this.form.get('cabinetSide')?.setValue(side, { emitEvent: false });
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {

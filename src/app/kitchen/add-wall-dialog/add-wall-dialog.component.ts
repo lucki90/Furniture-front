@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { WallType, WALL_TYPES } from '../model/kitchen-project.model';
+import { IslandAdjacentSide, WallType, WALL_TYPES } from '../model/kitchen-project.model';
 
 export interface AddWallDialogData {
   availableTypes: { value: WallType; label: string }[];
@@ -17,6 +17,8 @@ export interface AddWallDialogResult {
   type: WallType;
   widthMm: number;
   heightMm: number;
+  islandDepthMm?: number;
+  adjacentToWall?: IslandAdjacentSide;
 }
 
 @Component({
@@ -42,6 +44,12 @@ export class AddWallDialogComponent {
 
   form: FormGroup;
   availableTypes = signal<{ value: WallType; label: string }[]>([]);
+  readonly islandAdjacentOptions: { value: IslandAdjacentSide; label: string }[] = [
+    { value: 'NONE', label: 'Wolnostojąca' },
+    { value: 'LEFT', label: 'Przy ścianie z lewej' },
+    { value: 'RIGHT', label: 'Przy ścianie z prawej' },
+    { value: 'BACK', label: 'Przy ścianie z tyłu' }
+  ];
 
   // Default dimensions per wall type
   private readonly defaultDimensions: Record<WallType, { width: number; height: number }> = {
@@ -62,7 +70,9 @@ export class AddWallDialogComponent {
     this.form = this.fb.group({
       type: [defaultType, Validators.required],
       widthMm: [defaults.width, [Validators.required, Validators.min(500), Validators.max(10000)]],
-      heightMm: [defaults.height, [Validators.required, Validators.min(500), Validators.max(4000)]]
+      heightMm: [defaults.height, [Validators.required, Validators.min(500), Validators.max(4000)]],
+      islandDepthMm: [900, [Validators.min(600), Validators.max(1500)]],
+      adjacentToWall: ['NONE']
     });
 
     // Update dimensions when type changes — takeUntilDestroyed zapobiega wyciekom pamięci
@@ -73,9 +83,15 @@ export class AddWallDialogComponent {
         const dims = this.defaultDimensions[type];
         this.form.patchValue({
           widthMm: dims.width,
-          heightMm: dims.height
+          heightMm: dims.height,
+          islandDepthMm: type === 'ISLAND' ? (this.form.value.islandDepthMm ?? 900) : null,
+          adjacentToWall: type === 'ISLAND' ? (this.form.value.adjacentToWall ?? 'NONE') : 'NONE'
         });
       });
+  }
+
+  get isIsland(): boolean {
+    return this.form.get('type')?.value === 'ISLAND';
   }
 
   onCancel(): void {
@@ -91,7 +107,9 @@ export class AddWallDialogComponent {
     const result: AddWallDialogResult = {
       type: this.form.value.type,
       widthMm: this.form.value.widthMm,
-      heightMm: this.form.value.heightMm
+      heightMm: this.form.value.heightMm,
+      islandDepthMm: this.isIsland ? this.form.value.islandDepthMm : undefined,
+      adjacentToWall: this.isIsland ? this.form.value.adjacentToWall : undefined
     };
 
     this.dialogRef.close(result);

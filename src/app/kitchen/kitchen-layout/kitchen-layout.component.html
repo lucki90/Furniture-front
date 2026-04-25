@@ -1,11 +1,16 @@
 <div class="layout-container">
   <h4>Widok od frontu: {{ wallLabel() }}</h4>
 
-  <div *ngIf="cabinetPositions().length === 0" class="empty-state">
+  <div *ngIf="selectedWall()?.type === 'ISLAND'" class="svg-toolbar">
+    <button type="button" class="btn btn-sm" [class.btn-primary]="visibleIslandSide() === 'FRONT'" [class.btn-secondary]="visibleIslandSide() !== 'FRONT'" (click)="visibleIslandSide.set('FRONT')">FRONT</button>
+    <button type="button" class="btn btn-sm" [class.btn-primary]="visibleIslandSide() === 'BACK'" [class.btn-secondary]="visibleIslandSide() !== 'BACK'" (click)="visibleIslandSide.set('BACK')">BACK</button>
+  </div>
+
+  <div *ngIf="filteredCabinetPositions().length === 0 && ghostVisualPositions().length === 0" class="empty-state">
     Dodaj szafki, aby zobaczyć wizualizację
   </div>
 
-  <div *ngIf="cabinetPositions().length > 0" class="visualization-wrapper">
+  <div *ngIf="filteredCabinetPositions().length > 0 || ghostVisualPositions().length > 0" class="visualization-wrapper">
     <p class="wall-info">
       {{ wallLabel() }}: {{ wall().length }} mm |
       Dolne: {{ usedWidthBottom() }}/{{ wall().length }} mm |
@@ -75,6 +80,16 @@
               [attr.width]="wallDisplayWidth()"
               [attr.height]="bottomZoneHeight"
               class="zone-bg lower-zone-bg"/>
+
+        <!-- Cień szafek z drugiej strony wyspy (ghosting) — półprzezroczyste, nieinteraktywne -->
+        <g *ngIf="ghostVisualPositions().length > 0"
+           appKitchenLayoutCabinetsLayer
+           [positions]="ghostVisualPositions()"
+           [showUpperCabinets]="showUpperCabinets()"
+           [showCabinetLabels]="false"
+           [editingCabinetId]="null"
+           style="opacity: 0.22; pointer-events: none;">
+        </g>
 
         <g
           appKitchenLayoutCabinetsLayer

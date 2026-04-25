@@ -87,4 +87,211 @@ describe('floor-plan-layout.builder', () => {
     expect(countertops[0].lengthMm).toBe(830);
     expect(countertops[1].lengthMm).toBe(930);
   });
+
+  it('should render island depth from configuration and place FRONT/BACK rows separately', () => {
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 1000,
+        cabinets: [
+          { id: 'front', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1, cabinetSide: 'FRONT' } as any,
+          { id: 'back', type: KitchenCabinetType.BASE_ONE_DOOR, width: 800, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1, cabinetSide: 'BACK' } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const cabinets = buildCabinetsForWall(wallPosition, 10, {
+      plinthHeightMm: 100,
+      upperFillerHeightMm: 100
+    });
+    const countertops = buildCountertopsForWall(wallPosition, {
+      wallThickness: 10,
+      countertopOverhang: 30,
+      countertopStandardDepth: 600
+    });
+
+    expect(wallPosition.height).toBeCloseTo(1000 * wallPosition.scale, 3);
+    expect(countertops[0].depthMm).toBe(1000);
+    expect(cabinets.find(cab => cab.cabinetId === 'front')).toEqual(jasmine.objectContaining({
+      cabinetSide: 'FRONT',
+      isReversed: false
+    }));
+    expect(cabinets.find(cab => cab.cabinetId === 'back')).toEqual(jasmine.objectContaining({
+      cabinetSide: 'BACK',
+      isReversed: true
+    }));
+    expect(cabinets.find(cab => cab.cabinetId === 'front')!.y).toBeGreaterThan(cabinets.find(cab => cab.cabinetId === 'back')!.y);
+  });
+
+  it('should apply 4D overhangs (front/back/left/right) to island countertop dimensions', () => {
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 900,
+        adjacentToWall: 'NONE',
+        countertopConfig: {
+          enabled: true,
+          frontOverhangMm: 30,
+          backOverhangMm: 20,
+          sideOverhangExtraMm: 5
+        },
+        cabinets: [
+          { id: 'front-l', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1, cabinetSide: 'FRONT' } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const countertops = buildCountertopsForWall(wallPosition, {
+      wallThickness: 10,
+      countertopOverhang: 30,
+      countertopStandardDepth: 600,
+      fillerWidthMm: 50
+    });
+
+    // depth = islandDepth(900) + frontOverhang(30) + backOverhang(20) = 950
+    expect(countertops[0].depthMm).toBe(950);
+    // length = islandWidth(2400) + leftOverhang(0+5=5) + rightOverhang(0+5=5) = 2410
+    expect(countertops[0].lengthMm).toBe(2410);
+  });
+
+  it('should zero overhang on adjacent peninsula side', () => {
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 900,
+        adjacentToWall: 'BACK',
+        countertopConfig: {
+          enabled: true,
+          frontOverhangMm: 30,
+          backOverhangMm: 20,
+          sideOverhangExtraMm: 5
+        },
+        cabinets: []
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const countertops = buildCountertopsForWall(wallPosition, {
+      wallThickness: 10,
+      countertopOverhang: 30,
+      countertopStandardDepth: 600,
+      fillerWidthMm: 50
+    });
+
+    // BACK adjacent → backOverhang = 0; depth = 900 + 30 + 0 = 930
+    expect(countertops[0].depthMm).toBe(930);
+  });
+
+  it('should prefer manualDepthMm over islandDepthMm (mirror of ProjectWallAddonsRequestBuilder)', () => {
+    // Symetria z `buildCountertopRequest`: manualDepthMm > islandDepthMm > 600. Floor plan
+    // MUSI rysowac to samo, co backend dostaje w request — inaczej user ustawia recznie
+    // glebokosc blatu, a rzut z gory pokazuje sam korpus wyspy.
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 900,
+        adjacentToWall: 'NONE',
+        countertopConfig: {
+          enabled: true,
+          manualDepthMm: 1200,
+          frontOverhangMm: 0,
+          backOverhangMm: 0,
+          sideOverhangExtraMm: 0
+        },
+        cabinets: []
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const countertops = buildCountertopsForWall(wallPosition, {
+      wallThickness: 10,
+      countertopOverhang: 30,
+      countertopStandardDepth: 600,
+      fillerWidthMm: 50
+    });
+
+    // depth = manualDepth(1200) + frontOH(0) + backOH(0), ignorujac islandDepth(900).
+    expect(countertops[0].depthMm).toBe(1200);
+  });
+
+  it('should return no countertops for ISLAND with explicitly disabled countertopConfig', () => {
+    // Mapper zachowuje `{ enabled: false }` po reloadzie projektu z wylaczonym blatem.
+    // Floor plan musi to respektowac — inaczej user widzi blat, ktory nie istnieje.
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 900,
+        adjacentToWall: 'NONE',
+        countertopConfig: { enabled: false },
+        cabinets: []
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const countertops = buildCountertopsForWall(wallPosition, {
+      wallThickness: 10,
+      countertopOverhang: 30,
+      countertopStandardDepth: 600,
+      fillerWidthMm: 50
+    });
+
+    expect(countertops).toEqual([]);
+  });
+
+  it('should apply DEFAULT_COUNTERTOP_REQUEST defaults when countertopConfig has no explicit overhangs', () => {
+    // Symetria z ProjectWallAddonsRequestBuilder: gdy user nie ustawil overhangow, backend
+    // dostaje DEFAULT_COUNTERTOP_REQUEST (front=30, back=0). Floor plan MUSI rysowac to samo.
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 900,
+        adjacentToWall: 'NONE',
+        countertopConfig: { enabled: true },
+        cabinets: []
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const countertops = buildCountertopsForWall(wallPosition, {
+      wallThickness: 10,
+      countertopOverhang: 30,
+      countertopStandardDepth: 600,
+      fillerWidthMm: 50
+    });
+
+    // depth = 900 + DEFAULT frontOverhang(30) + DEFAULT backOverhang(0) = 930
+    expect(countertops[0].depthMm).toBe(930);
+  });
 });

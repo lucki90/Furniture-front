@@ -1,23 +1,35 @@
 import { Injectable, signal } from '@angular/core';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import { CabinetFormData, CountertopConfig, KitchenCabinet, PlinthConfig, WallWithCabinets } from '../model/kitchen-state.model';
-import { WallType } from '../model/kitchen-project.model';
+import { IslandAdjacentSide, WallType } from '../model/kitchen-project.model';
 import { KitchenCabinetStateFactory } from './kitchen-cabinet-state.factory';
 
-function createDefaultMainWall(countertopThicknessMm: number): WallWithCabinets {
+export interface AddWallOptions {
+  islandDepthMm?: number;
+  adjacentToWall?: IslandAdjacentSide;
+}
+
+function createDefaultWall(type: WallType, countertopThicknessMm: number, options?: AddWallOptions): WallWithCabinets {
   return {
     id: 'wall-1',
-    type: 'MAIN',
-    widthMm: 3600,
-    heightMm: 2600,
+    type,
+    widthMm: type === 'ISLAND' ? 2400 : 3600,
+    heightMm: type === 'ISLAND' ? 900 : 2600,
     cabinets: [],
+    islandDepthMm: type === 'ISLAND' ? (options?.islandDepthMm ?? 900) : undefined,
+    adjacentToWall: type === 'ISLAND' ? (options?.adjacentToWall ?? 'NONE') : undefined,
+    leftSidePanelEnabled: type === 'ISLAND' ? false : undefined,
+    rightSidePanelEnabled: type === 'ISLAND' ? false : undefined,
+    backBlendaEnabled: type === 'ISLAND' ? false : undefined,
     countertopConfig: {
       enabled: true,
       materialType: 'LAMINATE',
       thicknessMm: countertopThicknessMm,
       jointType: 'NONE',
       edgeType: 'ABS_EDGE',
-      sideOverhangExtraMm: 5
+      sideOverhangExtraMm: 5,
+      frontOverhangMm: 30,
+      backOverhangMm: type === 'ISLAND' ? 30 : 0
     },
     plinthConfig: {
       enabled: true,
@@ -31,7 +43,7 @@ function createDefaultMainWall(countertopThicknessMm: number): WallWithCabinets 
   providedIn: 'root'
 })
 export class KitchenWorkspaceStore {
-  private _walls = signal<WallWithCabinets[]>([createDefaultMainWall(38)]);
+  private _walls = signal<WallWithCabinets[]>([createDefaultWall('MAIN', 38)]);
   private _selectedWallId = signal<string>('wall-1');
   private _wallIdCounter = 1;
   private _cabinetIdCounter = 0;
@@ -45,31 +57,24 @@ export class KitchenWorkspaceStore {
     return this._walls();
   }
 
-  addWall(type: WallType, widthMm: number, heightMm: number, defaultCountertopThicknessMm: number): string {
+  addWall(
+    type: WallType,
+    widthMm: number,
+    heightMm: number,
+    defaultCountertopThicknessMm: number,
+    options?: AddWallOptions
+  ): string {
     this._wallIdCounter++;
     const newWallId = `wall-${this._wallIdCounter}`;
+    const defaultWall = createDefaultWall(type, defaultCountertopThicknessMm, options);
 
     this._walls.update(walls => [
       ...walls,
       {
+        ...defaultWall,
         id: newWallId,
-        type,
         widthMm,
-        heightMm,
-        cabinets: [],
-        countertopConfig: {
-          enabled: true,
-          materialType: 'LAMINATE',
-          thicknessMm: defaultCountertopThicknessMm,
-          jointType: 'NONE',
-          edgeType: 'ABS_EDGE',
-          sideOverhangExtraMm: 5
-        },
-        plinthConfig: {
-          enabled: true,
-          feetType: 'FEET_100',
-          materialType: 'PVC'
-        }
+        heightMm
       }
     ]);
     this._selectedWallId.set(newWallId);
@@ -102,6 +107,12 @@ export class KitchenWorkspaceStore {
   updateWallDimensions(wallId: string, widthMm: number, heightMm: number): void {
     this._walls.update(walls =>
       walls.map(wall => wall.id === wallId ? { ...wall, widthMm, heightMm } : wall)
+    );
+  }
+
+  updateWall(wallId: string, patch: Partial<WallWithCabinets>): void {
+    this._walls.update(walls =>
+      walls.map(wall => wall.id === wallId ? { ...wall, ...patch } : wall)
     );
   }
 
@@ -186,7 +197,7 @@ export class KitchenWorkspaceStore {
   }
 
   resetWorkspace(defaultCountertopThicknessMm: number): void {
-    this._walls.set([createDefaultMainWall(defaultCountertopThicknessMm)]);
+    this._walls.set([createDefaultWall('MAIN', defaultCountertopThicknessMm)]);
     this._selectedWallId.set('wall-1');
     this._wallIdCounter = 1;
     this._cabinetIdCounter = 0;

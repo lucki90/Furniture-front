@@ -54,13 +54,12 @@ export class FloorPlanWallGroupComponent {
   }
 
   protected getWallColor(type: WallType, isSelected: boolean): string {
-    if (isSelected) {
-      return '#1976d2';
-    }
     if (type === 'ISLAND') {
-      return '#8d6e63';
+      // Wyspa: transparentna warstwa, by szafki były widoczne spod prostokąta wyspy.
+      // Taki sam odcień brązu jak blat (.countertop-rect), by styl był spójny.
+      return isSelected ? 'rgba(25, 118, 210, 0.22)' : 'rgba(141, 110, 99, 0.22)';
     }
-    return '#9e9e9e';
+    return isSelected ? '#1976d2' : '#9e9e9e';
   }
 
   protected getWallTooltip(): string {

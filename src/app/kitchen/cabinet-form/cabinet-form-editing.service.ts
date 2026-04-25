@@ -37,6 +37,8 @@ export class CabinetFormEditingService {
       positioningMode: c.positioningMode ?? 'RELATIVE_TO_CEILING',
       gapFromCountertopMm: c.gapFromCountertopMm ?? 500,
       gapFromAnchorMm: c.gapFromAnchorMm ?? 0,
+      cabinetSide: c.cabinetSide ?? 'FRONT',
+      gapBeforeMm: c.gapBeforeMm ?? 0,
       cascadeLowerHeight: c.cascadeLowerHeight ?? 400,
       cascadeLowerDepth: c.cascadeLowerDepth ?? 400,
       cascadeUpperHeight: c.cascadeUpperHeight ?? 320,

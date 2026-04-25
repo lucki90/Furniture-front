@@ -66,6 +66,8 @@ describe('KitchenProjectStateMapper', () => {
             enabled: true,
             totalLengthMm: 800,
             depthMm: 620,
+            frontOverhangMm: 35,
+            backOverhangMm: 10,
             thicknessMm: 38,
             materialType: 'LAMINATE',
             segments: [],
@@ -113,6 +115,8 @@ describe('KitchenProjectStateMapper', () => {
         materialType: 'LAMINATE',
         thicknessMm: 38,
         manualDepthMm: 620,
+        frontOverhangMm: 35,
+        backOverhangMm: 10,
         sideOverhangExtraMm: 5
       }),
       plinthConfig: jasmine.objectContaining({
@@ -129,6 +133,85 @@ describe('KitchenProjectStateMapper', () => {
       sinkApronHeightMm: 120,
       sinkDrawerModel: 'MERIVOBOX'
     }));
+  });
+
+  it('should preserve {enabled: false} for explicitly disabled countertop on load', () => {
+    // Jak user explicite wylaczyl blat, reload MUSI zachowac ten stan (nie `undefined`),
+    // zeby floor plan / UI odroznilo "wylaczony" od "nieskonfigurowany". Symetria z zapisem.
+    const result = mapper.mapProject({
+      id: 55,
+      name: 'Island disabled countertop',
+      status: 'DRAFT',
+      version: 1,
+      totalCost: 0,
+      totalBoardsCost: 0,
+      totalComponentsCost: 0,
+      totalJobsCost: 0,
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      walls: [
+        {
+          id: 1,
+          wallType: 'ISLAND',
+          widthMm: 2400,
+          heightMm: 900,
+          islandDepthMm: 900,
+          wallCost: 0,
+          cabinetCount: 0,
+          usedWidthMm: 0,
+          remainingWidthMm: 2400,
+          cabinets: [],
+          countertop: {
+            enabled: false,
+            totalLengthMm: 0,
+            depthMm: 0,
+            thicknessMm: 0,
+            materialType: 'LAMINATE',
+            segments: [],
+            segmentCount: 0,
+            wasSplit: false,
+            components: [],
+            totalMaterialCost: 0,
+            totalCuttingCost: 0,
+            totalEdgingCost: 0,
+            totalComponentsCost: 0,
+            totalCost: 0
+          }
+        }
+      ]
+    } as KitchenProjectDetailResponse);
+
+    expect(result.walls[0].countertopConfig).toEqual({ enabled: false });
+  });
+
+  it('should leave countertopConfig undefined when backend did not send countertop info', () => {
+    const result = mapper.mapProject({
+      id: 56,
+      name: 'Legacy wall without countertop field',
+      status: 'DRAFT',
+      version: 1,
+      totalCost: 0,
+      totalBoardsCost: 0,
+      totalComponentsCost: 0,
+      totalJobsCost: 0,
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      walls: [
+        {
+          id: 1,
+          wallType: 'MAIN',
+          widthMm: 3000,
+          heightMm: 2600,
+          wallCost: 0,
+          cabinetCount: 0,
+          usedWidthMm: 0,
+          remainingWidthMm: 3000,
+          cabinets: []
+        } as any
+      ]
+    } as KitchenProjectDetailResponse);
+
+    expect(result.walls[0].countertopConfig).toBeUndefined();
   });
 
   it('should create a default main wall when project has no walls', () => {

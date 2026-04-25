@@ -18,6 +18,18 @@
     (statusChange)="onStatusChange($event)">
   </app-kitchen-page-header>
 
+  <section class="project-room-settings">
+    <label>
+      Szerokość pomieszczenia (mm)
+      <input type="number" [ngModel]="roomWidthMm" (ngModelChange)="roomWidthMm = parseOptionalDimension($event)" min="1000" max="20000" step="10">
+    </label>
+    <label>
+      Głębokość pomieszczenia (mm)
+      <input type="number" [ngModel]="roomDepthMm" (ngModelChange)="roomDepthMm = parseOptionalDimension($event)" min="1000" max="20000" step="10">
+    </label>
+    <small>Opcjonalne. Używane do warningów clearance dla wyspy.</small>
+  </section>
+
   <!-- ============ SEKCJA 1: WIZUALIZACJA + FORMULARZ ============ -->
   <app-kitchen-workspace-section
     [editingCabinetId]="editingCabinetId"
@@ -40,6 +52,7 @@
     [result]="result"
     [hasEditingCabinet]="!!editingCabinet"
     [cabinets]="cabinets()"
+    [selectedWallType]="selectedWall().type"
     [selectedWallLabel]="selectedWallLabel"
     [selectedWallTotalCost]="selectedWallTotalCost()"
     [totalCabinetCount]="totalCabinetCount()"

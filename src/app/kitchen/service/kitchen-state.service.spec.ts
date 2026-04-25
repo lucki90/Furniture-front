@@ -183,4 +183,18 @@ describe('KitchenStateService', () => {
     ]);
     expect(service.selectedWallId()).toBe('wall-1');
   });
+
+  it('should include room dimensions in multi-wall calculate request', () => {
+    service.updateRoomDimensions(5000, 4200);
+    service.addWall('ISLAND', 2400, 900, 950, 'NONE');
+
+    const request = service.buildMultiWallCalculateRequest();
+
+    expect(request.roomWidthMm).toBe(5000);
+    expect(request.roomDepthMm).toBe(4200);
+    expect(request.walls.find(wall => wall.wallType === 'ISLAND')).toEqual(jasmine.objectContaining({
+      islandDepthMm: 950,
+      adjacentToWall: 'NONE'
+    }));
+  });
 });

@@ -12,6 +12,7 @@ import {
   COUNTERTOP_EDGE_OPTIONS,
   COUNTERTOP_THICKNESS_OPTIONS
 } from '../model/countertop.model';
+import { IslandAdjacentSide } from '../model/kitchen-project.model';
 import {
   FeetType,
   FEET_TYPE_OPTIONS,
@@ -69,6 +70,12 @@ export class WallConfigComponent {
   readonly countertopEdgeOptions = COUNTERTOP_EDGE_OPTIONS;
   readonly feetTypeOptions = FEET_TYPE_OPTIONS;
   readonly plinthMaterialOptions = PLINTH_MATERIAL_OPTIONS;
+  readonly islandAdjacentOptions: { value: IslandAdjacentSide; label: string }[] = [
+    { value: 'NONE', label: 'Wolnostojąca' },
+    { value: 'LEFT', label: 'Przy ścianie z lewej' },
+    { value: 'RIGHT', label: 'Przy ścianie z prawej' },
+    { value: 'BACK', label: 'Przy ścianie z tyłu' }
+  ];
 
   // ── Private helpers ───────────────────────────────────────────────────────────
 
@@ -295,4 +302,94 @@ export class WallConfigComponent {
 
   protected trackByValue = (_: number, item: { value: string | number }) => item.value;
   protected trackByIndex = (index: number) => index;
+
+  get isIslandWall(): boolean {
+    return this.selectedWall()?.type === 'ISLAND';
+  }
+
+  get islandDepth(): number {
+    return this.selectedWall()?.islandDepthMm ?? 900;
+  }
+
+  set islandDepth(value: number) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    this.stateService.updateWallState(wallId, { islandDepthMm: value });
+    this.emit();
+  }
+
+  get adjacentToWall(): IslandAdjacentSide {
+    return this.selectedWall()?.adjacentToWall ?? 'NONE';
+  }
+
+  set adjacentToWall(value: IslandAdjacentSide) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+
+    const patch = {
+      adjacentToWall: value,
+      leftSidePanelEnabled: value === 'LEFT' ? false : this.leftSidePanelEnabled,
+      rightSidePanelEnabled: value === 'RIGHT' ? false : this.rightSidePanelEnabled,
+      backBlendaEnabled: value === 'BACK' ? false : this.backBlendaEnabled
+    };
+    this.stateService.updateWallState(wallId, patch);
+    this.emit();
+  }
+
+  get leftSidePanelEnabled(): boolean {
+    return this.selectedWall()?.leftSidePanelEnabled ?? false;
+  }
+
+  set leftSidePanelEnabled(value: boolean) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    this.stateService.updateWallState(wallId, { leftSidePanelEnabled: value });
+    this.emit();
+  }
+
+  get rightSidePanelEnabled(): boolean {
+    return this.selectedWall()?.rightSidePanelEnabled ?? false;
+  }
+
+  set rightSidePanelEnabled(value: boolean) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    this.stateService.updateWallState(wallId, { rightSidePanelEnabled: value });
+    this.emit();
+  }
+
+  get backBlendaEnabled(): boolean {
+    return this.selectedWall()?.backBlendaEnabled ?? false;
+  }
+
+  set backBlendaEnabled(value: boolean) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    this.stateService.updateWallState(wallId, { backBlendaEnabled: value });
+    this.emit();
+  }
+
+  get countertopFrontOverhang(): number {
+    return this.getSelectedWallCountertopConfig()?.frontOverhangMm ?? 30;
+  }
+
+  set countertopFrontOverhang(value: number) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? DEFAULT_COUNTERTOP_CONFIG;
+    this.stateService.updateCountertopConfig(wallId, { ...current, frontOverhangMm: value });
+    this.emit();
+  }
+
+  get countertopBackOverhang(): number {
+    return this.getSelectedWallCountertopConfig()?.backOverhangMm ?? 0;
+  }
+
+  set countertopBackOverhang(value: number) {
+    const wallId = this.selectedWallId();
+    if (!wallId) return;
+    const current = this.getSelectedWallCountertopConfig() ?? DEFAULT_COUNTERTOP_CONFIG;
+    this.stateService.updateCountertopConfig(wallId, { ...current, backOverhangMm: value });
+    this.emit();
+  }
 }

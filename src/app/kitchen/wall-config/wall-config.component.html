@@ -49,6 +49,14 @@
                min="0" max="50" step="1"
                title="Dodatkowe mm z każdej strony poza blendami bocznymi (standardowo 5mm)">
       </div>
+      <div class="config-field" *ngIf="isIslandWall">
+        <label>Nawis front (mm)</label>
+        <input type="number" [(ngModel)]="countertopFrontOverhang" min="0" max="300" step="5">
+      </div>
+      <div class="config-field" *ngIf="isIslandWall && adjacentToWall !== 'BACK'">
+        <label>Nawis back (mm)</label>
+        <input type="number" [(ngModel)]="countertopBackOverhang" min="0" max="300" step="5">
+      </div>
       <!-- Nadpisz długość -->
       <div class="config-field">
         <label class="toggle-label">
@@ -106,6 +114,43 @@
         <label>Wysokość (mm)</label>
         <input type="number" [(ngModel)]="upperFillerHeight"
                min="0" max="150" step="10" class="number-input">
+      </div>
+    </div>
+  </div>
+
+  <div class="config-group" *ngIf="isIslandWall">
+    <div class="config-header">
+      <span class="toggle-text">Wyspa</span>
+      <span class="config-info">({{ islandDepth }} mm)</span>
+    </div>
+    <div class="config-fields">
+      <div class="config-field">
+        <label>Głębokość wyspy (mm)</label>
+        <input type="number" [(ngModel)]="islandDepth" min="600" max="1500" step="10">
+      </div>
+      <div class="config-field">
+        <label>Przylega do ściany</label>
+        <select [(ngModel)]="adjacentToWall">
+          <option *ngFor="let option of islandAdjacentOptions; trackBy: trackByValue" [value]="option.value">{{ option.label }}</option>
+        </select>
+      </div>
+      <div class="config-field" *ngIf="adjacentToWall !== 'LEFT'">
+        <label class="toggle-label">
+          <input type="checkbox" [(ngModel)]="leftSidePanelEnabled">
+          Lewy panel boczny
+        </label>
+      </div>
+      <div class="config-field" *ngIf="adjacentToWall !== 'RIGHT'">
+        <label class="toggle-label">
+          <input type="checkbox" [(ngModel)]="rightSidePanelEnabled">
+          Prawy panel boczny
+        </label>
+      </div>
+      <div class="config-field" *ngIf="adjacentToWall !== 'BACK'">
+        <label class="toggle-label">
+          <input type="checkbox" [(ngModel)]="backBlendaEnabled">
+          Tylna blenda dekoracyjna
+        </label>
       </div>
     </div>
   </div>

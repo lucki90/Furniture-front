@@ -1,6 +1,12 @@
 import { Injectable } from '@angular/core';
-import { KitchenCabinet, CabinetCalculationResult, WallWithCabinets, requiresCountertop, isFreestandingAppliance } from '../model/kitchen-state.model';
-import { ProjectWallRequest, WallConnectionRequest } from '../model/kitchen-project.model';
+import {
+  CabinetCalculationResult,
+  isFreestandingAppliance,
+  KitchenCabinet,
+  WallWithCabinets,
+  requiresCountertop
+} from '../model/kitchen-state.model';
+import { CabinetSide, ProjectWallRequest, WallConnectionRequest } from '../model/kitchen-project.model';
 import { SegmentRequest, SegmentFormData, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
 import { CountertopRequest } from '../model/countertop.model';
 import { PlinthRequest } from '../model/plinth.model';
@@ -25,13 +31,12 @@ export class ProjectRequestBuilderService {
   buildProjectWalls(walls: WallWithCabinets[], settings: WallBuildSettings): ProjectWallRequest[] {
     return walls.map(wall => {
       const cabinets = this.wallCabinetsBuilder.buildCabinets(wall, settings);
-      const bottomCabs = wall.cabinets.filter(c => requiresCountertop(c.type) || isFreestandingAppliance(c.type));
-      const leftOverhangMm = bottomCabs.length > 0
-        ? this.enclosureOuterWidthMm(bottomCabs[0], 'left', settings.fillerWidthMm)
-        : 0;
-      const rightOverhangMm = bottomCabs.length > 0
-        ? this.enclosureOuterWidthMm(bottomCabs[bottomCabs.length - 1], 'right', settings.fillerWidthMm)
-        : 0;
+      const leftOverhangMm = wall.type === 'ISLAND'
+        ? this.computeIslandSideOverhang(wall, 'left', settings.fillerWidthMm)
+        : this.computeLinearSideOverhang(wall.cabinets, 'left', settings.fillerWidthMm);
+      const rightOverhangMm = wall.type === 'ISLAND'
+        ? this.computeIslandSideOverhang(wall, 'right', settings.fillerWidthMm)
+        : this.computeLinearSideOverhang(wall.cabinets, 'right', settings.fillerWidthMm);
 
       return {
         wallType: wall.type,
@@ -39,7 +44,12 @@ export class ProjectRequestBuilderService {
         heightMm: wall.heightMm,
         cabinets,
         countertop: this.addonsBuilder.buildCountertopRequest(wall, leftOverhangMm, rightOverhangMm),
-        plinth: this.addonsBuilder.buildPlinthRequest(wall)
+        plinth: this.addonsBuilder.buildPlinthRequest(wall),
+        islandDepthMm: wall.islandDepthMm,
+        adjacentToWall: wall.adjacentToWall,
+        leftSidePanelEnabled: wall.leftSidePanelEnabled,
+        rightSidePanelEnabled: wall.rightSidePanelEnabled,
+        backBlendaEnabled: wall.backBlendaEnabled
       };
     });
   }
@@ -92,5 +102,43 @@ export class ProjectRequestBuilderService {
     }
 
     return formData;
+  }
+
+  private computeLinearSideOverhang(cabinets: KitchenCabinet[], side: 'left' | 'right', fillerWidthMm: number): number {
+    // Liczymy overhang TYLKO ze szafek, na ktorych faktycznie lezy blat (requiresCountertop=true).
+    // Filtr `!== TOP` byl zbyt szeroki — wlaczal FULL (TALL_CABINET, BASE_FRIDGE), ktore PRZERYWAJA blat,
+    // wiec ich enclosure nie powinno wpiywac na overhang segmentu blatu.
+    const supportingCabinets = cabinets.filter(cabinet => requiresCountertop(cabinet.type));
+    if (supportingCabinets.length === 0) {
+      return 0;
+    }
+
+    const edgeCabinet = side === 'left'
+      ? supportingCabinets[0]
+      : supportingCabinets[supportingCabinets.length - 1];
+
+    return this.enclosureOuterWidthMm(edgeCabinet, side, fillerWidthMm);
+  }
+
+  private computeIslandSideOverhang(wall: WallWithCabinets, side: 'left' | 'right', fillerWidthMm: number): number {
+    const cabinetSides: CabinetSide[] = ['FRONT', 'BACK'];
+
+    return cabinetSides.reduce((maxOverhang, cabinetSide) => {
+      // Ten sam filtr co `computeLinearSideOverhang` i floor-plan `computeIslandSideEnclosureMm` —
+      // pod blatem licza sie TYLKO szafki wymagajace blatu (requiresCountertop).
+      // FULL (TALL_CABINET, BASE_FRIDGE) i freestanding AGD NIE utrzymuja blatu wyspy.
+      const sideCabinets = wall.cabinets.filter(cabinet =>
+        (cabinet.cabinetSide ?? 'FRONT') === cabinetSide && requiresCountertop(cabinet.type)
+      );
+      if (sideCabinets.length === 0) {
+        return maxOverhang;
+      }
+
+      const edgeCabinet = side === 'left'
+        ? sideCabinets[0]
+        : sideCabinets[sideCabinets.length - 1];
+
+      return Math.max(maxOverhang, this.enclosureOuterWidthMm(edgeCabinet, side, fillerWidthMm));
+    }, 0);
   }
 }

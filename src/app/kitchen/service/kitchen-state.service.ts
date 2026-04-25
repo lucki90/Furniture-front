@@ -1,6 +1,6 @@
 // TODO R.12: Continue extracting remaining geometry calculations (countertopZoneRects, plinthPosition,
 // fillerPosition, computeJoinPositions) into KitchenGeometryService to reduce this facade further.
-import { Injectable, computed, inject } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { ProjectRequestBuilderService } from './project-request-builder.service';
 import { ProjectSettingsService } from './project-settings.service';
 import { ProjectMetadataService } from './project-metadata.service';
@@ -17,7 +17,9 @@ import {
   isFreestandingAppliance
 } from '../model/kitchen-state.model';
 import {
+  CabinetSide,
   CreateKitchenProjectRequest,
+  IslandAdjacentSide,
   KitchenProjectDetailResponse,
   KitchenProjectRequest,
   MultiWallCalculateRequest,
@@ -47,6 +49,18 @@ export class KitchenStateService {
   readonly walls = this.workspaceStore.walls;
   readonly selectedWallId = this.workspaceStore.selectedWallId;
 
+  /** Aktywna strona wyspy widoczna w widoku frontalnym. Resetowana do FRONT gdy wybrana ściana nie jest wyspą. */
+  readonly visibleIslandSide = signal<CabinetSide>('FRONT');
+
+  constructor() {
+    effect(() => {
+      // Gdy użytkownik przełącza się na ścianę inną niż ISLAND, resetuj widok do FRONT.
+      if (this.selectedWall()?.type !== 'ISLAND') {
+        this.visibleIslandSide.set('FRONT');
+      }
+    });
+  }
+
   readonly currentProjectId = this.metadataService.currentProjectId;
   readonly currentProjectName = this.metadataService.currentProjectName;
   readonly currentProjectDescription = this.metadataService.currentProjectDescription;
@@ -56,6 +70,8 @@ export class KitchenStateService {
   readonly currentProjectVersion = this.metadataService.currentProjectVersion;
   readonly currentProjectStatus = this.metadataService.currentProjectStatus;
   readonly currentProjectAllowedTransitions = this.metadataService.currentProjectAllowedTransitions;
+  readonly currentProjectRoomWidthMm = this.metadataService.currentProjectRoomWidthMm;
+  readonly currentProjectRoomDepthMm = this.metadataService.currentProjectRoomDepthMm;
 
   readonly plinthHeightMm = this.settingsService.plinthHeightMm;
   readonly countertopThicknessMm = this.settingsService.countertopThicknessMm;
@@ -99,11 +115,21 @@ export class KitchenStateService {
   });
 
   readonly usedWidthBottom = computed(() => {
-    return this.geometryService.calculateUsedWidth(this.cabinets(), 'BOTTOM', this.settingsService.fillerWidthMm());
+    return this.geometryService.calculateUsedWidth(
+      this.cabinets(),
+      'BOTTOM',
+      this.settingsService.fillerWidthMm(),
+      this.selectedWall()?.type
+    );
   });
 
   readonly usedWidthTop = computed(() => {
-    return this.geometryService.calculateUsedWidth(this.cabinets(), 'TOP', this.settingsService.fillerWidthMm());
+    return this.geometryService.calculateUsedWidth(
+      this.cabinets(),
+      'TOP',
+      this.settingsService.fillerWidthMm(),
+      this.selectedWall()?.type
+    );
   });
 
   readonly totalWidth = computed(() => Math.max(this.usedWidthBottom(), this.usedWidthTop()));
@@ -138,6 +164,7 @@ export class KitchenStateService {
 
   readonly cabinetPositions = computed((): CabinetPosition[] => {
     return this.geometryService.calculateCabinetPositions(this.cabinets(), {
+      wallType: this.selectedWall()?.type,
       wallHeightMm: this.selectedWall()?.heightMm ?? 2600,
       plinthHeightMm: this.settingsService.plinthHeightMm(),
       countertopThicknessMm: this.settingsService.countertopThicknessMm(),
@@ -150,12 +177,13 @@ export class KitchenStateService {
     return this.walls().reduce((sum, wall) => sum + wall.cabinets.length, 0);
   });
 
-  addWall(type: WallType, widthMm: number, heightMm: number): string {
+  addWall(type: WallType, widthMm: number, heightMm: number, islandDepthMm?: number, adjacentToWall?: IslandAdjacentSide): string {
     return this.workspaceStore.addWall(
       type,
       widthMm,
       heightMm,
-      this.settingsService.getGlobalDefaultCountertopThicknessMm()
+      this.settingsService.getGlobalDefaultCountertopThicknessMm(),
+      { islandDepthMm, adjacentToWall }
     );
   }
 
@@ -169,6 +197,14 @@ export class KitchenStateService {
 
   updateWallDimensions(wallId: string, widthMm: number, heightMm: number): void {
     this.workspaceStore.updateWallDimensions(wallId, widthMm, heightMm);
+  }
+
+  updateWallState(wallId: string, patch: Partial<import('../model/kitchen-state.model').WallWithCabinets>): void {
+    this.workspaceStore.updateWall(wallId, patch);
+  }
+
+  updateRoomDimensions(roomWidthMm?: number | null, roomDepthMm?: number | null): void {
+    this.metadataService.updateRoomDimensions(roomWidthMm, roomDepthMm);
   }
 
   getWallLabel(type: WallType): string {
@@ -258,7 +294,9 @@ export class KitchenStateService {
   }
 
   loadProject(project: KitchenProjectDetailResponse): void {
-    const mappedState = this.projectStateMapper.mapProject(project);
+    const mappedState = this.projectStateMapper.mapProject(project, {
+      fillerWidthMm: this.settingsService.fillerWidthMm()
+    });
     this.workspaceStore.applyLoadedProject(mappedState.walls, mappedState.wallIdCounter, mappedState.cabinetIdCounter);
     this.metadataService.applyLoadedProject(project);
 
@@ -285,7 +323,11 @@ export class KitchenStateService {
       walls: this.buildProjectWalls(),
       plinthHeightMm: this.settingsService.plinthHeightMm(),
       countertopThicknessMm: this.settingsService.countertopThicknessMm(),
-      upperFillerHeightMm: this.settingsService.upperFillerHeightMm()
+      upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
+      // Wysyłamy jawnie `null` (a nie `undefined`), żeby PUT /projects/{id}
+      // mógł wyczyścić wcześniej zapisane wymiary pomieszczenia.
+      roomWidthMm: this.metadataService.currentProjectRoomWidthMm(),
+      roomDepthMm: this.metadataService.currentProjectRoomDepthMm()
     };
   }
 
@@ -298,7 +340,9 @@ export class KitchenStateService {
     allowedTransitions?: ProjectStatus[],
     clientName?: string,
     clientPhone?: string,
-    clientEmail?: string
+    clientEmail?: string,
+    roomWidthMm?: number,
+    roomDepthMm?: number
   ): void {
     this.metadataService.setProjectInfo(
       projectId,
@@ -309,7 +353,9 @@ export class KitchenStateService {
       allowedTransitions,
       clientName,
       clientPhone,
-      clientEmail
+      clientEmail,
+      roomWidthMm,
+      roomDepthMm
     );
   }
 
@@ -369,7 +415,9 @@ export class KitchenStateService {
     const connections = this.requestBuilder.buildConnections(this.walls());
     return {
       walls: this.buildProjectWalls(),
-      connections: connections.length > 0 ? connections : undefined
+      connections: connections.length > 0 ? connections : undefined,
+      roomWidthMm: this.metadataService.currentProjectRoomWidthMm() ?? undefined,
+      roomDepthMm: this.metadataService.currentProjectRoomDepthMm() ?? undefined
     };
   }
 
@@ -389,7 +437,9 @@ export class KitchenStateService {
       walls: this.buildProjectWalls(),
       plinthHeightMm: this.settingsService.plinthHeightMm(),
       countertopThicknessMm: this.settingsService.countertopThicknessMm(),
-      upperFillerHeightMm: this.settingsService.upperFillerHeightMm()
+      upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
+      roomWidthMm: this.metadataService.currentProjectRoomWidthMm() ?? undefined,
+      roomDepthMm: this.metadataService.currentProjectRoomDepthMm() ?? undefined
     };
   }
 
