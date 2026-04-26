@@ -1,6 +1,5 @@
 import { CornerCountertopResponse } from '../model/kitchen-project.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
-import { resolveVeneerEdges } from './veneer-edge-resolver';
 import { Job } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import {
   AggregatedComponent,
@@ -13,28 +12,6 @@ import {
   WallLike
 } from './project-details-aggregation.models';
 import { ProjectDetailsAggregationAccumulator } from './project-details-aggregation-accumulator';
-
-const BOARD_NAME_PL: Record<string, string> = {
-  SIDE_NAME: 'Bok',
-  WREATH_NAME: 'Wieniec',
-  TOP_WREATH_NAME: 'Wieniec górny',
-  FRONT_NAME: 'Front',
-  FRONT_DRAWER_NAME: 'Front szuflady',
-  BASE_DRAWER_NAME: 'Dno szuflady',
-  BACK_DRAWER_NAME: 'Tył szuflady',
-  FRONT_SUPPORTER_DRAWER_NAME: 'Podpora frontu szuflady',
-  SIDE_DRAWER_NAME: 'Bok szuflady',
-  SHELF_NAME: 'Półka',
-  HDF_NAME: 'HDF tył',
-  SEGMENT_DIVIDER_NAME: 'Przegroda segmentu',
-  SINK_APRON: 'Blenda zlewu',
-  HOOD_SCREEN: 'Blenda okapu',
-  CORNER_PANEL: 'Ścianka narożna',
-  BLIND_PANEL: 'Front ślepy',
-  BIFOLD_INNER_FRONT: 'Skrzydło wewnętrzne (harmonijka)',
-  OVEN_APRON: 'Blenda piekarnika',
-  OVEN_TRAY_FRONT: 'Front szuflady szybowej'
-};
 
 export class ProjectDetailsWallAggregator {
   constructor(private readonly accumulator: ProjectDetailsAggregationAccumulator) {}
@@ -96,9 +73,6 @@ export class ProjectDetailsWallAggregator {
 
     for (const board of cabinet.boards) {
       const remarks = this.buildBoardRemarks(board.boardName, board.sideY, hingeMilling, grooveForHdf);
-      const veneerX = board.veneerX ?? 0;
-      const veneerY = board.veneerY ?? 0;
-      const veneerEdgeInfo = resolveVeneerEdges(board.boardName, veneerX, veneerY);
 
       this.accumulator.addBoard(state.maps.boards, {
         material: board.boardName,
@@ -109,13 +83,13 @@ export class ProjectDetailsWallAggregator {
         unitCost: board.priceEntry?.price ?? 0,
         totalCost: board.totalPrice,
         color: board.color,
-        veneerX,
-        veneerY,
+        veneerX: board.veneerX ?? 0,
+        veneerY: board.veneerY ?? 0,
         veneerColor: board.veneerColor ?? '',
-        boardLabel: this.translateBoardName(board.boardName, state.bomTranslations),
+        boardLabel: board.boardNameLabel ?? board.boardName,
         cabinetRefs: [cabinetRef],
         remarks: remarks || undefined,
-        veneerEdgeLabel: veneerEdgeInfo.label || undefined
+        veneerEdgeLabel: board.veneerEdgeLabel || undefined
       });
     }
   }
@@ -136,10 +110,6 @@ export class ProjectDetailsWallAggregator {
     }
 
     return '';
-  }
-
-  private translateBoardName(boardName: string, bomTranslations?: Record<string, string>): string {
-    return bomTranslations?.['BOARD_NAME.' + boardName] ?? BOARD_NAME_PL[boardName] ?? boardName;
   }
 
   private aggregateStandardComponents(components: ComponentLike[] | undefined, maps: AggregationMaps): void {

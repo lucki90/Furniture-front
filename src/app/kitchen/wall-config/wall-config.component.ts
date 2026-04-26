@@ -256,9 +256,13 @@ export class WallConfigComponent {
     if (!wallId) return;
     const current = this.getSelectedWallPlinthConfig() ?? DEFAULT_PLINTH_CONFIG;
     this.stateService.updatePlinthConfig(wallId, { ...current, feetType: value });
+    // TODO(CODEX): To aktualizuje tylko bieżący plinthHeightMm w stanie UI.
+    // Nie zmienia jeszcze kanonicznego/domyslnego modelu cokołu w projekcie,
+    // bo projekt nadal semantycznie mapuje cokół przez typ nóżek (100/150).
+    // Wymaga to większej zmiany modelu, nie kolejnej lokalnej poprawki setterów.
     // Synchronizuj wysokość nóżek z globalnym sygnałem
     const feetOption = this.feetTypeOptions.find(o => o.value === value);
-    this.stateService.updateProjectSettings({ plinthHeightMm: feetOption?.feetHeightMm ?? 100 });
+    this.stateService.updateProjectSettings({ plinthHeightMm: feetOption?.plinthHeightMm ?? 97 });
     this.emit();
   }
 

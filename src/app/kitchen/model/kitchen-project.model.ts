@@ -289,6 +289,8 @@ export interface CabinetSummary {
   width: number;
   height: number;
   depth: number;
+  enclosureLeftOuterWidthMm?: number;
+  enclosureRightOuterWidthMm?: number;
 
   boards: Board[];
   components: Component[];
@@ -502,6 +504,8 @@ export interface CabinetPlacementResponse {
   // Obudowa boczna
   leftEnclosure?: EnclosureConfig;
   rightEnclosure?: EnclosureConfig;
+  enclosureLeftOuterWidthMm?: number;
+  enclosureRightOuterWidthMm?: number;
   distanceFromWallMm?: number;
 
   // Ogólne opcje

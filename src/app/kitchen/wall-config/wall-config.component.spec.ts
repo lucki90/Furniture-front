@@ -45,6 +45,12 @@ describe('WallConfigComponent', () => {
       backBlendaEnabled: false
     }));
   });
+
+  it('feetType setter syncs project plinth height using plinth panel height', () => {
+    component.feetType = 'FEET_150';
+
+    expect(stateService.lastProjectSettingsPatch).toEqual({ plinthHeightMm: 147 });
+  });
 });
 
 class KitchenStateServiceStub {
@@ -80,6 +86,7 @@ class KitchenStateServiceStub {
   readonly selectedWallId = signal<string | null>('wall-1');
   readonly upperFillerHeightMm = signal(100);
   lastWallPatch: Partial<WallWithCabinets> | null = null;
+  lastProjectSettingsPatch: Record<string, unknown> | null = null;
 
   getCountertopConfig(): CountertopConfig | undefined {
     return this.selectedWallSignal()?.countertopConfig;
@@ -97,7 +104,9 @@ class KitchenStateServiceStub {
     this.selectedWallSignal.update(wall => wall ? ({ ...wall, plinthConfig: config }) : wall);
   }
 
-  updateProjectSettings() {}
+  updateProjectSettings(patch: Record<string, unknown>) {
+    this.lastProjectSettingsPatch = patch;
+  }
 
   updateWallState(_: string, patch: Partial<WallWithCabinets>) {
     this.lastWallPatch = patch;

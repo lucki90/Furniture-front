@@ -161,12 +161,16 @@ export class KitchenPageComponent {
     const wallId = this.selectedWallId();
     if (!wallId) return;
 
+    // TODO(CODEX): To tylko synchronizuje bieżący plinthHeightMm do aktywnej ściany/UI.
+    // Nie redefiniuje jeszcze domyślnego modelu cokołu na poziomie projektu,
+    // bo cokół jest nadal reprezentowany pośrednio przez typ nóżek (100/150).
+    // Docelowo wymaga to zmiany modelu projektu, nie kolejnego sync-effect fixu.
     // Synchronizuj plinth z feetType
     const plinthConfig = this.stateService.getPlinthConfig(wallId);
     if (plinthConfig?.enabled) {
       const feetOption = FEET_TYPE_OPTIONS.find(o => o.value === plinthConfig.feetType);
       if (feetOption) {
-        this.stateService.updateProjectSettings({ plinthHeightMm: feetOption.feetHeightMm });
+        this.stateService.updateProjectSettings({ plinthHeightMm: feetOption.plinthHeightMm });
       }
     }
 

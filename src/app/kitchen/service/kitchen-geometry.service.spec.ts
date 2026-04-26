@@ -1,6 +1,5 @@
 import { TestBed } from '@angular/core/testing';
 import { KitchenGeometryService, KitchenGeometrySettings } from './kitchen-geometry.service';
-import { ProjectRequestBuilderService } from './project-request-builder.service';
 import { KitchenCabinet } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 
@@ -41,7 +40,7 @@ describe('KitchenGeometryService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [KitchenGeometryService, ProjectRequestBuilderService]
+      providers: [KitchenGeometryService]
     });
 
     service = TestBed.inject(KitchenGeometryService);
@@ -103,6 +102,30 @@ describe('KitchenGeometryService', () => {
     ]);
   });
 
+  it('should keep gapBeforeMm and enclosure widths in the canonical bottom-lane positions', () => {
+    const firstBase = buildCabinet({
+      id: 'base-gap',
+      type: KitchenCabinetType.BASE_ONE_DOOR,
+      width: 600,
+      gapBeforeMm: 150,
+      leftEnclosureType: 'PARALLEL_FILLER_STRIP',
+      leftFillerWidthOverrideMm: 40
+    });
+    const secondBase = buildCabinet({
+      id: 'base-right-plate',
+      type: KitchenCabinetType.BASE_ONE_DOOR,
+      width: 500,
+      gapBeforeMm: 50,
+      rightEnclosureType: 'SIDE_PLATE_TO_FLOOR'
+    });
+
+    const result = service.calculateLinearCabinetPositions([firstBase, secondBase], settings);
+
+    expect(result[0]).toEqual(jasmine.objectContaining({ cabinetId: 'base-gap', x: 190, y: 100 }));
+    expect(result[1]).toEqual(jasmine.objectContaining({ cabinetId: 'base-right-plate', x: 840, y: 100 }));
+    expect(service.calculateUsedWidth([firstBase, secondBase], 'BOTTOM', settings.fillerWidthMm)).toBe(1358);
+  });
+
   it('should auto-reposition UPPER beside TALL when it cannot fit above (ceilingY < tallTop)', () => {
     const tallCabinet = buildCabinet({
       id: 'tall',
@@ -144,6 +167,32 @@ describe('KitchenGeometryService', () => {
     // countertopH = 100 + 760 + 38 = 898; y = 898+300 = 1198
     expect(result[2]).toEqual(jasmine.objectContaining({ cabinetId: 'upper', x: 600, y: 1650 }));
     expect(result[3]).toEqual(jasmine.objectContaining({ cabinetId: 'upper-gap', x: 1000, y: 1198 }));
+  });
+
+  it('should reposition countertop-relative UPPER when blockUpperAbove forces an anchor skip', () => {
+    const blockedBase = buildCabinet({
+      id: 'base-blocked',
+      type: KitchenCabinetType.BASE_ONE_DOOR,
+      width: 600,
+      blockUpperAbove: true
+    });
+    const upperCabinet = buildCabinet({
+      id: 'upper-countertop',
+      type: KitchenCabinetType.UPPER_ONE_DOOR,
+      width: 400,
+      height: 720,
+      depth: 320,
+      positioningMode: 'RELATIVE_TO_COUNTERTOP',
+      gapFromCountertopMm: 500
+    });
+
+    const result = service.calculateCabinetPositions([blockedBase, upperCabinet], settings);
+
+    expect(result[1]).toEqual(jasmine.objectContaining({
+      cabinetId: 'upper-countertop',
+      x: 600,
+      y: 1358
+    }));
   });
 
   it('should keep UPPER at X=0 (overlapping TALL in X) when it fits above (ceilingY >= tallTop)', () => {

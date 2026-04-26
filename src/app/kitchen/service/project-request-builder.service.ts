@@ -14,6 +14,7 @@ import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.b
 import { ProjectWallConnectionBuilder } from './project-wall-connection.builder';
 import { ProjectWallCabinetsBuilder } from './project-wall-cabinets.builder';
 import { WallBuildSettings } from './project-request-builder.models';
+import { KitchenGeometryService } from './kitchen-geometry.service';
 
 export type { WallBuildSettings } from './project-request-builder.models';
 
@@ -21,7 +22,11 @@ export type { WallBuildSettings } from './project-request-builder.models';
 export class ProjectRequestBuilderService {
   private readonly addonsBuilder = new ProjectWallAddonsRequestBuilder();
   private readonly wallConnectionBuilder = new ProjectWallConnectionBuilder();
-  private readonly wallCabinetsBuilder = new ProjectWallCabinetsBuilder(this.addonsBuilder);
+  private readonly wallCabinetsBuilder: ProjectWallCabinetsBuilder;
+
+  constructor(private readonly geometryService: KitchenGeometryService = new KitchenGeometryService()) {
+    this.wallCabinetsBuilder = new ProjectWallCabinetsBuilder(this.addonsBuilder, this.geometryService);
+  }
 
   // TODO(CODEX): Ten builder robi duzo sensownej roboty, ale nadal zawiera wiedze domenowa o pozycjonowaniu i mapowaniu requestow projektu. To miejsce jest krytyczne dla zgodnosci frontend-backend, wiec warto dalej uszczelniac typy wejscia/wyjscia i pilnowac, zeby nowe wyjatki per typ szafki trafialy do mniejszych builderow zamiast wracac do jednej duzej klasy.
   enclosureOuterWidthMm(cab: KitchenCabinet, side: 'left' | 'right', fillerWidthMm: number): number {

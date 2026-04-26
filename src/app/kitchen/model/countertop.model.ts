@@ -115,6 +115,8 @@ export interface CountertopResponse {
   leftOverhangMm?: number;
   rightOverhangMm?: number;
   thicknessMm: number;
+  maxBaseCorpusHeightMm?: number;
+  computedCountertopHeightMm?: number;
   materialType: CountertopMaterialType;
   colorCode?: string;
   islandSurfaceM2?: number;

@@ -84,8 +84,8 @@ describe('floor-plan-layout.builder', () => {
     });
 
     expect(countertops).toHaveSize(2);
-    expect(countertops[0].lengthMm).toBe(830);
-    expect(countertops[1].lengthMm).toBe(930);
+    expect(countertops[0].lengthMm).toBe(805);
+    expect(countertops[1].lengthMm).toBe(910);
   });
 
   it('should shift countertop run together with base cabinet gapBefore on a linear wall', () => {
@@ -110,8 +110,56 @@ describe('floor-plan-layout.builder', () => {
     });
 
     expect(countertops).toHaveSize(1);
-    expect(countertops[0].x).toBeCloseTo(cabinets[0].x - (15 * wallPosition.scale), 3);
-    expect(countertops[0].lengthMm).toBe(830);
+    expect(countertops[0].x).toBeCloseTo(cabinets[0].x - (5 * wallPosition.scale), 3);
+    expect(countertops[0].lengthMm).toBe(810);
+  });
+
+  it('should clip left side overhang at the wall start for a flush cabinet run', () => {
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        cabinets: [
+          { id: 'base-1', type: KitchenCabinetType.BASE_ONE_DOOR, width: 400, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1 } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const countertops = buildCountertopsForWall(wallPosition, {
+      wallThickness: 10,
+      countertopOverhang: 30,
+      countertopStandardDepth: 600
+    });
+
+    expect(countertops).toHaveSize(1);
+    expect(countertops[0].lengthMm).toBe(405);
+  });
+
+  it('should keep full side overhang when the cabinet run is offset from the wall start', () => {
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        cabinets: [
+          { id: 'base-1', type: KitchenCabinetType.BASE_ONE_DOOR, width: 400, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1, gapBeforeMm: 100 } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const countertops = buildCountertopsForWall(wallPosition, {
+      wallThickness: 10,
+      countertopOverhang: 30,
+      countertopStandardDepth: 600
+    });
+
+    expect(countertops).toHaveSize(1);
+    expect(countertops[0].lengthMm).toBe(410);
   });
 
   it('should render island depth from configuration and place FRONT/BACK rows separately', () => {

@@ -1,5 +1,6 @@
 import { ProjectWallCabinetsBuilder } from './project-wall-cabinets.builder';
 import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.builder';
+import { KitchenGeometryService } from './kitchen-geometry.service';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { KitchenCabinet, WallWithCabinets } from '../model/kitchen-state.model';
 import { WallBuildSettings } from './project-request-builder.models';
@@ -19,7 +20,10 @@ describe('ProjectWallCabinetsBuilder', () => {
   };
 
   beforeEach(() => {
-    builder = new ProjectWallCabinetsBuilder(new ProjectWallAddonsRequestBuilder());
+    builder = new ProjectWallCabinetsBuilder(
+      new ProjectWallAddonsRequestBuilder(),
+      new KitchenGeometryService()
+    );
   });
 
   const makeCabinet = (overrides: Partial<KitchenCabinet> & { id?: string }): KitchenCabinet => ({

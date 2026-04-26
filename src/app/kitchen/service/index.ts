@@ -7,4 +7,3 @@ export { ProjectPricingService } from './project-pricing.service';
 export { ProjectRequestBuilderService } from './project-request-builder.service';
 export { ProjectSettingsService } from './project-settings.service';
 export { ProjectMetadataService } from './project-metadata.service';
-export { resolveVeneerEdges } from './veneer-edge-resolver';

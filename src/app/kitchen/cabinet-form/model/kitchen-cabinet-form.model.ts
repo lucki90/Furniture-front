@@ -60,11 +60,13 @@ export interface CabinetResponse {
 
 export interface Board {
   boardName: string;
+  boardNameLabel?: string;
   quantity: number;
   sideX: number;
   veneerX?: number;
   sideY: number;
   veneerY?: number;
+  veneerEdgeLabel?: string;
   boardThickness: number;
   color: string;
   veneerColor?: string;

@@ -22,6 +22,7 @@ describe('ProjectDetailsAggregatorService', () => {
               boards: [
                 {
                   boardName: 'FRONT_NAME',
+                  boardNameLabel: 'Front z backendu',
                   boardThickness: 18,
                   sideX: 500,
                   sideY: 700,
@@ -30,11 +31,13 @@ describe('ProjectDetailsAggregatorService', () => {
                   color: 'WHITE',
                   veneerX: 1,
                   veneerY: 0,
+                  veneerEdgeLabel: 'przód',
                   veneerColor: 'WHITE',
                   priceEntry: { price: 100 }
                 },
                 {
                   boardName: 'SIDE_NAME',
+                  boardNameLabel: 'Bok z backendu',
                   boardThickness: 18,
                   sideX: 500,
                   sideY: 700,
@@ -125,7 +128,8 @@ describe('ProjectDetailsAggregatorService', () => {
     const countertopBoard = result.boards.find(board => board.material === 'BLAT_LAMINATE');
     const upperFillerBoard = result.boards.find(board => board.material.includes('Blenda górna'));
 
-    expect(frontBoard?.boardLabel).toBe('Front tlumaczony');
+    expect(frontBoard?.boardLabel).toBe('Front z backendu');
+    expect(frontBoard?.veneerEdgeLabel).toBe('przód');
     expect(frontBoard?.remarks).toContain('puszki');
     expect(frontBoard?.cabinetRefs).toEqual(['Sz.1']);
     expect(sideBoard?.remarks).toContain('Frezowanie nutu pod HDF');

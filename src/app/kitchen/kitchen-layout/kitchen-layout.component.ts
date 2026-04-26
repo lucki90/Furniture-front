@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, computed, Input, signal } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
-import { getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
-import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { getCabinetZone } from '../model/kitchen-state.model';
 import {
   PLATE_THICKNESS_MM,
   COUNTERTOP_DEPTH_DEFAULT_MM,
   OVEN_HEIGHT_COMPACT_MM,
   OVEN_HEIGHT_STANDARD_MM
 } from './kitchen-layout.constants';
+import { computeCountertopRunsMm } from '../floor-plan/floor-plan-layout.builder';
 import { buildCooktopGapWarning, buildKitchenLayoutMetrics } from './kitchen-layout-metrics';
 import { buildVisualCabinetPositions, VisualCabinetPosition } from './kitchen-layout-view-model.builder';
 import { KitchenLayoutCabinetsLayerComponent } from './kitchen-layout-cabinets-layer.component';
@@ -206,6 +206,19 @@ export class KitchenLayoutComponent {
     });
   });
 
+  readonly countertopRunsMm = computed(() => {
+    const wall = this.selectedWall();
+    if (!wall) {
+      return [];
+    }
+
+    return computeCountertopRunsMm(
+      { ...wall, cabinets: this.filteredCabinets() },
+      this.filteredCabinetPositions(),
+      this.stateService.fillerWidthMm()
+    );
+  });
+
   /**
    * Oblicza wymiary blatu na podstawie szafek dolnych.
    * Zwraca długość i głębokość w mm.
@@ -213,11 +226,9 @@ export class KitchenLayoutComponent {
    * Długość = szerokość szafek + blendy boczne + naddatek boczny (sideOverhangExtraMm, default 5mm z każdej strony).
    */
   readonly countertopDimensions = computed(() => {
-    const filteredCabinets = this.filteredCabinets();
+    const runs = this.countertopRunsMm();
     // Tylko szafki z blatem — wyklucza wolnostojące AGD i BASE_FRIDGE (brak blatu nad nimi).
-    const bottomCabinets = filteredCabinets.filter(cab => requiresCountertop(cab.type));
-
-    if (bottomCabinets.length === 0) {
+    if (runs.length === 0) {
       return null;
     }
 
@@ -226,26 +237,13 @@ export class KitchenLayoutComponent {
     const depthMm = wall?.countertopConfig?.manualDepthMm ?? COUNTERTOP_DEPTH_DEFAULT_MM;
 
     // Naddatek boczny z config (default 5mm z każdej strony)
-    const sideExtra = wall?.countertopConfig?.sideOverhangExtraMm ?? 5;
+    const lengthMm = runs.length === 1
+      ? runs[0].lengthMm
+      : runs.reduce((sum, run) => sum + run.lengthMm, 0);
 
     // Całkowita szerokość szafek dolnych
-    const totalCabinetWidth = bottomCabinets.reduce((sum, cab) => sum + cab.width, 0);
 
     // Szerokości blend bocznych (z visualPositions) — przeliczone mm
-    const sf = this.scaleFactor();
-    const bottomPositions = this.visualPositions()
-      .filter(p => p.zone === 'BOTTOM')
-      .sort((a, b) => a.displayX - b.displayX);
-
-    const leftEnclosureW = (bottomPositions.length > 0 && sf > 0)
-      ? Math.round(bottomPositions[0].leftEnclosureDisplayWidth / sf)
-      : 0;
-    const rightEnclosureW = (bottomPositions.length > 0 && sf > 0)
-      ? Math.round(bottomPositions[bottomPositions.length - 1].rightEnclosureDisplayWidth / sf)
-      : 0;
-
-    const lengthMm = totalCabinetWidth + leftEnclosureW + rightEnclosureW + 2 * sideExtra;
-
     return { lengthMm, depthMm };
   });
 
@@ -257,46 +255,15 @@ export class KitchenLayoutComponent {
    * Celowo NIE używa visualPositions() (heavy signal) — korzysta bezpośrednio z cabinetPositions().
    */
   readonly countertopZoneRects = computed((): { x: number; width: number }[] => {
-    const cabPositions = this.filteredCabinetPositions();
-    const allCabinets = this.filteredCabinets();
+    const runs = this.countertopRunsMm();
     const sf = this.scaleFactor();
-    const wallW = this.wallDisplayWidth();
+    return runs.map(run => ({
+      x: run.startMm * sf,
+      width: run.lengthMm * sf
+    }));
 
     // Span każdego słupka (FULL) oraz urządzeń wolnostojących w pikselach SVG.
     // Urządzenia wolnostojące (freestanding) też blokują blat — traktowane jak FULL zone.
-    const freestandingTypes = new Set<KitchenCabinetType>([
-      KitchenCabinetType.BASE_FRIDGE_FREESTANDING,
-      KitchenCabinetType.BASE_OVEN_FREESTANDING,
-      KitchenCabinetType.BASE_DISHWASHER_FREESTANDING
-    ]);
-    const fullSpans = cabPositions
-      .filter(cab => {
-        const orig = allCabinets.find(c => c.id === cab.cabinetId);
-        if (!orig) return false;
-        return getCabinetZone(orig) === 'FULL' || freestandingTypes.has(orig.type);
-      })
-      .map(cab => ({ displayX: cab.x * sf, displayW: cab.width * sf }))
-      .sort((a, b) => a.displayX - b.displayX);
-
-    if (fullSpans.length === 0) {
-      return [{ x: 0, width: wallW }];
-    }
-
-    const rects: { x: number; width: number }[] = [];
-    let cursor = 0;
-
-    for (const span of fullSpans) {
-      if (span.displayX > cursor + 1) {
-        rects.push({ x: cursor, width: span.displayX - cursor });
-      }
-      cursor = span.displayX + span.displayW;
-    }
-
-    if (cursor < wallW - 1) {
-      rects.push({ x: cursor, width: wallW - cursor });
-    }
-
-    return rects.length > 0 ? rects : [{ x: 0, width: wallW }];
   });
 
   /**
@@ -309,13 +276,20 @@ export class KitchenLayoutComponent {
   readonly countertopSegmentLabels = computed((): { x: number; lengthMm: number; depthMm: number }[] => {
     if (!this.hasBottomCabinets()) return [];
 
-    const segs = this.countertopZoneRects();
-    if (segs.length === 0) return [];
+    const runs = this.countertopRunsMm();
+    if (runs.length === 0) return [];
 
     const wall = this.selectedWall();
     if (!wall) return [];
 
     const depthMm = wall.countertopConfig?.manualDepthMm ?? COUNTERTOP_DEPTH_DEFAULT_MM;
+    const sf = this.scaleFactor();
+    return runs.map(run => ({
+      x: ((run.startMm + run.endMm) / 2) * sf,
+      lengthMm: run.lengthMm,
+      depthMm
+    }));
+    /*
 
     // Jeden segment — użyj istniejącego countertopDimensions (z blendami + naddatkami)
     if (segs.length === 1) {
@@ -362,6 +336,7 @@ export class KitchenLayoutComponent {
 
       return { x: seg.x + seg.width / 2, lengthMm, depthMm };
     }).filter((label): label is { x: number; lengthMm: number; depthMm: number } => label !== null);
+    */
   });
 
   /**
