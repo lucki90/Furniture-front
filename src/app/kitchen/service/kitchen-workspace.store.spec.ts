@@ -17,7 +17,7 @@ describe('KitchenWorkspaceStore', () => {
   });
 
   it('should add, select and remove walls while preserving a valid selection', () => {
-    const wallId = store.addWall('LEFT', 2500, 2600, 38);
+    const wallId = store.addWall('LEFT', 2500, 2600, 38, 100);
 
     expect(store.selectedWallId()).toBe(wallId);
     expect(store.getWallsSnapshot().map(wall => wall.id)).toEqual(['wall-1', wallId]);

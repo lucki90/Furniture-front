@@ -140,4 +140,60 @@ describe('KitchenCostsSectionComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Brak płyt do wyświetlenia');
   });
+  it('renders countertop and enclosure diagnostics in walls tab', () => {
+    component.projectResult = {
+      allFit: true,
+      wallCount: 1,
+      totalCabinetCount: 1,
+      walls: [{
+        wallType: 'MAIN',
+        widthMm: 3600,
+        heightMm: 2600,
+        fits: true,
+        wallTotalCost: 1200,
+        cabinetCount: 1,
+        usedWidthBottom: 600,
+        usedWidthTop: 0,
+        cabinets: [{
+          cabinetId: 'base-1',
+          cabinetType: 'BASE_ONE_DOOR',
+          width: 600,
+          height: 720,
+          depth: 560,
+          positionX: 0,
+          positionY: 100,
+          enclosureLeftOuterWidthMm: 18,
+          enclosureRightOuterWidthMm: 50
+        }],
+        countertop: {
+          enabled: true,
+          totalLengthMm: 605,
+          depthMm: 600,
+          thicknessMm: 38,
+          computedCountertopHeightMm: 858,
+          maxBaseCorpusHeightMm: 720,
+          segments: [],
+          segmentCount: 1,
+          wasSplit: false,
+          components: [],
+          totalMaterialCost: 0,
+          totalCuttingCost: 0,
+          totalEdgingCost: 0,
+          totalComponentsCost: 0,
+          totalCost: 100,
+          materialType: 'LAMINATE'
+        }
+      }]
+    } as any;
+    component.activeDetailsTab = 'walls';
+
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Wysokość blatu: 858 mm');
+    expect(text).toContain('Max korpus dolny: 720 mm');
+    expect(text).toContain('base-1:');
+    expect(text).toContain('L 18 mm /');
+    expect(text).toContain('P 50 mm');
+  });
 });

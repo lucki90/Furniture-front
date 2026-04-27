@@ -261,6 +261,24 @@
                   <em>({{ wall.plinthCost?.toFixed(0) || 0 }} zł)</em>
                 </span>
               </div>
+              <div class="wall-item-extras diagnostics" *ngIf="hasCountertopDiagnostics(wall)">
+                <span *ngIf="wall.countertop?.computedCountertopHeightMm != null" class="extra-item">
+                  ↕️ Wysokość blatu: {{ wall.countertop!.computedCountertopHeightMm }} mm
+                </span>
+                <span *ngIf="wall.countertop?.maxBaseCorpusHeightMm != null" class="extra-item">
+                  📏 Max korpus dolny: {{ wall.countertop!.maxBaseCorpusHeightMm }} mm
+                </span>
+              </div>
+              <div class="wall-item-extras diagnostics" *ngIf="hasEnclosureDiagnostics(wall)">
+                <span
+                  *ngFor="let cabinet of wall.cabinets; trackBy: trackByCabinet"
+                  class="extra-item"
+                  [hidden]="(cabinet.enclosureLeftOuterWidthMm ?? 0) === 0 && (cabinet.enclosureRightOuterWidthMm ?? 0) === 0">
+                  🧱 {{ cabinet.cabinetId || cabinet.kitchenCabinetType }}:
+                  L {{ cabinet.enclosureLeftOuterWidthMm ?? 0 }} mm /
+                  P {{ cabinet.enclosureRightOuterWidthMm ?? 0 }} mm
+                </span>
+              </div>
             </div>
           </div>
         </div>

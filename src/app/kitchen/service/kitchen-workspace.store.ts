@@ -9,7 +9,12 @@ export interface AddWallOptions {
   adjacentToWall?: IslandAdjacentSide;
 }
 
-function createDefaultWall(type: WallType, countertopThicknessMm: number, options?: AddWallOptions): WallWithCabinets {
+function createDefaultWall(
+  type: WallType,
+  countertopThicknessMm: number,
+  defaultPlinthHeightMm: number,
+  options?: AddWallOptions
+): WallWithCabinets {
   return {
     id: 'wall-1',
     type,
@@ -33,7 +38,7 @@ function createDefaultWall(type: WallType, countertopThicknessMm: number, option
     },
     plinthConfig: {
       enabled: true,
-      feetType: 'FEET_100',
+      heightMm: defaultPlinthHeightMm,
       materialType: 'PVC'
     }
   };
@@ -43,7 +48,7 @@ function createDefaultWall(type: WallType, countertopThicknessMm: number, option
   providedIn: 'root'
 })
 export class KitchenWorkspaceStore {
-  private _walls = signal<WallWithCabinets[]>([createDefaultWall('MAIN', 38)]);
+  private _walls = signal<WallWithCabinets[]>([createDefaultWall('MAIN', 38, 100)]);
   private _selectedWallId = signal<string>('wall-1');
   private _wallIdCounter = 1;
   private _cabinetIdCounter = 0;
@@ -62,11 +67,12 @@ export class KitchenWorkspaceStore {
     widthMm: number,
     heightMm: number,
     defaultCountertopThicknessMm: number,
+    defaultPlinthHeightMm: number,
     options?: AddWallOptions
   ): string {
     this._wallIdCounter++;
     const newWallId = `wall-${this._wallIdCounter}`;
-    const defaultWall = createDefaultWall(type, defaultCountertopThicknessMm, options);
+    const defaultWall = createDefaultWall(type, defaultCountertopThicknessMm, defaultPlinthHeightMm, options);
 
     this._walls.update(walls => [
       ...walls,
@@ -196,8 +202,8 @@ export class KitchenWorkspaceStore {
     );
   }
 
-  resetWorkspace(defaultCountertopThicknessMm: number): void {
-    this._walls.set([createDefaultWall('MAIN', defaultCountertopThicknessMm)]);
+  resetWorkspace(defaultCountertopThicknessMm: number, defaultPlinthHeightMm: number): void {
+    this._walls.set([createDefaultWall('MAIN', defaultCountertopThicknessMm, defaultPlinthHeightMm)]);
     this._selectedWallId.set('wall-1');
     this._wallIdCounter = 1;
     this._cabinetIdCounter = 0;

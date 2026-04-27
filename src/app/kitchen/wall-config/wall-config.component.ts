@@ -14,8 +14,8 @@ import {
 } from '../model/countertop.model';
 import { IslandAdjacentSide } from '../model/kitchen-project.model';
 import {
-  FeetType,
-  FEET_TYPE_OPTIONS,
+  FeetOption,
+  getFeetOptionForPlinthHeight,
   PlinthMaterialType,
   PLINTH_MATERIAL_OPTIONS
 } from '../model/plinth.model';
@@ -32,9 +32,12 @@ const DEFAULT_COUNTERTOP_CONFIG: CountertopConfig = {
 /** Domyślna konfiguracja cokołu — fallback gdy ściana nie ma jeszcze ustawień. */
 const DEFAULT_PLINTH_CONFIG: PlinthConfig = {
   enabled: true,
-  feetType: 'FEET_100' as FeetType,
+  heightMm: 100,
   materialType: 'PVC' as PlinthMaterialType
 };
+
+const MIN_PLINTH_HEIGHT_MM = 90;
+const MAX_PLINTH_HEIGHT_MM = 170;
 
 /**
  * Panel konfiguracji blatu, cokołu i blendy górnej aktualnej ściany.
@@ -68,7 +71,6 @@ export class WallConfigComponent {
   readonly countertopThicknessOptions = COUNTERTOP_THICKNESS_OPTIONS;
   readonly countertopJointOptions = COUNTERTOP_JOINT_OPTIONS;
   readonly countertopEdgeOptions = COUNTERTOP_EDGE_OPTIONS;
-  readonly feetTypeOptions = FEET_TYPE_OPTIONS;
   readonly plinthMaterialOptions = PLINTH_MATERIAL_OPTIONS;
   readonly islandAdjacentOptions: { value: IslandAdjacentSide; label: string }[] = [
     { value: 'NONE', label: 'Wolnostojąca' },
@@ -95,6 +97,14 @@ export class WallConfigComponent {
     this.configChanged.emit();
   }
 
+  private clampPlinthHeightMm(value: number): number {
+    return Math.min(MAX_PLINTH_HEIGHT_MM, Math.max(MIN_PLINTH_HEIGHT_MM, value));
+  }
+
+  private resolveDefaultPlinthHeightMm(): number {
+    return this.stateService.getGlobalDefaultPlinthHeightMm?.() ?? this.stateService.plinthHeightMm();
+  }
+
   // ── Computed signals (memoizowane — nie przeliczają się przy każdym CD cycle) ──
 
   /** Maksymalna głębokość szafek dolnych aktualnej ściany. */
@@ -112,11 +122,14 @@ export class WallConfigComponent {
     return maxCabDepth > 0 && this.countertopDepth < maxCabDepth;
   });
 
-  /** Wysokość panelu cokołu (mm) — zależna od wybranego typu nóżek. */
+  /** Kanoniczna wysokość cokołu dla aktywnej ściany. */
   readonly plinthHeight = computed(() => {
-    const feetOption = this.feetTypeOptions.find(o => o.value === this.feetType);
-    return feetOption?.plinthHeightMm ?? 97;
+    return this.getSelectedWallPlinthConfig()?.heightMm ?? this.stateService.plinthHeightMm();
   });
+
+  readonly recommendedFeetOption = computed<FeetOption>(() =>
+    getFeetOptionForPlinthHeight(this.plinthHeight())
+  );
 
   // ── Countertop getters/setters ────────────────────────────────────────────────
 
@@ -243,26 +256,29 @@ export class WallConfigComponent {
     const wallId = this.selectedWallId();
     if (!wallId) return;
     const current = this.getSelectedWallPlinthConfig() ?? DEFAULT_PLINTH_CONFIG;
-    this.stateService.updatePlinthConfig(wallId, { ...current, enabled: value });
+    const defaultHeightMm = this.resolveDefaultPlinthHeightMm();
+    this.stateService.updatePlinthConfig(wallId, {
+      ...current,
+      enabled: value,
+      heightMm: value ? current.heightMm : defaultHeightMm
+    });
+    if (!value) {
+      this.stateService.updateProjectSettings({ plinthHeightMm: defaultHeightMm });
+    }
     this.emit();
   }
 
-  get feetType(): FeetType {
-    return this.getSelectedWallPlinthConfig()?.feetType ?? 'FEET_100';
+  get plinthHeightValue(): number {
+    return this.getSelectedWallPlinthConfig()?.heightMm ?? this.stateService.plinthHeightMm();
   }
 
-  set feetType(value: FeetType) {
+  set plinthHeightValue(value: number) {
     const wallId = this.selectedWallId();
     if (!wallId) return;
+    const clampedHeightMm = this.clampPlinthHeightMm(value);
     const current = this.getSelectedWallPlinthConfig() ?? DEFAULT_PLINTH_CONFIG;
-    this.stateService.updatePlinthConfig(wallId, { ...current, feetType: value });
-    // TODO(CODEX): To aktualizuje tylko bieżący plinthHeightMm w stanie UI.
-    // Nie zmienia jeszcze kanonicznego/domyslnego modelu cokołu w projekcie,
-    // bo projekt nadal semantycznie mapuje cokół przez typ nóżek (100/150).
-    // Wymaga to większej zmiany modelu, nie kolejnej lokalnej poprawki setterów.
-    // Synchronizuj wysokość nóżek z globalnym sygnałem
-    const feetOption = this.feetTypeOptions.find(o => o.value === value);
-    this.stateService.updateProjectSettings({ plinthHeightMm: feetOption?.plinthHeightMm ?? 97 });
+    this.stateService.updatePlinthConfig(wallId, { ...current, heightMm: clampedHeightMm });
+    this.stateService.updateProjectSettings({ plinthHeightMm: clampedHeightMm });
     this.emit();
   }
 

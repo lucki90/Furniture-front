@@ -9,11 +9,20 @@ import { Component as CabinetComponentDto } from '../cabinet-form/model/kitchen-
 
 // ============ ENUMS ============
 
-export type FeetType = 'FEET_100' | 'FEET_150';
+export type FeetType = 'FEET_100' | 'FEET_120' | 'FEET_150';
 
-export const FEET_TYPE_OPTIONS: { value: FeetType; label: string; feetHeightMm: number; plinthHeightMm: number }[] = [
-  { value: 'FEET_100', label: 'Nóżki 100mm (standard)', feetHeightMm: 100, plinthHeightMm: 97 },
-  { value: 'FEET_150', label: 'Nóżki 150mm (wysokie)', feetHeightMm: 150, plinthHeightMm: 147 }
+export interface FeetOption {
+  value: FeetType;
+  label: string;
+  nominalHeightMm: number;
+  minHeightMm: number;
+  maxHeightMm: number;
+}
+
+export const FEET_TYPE_OPTIONS: FeetOption[] = [
+  { value: 'FEET_100', label: 'Nóżki nominal 100mm (regulacja 90-120mm)', nominalHeightMm: 100, minHeightMm: 90, maxHeightMm: 120 },
+  { value: 'FEET_120', label: 'Nóżki nominal 120mm (regulacja 100-140mm)', nominalHeightMm: 120, minHeightMm: 100, maxHeightMm: 140 },
+  { value: 'FEET_150', label: 'Nóżki nominal 150mm (regulacja 130-170mm)', nominalHeightMm: 150, minHeightMm: 130, maxHeightMm: 170 }
 ];
 
 export type PlinthMaterialType = 'PVC' | 'MDF_LAMINATED' | 'ALUMINUM' | 'CHIPBOARD';
@@ -29,7 +38,8 @@ export const PLINTH_MATERIAL_OPTIONS: { value: PlinthMaterialType; label: string
 
 export interface PlinthRequest {
   enabled: boolean;
-  feetType: FeetType;
+  heightMm: number;
+  feetType?: FeetType;
   materialType: PlinthMaterialType;
   colorCode?: string;
   setbackMm: number;
@@ -38,6 +48,7 @@ export interface PlinthRequest {
 
 export const DEFAULT_PLINTH_REQUEST: PlinthRequest = {
   enabled: true,
+  heightMm: 100,
   feetType: 'FEET_100',
   materialType: 'PVC',
   setbackMm: 40
@@ -64,7 +75,7 @@ export interface PlinthSegmentResponse {
 
 export interface PlinthResponse {
   enabled: boolean;
-  feetType: FeetType;
+  feetType?: FeetType;
   feetHeightMm: number;
   plinthHeightMm: number;
   totalLengthMm: number;
@@ -94,23 +105,66 @@ export const PLINTH_CONSTANTS = {
   MAX_SEGMENT_LENGTH_MM: 2800,
   MIN_SEGMENT_LENGTH_MM: 100,
   DEFAULT_SETBACK_MM: 40,
-  FEET_TO_PLINTH_GAP_MM: 3,
   CLIPS_PER_CABINET: 2,
   FEET_PER_CABINET: 4
 };
 
 /**
- * Pobiera wysokość nóżek dla danego typu.
+ * Pobiera nominalną wysokość modelu nóżek.
  */
 export function getFeetHeight(feetType: FeetType): number {
   const option = FEET_TYPE_OPTIONS.find(o => o.value === feetType);
-  return option?.feetHeightMm ?? 100;
+  return option?.nominalHeightMm ?? 100;
 }
 
 /**
- * Pobiera wysokość cokołu dla danego typu nóżek.
+ * Nominalna wysokość cokołu dla danego modelu nóg.
+ * Uwaga: kanoniczna wysokość cokołu projektu jest teraz ustawiana niezależnie
+ * i może mieścić się w zakresie regulacji wybranego modelu nóżek.
+ *
+ * @deprecated Używaj kanonicznej wysokości projektu (`heightMm` / `plinthHeightMm`).
+ * Ten helper zwraca tylko nominalny wymiar modelu nóżek.
  */
 export function getPlinthHeight(feetType: FeetType): number {
   const option = FEET_TYPE_OPTIONS.find(o => o.value === feetType);
-  return option?.plinthHeightMm ?? 97;
+  return option?.nominalHeightMm ?? 100;
+}
+
+/**
+ * Dobiera model nóg do zadanej wysokości cokołu.
+ * Preferuje modele, których zakres regulacji zawiera żądaną wysokość.
+ * Przy remisie wybiera model, którego nominal jest najbliżej żądanej wartości,
+ * z lekką karą za wartości leżące przy samym brzegu zakresu regulacji.
+ */
+export function pickFeetTypeForPlinthHeight(heightMm: number): FeetType {
+  const candidates = FEET_TYPE_OPTIONS
+    .filter(option => heightMm >= option.minHeightMm && heightMm <= option.maxHeightMm)
+    .map(option => {
+      const distanceToNominal = Math.abs(option.nominalHeightMm - heightMm);
+      const distanceToNearestEdge = Math.min(
+        Math.abs(heightMm - option.minHeightMm),
+        Math.abs(option.maxHeightMm - heightMm)
+      );
+      const penaltyIfNearEdge = distanceToNearestEdge <= 5 ? 10 : distanceToNearestEdge <= 10 ? 5 : 0;
+      return {
+        option,
+        score: distanceToNominal + penaltyIfNearEdge
+      };
+    })
+    .sort((a, b) => a.score - b.score || a.option.nominalHeightMm - b.option.nominalHeightMm);
+
+  if (candidates.length > 0) {
+    return candidates[0].option.value;
+  }
+
+  if (heightMm < FEET_TYPE_OPTIONS[0].minHeightMm) {
+    return FEET_TYPE_OPTIONS[0].value;
+  }
+
+  return FEET_TYPE_OPTIONS[FEET_TYPE_OPTIONS.length - 1].value;
+}
+
+export function getFeetOptionForPlinthHeight(heightMm: number): FeetOption {
+  const picked = pickFeetTypeForPlinthHeight(heightMm);
+  return FEET_TYPE_OPTIONS.find(option => option.value === picked) ?? FEET_TYPE_OPTIONS[0];
 }

@@ -49,7 +49,7 @@ export class ProjectRequestBuilderService {
         heightMm: wall.heightMm,
         cabinets,
         countertop: this.addonsBuilder.buildCountertopRequest(wall, leftOverhangMm, rightOverhangMm),
-        plinth: this.addonsBuilder.buildPlinthRequest(wall),
+        plinth: this.addonsBuilder.buildPlinthRequest(wall, settings.plinthHeightMm),
         islandDepthMm: wall.islandDepthMm,
         adjacentToWall: wall.adjacentToWall,
         leftSidePanelEnabled: wall.leftSidePanelEnabled,
@@ -71,8 +71,8 @@ export class ProjectRequestBuilderService {
     return this.addonsBuilder.buildCountertopRequest(wall, leftOverhangMm, rightOverhangMm);
   }
 
-  buildPlinthRequest(wall: WallWithCabinets): PlinthRequest {
-    return this.addonsBuilder.buildPlinthRequest(wall);
+  buildPlinthRequest(wall: WallWithCabinets, fallbackPlinthHeightMm: number): PlinthRequest {
+    return this.addonsBuilder.buildPlinthRequest(wall, fallbackPlinthHeightMm);
   }
 
   mapCalculationResult(result: {

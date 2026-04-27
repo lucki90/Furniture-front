@@ -183,6 +183,7 @@ export class KitchenStateService {
       widthMm,
       heightMm,
       this.settingsService.getGlobalDefaultCountertopThicknessMm(),
+      this.settingsService.plinthHeightMm(),
       { islandDepthMm, adjacentToWall }
     );
   }
@@ -229,6 +230,10 @@ export class KitchenStateService {
 
   setGlobalDefaults(settings: Parameters<ProjectSettingsService['setGlobalDefaults']>[0]): void {
     this.settingsService.setGlobalDefaults(settings);
+  }
+
+  getGlobalDefaultPlinthHeightMm(): number {
+    return this.settingsService.getGlobalDefaultPlinthHeightMm();
   }
 
   setMaterialDefaults(settings: Parameters<ProjectSettingsService['setMaterialDefaults']>[0]): void {
@@ -288,7 +293,10 @@ export class KitchenStateService {
   }
 
   clearAll(): void {
-    this.workspaceStore.resetWorkspace(this.settingsService.getGlobalDefaultCountertopThicknessMm());
+    this.workspaceStore.resetWorkspace(
+      this.settingsService.getGlobalDefaultCountertopThicknessMm(),
+      this.settingsService.getGlobalDefaultPlinthHeightMm()
+    );
     this.metadataService.clearMetadata();
     this.settingsService.resetToGlobalDefaults();
   }

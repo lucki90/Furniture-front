@@ -121,6 +121,7 @@ describe('KitchenProjectStateMapper', () => {
       }),
       plinthConfig: jasmine.objectContaining({
         enabled: true,
+        heightMm: 147,
         feetType: 'FEET_150',
         materialType: 'ALUMINUM'
       })

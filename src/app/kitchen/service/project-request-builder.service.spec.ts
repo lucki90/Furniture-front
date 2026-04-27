@@ -182,7 +182,7 @@ describe('ProjectRequestBuilderService', () => {
     it('should return a disabled default request when plinth config is missing', () => {
       const wall = buildWall();
 
-      expect(service.buildPlinthRequest(wall)).toEqual({
+      expect(service.buildPlinthRequest(wall, settings.plinthHeightMm)).toEqual({
         ...DEFAULT_PLINTH_REQUEST,
         enabled: false
       });
@@ -192,15 +192,16 @@ describe('ProjectRequestBuilderService', () => {
       const wall = buildWall({
         plinthConfig: {
           enabled: true,
-          feetType: 'FEET_150',
+          heightMm: 150,
           materialType: 'ALUMINUM',
           colorCode: 'silver',
           setbackMm: 55
         }
       });
 
-      expect(service.buildPlinthRequest(wall)).toEqual({
+      expect(service.buildPlinthRequest(wall, settings.plinthHeightMm)).toEqual({
         enabled: true,
+        heightMm: 150,
         feetType: 'FEET_150',
         materialType: 'ALUMINUM',
         colorCode: 'silver',
@@ -250,7 +251,7 @@ describe('ProjectRequestBuilderService', () => {
         heightMm: 2600,
         cabinets: [baseCabinet, upperCabinet, cornerCabinet],
         countertopConfig: { enabled: true, sideOverhangExtraMm: 6 },
-        plinthConfig: { enabled: true, feetType: 'FEET_150', materialType: 'PVC', setbackMm: 45 }
+        plinthConfig: { enabled: true, heightMm: 150, materialType: 'PVC', setbackMm: 45 }
       });
 
       const [result] = service.buildProjectWalls([wall], settings);
@@ -259,6 +260,7 @@ describe('ProjectRequestBuilderService', () => {
       expect(result.countertop?.rightOverhangMm).toBe(6);
       expect(result.plinth).toEqual({
         enabled: true,
+        heightMm: 150,
         feetType: 'FEET_150',
         materialType: 'PVC',
         colorCode: undefined,

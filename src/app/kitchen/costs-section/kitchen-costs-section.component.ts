@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AggregatedBoard, AggregatedComponent, AggregatedJob } from '../service/project-details-aggregator.service';
-import { MultiWallCalculateResponse, WallCalculationSummary } from '../model/kitchen-project.model';
+import { CabinetSummary, MultiWallCalculateResponse, WallCalculationSummary } from '../model/kitchen-project.model';
 import { PricingBreakdown } from '../service/project-pricing.service';
 
 type DetailsTab = 'walls' | 'boards' | 'components' | 'jobs' | 'pricing';
@@ -74,6 +74,17 @@ export class KitchenCostsSectionComponent {
 
   readonly trackByIndex = (index: number) => index;
   readonly trackByWall = (_: number, wall: WallCalculationSummary) => wall.wallType;
+  readonly trackByCabinet = (_: number, cabinet: CabinetSummary) => cabinet.cabinetId ?? cabinet.kitchenCabinetType;
+
+  hasCountertopDiagnostics(wall: WallCalculationSummary): boolean {
+    return (wall.countertop?.computedCountertopHeightMm ?? wall.countertop?.maxBaseCorpusHeightMm) != null;
+  }
+
+  hasEnclosureDiagnostics(wall: WallCalculationSummary): boolean {
+    return (wall.cabinets ?? []).some(cabinet =>
+      (cabinet.enclosureLeftOuterWidthMm ?? 0) > 0 || (cabinet.enclosureRightOuterWidthMm ?? 0) > 0
+    );
+  }
 
   setActiveTab(tab: DetailsTab): void {
     this.activeDetailsTabChange.emit(tab);

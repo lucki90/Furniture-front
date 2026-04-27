@@ -10,7 +10,6 @@ import { OfferOptionsDialogComponent } from './offer-options-dialog/offer-option
 import { KitchenStateService } from './service/kitchen-state.service';
 import { AggregatedBoard, AggregatedComponent, AggregatedJob } from './service/project-details-aggregator.service';
 import { CabinetCalculatedEvent, KitchenCabinet } from './model/kitchen-state.model';
-import { FEET_TYPE_OPTIONS } from './model/plinth.model';
 import { MultiWallCalculateResponse, ProjectStatus, getStatusLabel, getStatusColor } from './model/kitchen-project.model';
 import { CabinetResponse } from './cabinet-form/model/kitchen-cabinet-form.model';
 import { ToastService } from '../core/error/toast.service';
@@ -161,17 +160,11 @@ export class KitchenPageComponent {
     const wallId = this.selectedWallId();
     if (!wallId) return;
 
-    // TODO(CODEX): To tylko synchronizuje bieżący plinthHeightMm do aktywnej ściany/UI.
-    // Nie redefiniuje jeszcze domyślnego modelu cokołu na poziomie projektu,
-    // bo cokół jest nadal reprezentowany pośrednio przez typ nóżek (100/150).
-    // Docelowo wymaga to zmiany modelu projektu, nie kolejnego sync-effect fixu.
-    // Synchronizuj plinth z feetType
+    // Synchronizuj wysokość cokołu aktywnej ściany z ustawieniem projektowym,
+    // żeby nowe ściany i kalkulacja korzystały z tej samej kanonicznej wartości.
     const plinthConfig = this.stateService.getPlinthConfig(wallId);
-    if (plinthConfig?.enabled) {
-      const feetOption = FEET_TYPE_OPTIONS.find(o => o.value === plinthConfig.feetType);
-      if (feetOption) {
-        this.stateService.updateProjectSettings({ plinthHeightMm: feetOption.plinthHeightMm });
-      }
+    if (plinthConfig?.enabled && plinthConfig.heightMm != null) {
+      this.stateService.updateProjectSettings({ plinthHeightMm: plinthConfig.heightMm });
     }
 
     // Synchronizuj countertop thickness

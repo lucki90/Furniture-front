@@ -44,4 +44,52 @@ describe('ProjectWallAddonsRequestBuilder', () => {
       rightFillerWidthOverrideMm: 80
     }), 'right', 50)).toBe(80);
   });
+
+  it('should build plinth request from explicit plinth height and pick matching feet model', () => {
+    const wall = {
+      id: 'wall-1',
+      type: 'MAIN',
+      widthMm: 3000,
+      heightMm: 2600,
+      cabinets: [],
+      plinthConfig: {
+        enabled: true,
+        heightMm: 120,
+        materialType: 'PVC',
+        setbackMm: 45
+      }
+    } as any;
+
+    expect(builder.buildPlinthRequest(wall, 100)).toEqual({
+      enabled: true,
+      heightMm: 120,
+      feetType: 'FEET_120',
+      materialType: 'PVC',
+      colorCode: undefined,
+      setbackMm: 45
+    });
+  });
+
+  it('should fall back to project plinth height when wall does not override it', () => {
+    const wall = {
+      id: 'wall-1',
+      type: 'MAIN',
+      widthMm: 3000,
+      heightMm: 2600,
+      cabinets: [],
+      plinthConfig: {
+        enabled: true,
+        materialType: 'ALUMINUM'
+      }
+    } as any;
+
+    expect(builder.buildPlinthRequest(wall, 135)).toEqual({
+      enabled: true,
+      heightMm: 135,
+      feetType: 'FEET_120',
+      materialType: 'ALUMINUM',
+      colorCode: undefined,
+      setbackMm: 40
+    });
+  });
 });

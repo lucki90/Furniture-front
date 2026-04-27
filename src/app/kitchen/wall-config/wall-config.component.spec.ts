@@ -46,10 +46,45 @@ describe('WallConfigComponent', () => {
     }));
   });
 
-  it('feetType setter syncs project plinth height using plinth panel height', () => {
-    component.feetType = 'FEET_150';
+  it('plinthHeightValue setter syncs project plinth height and wall config', () => {
+    component.plinthHeightValue = 135;
 
-    expect(stateService.lastProjectSettingsPatch).toEqual({ plinthHeightMm: 147 });
+    expect(stateService.lastProjectSettingsPatch).toEqual({ plinthHeightMm: 135 });
+    expect(stateService.selectedWallSignal()?.plinthConfig?.heightMm).toBe(135);
+  });
+
+  it('clamps plinth height to backend-supported range 90-170', () => {
+    component.plinthHeightValue = 200;
+    expect(stateService.lastProjectSettingsPatch).toEqual({ plinthHeightMm: 170 });
+    expect(stateService.selectedWallSignal()?.plinthConfig?.heightMm).toBe(170);
+
+    component.plinthHeightValue = 10;
+    expect(stateService.lastProjectSettingsPatch).toEqual({ plinthHeightMm: 90 });
+    expect(stateService.selectedWallSignal()?.plinthConfig?.heightMm).toBe(90);
+  });
+
+  it('restores default plinth height when plinth is disabled', () => {
+    stateService.selectedWallSignal.update(wall => wall ? ({
+      ...wall,
+      plinthConfig: { ...(wall.plinthConfig ?? {}), enabled: true, heightMm: 135, materialType: 'PVC' }
+    }) : wall);
+
+    component.plinthEnabled = false;
+
+    expect(stateService.selectedWallSignal()?.plinthConfig?.enabled).toBeFalse();
+    expect(stateService.selectedWallSignal()?.plinthConfig?.heightMm).toBe(120);
+    expect(stateService.lastProjectSettingsPatch).toEqual({ plinthHeightMm: 120 });
+  });
+
+  it('renders passive leg recommendation based on plinth height', () => {
+    stateService.selectedWallSignal.update(wall => wall ? ({
+      ...wall,
+      plinthConfig: { ...(wall.plinthConfig ?? {}), enabled: true, heightMm: 120, materialType: 'PVC' }
+    }) : wall);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Wysokość cokołu (mm)');
+    expect(fixture.nativeElement.textContent).toContain('nominal 120 mm');
   });
 });
 
@@ -78,13 +113,15 @@ class KitchenStateServiceStub {
     },
     plinthConfig: {
       enabled: true,
-      feetType: 'FEET_100',
+      heightMm: 100,
       materialType: 'PVC'
     }
   });
   readonly selectedWall = this.selectedWallSignal;
   readonly selectedWallId = signal<string | null>('wall-1');
   readonly upperFillerHeightMm = signal(100);
+  readonly plinthHeightMm = signal(100);
+  readonly globalDefaultPlinthHeightMm = 120;
   lastWallPatch: Partial<WallWithCabinets> | null = null;
   lastProjectSettingsPatch: Record<string, unknown> | null = null;
 
@@ -106,10 +143,17 @@ class KitchenStateServiceStub {
 
   updateProjectSettings(patch: Record<string, unknown>) {
     this.lastProjectSettingsPatch = patch;
+    if (typeof patch['plinthHeightMm'] === 'number') {
+      this.plinthHeightMm.set(patch['plinthHeightMm'] as number);
+    }
   }
 
   updateWallState(_: string, patch: Partial<WallWithCabinets>) {
     this.lastWallPatch = patch;
     this.selectedWallSignal.update(wall => wall ? ({ ...wall, ...patch }) : wall);
+  }
+
+  getGlobalDefaultPlinthHeightMm(): number {
+    return this.globalDefaultPlinthHeightMm;
   }
 }

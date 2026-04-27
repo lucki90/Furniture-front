@@ -1,6 +1,6 @@
 import { KitchenCabinet, WallWithCabinets } from '../model/kitchen-state.model';
 import { CountertopRequest, DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
-import { PlinthRequest, DEFAULT_PLINTH_REQUEST } from '../model/plinth.model';
+import { PlinthRequest, DEFAULT_PLINTH_REQUEST, pickFeetTypeForPlinthHeight } from '../model/plinth.model';
 import { PLATE_THICKNESS_MM } from '../kitchen-layout/kitchen-layout.constants';
 
 export class ProjectWallAddonsRequestBuilder {
@@ -52,15 +52,18 @@ export class ProjectWallAddonsRequestBuilder {
     };
   }
 
-  buildPlinthRequest(wall: WallWithCabinets): PlinthRequest {
+  buildPlinthRequest(wall: WallWithCabinets, fallbackPlinthHeightMm: number): PlinthRequest {
     const config = wall.plinthConfig;
     if (!config || !config.enabled) {
       return { ...DEFAULT_PLINTH_REQUEST, enabled: false };
     }
 
+    const heightMm = config.heightMm ?? fallbackPlinthHeightMm ?? DEFAULT_PLINTH_REQUEST.heightMm;
+
     return {
       enabled: true,
-      feetType: config.feetType ?? DEFAULT_PLINTH_REQUEST.feetType,
+      heightMm,
+      feetType: pickFeetTypeForPlinthHeight(heightMm),
       materialType: config.materialType ?? DEFAULT_PLINTH_REQUEST.materialType,
       colorCode: config.colorCode,
       setbackMm: config.setbackMm ?? DEFAULT_PLINTH_REQUEST.setbackMm

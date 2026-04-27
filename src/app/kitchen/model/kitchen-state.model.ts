@@ -361,6 +361,7 @@ export interface CountertopConfig {
  */
 export interface PlinthConfig {
   enabled: boolean;
+  heightMm?: number;
   feetType?: FeetType;
   materialType?: PlinthMaterialType;
   colorCode?: string;

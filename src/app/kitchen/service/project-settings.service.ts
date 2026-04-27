@@ -195,4 +195,8 @@ export class ProjectSettingsService {
   getGlobalDefaultCountertopThicknessMm(): number {
     return this._globalDefaultCountertopThicknessMm;
   }
+
+  getGlobalDefaultPlinthHeightMm(): number {
+    return this._globalDefaultPlinthHeightMm;
+  }
 }

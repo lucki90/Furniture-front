@@ -170,8 +170,11 @@ export class KitchenProjectStateMapper {
 
     return {
       enabled: true,
+      heightMm: wallResp.plinth.plinthHeightMm,
       feetType: wallResp.plinth.feetType,
-      materialType: wallResp.plinth.materialType
+      materialType: wallResp.plinth.materialType,
+      setbackMm: wallResp.plinth.setbackMm,
+      colorCode: wallResp.plinth.colorCode
     };
   }
 }

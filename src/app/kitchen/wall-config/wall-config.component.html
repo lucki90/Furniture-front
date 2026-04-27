@@ -84,10 +84,12 @@
     </div>
     <div class="config-fields" *ngIf="plinthEnabled">
       <div class="config-field">
-        <label>Nóżki</label>
-        <select [(ngModel)]="feetType">
-          <option *ngFor="let opt of feetTypeOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
-        </select>
+        <label>Wysokość cokołu (mm)</label>
+        <input type="number" [(ngModel)]="plinthHeightValue" min="90" max="170" step="1">
+        <small class="config-hint">
+          Dobór nóżek: nominal {{ recommendedFeetOption().nominalHeightMm }} mm
+          (regulacja {{ recommendedFeetOption().minHeightMm }}–{{ recommendedFeetOption().maxHeightMm }} mm)
+        </small>
       </div>
       <div class="config-field">
         <label>Materiał</label>
