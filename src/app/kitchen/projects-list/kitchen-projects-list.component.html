@@ -196,6 +196,12 @@
         <button class="btn btn-primary btn-sm" (click)="openProject(project.id)">
           Otwórz
         </button>
+        <button class="btn btn-secondary btn-sm btn-icon"
+                (click)="cloneProject(project.id)"
+                [disabled]="cloningProjectId === project.id"
+                title="Klonuj projekt">
+          {{ cloningProjectId === project.id ? '⏳' : '⎘' }}
+        </button>
         <button class="btn btn-danger btn-sm btn-icon" (click)="confirmDelete(project.id)" title="Usuń projekt">
           🗑️
         </button>

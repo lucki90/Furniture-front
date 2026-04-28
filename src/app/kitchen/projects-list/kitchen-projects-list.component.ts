@@ -38,6 +38,9 @@ export class KitchenProjectsListComponent implements OnInit {
   // Potwierdzenie usuwania
   deletingProjectId: number | null = null;
 
+  // Klonowanie
+  cloningProjectId: number | null = null;
+
   // Filtry statusów
   activeStatusFilters: Set<ProjectStatus> = new Set();
 
@@ -114,6 +117,26 @@ export class KitchenProjectsListComponent implements OnInit {
         console.error('Error deleting project:', err);
         this.error = 'Nie udało się usunąć projektu';
         this.deletingProjectId = null;
+      }
+    });
+  }
+
+  cloneProject(projectId: number): void {
+    if (this.cloningProjectId !== null) {
+      return;
+    }
+    this.cloningProjectId = projectId;
+
+    this.kitchenService.cloneProject(projectId).subscribe({
+      next: (cloned) => {
+        this.cloningProjectId = null;
+        this.stateService.loadProject(cloned);
+        this.router.navigate(['/kitchen'], { queryParams: { projectId: cloned.id } });
+      },
+      error: (err) => {
+        console.error('Error cloning project:', err);
+        this.error = 'Nie udało się sklonować projektu';
+        this.cloningProjectId = null;
       }
     });
   }
