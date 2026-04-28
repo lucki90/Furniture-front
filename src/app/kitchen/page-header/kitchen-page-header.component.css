@@ -75,6 +75,31 @@
 .page-actions {
   display: flex;
   gap: var(--spacing-md);
+  align-items: center;
+}
+
+.btn-icon-only {
+  min-width: 36px;
+  padding: 6px 10px;
+  font-size: 16px;
+  line-height: 1;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  background: white;
+  cursor: pointer;
+  color: var(--text-secondary, #64748b);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-icon-only:hover:not(:disabled) {
+  background: var(--bg-secondary, #f1f5f9);
+  border-color: var(--accent-color, #3b82f6);
+  color: var(--accent-color, #3b82f6);
+}
+
+.btn-icon-only:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 @media (max-width: 1000px) {

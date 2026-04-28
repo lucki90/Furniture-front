@@ -13,9 +13,13 @@
     [isCalculatingProject]="isCalculatingProject"
     [totalCabinetCount]="totalCabinetCount()"
     [hasProjectId]="!!currentProjectId()"
+    [canUndo]="canUndo()"
+    [canRedo]="canRedo()"
     (saveProject)="onSaveProject()"
     (calculateProject)="calculateProject()"
-    (statusChange)="onStatusChange($event)">
+    (statusChange)="onStatusChange($event)"
+    (undoAction)="undo()"
+    (redoAction)="redo()">
   </app-kitchen-page-header>
 
   <section class="project-room-settings">

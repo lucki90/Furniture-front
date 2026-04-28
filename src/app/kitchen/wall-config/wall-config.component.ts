@@ -167,6 +167,8 @@ export class WallConfigComponent {
     const current = this.getSelectedWallCountertopConfig() ?? DEFAULT_COUNTERTOP_CONFIG;
     this.stateService.updateCountertopConfig(wallId, { ...current, thicknessMm: value });
     // Synchronizuj grubość blatu z globalnym sygnałem
+    // Snapshot jest juz zapisany przez updateCountertopConfig() powyzej,
+    // wiec nie dodawaj tutaj recordHistory drugi raz.
     this.stateService.updateProjectSettings({ countertopThicknessMm: value });
     this.emit();
   }
@@ -263,6 +265,8 @@ export class WallConfigComponent {
       heightMm: value ? current.heightMm : defaultHeightMm
     });
     if (!value) {
+      // Snapshot jest juz zapisany przez updatePlinthConfig() powyzej,
+      // wiec nie dodawaj tutaj recordHistory drugi raz.
       this.stateService.updateProjectSettings({ plinthHeightMm: defaultHeightMm });
     }
     this.emit();
@@ -278,6 +282,8 @@ export class WallConfigComponent {
     const clampedHeightMm = this.clampPlinthHeightMm(value);
     const current = this.getSelectedWallPlinthConfig() ?? DEFAULT_PLINTH_CONFIG;
     this.stateService.updatePlinthConfig(wallId, { ...current, heightMm: clampedHeightMm });
+    // Snapshot jest juz zapisany przez updatePlinthConfig() powyzej,
+    // wiec nie dodawaj tutaj recordHistory drugi raz.
     this.stateService.updateProjectSettings({ plinthHeightMm: clampedHeightMm });
     this.emit();
   }
@@ -316,7 +322,10 @@ export class WallConfigComponent {
   }
 
   set upperFillerHeight(value: number) {
-    this.stateService.updateProjectSettings({ upperFillerHeightMm: value });
+    this.stateService.updateProjectSettings(
+      { upperFillerHeightMm: value },
+      { recordHistory: true }
+    );
     this.emit();
   }
 

@@ -1,4 +1,4 @@
-﻿import { Component, inject, effect, DestroyRef } from '@angular/core';
+﻿import { Component, HostListener, inject, effect, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
@@ -195,6 +195,39 @@ export class KitchenPageComponent {
   readonly fitsOnWall = this.stateService.fitsOnWall;
   readonly remainingWidth = this.stateService.remainingWidth;
   readonly totalCabinetCount = this.stateService.totalCabinetCount;
+  readonly canUndo = this.stateService.canUndo;
+  readonly canRedo = this.stateService.canRedo;
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    if (!event.ctrlKey && !event.metaKey) return;
+    if ((event.target as HTMLElement)?.tagName === 'INPUT' ||
+        (event.target as HTMLElement)?.tagName === 'TEXTAREA') return;
+    if (event.key === 'z' || event.key === 'Z') {
+      if (event.shiftKey) {
+        event.preventDefault();
+        this.redo();
+      } else {
+        event.preventDefault();
+        this.undo();
+      }
+    } else if (event.key === 'y' || event.key === 'Y') {
+      event.preventDefault();
+      this.redo();
+    }
+  }
+
+  undo(): void {
+    if (this.stateService.undo()) {
+      this.resetProjectResult();
+    }
+  }
+
+  redo(): void {
+    if (this.stateService.redo()) {
+      this.resetProjectResult();
+    }
+  }
 
   get wallLength(): number {
     return this.selectedWall()?.widthMm ?? 3600;
@@ -229,7 +262,7 @@ export class KitchenPageComponent {
   }
 
   set roomWidthMm(value: number | null) {
-    this.stateService.updateRoomDimensions(value, this.roomDepthMm);
+    this.stateService.updateRoomDimensions(value, this.roomDepthMm, { recordHistory: true });
     this.resetProjectResult();
   }
 
@@ -238,7 +271,7 @@ export class KitchenPageComponent {
   }
 
   set roomDepthMm(value: number | null) {
-    this.stateService.updateRoomDimensions(this.roomWidthMm, value);
+    this.stateService.updateRoomDimensions(this.roomWidthMm, value, { recordHistory: true });
     this.resetProjectResult();
   }
 

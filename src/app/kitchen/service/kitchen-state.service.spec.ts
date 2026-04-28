@@ -197,4 +197,33 @@ describe('KitchenStateService', () => {
       adjacentToWall: 'NONE'
     }));
   });
+
+  it('should undo and redo room dimensions plus standalone project settings', () => {
+    expect(service.currentProjectRoomWidthMm()).toBeNull();
+    expect(service.currentProjectRoomDepthMm()).toBeNull();
+    expect(service.upperFillerHeightMm()).toBe(100);
+
+    service.updateRoomDimensions(5000, 4200, { recordHistory: true });
+    service.updateProjectSettings({ upperFillerHeightMm: 180 }, { recordHistory: true });
+
+    expect(service.currentProjectRoomWidthMm()).toBe(5000);
+    expect(service.currentProjectRoomDepthMm()).toBe(4200);
+    expect(service.upperFillerHeightMm()).toBe(180);
+
+    expect(service.undo()).toBeTrue();
+    expect(service.upperFillerHeightMm()).toBe(100);
+    expect(service.currentProjectRoomWidthMm()).toBe(5000);
+    expect(service.currentProjectRoomDepthMm()).toBe(4200);
+
+    expect(service.undo()).toBeTrue();
+    expect(service.currentProjectRoomWidthMm()).toBeNull();
+    expect(service.currentProjectRoomDepthMm()).toBeNull();
+
+    expect(service.redo()).toBeTrue();
+    expect(service.currentProjectRoomWidthMm()).toBe(5000);
+    expect(service.currentProjectRoomDepthMm()).toBe(4200);
+
+    expect(service.redo()).toBeTrue();
+    expect(service.upperFillerHeightMm()).toBe(180);
+  });
 });

@@ -28,10 +28,14 @@ export class KitchenPageHeaderComponent {
   @Input() isCalculatingProject = false;
   @Input() totalCabinetCount = 0;
   @Input() hasProjectId = false;
+  @Input() canUndo = false;
+  @Input() canRedo = false;
 
   @Output() saveProject = new EventEmitter<void>();
   @Output() calculateProject = new EventEmitter<void>();
   @Output() statusChange = new EventEmitter<ProjectStatus>();
+  @Output() undoAction = new EventEmitter<void>();
+  @Output() redoAction = new EventEmitter<void>();
 
   onStatusSelect(event: Event): void {
     const select = event.target as HTMLSelectElement;

@@ -177,6 +177,17 @@ export class KitchenStateService {
     return this.walls().reduce((sum, wall) => sum + wall.cabinets.length, 0);
   });
 
+  readonly canUndo = this.workspaceStore.canUndo;
+  readonly canRedo = this.workspaceStore.canRedo;
+
+  undo(): boolean {
+    return this.workspaceStore.undo();
+  }
+
+  redo(): boolean {
+    return this.workspaceStore.redo();
+  }
+
   addWall(type: WallType, widthMm: number, heightMm: number, islandDepthMm?: number, adjacentToWall?: IslandAdjacentSide): string {
     return this.workspaceStore.addWall(
       type,
@@ -204,7 +215,18 @@ export class KitchenStateService {
     this.workspaceStore.updateWall(wallId, patch);
   }
 
-  updateRoomDimensions(roomWidthMm?: number | null, roomDepthMm?: number | null): void {
+  /**
+   * recordHistory wlaczaj tylko dla mutacji wykonywanych z poziomu edytora projektu.
+   * Globalny ekran /settings ma osobny lifecycle i obecnie nie uczestniczy w workspace undo/redo.
+   */
+  updateRoomDimensions(
+    roomWidthMm?: number | null,
+    roomDepthMm?: number | null,
+    options?: { recordHistory?: boolean }
+  ): void {
+    if (options?.recordHistory) {
+      this.workspaceStore.recordHistorySnapshot();
+    }
     this.metadataService.updateRoomDimensions(roomWidthMm, roomDepthMm);
   }
 
@@ -224,7 +246,17 @@ export class KitchenStateService {
     return WALL_TYPES.filter(wallType => !this.isWallTypeUsed(wallType.value));
   }
 
-  updateProjectSettings(settings: Parameters<ProjectSettingsService['updateProjectSettings']>[0]): void {
+  /**
+   * recordHistory wlaczaj tylko dla mutacji wykonywanych z poziomu edytora projektu.
+   * Globalny ekran /settings ma osobny lifecycle i obecnie nie uczestniczy w workspace undo/redo.
+   */
+  updateProjectSettings(
+    settings: Parameters<ProjectSettingsService['updateProjectSettings']>[0],
+    options?: { recordHistory?: boolean }
+  ): void {
+    if (options?.recordHistory) {
+      this.workspaceStore.recordHistorySnapshot();
+    }
     this.settingsService.updateProjectSettings(settings);
   }
 

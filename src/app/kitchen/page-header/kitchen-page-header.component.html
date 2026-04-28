@@ -36,6 +36,8 @@
       <span class="btn-icon-text">📁</span>
       Moje projekty
     </a>
+    <button class="btn btn-icon-only" title="Cofnij (Ctrl+Z)" [disabled]="!canUndo" (click)="undoAction.emit()">↩</button>
+    <button class="btn btn-icon-only" title="Ponów (Ctrl+Y)" [disabled]="!canRedo" (click)="redoAction.emit()">↪</button>
     <button class="btn btn-success" (click)="saveProject.emit()" [disabled]="totalCabinetCount === 0 || isSavingProject">
       <span class="btn-icon-text">💾</span>
       {{ isSavingProject ? 'Zapisuje...' : (projectId ? 'Zapisz zmiany' : 'Zapisz projekt') }}
