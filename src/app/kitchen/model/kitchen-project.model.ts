@@ -149,6 +149,8 @@ export interface ProjectCabinetRequest {
   varnishedFront: boolean;
   materialRequest: MaterialRequest;
   drawerRequest?: DrawerRequest;
+  cargoVariant?: string;
+  cargoBrand?: string;
   segments?: SegmentRequest[];  // dla TALL_CABINET
   cornerRequest?: CornerCabinetRequest;  // dla CORNER_CABINET
 
@@ -227,7 +229,7 @@ export interface CornerCabinetRequest {
 
 export interface DrawerRequest {
   drawerQuantity: number;
-  drawerModel: string;
+  drawerModel?: string | null;
   drawerBaseHdf: boolean;
   drawerFrontDetails: any | null;
 }
@@ -473,6 +475,8 @@ export interface CabinetPlacementResponse {
   // Additional configuration - drawers
   drawerQuantity?: number;
   drawerModel?: string;
+  cargoVariant?: string;
+  cargoBrand?: string;
   shelfQuantity?: number;
 
   // Additional configuration - corner cabinet

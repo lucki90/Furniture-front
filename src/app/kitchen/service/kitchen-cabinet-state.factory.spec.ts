@@ -49,6 +49,69 @@ describe('KitchenCabinetStateFactory', () => {
     }));
   });
 
+  it('should map cargo cabinet from form data and preserve drawer variant details', () => {
+    const cabinet = factory.fromFormData({
+      kitchenCabinetType: KitchenCabinetType.BASE_CARGO,
+      openingType: 'HANDLE',
+      width: 300,
+      height: 720,
+      depth: 560,
+      positionY: 0,
+      shelfQuantity: 0,
+      cargoVariant: 'DRAWERS',
+      drawerQuantity: 2,
+      drawerModel: 'SEVROLL_BALL'
+    } as CabinetFormData, 'cargo-1', {
+      boards: [],
+      components: [],
+      jobs: [],
+      summaryCosts: 500,
+      boardTotalCost: 200,
+      componentTotalCost: 200,
+      jobTotalCost: 100
+    });
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      id: 'cargo-1',
+      type: KitchenCabinetType.BASE_CARGO,
+      cargoVariant: 'DRAWERS',
+      drawerQuantity: 2,
+      drawerModel: 'SEVROLL_BALL'
+    }));
+  });
+
+  it('should map mechanism cargo from form data with brand and basket quantity', () => {
+    const cabinet = factory.fromFormData({
+      kitchenCabinetType: KitchenCabinetType.BASE_CARGO,
+      openingType: 'HANDLE',
+      width: 350,
+      height: 720,
+      depth: 560,
+      positionY: 0,
+      shelfQuantity: 0,
+      cargoVariant: 'MECHANISM',
+      cargoBrand: 'GTV',
+      drawerQuantity: 2
+    } as CabinetFormData, 'cargo-mech-1', {
+      boards: [],
+      components: [],
+      jobs: [],
+      summaryCosts: 500,
+      boardTotalCost: 200,
+      componentTotalCost: 200,
+      jobTotalCost: 100
+    });
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      id: 'cargo-mech-1',
+      type: KitchenCabinetType.BASE_CARGO,
+      cargoVariant: 'MECHANISM',
+      cargoBrand: 'GTV',
+      drawerQuantity: 2,
+      drawerModel: undefined
+    }));
+  });
+
   it('should map placement responses for corner and cascade cabinets', () => {
     const cornerCabinet = factory.fromPlacementResponse({
       id: 1,
@@ -116,6 +179,71 @@ describe('KitchenCabinetStateFactory', () => {
       cascadeUpperHeight: 330,
       cascadeUpperDepth: 300,
       cascadeUpperIsLiftUp: false
+    }));
+  });
+
+  it('should map placement response for cargo cabinet', () => {
+    const cargoCabinet = factory.fromPlacementResponse({
+      id: 3,
+      cabinetId: 'cargo-1',
+      cabinetType: KitchenCabinetType.BASE_CARGO,
+      positionX: 0,
+      positionY: 0,
+      widthMm: 300,
+      heightMm: 720,
+      depthMm: 560,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      cargoVariant: 'DRAWERS',
+      drawerQuantity: 3,
+      drawerModel: 'ANTARO_TANDEMBOX',
+      boardsCost: 90,
+      componentsCost: 120,
+      jobsCost: 30,
+      totalCost: 240,
+      displayOrder: 0
+    }, 'fallback-cargo');
+
+    expect(cargoCabinet).toEqual(jasmine.objectContaining({
+      id: 'cargo-1',
+      type: KitchenCabinetType.BASE_CARGO,
+      cargoVariant: 'DRAWERS',
+      drawerQuantity: 3,
+      drawerModel: 'ANTARO_TANDEMBOX'
+    }));
+  });
+
+  it('should map placement response for cargo mechanism with brand and basket quantity', () => {
+    const cargoCabinet = factory.fromPlacementResponse({
+      id: 4,
+      cabinetId: 'cargo-mechanism-1',
+      cabinetType: KitchenCabinetType.BASE_CARGO,
+      positionX: 0,
+      positionY: 0,
+      widthMm: 350,
+      heightMm: 720,
+      depthMm: 560,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      cargoVariant: 'MECHANISM',
+      cargoBrand: 'BLUM',
+      drawerQuantity: 2,
+      boardsCost: 90,
+      componentsCost: 120,
+      jobsCost: 30,
+      totalCost: 240,
+      displayOrder: 0
+    }, 'fallback-cargo');
+
+    expect(cargoCabinet).toEqual(jasmine.objectContaining({
+      id: 'cargo-mechanism-1',
+      type: KitchenCabinetType.BASE_CARGO,
+      cargoVariant: 'MECHANISM',
+      cargoBrand: 'BLUM',
+      drawerQuantity: 2,
+      drawerModel: undefined
     }));
   });
 });

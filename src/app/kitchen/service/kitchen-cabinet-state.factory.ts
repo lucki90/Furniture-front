@@ -51,6 +51,17 @@ export class KitchenCabinetStateFactory {
         return { ...base, type: KitchenCabinetType.BASE_ONE_DOOR };
       case KitchenCabinetType.BASE_TWO_DOOR:
         return { ...base, type: KitchenCabinetType.BASE_TWO_DOOR };
+      case KitchenCabinetType.BASE_CARGO:
+        return {
+          ...base,
+          type: KitchenCabinetType.BASE_CARGO,
+          cargoVariant: formData.cargoVariant ?? 'MECHANISM',
+          cargoBrand: formData.cargoVariant === 'MECHANISM' ? (formData.cargoBrand ?? 'BLUM') : undefined,
+          drawerQuantity: formData.drawerQuantity ?? 3,
+          drawerModel: formData.cargoVariant === 'DRAWERS'
+            ? (formData.drawerModel ?? 'ANTARO_TANDEMBOX')
+            : undefined
+        };
       case KitchenCabinetType.BASE_WITH_DRAWERS:
         return {
           ...base,
@@ -211,6 +222,17 @@ export class KitchenCabinetStateFactory {
         return { ...baseFromResp, type: KitchenCabinetType.BASE_ONE_DOOR };
       case KitchenCabinetType.BASE_TWO_DOOR:
         return { ...baseFromResp, type: KitchenCabinetType.BASE_TWO_DOOR };
+      case KitchenCabinetType.BASE_CARGO:
+        return {
+          ...baseFromResp,
+          type: KitchenCabinetType.BASE_CARGO,
+          cargoVariant: (cabResp.cargoVariant as 'MECHANISM' | 'DRAWERS') ?? 'MECHANISM',
+          cargoBrand: cabResp.cargoVariant === 'MECHANISM'
+            ? (cabResp.cargoBrand as 'BLUM' | 'GTV' | undefined) ?? 'BLUM'
+            : undefined,
+          drawerQuantity: cabResp.drawerQuantity ?? 3,
+          drawerModel: cabResp.cargoVariant === 'DRAWERS' ? (cabResp.drawerModel ?? 'ANTARO_TANDEMBOX') : undefined
+        };
       case KitchenCabinetType.BASE_WITH_DRAWERS:
         return {
           ...baseFromResp,

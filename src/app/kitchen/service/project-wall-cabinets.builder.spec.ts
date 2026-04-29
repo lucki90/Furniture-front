@@ -321,4 +321,48 @@ describe('ProjectWallCabinetsBuilder', () => {
       expect(upperReq.positionX).toBe(0);
     });
   });
+
+  describe('BASE_CARGO mapping', () => {
+    it('should send cargo variant and drawer request only for DRAWERS variant', () => {
+      const cargoDrawers = makeCabinet({
+        id: 'cargo-drawers',
+        type: KitchenCabinetType.BASE_CARGO,
+        width: 300,
+        height: 720,
+        depth: 560,
+        shelfQuantity: 0,
+        cargoVariant: 'DRAWERS',
+        drawerQuantity: 2,
+        drawerModel: 'SEVROLL_BALL'
+      } as Partial<KitchenCabinet>);
+      const cargoMechanism = makeCabinet({
+        id: 'cargo-mechanism',
+        type: KitchenCabinetType.BASE_CARGO,
+        width: 200,
+        height: 720,
+        depth: 560,
+        shelfQuantity: 0,
+        cargoVariant: 'MECHANISM',
+        cargoBrand: 'GTV',
+        drawerQuantity: 3
+      } as Partial<KitchenCabinet>);
+
+      const requests = buildRequests([cargoDrawers, cargoMechanism]);
+      const drawersReq = requests.find(r => r.cabinetId === 'cargo-drawers')!;
+      const mechanismReq = requests.find(r => r.cabinetId === 'cargo-mechanism')!;
+
+      expect(drawersReq.cargoVariant).toBe('DRAWERS');
+      expect(drawersReq.drawerRequest).toEqual(jasmine.objectContaining({
+        drawerQuantity: 2,
+        drawerModel: 'SEVROLL_BALL'
+      }));
+
+      expect(mechanismReq.cargoVariant).toBe('MECHANISM');
+      expect(mechanismReq.cargoBrand).toBe('GTV');
+      expect(mechanismReq.drawerRequest).toEqual(jasmine.objectContaining({
+        drawerQuantity: 3,
+        drawerModel: null
+      }));
+    });
+  });
 });

@@ -135,6 +135,24 @@ export class ProjectWallCabinetsBuilder {
   }
 
   private buildDrawerRequest(cab: KitchenCabinet): DrawerRequest | undefined {
+    if (cab.type === KitchenCabinetType.BASE_CARGO && cab.cargoVariant === 'DRAWERS') {
+      return {
+        drawerQuantity: cab.drawerQuantity ?? 3,
+        drawerModel: cab.drawerModel ?? 'ANTARO_TANDEMBOX',
+        drawerBaseHdf: false,
+        drawerFrontDetails: null
+      };
+    }
+
+    if (cab.type === KitchenCabinetType.BASE_CARGO && cab.cargoVariant === 'MECHANISM') {
+      return {
+        drawerQuantity: cab.drawerQuantity ?? 3,
+        drawerModel: null,
+        drawerBaseHdf: false,
+        drawerFrontDetails: null
+      };
+    }
+
     if (cab.type === KitchenCabinetType.BASE_WITH_DRAWERS) {
       return {
         drawerQuantity: cab.drawerQuantity,
@@ -254,6 +272,11 @@ export class ProjectWallCabinetsBuilder {
 
   private buildTypeSpecificFields(cab: KitchenCabinet): Partial<ProjectCabinetRequest> {
     switch (cab.type) {
+      case KitchenCabinetType.BASE_CARGO:
+        return {
+          cargoVariant: cab.cargoVariant,
+          cargoBrand: cab.cargoBrand
+        };
       case KitchenCabinetType.BASE_SINK:
         return {
           sinkFrontType: cab.sinkFrontType,

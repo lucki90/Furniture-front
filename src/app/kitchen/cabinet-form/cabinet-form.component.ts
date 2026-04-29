@@ -30,6 +30,11 @@ import { CabinetFormValidationErrorsService } from './cabinet-form-validation-er
 import { CabinetFormCalculationService } from './cabinet-form-calculation.service';
 import { CabinetSegmentValidationService } from './cabinet-segment-validation.service';
 import { CabinetSegmentsSectionComponent } from './sections/cabinet-segments-section/cabinet-segments-section.component';
+import {
+  CARGO_BRAND_OPTIONS,
+  CARGO_VARIANT_OPTIONS,
+  isCargoMechanismNominalWidth
+} from './types/base-cargo/cargo-cabinet.model';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -43,6 +48,8 @@ import { CabinetSegmentsSectionComponent } from './sections/cabinet-segments-sec
     FormFieldComponent, CabinetSegmentsSectionComponent]
 })
 export class CabinetFormComponent implements OnChanges {
+  protected readonly cargoVariantOptions = CARGO_VARIANT_OPTIONS;
+  protected readonly cargoBrandOptions = CARGO_BRAND_OPTIONS;
 
   // TODO(CODEX): Cabinet form still has high domain complexity and a few `as any` casts
   // in the editing/type-switch flow. This suggests the form model and typing are still too
@@ -73,6 +80,12 @@ export class CabinetFormComponent implements OnChanges {
   /** Opening types from DictionaryService, memoized to avoid rebuilding arrays on every CD cycle. */
   readonly openingTypes = computed(() =>
     this.dictionaryService.data().openingTypes.map(item => ({
+      value: item.code,
+      label: item.label
+    }))
+  );
+  readonly drawerModels = computed(() =>
+    this.dictionaryService.data().drawerModels.map(item => ({
       value: item.code,
       label: item.label
     }))
@@ -129,6 +142,7 @@ export class CabinetFormComponent implements OnChanges {
   private readonly TYPE_LABELS: Record<KitchenCabinetType, string> = {
     [KitchenCabinetType.BASE_TWO_DOOR]:               'Dolna - 2 drzwi',
     [KitchenCabinetType.BASE_ONE_DOOR]:               'Dolna - 1 drzwi',
+    [KitchenCabinetType.BASE_CARGO]:                  'Dolna - cargo',
     [KitchenCabinetType.BASE_WITH_DRAWERS]:           'Dolna - szuflady',
     [KitchenCabinetType.BASE_SINK]:                   'Dolna - zlewowa',
     [KitchenCabinetType.BASE_COOKTOP]:                'Dolna - pod plyte grzewcza',
@@ -190,6 +204,49 @@ export class CabinetFormComponent implements OnChanges {
     return this.form.get('positioningMode')?.value === 'RELATIVE_TO_COUNTERTOP';
   }
 
+  get isCargoCabinet(): boolean {
+    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_CARGO;
+  }
+
+  get isCargoDrawersVariant(): boolean {
+    return this.isCargoCabinet && this.form.get('cargoVariant')?.value === 'DRAWERS';
+  }
+
+  get isCargoMechanismVariant(): boolean {
+    return this.isCargoCabinet && this.form.get('cargoVariant')?.value === 'MECHANISM';
+  }
+
+  get cargoDrawerQuantityLabel(): string {
+    return this.isCargoMechanismVariant ? 'Ilosc koszy / polek' : 'Ilosc szuflad';
+  }
+
+  get cargoWidthHint(): string | null {
+    const width = Number(this.form.get('width')?.value);
+    if (Number.isNaN(width) || width <= 0) {
+      return null;
+    }
+
+    if (this.isCargoMechanismVariant) {
+      if (isCargoMechanismNominalWidth(width)) {
+        return null;
+      }
+
+      return 'Uwaga: dla tej szerokosci standardowy mechanizm cargo moze nie pasowac. Upewnij sie u producenta albo wybierz wariant cargo z szufladami.';
+    }
+
+    if (this.isCargoDrawersVariant) {
+      if (width <= 200) {
+        return 'Uwaga: przy szerokosci 200 mm cargo z szufladami jest technicznie mozliwe, ale zwykle bardzo malo uzytkowe. Rozwaz mechanizm cargo albo inna szafke.';
+      }
+
+      if (width < 250) {
+        return 'Uwaga: przy tej szerokosci szuflady wewnetrzne beda bardzo waskie. Upewnij sie, ze taki wariant bedzie praktyczny.';
+      }
+    }
+
+    return null;
+  }
+
   get isIslandWall(): boolean {
     return this.stateService.selectedWall()?.type === 'ISLAND';
   }
@@ -248,6 +305,31 @@ export class CabinetFormComponent implements OnChanges {
         this.onTypeChange(nextType);
       });
 
+    this.form.get('cargoVariant')!
+      .valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(variant => {
+        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.BASE_CARGO) {
+          return;
+        }
+
+        if (variant === 'DRAWERS') {
+          this.form.patchValue({
+            drawerQuantity: this.form.get('drawerQuantity')?.value ?? 3,
+            drawerModel: this.form.get('drawerModel')?.value ?? this.defaultDrawerModelCode
+          }, { emitEvent: false });
+        } else {
+          this.form.patchValue({
+            drawerQuantity: this.form.get('drawerQuantity')?.value ?? 3,
+            drawerModel: null
+          }, { emitEvent: false });
+        }
+        this.form.get('drawerQuantity')?.updateValueAndValidity({ emitEvent: false });
+        this.form.get('drawerModel')?.updateValueAndValidity({ emitEvent: false });
+        this.form.get('cargoBrand')?.updateValueAndValidity({ emitEvent: false });
+        this.cdr.markForCheck();
+      });
+
     // Gdy user przełącza zakładkę FRONT/BACK wyspy i nie edytuje istniejącej szafki,
     // domyślnie ustaw cabinetSide zgodnie z aktywną zakładką.
     effect(() => {
@@ -297,6 +379,10 @@ export class CabinetFormComponent implements OnChanges {
 
   private resetGapBeforeMm(): void {
     this.form.get('gapBeforeMm')?.setValue(0, { emitEvent: false });
+  }
+
+  private get defaultDrawerModelCode(): string {
+    return this.drawerModels()[0]?.value ?? 'ANTARO_TANDEMBOX';
   }
 
   /** Zamknij popup edycji segmentu. */

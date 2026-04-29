@@ -39,6 +39,7 @@ export interface CabinetRenderContext {
   /** SCALE_VERT() — skala pionowa mm→px, potrzebna dla piekarnika (oven slot height). */
   scaleVert: number;
   // Dane specyficzne dla typów
+  cargoVariant?: string;
   drawerQuantity?: number;
   segments?: SegmentFormData[];
   shelfQuantity?: number;

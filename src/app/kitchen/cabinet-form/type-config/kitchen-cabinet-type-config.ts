@@ -8,6 +8,9 @@ import {BaseTwoDoorRequestMapper} from "../types/base-two-doors/base-two-door-re
 import {BaseWithDrawersCabinetPreparer} from "../types/base-with-drawers/base-with-drawers-cabinet-preparer";
 import {BaseWithDrawersCabinetValidator} from "../types/base-with-drawers/base-with-drawers-cabinet-validator";
 import {BaseWithDrawersRequestMapper} from "../types/base-with-drawers/base-with-drawers-request-mapper";
+import {BaseCargoCabinetPreparer} from "../types/base-cargo/base-cargo-cabinet-preparer";
+import {BaseCargoCabinetValidator} from "../types/base-cargo/base-cargo-cabinet-validator";
+import {BaseCargoRequestMapper} from "../types/base-cargo/base-cargo-request-mapper";
 import {TallCabinetPreparer} from "../types/tall-cabinet/tall-cabinet-preparer";
 import {TallCabinetValidator} from "../types/tall-cabinet/tall-cabinet-validator";
 import {TallCabinetRequestMapper} from "../types/tall-cabinet/tall-cabinet-request-mapper";
@@ -72,6 +75,11 @@ export const KitchenCabinetTypeConfig = {
     preparer: new BaseWithDrawersCabinetPreparer(),
     validator: new BaseWithDrawersCabinetValidator(),
     requestMapper: new BaseWithDrawersRequestMapper()
+  },
+  [KitchenCabinetType.BASE_CARGO]: {
+    preparer: new BaseCargoCabinetPreparer(),
+    validator: new BaseCargoCabinetValidator(),
+    requestMapper: new BaseCargoRequestMapper()
   },
   [KitchenCabinetType.TALL_CABINET]: {
     preparer: new TallCabinetPreparer(),

@@ -1,98 +1,96 @@
-import {FormArray, FormBuilder, FormGroup} from '@angular/forms';
-import {KitchenCabinetType} from './kitchen-cabinet-type';
-import {CornerMechanismType} from './corner-cabinet.model';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { KitchenCabinetType } from './kitchen-cabinet-type';
+import { CornerMechanismType } from './corner-cabinet.model';
 
 export class DefaultKitchenFormFactory {
   static create(fb: FormBuilder): FormGroup {
     return fb.group({
-      name: [''],  // opcjonalna nazwa szafki
+      name: [''],
       kitchenCabinetType: [KitchenCabinetType.BASE_ONE_DOOR],
-      openingType: ['HANDLE'],  // domyślnie uchwyt
+      openingType: ['HANDLE'],
       width: null,
       height: null,
       depth: null,
-      positionY: [0],  // wysokość od podłogi (0 = dolna, np. 1400 = wisząca)
+      positionY: [0],
       shelfQuantity: null,
       drawerQuantity: null,
       drawerModel: null,
-      segments: fb.array([]),  // FormArray dla segmentów (TALL_CABINET)
+      cargoVariant: ['MECHANISM'],
+      cargoBrand: ['BLUM'],
+      segments: fb.array([]),
 
-      // Pola dla szafki narożnej (CORNER_CABINET)
-      cornerWidthA: [900],       // Szerokość na ścianie A (mm)
-      cornerWidthB: [900],       // Szerokość na ścianie B (mm) — Type A tylko
-      cornerMechanism: [CornerMechanismType.FIXED_SHELVES],  // Typ mechanizmu
-      cornerShelfQuantity: [2],  // Liczba półek (dla FIXED_SHELVES lub BLIND_CORNER)
-      isUpperCorner: [false],    // true = górna wisząca, false = dolna (Type A tylko)
-      cornerOpeningType: ['TWO_DOORS'],   // TWO_DOORS | BIFOLD (Type A base tylko)
-      cornerFrontUchylnyWidthMm: [500],  // 400–600mm (Type B tylko)
+      // Corner cabinet
+      cornerWidthA: [900],
+      cornerWidthB: [900],
+      cornerMechanism: [CornerMechanismType.FIXED_SHELVES],
+      cornerShelfQuantity: [2],
+      isUpperCorner: [false],
+      cornerOpeningType: ['TWO_DOORS'],
+      cornerFrontUchylnyWidthMm: [500],
 
-      // Pola pozycjonowania szafek wiszących (UPPER_*)
-      positioningMode: ['RELATIVE_TO_CEILING'],  // RELATIVE_TO_CEILING | RELATIVE_TO_COUNTERTOP
-      gapFromCountertopMm: [500],                // Odstęp od blatu (min 450mm)
-      gapFromAnchorMm: [0],                      // Odstęp od wierzchołka słupka (0–500mm, tylko nad TALL)
+      // Upper positioning
+      positioningMode: ['RELATIVE_TO_CEILING'],
+      gapFromCountertopMm: [500],
+      gapFromAnchorMm: [0],
       cabinetSide: ['FRONT'],
-      // Pusta przestrzeń wstawiana przed szafką (głównie dla wysp). 0 = brak gapu.
       gapBeforeMm: [0],
 
-      // Pola kaskadowe (dla UPPER_CASCADE)
-      cascadeLowerHeight: [400],   // Wysokość dolnego (głębszego) segmentu
-      cascadeLowerDepth: [400],    // Głębokość dolnego segmentu (300-560mm)
-      cascadeUpperHeight: [320],   // Wysokość górnego (płytszego) segmentu
-      cascadeUpperDepth: [300],    // Głębokość górnego segmentu (250-400mm)
-      // Opcje frontu per segment (UPPER_CASCADE)
-      cascadeLowerIsLiftUp: [false],          // klapa lift-up segmentu dolnego
-      cascadeLowerIsFrontExtended: [false],   // przedłużony front segmentu dolnego
-      cascadeUpperIsLiftUp: [false],          // klapa lift-up segmentu górnego
+      // Cascade
+      cascadeLowerHeight: [400],
+      cascadeLowerDepth: [400],
+      cascadeUpperHeight: [320],
+      cascadeUpperDepth: [300],
+      cascadeLowerIsLiftUp: [false],
+      cascadeLowerIsFrontExtended: [false],
+      cascadeUpperIsLiftUp: [false],
 
-      // Pola obudowy bocznej
-      leftEnclosureType: ['NONE'],   // EnclosureType dla lewej strony
-      rightEnclosureType: ['NONE'],  // EnclosureType dla prawej strony
-      leftSupportPlate: [false],     // Podpora blendy (tylko PARALLEL_FILLER_STRIP)
-      rightSupportPlate: [false],    // Podpora blendy (tylko PARALLEL_FILLER_STRIP)
-      distanceFromWallMm: [null],    // null = użyj wartości z ustawień globalnych
-      leftFillerWidthOverrideMm: [null],   // override szerokości lewej blendy (null = użyj globalnego)
-      rightFillerWidthOverrideMm: [null],  // override szerokości prawej blendy (null = użyj globalnego)
+      // Enclosures
+      leftEnclosureType: ['NONE'],
+      rightEnclosureType: ['NONE'],
+      leftSupportPlate: [false],
+      rightSupportPlate: [false],
+      distanceFromWallMm: [null],
+      leftFillerWidthOverrideMm: [null],
+      rightFillerWidthOverrideMm: [null],
 
-      // Nowy sposób liczenia dolnych: dolny wieniec na podłodze
+      // Base cabinet structure
       bottomWreathOnFloor: [false],
-
-      // Blokada szafek wiszących powyżej (TALL_CABINET, BASE_FRIDGE)
       blockUpperAbove: [false],
 
-      // Pola szafki zlewowej (BASE_SINK)
-      sinkFrontType:     ['TWO_DOORS'],       // ONE_DOOR | TWO_DOORS | DRAWER
-      sinkApronEnabled:  [true],              // blenda maskująca ON/OFF
-      sinkApronHeightMm: [150],              // wysokość blendy (50–200mm)
-      sinkDrawerModel:   ['ANTARO_TANDEMBOX'], // system szuflad (gdy DRAWER)
+      // Sink
+      sinkFrontType: ['TWO_DOORS'],
+      sinkApronEnabled: [true],
+      sinkApronHeightMm: [150],
+      sinkDrawerModel: ['ANTARO_TANDEMBOX'],
 
-      // Pola szafki pod płytę grzewczą (BASE_COOKTOP)
-      cooktopType:      ['INDUCTION'],        // GAS | INDUCTION
-      cooktopFrontType: ['DRAWERS'],          // DRAWERS | TWO_DOORS | ONE_DOOR
+      // Cooktop
+      cooktopType: ['INDUCTION'],
+      cooktopFrontType: ['DRAWERS'],
 
-      // Pola szafki wiszącej na okap (UPPER_HOOD)
-      hoodFrontType:      ['FLAP'],           // FLAP | TWO_DOORS | OPEN
-      hoodScreenEnabled:  [false],            // blenda wewnętrzna maskująca mechanizm okapu
-      hoodScreenHeightMm: [100],              // wysokość blendy (50–200mm, domyślnie 100mm)
+      // Hood
+      hoodFrontType: ['FLAP'],
+      hoodScreenEnabled: [false],
+      hoodScreenHeightMm: [100],
 
-      // Pola szafki na piekarnik (BASE_OVEN)
-      ovenHeightType:      ['STANDARD'],    // STANDARD (595mm) | COMPACT (455mm)
-      ovenLowerSectionType:['LOW_DRAWER'],  // LOW_DRAWER | HINGED_DOOR | NONE
-      ovenApronEnabled:    [false],         // blenda dekoracyjna nad piekarnikiem
-      ovenApronHeightMm:   [60],            // wysokość blendy (30–150mm, domyślnie 60mm)
+      // Oven
+      ovenHeightType: ['STANDARD'],
+      ovenLowerSectionType: ['LOW_DRAWER'],
+      ovenApronEnabled: [false],
+      ovenApronHeightMm: [60],
 
-      // Pola szafki na lodówkę (BASE_FRIDGE)
-      fridgeSectionType:   ['TWO_DOORS'],   // ONE_DOOR | TWO_DOORS (domyślnie lodówka + zamrażarka)
-      lowerFrontHeightMm:  [713],           // wysokość dolnego frontu (zamrażarka, wg dokumentacji)
+      // Built-in fridge
+      fridgeSectionType: ['TWO_DOORS'],
+      lowerFrontHeightMm: [713],
 
-      // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
-      fridgeFreestandingType: ['TWO_DOORS'], // SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
+      // Freestanding fridge
+      fridgeFreestandingType: ['TWO_DOORS'],
 
-      // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
-      isLiftUp:       [false],  // klapa lift-up zamiast drzwi obrotowych
-      isFrontExtended:[false],  // front wychodzi ponad górny wieniec o extendedFrontMm
+      // Upper one/two door
+      isLiftUp: [false],
+      isFrontExtended: [false],
 
-      // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
-      drainerFrontType: ['OPEN']  // OPEN | ONE_DOOR | TWO_DOORS
+      // Drainer
+      drainerFrontType: ['OPEN']
     });
   }
 }

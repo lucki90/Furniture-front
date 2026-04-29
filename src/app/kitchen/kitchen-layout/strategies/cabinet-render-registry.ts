@@ -3,6 +3,7 @@ import { CabinetRenderer } from './cabinet-render-context';
 import { renderSingleDoor } from './renderers/single-door.renderer';
 import { renderDoubleDoor } from './renderers/double-door.renderer';
 import { renderDrawers } from './renderers/drawers.renderer';
+import { renderCargo } from './renderers/cargo.renderer';
 import { renderOpenShelf } from './renderers/open-shelf.renderer';
 import { renderTallCabinet } from './renderers/tall-cabinet.renderer';
 import { renderFridgeBuiltIn } from './renderers/fridge-builtin.renderer';
@@ -20,6 +21,7 @@ export const CABINET_RENDER_REGISTRY: Partial<Record<KitchenCabinetType, Cabinet
   // Szafki dolne — standardowe
   [KitchenCabinetType.BASE_ONE_DOOR]:                renderSingleDoor,
   [KitchenCabinetType.BASE_TWO_DOOR]:                renderDoubleDoor,
+  [KitchenCabinetType.BASE_CARGO]:                   renderCargo,
   [KitchenCabinetType.BASE_WITH_DRAWERS]:            renderDrawers,
   [KitchenCabinetType.BASE_SINK]:                    renderSingleDoor,
   [KitchenCabinetType.BASE_COOKTOP]:                 renderDrawers,

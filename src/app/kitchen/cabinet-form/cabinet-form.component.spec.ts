@@ -82,6 +82,66 @@ describe('CabinetFormComponent', () => {
 
     expect(component.form.get('gapBeforeMm')?.value).toBe(0);
   });
+
+  it('shows cargo variant selector for BASE_CARGO', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_CARGO);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Wariant cargo');
+    expect(fixture.nativeElement.textContent).toContain('Mechanizm cargo');
+  });
+
+  it('shows warning hint for non-nominal cargo mechanism width', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_CARGO);
+    component.form.get('width')?.setValue(350);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('mechanizm cargo moze nie pasowac');
+    expect(fixture.nativeElement.textContent).toContain('Marka mechanizmu');
+    expect(component.form.get('drawerModel')?.value).toBeNull();
+  });
+
+  it('switches cargo form to drawers variant with drawer system and no mechanism brand', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_CARGO);
+    component.form.get('cargoVariant')?.setValue('DRAWERS');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Cargo z szufladami');
+    expect(fixture.nativeElement.textContent).toContain('System szuflad');
+    expect(fixture.nativeElement.textContent).not.toContain('Marka mechanizmu');
+    expect(component.form.get('drawerModel')?.value).toBe('ANTARO_TANDEMBOX');
+  });
+
+  it('shows a strong usability warning for cargo drawers up to 200 mm', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_CARGO);
+    component.form.get('cargoVariant')?.setValue('DRAWERS');
+    component.form.get('width')?.setValue(200);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('przy szerokosci 200 mm cargo z szufladami jest technicznie mozliwe');
+    expect(fixture.nativeElement.textContent).toContain('bardzo malo uzytkowe');
+  });
+
+  it('shows a narrower usability warning for cargo drawers above 200 mm but below 250 mm', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_CARGO);
+    component.form.get('cargoVariant')?.setValue('DRAWERS');
+    component.form.get('width')?.setValue(220);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('szuflady wewnetrzne beda bardzo waskie');
+    expect(fixture.nativeElement.textContent).not.toContain('Marka mechanizmu');
+  });
+
+  it('does not show a drawers usability warning from 250 mm upwards', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_CARGO);
+    component.form.get('cargoVariant')?.setValue('DRAWERS');
+    component.form.get('width')?.setValue(250);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('bardzo malo uzytkowe');
+    expect(fixture.nativeElement.textContent).not.toContain('szuflady wewnetrzne beda bardzo waskie');
+    expect(fixture.nativeElement.textContent).not.toContain('mechanizm cargo moze nie pasowac');
+  });
 });
 
 function buildWall(type: 'MAIN' | 'ISLAND'): WallWithCabinets {
@@ -96,7 +156,11 @@ function buildWall(type: 'MAIN' | 'ISLAND'): WallWithCabinets {
 
 class DictionaryServiceStub {
   readonly data = signal({
-    openingTypes: [{ code: 'HANDLE', label: 'Handle' }]
+    openingTypes: [{ code: 'HANDLE', label: 'Handle' }],
+    drawerModels: [
+      { code: 'ANTARO_TANDEMBOX', label: 'Blum Antaro / Tandembox' },
+      { code: 'SEVROLL_BALL', label: 'Sevroll kulkowe' }
+    ]
   });
 }
 
@@ -130,13 +194,19 @@ class CabinetFormEditingServiceStub {
 }
 
 class CabinetFormTypeLifecycleServiceStub {
-  applyTypeChange() {
+  applyTypeChange(_form: unknown, type: KitchenCabinetType) {
     return {
       visibility: {
-        width: true,
+        width: type !== KitchenCabinetType.BASE_CARGO,
+        drawerQuantity: type === KitchenCabinetType.BASE_CARGO,
+        drawerModel: type === KitchenCabinetType.BASE_CARGO,
+        cargoBrand: type === KitchenCabinetType.BASE_CARGO,
         positioningMode: false,
         drainerWidthSelect: false,
-        enclosureSection: false
+        cargoWidthSelect: type === KitchenCabinetType.BASE_CARGO,
+        cargoVariant: type === KitchenCabinetType.BASE_CARGO,
+        enclosureSection: false,
+        openingType: true
       },
       restoreApplied: false
     };

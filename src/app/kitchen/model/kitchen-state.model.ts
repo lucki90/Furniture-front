@@ -7,6 +7,7 @@ import { CabinetVisualConfig } from '../cabinet-form/model/cabinet-visual-elemen
 import { CountertopMaterialType, CountertopJointType, CountertopEdgeType } from './countertop.model';
 import { FeetType, PlinthMaterialType } from './plinth.model';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
+import { CargoBrand, CargoVariant } from '../cabinet-form/types/base-cargo/cargo-cabinet.model';
 
 /**
  * Strefa pozycjonowania szafki:
@@ -146,6 +147,14 @@ export interface KCabinetTwoDoor extends KitchenCabinetBase {
   type: KitchenCabinetType.BASE_TWO_DOOR;
 }
 
+export interface KCabinetCargo extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_CARGO;
+  cargoVariant: CargoVariant;
+  cargoBrand?: CargoBrand;
+  drawerQuantity?: number;
+  drawerModel?: string;
+}
+
 export interface KCabinetWithDrawers extends KitchenCabinetBase {
   type: KitchenCabinetType.BASE_WITH_DRAWERS;
   drawerQuantity: number;
@@ -270,7 +279,7 @@ export interface KCabinetDrainer extends KitchenCabinetBase {
 // TypeScript wymusi obsługę nowego case'u we WSZYSTKICH switch-ach (exhaustive check).
 // ─────────────────────────────────────────────────────────────────────────────
 export type KitchenCabinet =
-  | KCabinetOneDoor | KCabinetTwoDoor | KCabinetWithDrawers
+  | KCabinetOneDoor | KCabinetTwoDoor | KCabinetCargo | KCabinetWithDrawers
   | KCabinetSink | KCabinetCooktop
   | KCabinetDishwasher | KCabinetDishwasherFreestanding
   | KCabinetOven | KCabinetOvenFreestanding
@@ -390,6 +399,8 @@ export interface CabinetFormData {
   shelfQuantity: number;
   drawerQuantity?: number;
   drawerModel?: string | null;
+  cargoVariant?: CargoVariant;
+  cargoBrand?: CargoBrand;
   segments?: SegmentFormData[];  // dla TALL_CABINET
 
   // Pola kaskadowe (dla UPPER_CASCADE)

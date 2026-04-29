@@ -71,6 +71,7 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
 
     const isCorner = cabinetType === KitchenCabinetType.CORNER_CABINET;
     const cornerWidthB = isCorner ? (cabinetData?.cornerWidthB as number | undefined) : undefined;
+    const cargoVariant = cabinetData?.cargoVariant as string | undefined;
     const drawerQuantity = cabinetData?.drawerQuantity as number | undefined;
     const shelfQuantity = originalCabinet?.shelfQuantity;
     const segments = cabinetData?.segments as SegmentFormData[] | undefined;
@@ -112,6 +113,7 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       bodyHeight,
       frontGap: input.frontGap,
       scaleVert: input.scaleVert,
+      cargoVariant,
       drawerQuantity,
       segments,
       shelfQuantity,

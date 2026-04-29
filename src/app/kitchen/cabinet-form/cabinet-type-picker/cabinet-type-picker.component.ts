@@ -36,6 +36,7 @@ export class CabinetTypePickerComponent {
       types: [
         { type: KitchenCabinetType.BASE_TWO_DOOR,              label: '2 drzwi',             svgTemplate: 'base-two-door' },
         { type: KitchenCabinetType.BASE_ONE_DOOR,              label: '1 drzwi',             svgTemplate: 'base-one-door' },
+        { type: KitchenCabinetType.BASE_CARGO,                 label: 'Cargo',               svgTemplate: 'base-cargo' },
         { type: KitchenCabinetType.BASE_WITH_DRAWERS,          label: 'Szuflady',            svgTemplate: 'base-drawers' },
         { type: KitchenCabinetType.BASE_SINK,                  label: 'Zlewowa',             svgTemplate: 'base-sink' },
         { type: KitchenCabinetType.BASE_COOKTOP,               label: 'Płyta grzewcza',      svgTemplate: 'base-cooktop' },

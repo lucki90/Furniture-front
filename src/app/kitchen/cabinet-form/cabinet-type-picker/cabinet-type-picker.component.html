@@ -46,6 +46,16 @@
               <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
             </ng-container>
 
+            <!-- BASE_CARGO -->
+            <ng-container *ngIf="card.svgTemplate === 'base-cargo'">
+              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body"/>
+              <rect x="3" y="9" width="38" height="36" rx="0.5" class="svg-front"/>
+              <line x1="10" y1="21" x2="34" y2="21" class="svg-dishwasher-line"/>
+              <line x1="10" y1="33" x2="34" y2="33" class="svg-dishwasher-line"/>
+              <line x1="22" y1="22" x2="22" y2="31" class="svg-handle"/>
+              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+            </ng-container>
+
             <!-- BASE_SINK -->
             <ng-container *ngIf="card.svgTemplate === 'base-sink'">
               <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body"/>

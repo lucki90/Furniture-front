@@ -13,6 +13,7 @@
           <select class="form-control" formControlName="kitchenCabinetType" style="display:none">
             <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
             <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
+            <option value="BASE_CARGO">Dolna – cargo</option>
             <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
             <option value="BASE_SINK">Dolna – zlewowa</option>
             <option value="BASE_COOKTOP">Dolna – pod plyte grzewczą</option>
@@ -58,8 +59,21 @@
     </app-form-field>
   </div>
 
+  <!-- Wiersz 2b: Wymiary BASE_CARGO - szerokosc ciagla 150-600 mm -->
+  <div class="form-row" *ngIf="visibility.cargoWidthSelect">
+    <app-form-field class="form-group" label="Szerokosc" unit="mm" [hint]="cargoWidthHint ?? undefined" [errorMessage]="getFieldError('width')">
+      <input type="number" class="form-control" formControlName="width">
+    </app-form-field>
+    <app-form-field class="form-group" label="Wysokosc" unit="mm" [errorMessage]="getFieldError('height')">
+      <input type="number" class="form-control" formControlName="height">
+    </app-form-field>
+    <app-form-field class="form-group" label="Glebokosc" unit="mm" [errorMessage]="getFieldError('depth')">
+      <input type="number" class="form-control" formControlName="depth">
+    </app-form-field>
+  </div>
+
   <!-- Wiersz 2: Wymiary (standardowe) -->
-  <div class="form-row" *ngIf="visibility.width !== false">
+  <div class="form-row" *ngIf="visibility.width !== false && !visibility.cargoWidthSelect">
     <app-form-field class="form-group" label="Szerokosc" unit="mm" [errorMessage]="getFieldError('width')">
       <input type="number" class="form-control" formControlName="width">
     </app-form-field>
@@ -84,6 +98,27 @@
       <label class="form-label">Pusta przestrzeń przed (mm)</label>
       <input type="number" class="form-control" formControlName="gapBeforeMm" min="0" max="5000" step="50">
       <span class="form-hint">Dodaje pustą przestrzeń przed tą szafką w aktualnym rzędzie, więc kolejne pozycjonowanie zaczyna się dalej.</span>
+    </div>
+  </div>
+
+  <div class="form-row" *ngIf="visibility.cargoVariant">
+    <div class="form-group flex-2">
+      <label class="form-label">Wariant cargo</label>
+      <select class="form-control" formControlName="cargoVariant">
+        <option *ngFor="let option of cargoVariantOptions; trackBy: trackByValue" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+      <span class="form-hint">Mechanizm cargo ma jeden front. Wariant szufladowy ma jeden zewnetrzny front i wewnetrzne szuflady.</span>
+    </div>
+    <div class="form-group flex-2" *ngIf="isCargoMechanismVariant">
+      <label class="form-label">Marka mechanizmu</label>
+      <select class="form-control" formControlName="cargoBrand">
+        <option *ngFor="let option of cargoBrandOptions; trackBy: trackByValue" [value]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+      <span class="form-hint">System dobierze nominalna szerokosc mechanizmu cargo na podstawie szerokosci szafki i liczby koszy/polek.</span>
     </div>
   </div>
 
@@ -166,7 +201,7 @@
       </span>
     </div>
     <div class="form-group" *ngIf="visibility.drawerQuantity">
-      <label class="form-label">Ilosc szuflad</label>
+      <label class="form-label">{{ isCargoCabinet ? cargoDrawerQuantityLabel : 'Ilosc szuflad' }}</label>
       <input type="number" class="form-control" formControlName="drawerQuantity">
       <span class="form-error" *ngIf="form.get('drawerQuantity')?.touched && form.get('drawerQuantity')?.errors">
         <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['required']">Wymagane</ng-container>
@@ -174,11 +209,10 @@
         <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['max']">Max: {{ form.get('drawerQuantity')?.errors?.['max'].max }}</ng-container>
       </span>
     </div>
-    <div class="form-group" *ngIf="visibility.drawerModel">
+    <div class="form-group" *ngIf="visibility.drawerModel && (!isCargoCabinet || isCargoDrawersVariant)">
       <label class="form-label">System szuflad</label>
       <select class="form-control" formControlName="drawerModel">
-        <option value="ANTARO_TANDEMBOX">Blum Antaro Tandembox</option>
-        <option value="SEVROLL_BALL">Sevroll Ball</option>
+        <option *ngFor="let opt of drawerModels(); trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
       </select>
     </div>
     <!-- Pozycja Y jest obliczana automatycznie z ustawien projektu — brak pola UI -->

@@ -40,6 +40,8 @@ export class CabinetFormTypeLifecycleService {
       shelfQuantity: false,
       drawerQuantity: false,
       drawerModel: false,
+      cargoVariant: false,
+      cargoBrand: false,
       segments: false,
       cornerWidthA: false,
       cornerWidthB: false,
@@ -76,6 +78,7 @@ export class CabinetFormTypeLifecycleService {
       extendedFront: false,
       drainerFrontType: false,
       drainerWidthSelect: false,
+      cargoWidthSelect: false,
       openingType: true
     };
   }

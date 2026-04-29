@@ -34,6 +34,16 @@ export const KitchenCabinetConstraints = {
     DRAWER_MIN: 2,
     DRAWER_MAX: 6
   },
+  BASE_CARGO: {
+    WIDTH_MIN: 150,
+    WIDTH_MAX: 600,
+    HEIGHT_MIN: 600,
+    HEIGHT_MAX: 900,
+    DEPTH_MIN: 350,
+    DEPTH_MAX: 560,
+    DRAWER_MIN: 2,
+    DRAWER_MAX: 3
+  },
   BASE_SINK: {
     WIDTH_MIN: 400,
     WIDTH_MAX: 1200,
