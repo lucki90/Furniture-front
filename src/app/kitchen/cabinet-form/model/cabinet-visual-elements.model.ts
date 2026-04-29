@@ -189,6 +189,17 @@ export function generateDefaultFronts(
       );
       break;
 
+    case 'BASE_OPEN':
+    case 'UPPER_OPEN_SHELF':
+      fronts.push({
+        type: 'OPEN',
+        width: width - gap * 2,
+        height: height - gap * 2,
+        positionX: gap,
+        positionY: gap
+      });
+      break;
+
     case 'BASE_WITH_DRAWERS':
       const drawerCount = drawerQuantity || 3;
       const drawerHeight = (height - gap * (drawerCount + 1)) / drawerCount;

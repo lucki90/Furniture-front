@@ -21,6 +21,7 @@ export const CABINET_RENDER_REGISTRY: Partial<Record<KitchenCabinetType, Cabinet
   // Szafki dolne — standardowe
   [KitchenCabinetType.BASE_ONE_DOOR]:                renderSingleDoor,
   [KitchenCabinetType.BASE_TWO_DOOR]:                renderDoubleDoor,
+  [KitchenCabinetType.BASE_OPEN]:                    renderOpenShelf,
   [KitchenCabinetType.BASE_CARGO]:                   renderCargo,
   [KitchenCabinetType.BASE_WITH_DRAWERS]:            renderDrawers,
   [KitchenCabinetType.BASE_SINK]:                    renderSingleDoor,

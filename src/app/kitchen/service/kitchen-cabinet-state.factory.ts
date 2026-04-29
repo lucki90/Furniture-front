@@ -51,6 +51,8 @@ export class KitchenCabinetStateFactory {
         return { ...base, type: KitchenCabinetType.BASE_ONE_DOOR };
       case KitchenCabinetType.BASE_TWO_DOOR:
         return { ...base, type: KitchenCabinetType.BASE_TWO_DOOR };
+      case KitchenCabinetType.BASE_OPEN:
+        return { ...base, type: KitchenCabinetType.BASE_OPEN };
       case KitchenCabinetType.BASE_CARGO:
         return {
           ...base,
@@ -222,6 +224,8 @@ export class KitchenCabinetStateFactory {
         return { ...baseFromResp, type: KitchenCabinetType.BASE_ONE_DOOR };
       case KitchenCabinetType.BASE_TWO_DOOR:
         return { ...baseFromResp, type: KitchenCabinetType.BASE_TWO_DOOR };
+      case KitchenCabinetType.BASE_OPEN:
+        return { ...baseFromResp, type: KitchenCabinetType.BASE_OPEN };
       case KitchenCabinetType.BASE_CARGO:
         return {
           ...baseFromResp,

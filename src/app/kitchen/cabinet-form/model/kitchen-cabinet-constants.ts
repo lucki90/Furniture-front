@@ -24,6 +24,16 @@ export const KitchenCabinetConstraints = {
     SHELF_MIN: 0,
     SHELF_MAX: 4
   },
+  BASE_OPEN: {
+    WIDTH_MIN: 150,
+    WIDTH_MAX: 900,
+    HEIGHT_MIN: 680,
+    HEIGHT_MAX: 760,
+    DEPTH_MIN: 500,
+    DEPTH_MAX: 560,
+    SHELF_MIN: 0,
+    SHELF_MAX: 4
+  },
   BASE_WITH_DRAWERS: {
     WIDTH_MIN: 300,
     WIDTH_MAX: 600,
@@ -87,7 +97,7 @@ export const KitchenCabinetConstraints = {
     SHELF_MAX: 4
   },
   UPPER_OPEN_SHELF: {
-    WIDTH_MIN: 200,
+    WIDTH_MIN: 150,
     WIDTH_MAX: 900,
     HEIGHT_MIN: 300,
     HEIGHT_MAX: 900,

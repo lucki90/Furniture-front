@@ -91,6 +91,15 @@ describe('CabinetFormComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Mechanizm cargo');
   });
 
+  it('hides opening type and keeps shelves for BASE_OPEN', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_OPEN);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Polki');
+    expect(fixture.nativeElement.textContent).not.toContain('Typ otwarcia');
+    expect(component.form.get('openingType')?.value).toBe('NONE');
+  });
+
   it('shows warning hint for non-nominal cargo mechanism width', () => {
     component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_CARGO);
     component.form.get('width')?.setValue(350);
@@ -194,10 +203,15 @@ class CabinetFormEditingServiceStub {
 }
 
 class CabinetFormTypeLifecycleServiceStub {
-  applyTypeChange(_form: unknown, type: KitchenCabinetType) {
+  applyTypeChange(form: any, type: KitchenCabinetType) {
+    if (type === KitchenCabinetType.BASE_OPEN) {
+      form.get('openingType')?.setValue('NONE', { emitEvent: false });
+    }
+
     return {
       visibility: {
         width: type !== KitchenCabinetType.BASE_CARGO,
+        shelfQuantity: type === KitchenCabinetType.BASE_OPEN,
         drawerQuantity: type === KitchenCabinetType.BASE_CARGO,
         drawerModel: type === KitchenCabinetType.BASE_CARGO,
         cargoBrand: type === KitchenCabinetType.BASE_CARGO,
@@ -206,7 +220,7 @@ class CabinetFormTypeLifecycleServiceStub {
         cargoWidthSelect: type === KitchenCabinetType.BASE_CARGO,
         cargoVariant: type === KitchenCabinetType.BASE_CARGO,
         enclosureSection: false,
-        openingType: true
+        openingType: type !== KitchenCabinetType.BASE_OPEN
       },
       restoreApplied: false
     };

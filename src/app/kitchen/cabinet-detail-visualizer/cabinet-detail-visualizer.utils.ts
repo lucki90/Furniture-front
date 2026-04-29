@@ -298,6 +298,13 @@ function getDefaultHandleForFront(front: FrontElement): HandleConfig {
         offsetFromEdge: 30
       };
 
+    case 'OPEN':
+      return {
+        type: 'NONE',
+        position: 'MIDDLE',
+        orientation: 'HORIZONTAL'
+      };
+
     default:
       return { ...DEFAULT_HANDLE_CONFIG };
   }

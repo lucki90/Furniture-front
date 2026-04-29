@@ -4,6 +4,9 @@ import {BaseTwoDoorCabinetValidator} from "../types/base-two-doors/base-two-door
 import {BaseOneDoorCabinetPreparer} from "../types/base-one-door/base-one-door-cabinet-preparer";
 import {BaseOneDoorCabinetValidator} from "../types/base-one-door/base-one-door-cabinet-validator";
 import {BaseOneDoorRequestMapper} from "../types/base-one-door/base-one-door-request-mapper";
+import {BaseOpenCabinetPreparer} from "../types/base-open/base-open-cabinet-preparer";
+import {BaseOpenCabinetValidator} from "../types/base-open/base-open-cabinet-validator";
+import {BaseOpenRequestMapper} from "../types/base-open/base-open-request-mapper";
 import {BaseTwoDoorRequestMapper} from "../types/base-two-doors/base-two-door-request-mapper";
 import {BaseWithDrawersCabinetPreparer} from "../types/base-with-drawers/base-with-drawers-cabinet-preparer";
 import {BaseWithDrawersCabinetValidator} from "../types/base-with-drawers/base-with-drawers-cabinet-validator";
@@ -65,6 +68,11 @@ export const KitchenCabinetTypeConfig = {
     preparer: new BaseOneDoorCabinetPreparer(),
     validator: new BaseOneDoorCabinetValidator(),
     requestMapper: new BaseOneDoorRequestMapper()
+  },
+  [KitchenCabinetType.BASE_OPEN]: {
+    preparer: new BaseOpenCabinetPreparer(),
+    validator: new BaseOpenCabinetValidator(),
+    requestMapper: new BaseOpenRequestMapper()
   },
   [KitchenCabinetType.BASE_TWO_DOOR]: {
     preparer: new BaseTwoDoorCabinetPreparer(),

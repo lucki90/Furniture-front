@@ -49,6 +49,33 @@ describe('KitchenCabinetStateFactory', () => {
     }));
   });
 
+  it('should map base open cabinet from form data without front-specific fields', () => {
+    const cabinet = factory.fromFormData({
+      kitchenCabinetType: KitchenCabinetType.BASE_OPEN,
+      openingType: 'NONE',
+      width: 500,
+      height: 720,
+      depth: 560,
+      positionY: 0,
+      shelfQuantity: 2
+    } as CabinetFormData, 'open-1', {
+      boards: [],
+      components: [],
+      jobs: [],
+      summaryCosts: 300,
+      boardTotalCost: 200,
+      componentTotalCost: 50,
+      jobTotalCost: 50
+    });
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      id: 'open-1',
+      type: KitchenCabinetType.BASE_OPEN,
+      openingType: 'NONE',
+      shelfQuantity: 2
+    }));
+  });
+
   it('should map cargo cabinet from form data and preserve drawer variant details', () => {
     const cabinet = factory.fromFormData({
       kitchenCabinetType: KitchenCabinetType.BASE_CARGO,
@@ -211,6 +238,36 @@ describe('KitchenCabinetStateFactory', () => {
       cargoVariant: 'DRAWERS',
       drawerQuantity: 3,
       drawerModel: 'ANTARO_TANDEMBOX'
+    }));
+  });
+
+  it('should map placement response for base open cabinet', () => {
+    const openCabinet = factory.fromPlacementResponse({
+      id: 5,
+      cabinetId: 'open-1',
+      cabinetType: KitchenCabinetType.BASE_OPEN,
+      positionX: 0,
+      positionY: 0,
+      widthMm: 500,
+      heightMm: 720,
+      depthMm: 560,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      openingType: 'NONE',
+      shelfQuantity: 2,
+      boardsCost: 90,
+      componentsCost: 30,
+      jobsCost: 20,
+      totalCost: 140,
+      displayOrder: 0
+    }, 'fallback-open');
+
+    expect(openCabinet).toEqual(jasmine.objectContaining({
+      id: 'open-1',
+      type: KitchenCabinetType.BASE_OPEN,
+      openingType: 'NONE',
+      shelfQuantity: 2
     }));
   });
 

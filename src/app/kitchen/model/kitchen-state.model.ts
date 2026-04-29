@@ -147,6 +147,10 @@ export interface KCabinetTwoDoor extends KitchenCabinetBase {
   type: KitchenCabinetType.BASE_TWO_DOOR;
 }
 
+export interface KCabinetOpen extends KitchenCabinetBase {
+  type: KitchenCabinetType.BASE_OPEN;
+}
+
 export interface KCabinetCargo extends KitchenCabinetBase {
   type: KitchenCabinetType.BASE_CARGO;
   cargoVariant: CargoVariant;
@@ -279,7 +283,7 @@ export interface KCabinetDrainer extends KitchenCabinetBase {
 // TypeScript wymusi obsługę nowego case'u we WSZYSTKICH switch-ach (exhaustive check).
 // ─────────────────────────────────────────────────────────────────────────────
 export type KitchenCabinet =
-  | KCabinetOneDoor | KCabinetTwoDoor | KCabinetCargo | KCabinetWithDrawers
+  | KCabinetOneDoor | KCabinetTwoDoor | KCabinetOpen | KCabinetCargo | KCabinetWithDrawers
   | KCabinetSink | KCabinetCooktop
   | KCabinetDishwasher | KCabinetDishwasherFreestanding
   | KCabinetOven | KCabinetOvenFreestanding

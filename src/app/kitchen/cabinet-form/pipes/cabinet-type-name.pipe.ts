@@ -4,6 +4,7 @@ import { KitchenCabinetType } from '../model/kitchen-cabinet-type';
 const CABINET_TYPE_LABELS: Record<KitchenCabinetType, string> = {
   [KitchenCabinetType.BASE_ONE_DOOR]: 'Dolna 1-drzwiowa',
   [KitchenCabinetType.BASE_TWO_DOOR]: 'Dolna 2-drzwiowa',
+  [KitchenCabinetType.BASE_OPEN]: 'Dolna otwarta',
   [KitchenCabinetType.BASE_CARGO]: 'Dolna cargo',
   [KitchenCabinetType.BASE_WITH_DRAWERS]: 'Dolna z szufladami',
   [KitchenCabinetType.TALL_CABINET]: 'Słupek',

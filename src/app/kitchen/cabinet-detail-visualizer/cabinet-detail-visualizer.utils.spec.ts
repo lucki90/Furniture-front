@@ -36,6 +36,20 @@ describe('cabinet-detail-visualizer utils', () => {
     expect(config.fronts[0].handle?.type).toBe('BAR');
   });
 
+  it('builds open front visual config for BASE_OPEN without default handle', () => {
+    const config = buildDefaultCabinetVisualConfig({
+      type: KitchenCabinetType.BASE_OPEN,
+      width: 500,
+      height: 720,
+      depth: 560,
+      zone: 'BOTTOM'
+    });
+
+    expect(config.fronts.length).toBe(1);
+    expect(config.fronts[0].type).toBe('OPEN');
+    expect(config.fronts[0].handle?.type).toBe('NONE');
+  });
+
   it('computes scale and geometry from cabinet dimensions', () => {
     const config = buildDefaultCabinetVisualConfig(cabinet);
     const scale = computeCabinetScale(cabinet, options);

@@ -142,6 +142,7 @@ export class CabinetFormComponent implements OnChanges {
   private readonly TYPE_LABELS: Record<KitchenCabinetType, string> = {
     [KitchenCabinetType.BASE_TWO_DOOR]:               'Dolna - 2 drzwi',
     [KitchenCabinetType.BASE_ONE_DOOR]:               'Dolna - 1 drzwi',
+    [KitchenCabinetType.BASE_OPEN]:                   'Dolna - otwarta',
     [KitchenCabinetType.BASE_CARGO]:                  'Dolna - cargo',
     [KitchenCabinetType.BASE_WITH_DRAWERS]:           'Dolna - szuflady',
     [KitchenCabinetType.BASE_SINK]:                   'Dolna - zlewowa',
