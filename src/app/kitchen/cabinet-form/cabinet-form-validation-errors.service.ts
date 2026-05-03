@@ -133,6 +133,11 @@ export class CabinetFormValidationErrorsService {
       return;
     }
 
+    if (control.errors?.['message']) {
+      errors.push(control.errors['message']);
+      return;
+    }
+
     if (control.errors?.['min']) {
       errors.push(`${options.minLabel}: min ${control.errors['min'].min} mm`);
       return;

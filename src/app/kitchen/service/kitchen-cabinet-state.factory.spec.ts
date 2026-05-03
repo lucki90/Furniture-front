@@ -271,6 +271,56 @@ describe('KitchenCabinetStateFactory', () => {
     }));
   });
 
+  it('should map pantry passage front type from form data and placement response', () => {
+    const fromForm = factory.fromFormData({
+      kitchenCabinetType: KitchenCabinetType.PANTRY_PASSAGE,
+      openingType: 'HANDLE',
+      width: 550,
+      height: 2200,
+      depth: 120,
+      positionY: 0,
+      shelfQuantity: 0,
+      pantryPassageFrontType: 'ONE_DOOR'
+    } as CabinetFormData, 'passage-1', {
+      boards: [],
+      components: [],
+      jobs: [],
+      summaryCosts: 300,
+      boardTotalCost: 200,
+      componentTotalCost: 50,
+      jobTotalCost: 50
+    });
+
+    const fromPlacement = factory.fromPlacementResponse({
+      id: 6,
+      cabinetId: 'passage-1',
+      cabinetType: KitchenCabinetType.PANTRY_PASSAGE,
+      positionX: 0,
+      positionY: 0,
+      widthMm: 550,
+      heightMm: 2200,
+      depthMm: 120,
+      boxMaterialCode: 'MDF',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      pantryPassageFrontType: 'ONE_DOOR',
+      boardsCost: 90,
+      componentsCost: 30,
+      jobsCost: 20,
+      totalCost: 140,
+      displayOrder: 0
+    }, 'fallback-passage');
+
+    expect(fromForm).toEqual(jasmine.objectContaining({
+      type: KitchenCabinetType.PANTRY_PASSAGE,
+      pantryPassageFrontType: 'ONE_DOOR'
+    }));
+    expect(fromPlacement).toEqual(jasmine.objectContaining({
+      type: KitchenCabinetType.PANTRY_PASSAGE,
+      pantryPassageFrontType: 'ONE_DOOR'
+    }));
+  });
+
   it('should map placement response for cargo mechanism with brand and basket quantity', () => {
     const cargoCabinet = factory.fromPlacementResponse({
       id: 4,

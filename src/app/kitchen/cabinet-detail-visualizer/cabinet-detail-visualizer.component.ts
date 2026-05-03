@@ -28,6 +28,7 @@ export interface CabinetDetailInput {
   depth: number;
   zone: CabinetZone;
   drawerQuantity?: number;
+  pantryPassageFrontType?: 'ONE_DOOR' | 'TWO_DOORS';
   visualConfig?: CabinetVisualConfig;
 }
 

@@ -85,7 +85,7 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
     const feetHeightPx = Math.round(input.feetHeightMm * input.scaleVert);
     const displayY = resolveDisplayY(zone, position, displayHeight, feetHeightPx, input.wallDisplayHeight, input.scaleVert);
     const isOverflow = displayX + displayWidth > input.wallWidth;
-    const hasFeet = zone === 'BOTTOM' || zone === 'FULL';
+    const hasFeet = (zone === 'BOTTOM' || zone === 'FULL') && cabinetType !== KitchenCabinetType.PANTRY_PASSAGE;
     const feetHeight = hasFeet ? feetHeightPx : 0;
     const bodyHeight = zone === 'FULL' ? displayHeight - feetHeight : displayHeight;
     const feet = generateFeet(displayX, displayY + bodyHeight, displayWidth, feetHeight, input.wallDisplayHeight);
@@ -114,6 +114,8 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       frontGap: input.frontGap,
       scaleVert: input.scaleVert,
       cargoVariant,
+      pantryPassageFrontType: cabinetData?.pantryPassageFrontType as string | undefined,
+      pantryAttachedPlinthHeightPx: cabinetType === KitchenCabinetType.PANTRY_PASSAGE ? feetHeightPx : undefined,
       drawerQuantity,
       segments,
       shelfQuantity,

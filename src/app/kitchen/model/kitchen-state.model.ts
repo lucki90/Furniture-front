@@ -39,17 +39,27 @@ export function isTallCabinetType(type: KitchenCabinetType): boolean {
  * Analogicznie do backendu: isFullHeightAnchor() w CabinetPositionCalculator i PlacementValidator.
  */
 export function isFullHeightAnchor(type: KitchenCabinetType): boolean {
-  return type === KitchenCabinetType.TALL_CABINET || type === KitchenCabinetType.BASE_FRIDGE;
+  return type === KitchenCabinetType.TALL_CABINET
+    || type === KitchenCabinetType.BASE_FRIDGE
+    || type === KitchenCabinetType.PANTRY_PASSAGE;
 }
 
 export function requiresPlinth(type: KitchenCabinetType): boolean {
-  if (type === KitchenCabinetType.BASE_OVEN_FREESTANDING || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING) return false;
+  if (
+    type === KitchenCabinetType.BASE_OVEN_FREESTANDING
+    || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING
+    || type === KitchenCabinetType.PANTRY_PASSAGE
+  ) return false;
   return isBaseCabinetType(type) || isTallCabinetType(type) || type === KitchenCabinetType.BASE_FRIDGE;
 }
 
 export function requiresCountertop(type: KitchenCabinetType): boolean {
-  if (type === KitchenCabinetType.BASE_OVEN_FREESTANDING || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING
-      || type === KitchenCabinetType.BASE_FRIDGE) return false;
+  if (
+    type === KitchenCabinetType.BASE_OVEN_FREESTANDING
+      || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING
+      || type === KitchenCabinetType.BASE_FRIDGE
+      || type === KitchenCabinetType.PANTRY_PASSAGE
+  ) return false;
   return isBaseCabinetType(type);
 }
 
@@ -71,6 +81,7 @@ export function isFreestandingAppliance(type: KitchenCabinetType): boolean {
 export function interruptsCountertop(type: KitchenCabinetType): boolean {
   return type === KitchenCabinetType.TALL_CABINET
       || type === KitchenCabinetType.BASE_FRIDGE
+      || type === KitchenCabinetType.PANTRY_PASSAGE
       || type === KitchenCabinetType.BASE_FRIDGE_FREESTANDING;
 }
 
@@ -223,6 +234,11 @@ export interface KCabinetTall extends KitchenCabinetBase {
   segments?: SegmentFormData[];
 }
 
+export interface KCabinetPantryPassage extends KitchenCabinetBase {
+  type: KitchenCabinetType.PANTRY_PASSAGE;
+  pantryPassageFrontType: 'ONE_DOOR' | 'TWO_DOORS';
+}
+
 export interface KCabinetCorner extends KitchenCabinetBase {
   type: KitchenCabinetType.CORNER_CABINET;
   cornerWidthA: number;
@@ -288,7 +304,7 @@ export type KitchenCabinet =
   | KCabinetDishwasher | KCabinetDishwasherFreestanding
   | KCabinetOven | KCabinetOvenFreestanding
   | KCabinetFridge | KCabinetFridgeFreestanding
-  | KCabinetTall | KCabinetCorner
+  | KCabinetTall | KCabinetPantryPassage | KCabinetCorner
   | KCabinetUpperOneDoor | KCabinetUpperTwoDoor | KCabinetUpperOpenShelf
   | KCabinetCascade | KCabinetHood | KCabinetDrainer;
 
@@ -301,7 +317,11 @@ export type KitchenCabinet =
  */
 export function getCabinetZone(cabinet: KitchenCabinet): CabinetZone {
   // Słupek i lodówka w zabudowie → FULL (od podłogi do sufitu)
-  if (isTallCabinetType(cabinet.type) || cabinet.type === KitchenCabinetType.BASE_FRIDGE) {
+  if (
+    isTallCabinetType(cabinet.type)
+    || cabinet.type === KitchenCabinetType.BASE_FRIDGE
+    || cabinet.type === KitchenCabinetType.PANTRY_PASSAGE
+  ) {
     return 'FULL';
   }
   // Szafki wiszące (UPPER_*) → TOP
@@ -486,6 +506,7 @@ export interface CabinetFormData {
 
   // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
   drainerFrontType?: string;   // OPEN | ONE_DOOR | TWO_DOORS
+  pantryPassageFrontType?: string; // ONE_DOOR | TWO_DOORS
 }
 
 export interface CabinetCalculatedEvent {

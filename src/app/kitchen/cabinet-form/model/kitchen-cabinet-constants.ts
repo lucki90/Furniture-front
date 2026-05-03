@@ -34,6 +34,16 @@ export const KitchenCabinetConstraints = {
     SHELF_MIN: 0,
     SHELF_MAX: 4
   },
+  PANTRY_PASSAGE: {
+    WIDTH_MIN: 450,
+    WIDTH_MAX: 1400,
+    HEIGHT_MIN: 1900,
+    HEIGHT_MAX: 2500,
+    DEPTH_MIN: 120,
+    DEPTH_MAX: 120,
+    SHELF_MIN: 0,
+    SHELF_MAX: 0
+  },
   BASE_WITH_DRAWERS: {
     WIDTH_MIN: 300,
     WIDTH_MAX: 600,

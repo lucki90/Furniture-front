@@ -18,6 +18,7 @@ export interface CabinetDetailInputData {
   depth: number;
   zone: CabinetZone;
   drawerQuantity?: number;
+  pantryPassageFrontType?: 'ONE_DOOR' | 'TWO_DOORS';
   visualConfig?: CabinetVisualConfig;
 }
 
@@ -70,7 +71,8 @@ export function buildDefaultCabinetVisualConfig(cabinet: CabinetDetailInputData)
     cabinet.type,
     cabinet.width,
     usableHeight,
-    cabinet.drawerQuantity
+    cabinet.drawerQuantity,
+    cabinet.pantryPassageFrontType
   ).map(front => ({
     ...front,
     handle: getDefaultHandleForFront(front)

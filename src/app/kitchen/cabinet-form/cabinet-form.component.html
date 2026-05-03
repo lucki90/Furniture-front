@@ -24,6 +24,7 @@
             <option value="BASE_OVEN_FREESTANDING">Dolna – piekarnik wolnostojący</option>
             <option value="BASE_FRIDGE">Slupek – lodowka w zabudowie</option>
             <option value="BASE_FRIDGE_FREESTANDING">Dolna – lodowka wolnostojąca</option>
+            <option value="PANTRY_PASSAGE">Przejscie do spizarni</option>
             <option value="UPPER_ONE_DOOR">Wisząca – 1 drzwi</option>
             <option value="UPPER_TWO_DOOR">Wisząca – 2 drzwi</option>
             <option value="UPPER_OPEN_SHELF">Wisząca – otwarta polka</option>
@@ -84,6 +85,17 @@
     <app-form-field class="form-group" label="Glebokosc" unit="mm" [errorMessage]="getFieldError('depth')">
       <input type="number" class="form-control" formControlName="depth">
     </app-form-field>
+  </div>
+
+  <div class="form-row" *ngIf="visibility.pantryPassageFrontType">
+    <div class="form-group flex-2">
+      <label class="form-label">Wariant drzwi przejscia</label>
+      <select class="form-control" formControlName="pantryPassageFrontType">
+        <option value="ONE_DOOR">Jedne drzwi</option>
+        <option value="TWO_DOORS">Dwoje drzwi</option>
+      </select>
+      <span class="form-hint">Do 600 mm mozesz wybrac jedne albo dwoje drzwi. Powyzej 600 mm wymagany jest wariant dwojga drzwi.</span>
+    </div>
   </div>
 
   <div class="form-row">

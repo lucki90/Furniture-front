@@ -151,6 +151,7 @@ export interface ProjectCabinetRequest {
   drawerRequest?: DrawerRequest;
   cargoVariant?: string;
   cargoBrand?: string;
+  pantryPassageFrontType?: string;
   segments?: SegmentRequest[];  // dla TALL_CABINET
   cornerRequest?: CornerCabinetRequest;  // dla CORNER_CABINET
 
@@ -477,6 +478,7 @@ export interface CabinetPlacementResponse {
   drawerModel?: string;
   cargoVariant?: string;
   cargoBrand?: string;
+  pantryPassageFrontType?: string;
   shelfQuantity?: number;
 
   // Additional configuration - corner cabinet

@@ -122,4 +122,68 @@ describe('kitchen-layout-view-model.builder', () => {
     expect(position.ovenSeparatorDisplayY).toBeGreaterThan(position.displayY);
     expect(position.ovenSeparatorDisplayY).toBeLessThan(position.displayY + position.bodyHeight);
   });
+
+  it('should render pantry passage as one door with a plinth bend line', () => {
+    const [position] = buildVisualCabinetPositions({
+      cabinetPositions: [createPosition({ cabinetId: 'passage-1', width: 550, height: 2200 })],
+      cabinets: [
+        createCabinet({
+          id: 'passage-1',
+          type: KitchenCabinetType.PANTRY_PASSAGE,
+          width: 550,
+          height: 2200,
+          depth: 120,
+          shelfQuantity: 0,
+          pantryPassageFrontType: 'ONE_DOOR'
+        } as Partial<KitchenCabinet>)
+      ],
+      scale: 0.1,
+      wallWidth: 200,
+      wallDisplayHeight: 240,
+      scaleVert: 0.1,
+      feetHeightMm: 120,
+      fillerWidthMm: 50,
+      standardBottomHeight: 720,
+      standardTopHeight: 720,
+      standardBottomDepth: 560,
+      standardTopDepth: 320,
+      frontGap: 1
+    });
+
+    expect(position.zone).toBe('FULL');
+    expect(position.feetHeight).toBe(0);
+    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(1);
+    expect(position.fronts.some(front => front.type === 'PLINTH_BREAK_LINE')).toBeTrue();
+  });
+
+  it('should render pantry passage as two doors when requested', () => {
+    const [position] = buildVisualCabinetPositions({
+      cabinetPositions: [createPosition({ cabinetId: 'passage-2', width: 900, height: 2200 })],
+      cabinets: [
+        createCabinet({
+          id: 'passage-2',
+          type: KitchenCabinetType.PANTRY_PASSAGE,
+          width: 900,
+          height: 2200,
+          depth: 120,
+          shelfQuantity: 0,
+          pantryPassageFrontType: 'TWO_DOORS'
+        } as Partial<KitchenCabinet>)
+      ],
+      scale: 0.1,
+      wallWidth: 200,
+      wallDisplayHeight: 240,
+      scaleVert: 0.1,
+      feetHeightMm: 100,
+      fillerWidthMm: 50,
+      standardBottomHeight: 720,
+      standardTopHeight: 720,
+      standardBottomDepth: 560,
+      standardTopDepth: 320,
+      frontGap: 1
+    });
+
+    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(2);
+    expect(position.fronts.some(front => front.type === 'PLINTH_BREAK_LINE')).toBeTrue();
+  });
 });

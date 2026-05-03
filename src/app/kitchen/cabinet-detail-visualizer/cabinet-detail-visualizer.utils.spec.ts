@@ -50,6 +50,34 @@ describe('cabinet-detail-visualizer utils', () => {
     expect(config.fronts[0].handle?.type).toBe('NONE');
   });
 
+  it('builds one-door pantry passage preview when ONE_DOOR is selected', () => {
+    const config = buildDefaultCabinetVisualConfig({
+      type: KitchenCabinetType.PANTRY_PASSAGE,
+      width: 550,
+      height: 2200,
+      depth: 120,
+      zone: 'FULL',
+      pantryPassageFrontType: 'ONE_DOOR'
+    });
+
+    expect(config.fronts).toHaveSize(1);
+    expect(config.fronts[0].type).toBe('DOOR_SINGLE');
+  });
+
+  it('builds two-door pantry passage preview when TWO_DOORS is selected', () => {
+    const config = buildDefaultCabinetVisualConfig({
+      type: KitchenCabinetType.PANTRY_PASSAGE,
+      width: 900,
+      height: 2200,
+      depth: 120,
+      zone: 'FULL',
+      pantryPassageFrontType: 'TWO_DOORS'
+    });
+
+    expect(config.fronts).toHaveSize(2);
+    expect(config.fronts.every(front => front.type === 'DOOR_SINGLE')).toBeTrue();
+  });
+
   it('computes scale and geometry from cabinet dimensions', () => {
     const config = buildDefaultCabinetVisualConfig(cabinet);
     const scale = computeCabinetScale(cabinet, options);

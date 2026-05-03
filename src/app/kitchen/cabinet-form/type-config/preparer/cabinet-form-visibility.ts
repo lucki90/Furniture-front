@@ -68,6 +68,7 @@ export interface CabinetFormVisibility {
 
   // Cargo
   cargoWidthSelect: boolean;
+  pantryPassageFrontType: boolean;
 
   // Upper one/two door options
   liftUp: boolean;

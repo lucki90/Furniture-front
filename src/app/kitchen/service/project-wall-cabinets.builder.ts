@@ -277,6 +277,10 @@ export class ProjectWallCabinetsBuilder {
           cargoVariant: cab.cargoVariant,
           cargoBrand: cab.cargoBrand
         };
+      case KitchenCabinetType.PANTRY_PASSAGE:
+        return {
+          pantryPassageFrontType: cab.pantryPassageFrontType
+        };
       case KitchenCabinetType.BASE_SINK:
         return {
           sinkFrontType: cab.sinkFrontType,

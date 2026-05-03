@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, computed, Input, signal } f
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { getCabinetZone } from '../model/kitchen-state.model';
+import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import {
   PLATE_THICKNESS_MM,
   COUNTERTOP_DEPTH_DEFAULT_MM,
@@ -76,6 +77,14 @@ export class KitchenLayoutComponent {
   // Stałe dla elementów wizualnych
   // Uwaga: FEET_HEIGHT_MM jest getter — używa rzeczywistej wysokości cokołu z ustawień projektu
   private get FEET_HEIGHT_MM(): number { return this.stateService.plinthHeightMm(); }
+  private get activeWallPlinthHeightMm(): number {
+    const wall = this.selectedWall();
+    const plinth = wall?.plinthConfig;
+    if (plinth?.enabled === false) {
+      return 0;
+    }
+    return plinth?.heightMm ?? this.stateService.plinthHeightMm();
+  }
   /** Szpara między górną krawędzią panelu cokołu a dolną krawędzią korpusu (nóżki są o tyle wyższe) */
   private readonly PLINTH_PANEL_GAP_MM = 3;
   private readonly FRONT_GAP = 1;
@@ -152,7 +161,7 @@ export class KitchenLayoutComponent {
       wallWidth: this.wallDisplayWidth(),
       wallDisplayHeight: this.WALL_DISPLAY_HEIGHT,
       scaleVert: this.layoutMetrics().scaleVert,
-      feetHeightMm: this.FEET_HEIGHT_MM,
+      feetHeightMm: this.activeWallPlinthHeightMm,
       fillerWidthMm: this.stateService.fillerWidthMm(),
       standardBottomHeight: this.STANDARD_BOTTOM_HEIGHT,
       standardTopHeight: this.STANDARD_TOP_HEIGHT,
@@ -196,7 +205,7 @@ export class KitchenLayoutComponent {
       wallWidth: this.wallDisplayWidth(),
       wallDisplayHeight: this.WALL_DISPLAY_HEIGHT,
       scaleVert: this.layoutMetrics().scaleVert,
-      feetHeightMm: this.FEET_HEIGHT_MM,
+      feetHeightMm: this.activeWallPlinthHeightMm,
       fillerWidthMm: this.stateService.fillerWidthMm(),
       standardBottomHeight: this.STANDARD_BOTTOM_HEIGHT,
       standardTopHeight: this.STANDARD_TOP_HEIGHT,
@@ -351,7 +360,8 @@ export class KitchenLayoutComponent {
     // Tylko szafki mające cokół (nie wolnostojące AGD)
     const plinthPositions = positions.filter(p =>
       (p.zone === 'BOTTOM' || p.zone === 'FULL') &&
-      !p.isFreestandingAppliance
+      !p.isFreestandingAppliance &&
+      p.type !== KitchenCabinetType.PANTRY_PASSAGE
     ).sort((a, b) => a.displayX - b.displayX);
 
     if (plinthPositions.length === 0) return [];

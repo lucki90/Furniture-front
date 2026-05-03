@@ -72,6 +72,12 @@
                 [attr.x2]="front.x + front.width"
                 [attr.y2]="front.y"
                 class="shelf-line"/>
+      <svg:line *ngIf="front.type === 'PLINTH_BREAK_LINE'"
+                [attr.x1]="front.x"
+                [attr.y1]="front.y"
+                [attr.x2]="front.x + front.width"
+                [attr.y2]="front.y"
+                class="pantry-plinth-break-line"/>
       <svg:line *ngIf="front.type === 'VERT_DIVIDER'"
                 [attr.x1]="front.x"
                 [attr.y1]="front.y"

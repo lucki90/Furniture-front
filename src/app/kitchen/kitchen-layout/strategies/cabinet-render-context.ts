@@ -40,6 +40,8 @@ export interface CabinetRenderContext {
   scaleVert: number;
   // Dane specyficzne dla typów
   cargoVariant?: string;
+  pantryPassageFrontType?: string;
+  pantryAttachedPlinthHeightPx?: number;
   drawerQuantity?: number;
   segments?: SegmentFormData[];
   shelfQuantity?: number;

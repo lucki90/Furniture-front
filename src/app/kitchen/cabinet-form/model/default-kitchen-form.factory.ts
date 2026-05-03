@@ -17,6 +17,7 @@ export class DefaultKitchenFormFactory {
       drawerModel: null,
       cargoVariant: ['MECHANISM'],
       cargoBrand: ['BLUM'],
+      pantryPassageFrontType: ['TWO_DOORS'],
       segments: fb.array([]),
 
       // Corner cabinet

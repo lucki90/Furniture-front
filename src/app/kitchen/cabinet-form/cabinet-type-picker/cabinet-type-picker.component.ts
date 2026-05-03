@@ -64,6 +64,7 @@ export class CabinetTypePickerComponent {
       title: 'Specjalne',
       types: [
         { type: KitchenCabinetType.TALL_CABINET,   label: 'Słupek',   svgTemplate: 'tall' },
+        { type: KitchenCabinetType.PANTRY_PASSAGE, label: 'Przejście do spiżarni', svgTemplate: 'passage' },
         { type: KitchenCabinetType.CORNER_CABINET, label: 'Narożna',  svgTemplate: 'corner' },
       ]
     }
@@ -83,7 +84,9 @@ export class CabinetTypePickerComponent {
   }
 
   private isAllowedOnIsland(type: KitchenCabinetType): boolean {
-    return !isUpperCabinetType(type) && type !== KitchenCabinetType.TALL_CABINET;
+    return !isUpperCabinetType(type)
+      && type !== KitchenCabinetType.TALL_CABINET
+      && type !== KitchenCabinetType.PANTRY_PASSAGE;
   }
 
   select(type: KitchenCabinetType): void {

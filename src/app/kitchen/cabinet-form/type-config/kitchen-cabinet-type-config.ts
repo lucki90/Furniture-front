@@ -7,6 +7,9 @@ import {BaseOneDoorRequestMapper} from "../types/base-one-door/base-one-door-req
 import {BaseOpenCabinetPreparer} from "../types/base-open/base-open-cabinet-preparer";
 import {BaseOpenCabinetValidator} from "../types/base-open/base-open-cabinet-validator";
 import {BaseOpenRequestMapper} from "../types/base-open/base-open-request-mapper";
+import {PantryPassageCabinetPreparer} from "../types/pantry-passage/pantry-passage-cabinet-preparer";
+import {PantryPassageCabinetValidator} from "../types/pantry-passage/pantry-passage-cabinet-validator";
+import {PantryPassageRequestMapper} from "../types/pantry-passage/pantry-passage-request-mapper";
 import {BaseTwoDoorRequestMapper} from "../types/base-two-doors/base-two-door-request-mapper";
 import {BaseWithDrawersCabinetPreparer} from "../types/base-with-drawers/base-with-drawers-cabinet-preparer";
 import {BaseWithDrawersCabinetValidator} from "../types/base-with-drawers/base-with-drawers-cabinet-validator";
@@ -73,6 +76,11 @@ export const KitchenCabinetTypeConfig = {
     preparer: new BaseOpenCabinetPreparer(),
     validator: new BaseOpenCabinetValidator(),
     requestMapper: new BaseOpenRequestMapper()
+  },
+  [KitchenCabinetType.PANTRY_PASSAGE]: {
+    preparer: new PantryPassageCabinetPreparer(),
+    validator: new PantryPassageCabinetValidator(),
+    requestMapper: new PantryPassageRequestMapper()
   },
   [KitchenCabinetType.BASE_TWO_DOOR]: {
     preparer: new BaseTwoDoorCabinetPreparer(),

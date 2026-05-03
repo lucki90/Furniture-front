@@ -121,6 +121,14 @@ export class KitchenCabinetStateFactory {
         };
       case KitchenCabinetType.TALL_CABINET:
         return { ...base, type: KitchenCabinetType.TALL_CABINET, segments: formData.segments };
+      case KitchenCabinetType.PANTRY_PASSAGE:
+        return {
+          ...base,
+          type: KitchenCabinetType.PANTRY_PASSAGE,
+          shelfQuantity: 0,
+          blockUpperAbove: true,
+          pantryPassageFrontType: (formData.pantryPassageFrontType as 'ONE_DOOR' | 'TWO_DOORS') ?? 'TWO_DOORS'
+        };
       case KitchenCabinetType.CORNER_CABINET:
         return {
           ...base,
@@ -294,6 +302,14 @@ export class KitchenCabinetStateFactory {
         };
       case KitchenCabinetType.TALL_CABINET:
         return { ...baseFromResp, type: KitchenCabinetType.TALL_CABINET, segments };
+      case KitchenCabinetType.PANTRY_PASSAGE:
+        return {
+          ...baseFromResp,
+          type: KitchenCabinetType.PANTRY_PASSAGE,
+          shelfQuantity: 0,
+          blockUpperAbove: true,
+          pantryPassageFrontType: (cabResp.pantryPassageFrontType as 'ONE_DOOR' | 'TWO_DOORS') ?? 'TWO_DOORS'
+        };
       case KitchenCabinetType.CORNER_CABINET:
         return {
           ...baseFromResp,

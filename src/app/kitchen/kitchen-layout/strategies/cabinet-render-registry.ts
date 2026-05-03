@@ -11,6 +11,7 @@ import { renderFridgeFreestanding } from './renderers/fridge-freestanding.render
 import { renderOven } from './renderers/oven.renderer';
 import { renderCascade } from './renderers/cascade.renderer';
 import { renderDrainer } from './renderers/drainer.renderer';
+import { renderPantryPassage } from './renderers/pantry-passage.renderer';
 
 /**
  * Rejestr strategii renderowania SVG per typ szafki.
@@ -40,6 +41,8 @@ export const CABINET_RENDER_REGISTRY: Partial<Record<KitchenCabinetType, Cabinet
 
   // Słupek
   [KitchenCabinetType.TALL_CABINET]:                 renderTallCabinet,
+  // TODO: replace with a dedicated frame-only renderer (doors to floor + attached plinth) before production polish.
+  [KitchenCabinetType.PANTRY_PASSAGE]:               renderPantryPassage,
 
   // Szafka narożna — tymczasowo uproszczona wizualizacja (TODO: kształt L)
   [KitchenCabinetType.CORNER_CABINET]:               renderSingleDoor,

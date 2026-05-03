@@ -150,7 +150,8 @@ export function generateDefaultFronts(
   cabinetType: string,
   width: number,
   height: number,
-  drawerQuantity?: number
+  drawerQuantity?: number,
+  pantryPassageFrontType?: 'ONE_DOOR' | 'TWO_DOORS'
 ): FrontElement[] {
   const fronts: FrontElement[] = [];
   const gap = 3; // Szczelina między frontami
@@ -187,6 +188,39 @@ export function generateDefaultFronts(
           hingesSide: 'RIGHT'
         }
       );
+      break;
+
+    case 'PANTRY_PASSAGE':
+      if (pantryPassageFrontType === 'ONE_DOOR') {
+        fronts.push({
+          type: 'DOOR_SINGLE',
+          width: width - gap * 2,
+          height: height - gap * 2,
+          positionX: gap,
+          positionY: gap,
+          hingesSide: 'LEFT'
+        });
+      } else {
+        const pantryDoorWidth = (width - gap * 3) / 2;
+        fronts.push(
+          {
+            type: 'DOOR_SINGLE',
+            width: pantryDoorWidth,
+            height: height - gap * 2,
+            positionX: gap,
+            positionY: gap,
+            hingesSide: 'LEFT'
+          },
+          {
+            type: 'DOOR_SINGLE',
+            width: pantryDoorWidth,
+            height: height - gap * 2,
+            positionX: gap * 2 + pantryDoorWidth,
+            positionY: gap,
+            hingesSide: 'RIGHT'
+          }
+        );
+      }
       break;
 
     case 'BASE_OPEN':

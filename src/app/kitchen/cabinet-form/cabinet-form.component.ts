@@ -153,6 +153,7 @@ export class CabinetFormComponent implements OnChanges {
     [KitchenCabinetType.BASE_OVEN_FREESTANDING]:      'Dolna - piekarnik wolnostojacy',
     [KitchenCabinetType.BASE_FRIDGE]:                 'Slupek - lodowka w zabudowie',
     [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]:    'Dolna - lodowka wolnostojaca',
+    [KitchenCabinetType.PANTRY_PASSAGE]:              'Przejscie do spizarni',
     [KitchenCabinetType.UPPER_ONE_DOOR]:              'Wiszaca - 1 drzwi',
     [KitchenCabinetType.UPPER_TWO_DOOR]:              'Wiszaca - 2 drzwi',
     [KitchenCabinetType.UPPER_OPEN_SHELF]:            'Wiszaca - otwarta polka',
@@ -215,6 +216,10 @@ export class CabinetFormComponent implements OnChanges {
 
   get isCargoMechanismVariant(): boolean {
     return this.isCargoCabinet && this.form.get('cargoVariant')?.value === 'MECHANISM';
+  }
+
+  get isPantryPassageCabinet(): boolean {
+    return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.PANTRY_PASSAGE;
   }
 
   get cargoDrawerQuantityLabel(): string {
@@ -328,6 +333,17 @@ export class CabinetFormComponent implements OnChanges {
         this.form.get('drawerQuantity')?.updateValueAndValidity({ emitEvent: false });
         this.form.get('drawerModel')?.updateValueAndValidity({ emitEvent: false });
         this.form.get('cargoBrand')?.updateValueAndValidity({ emitEvent: false });
+        this.cdr.markForCheck();
+      });
+
+    this.form.get('pantryPassageFrontType')!
+      .valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.PANTRY_PASSAGE) {
+          return;
+        }
+        this.form.get('width')?.updateValueAndValidity({ emitEvent: false });
         this.cdr.markForCheck();
       });
 

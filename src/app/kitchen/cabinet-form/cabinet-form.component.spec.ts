@@ -15,6 +15,7 @@ import { CabinetFormValidationErrorsService } from './cabinet-form-validation-er
 import { CabinetFormCalculationService } from './cabinet-form-calculation.service';
 import { CabinetSegmentValidationService } from './cabinet-segment-validation.service';
 import { WallWithCabinets } from '../model/kitchen-state.model';
+import { PantryPassageCabinetValidator } from './types/pantry-passage/pantry-passage-cabinet-validator';
 
 describe('CabinetFormComponent', () => {
   let component: CabinetFormComponent;
@@ -151,6 +152,19 @@ describe('CabinetFormComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('szuflady wewnetrzne beda bardzo waskie');
     expect(fixture.nativeElement.textContent).not.toContain('mechanizm cargo moze nie pasowac');
   });
+
+  it('shows pantry passage door variant selector and validates one-door width over 600 mm', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.PANTRY_PASSAGE);
+    new PantryPassageCabinetValidator().validate(component.form);
+    component.form.get('pantryPassageFrontType')?.setValue('ONE_DOOR');
+    component.form.get('width')?.setValue(650);
+    component.form.get('width')?.markAsTouched();
+    component.form.get('width')?.updateValueAndValidity();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Wariant drzwi przejscia');
+    expect(component.form.get('width')?.errors?.['message']).toContain('powyzej 600 mm');
+  });
 });
 
 function buildWall(type: 'MAIN' | 'ISLAND'): WallWithCabinets {
@@ -219,6 +233,7 @@ class CabinetFormTypeLifecycleServiceStub {
         drainerWidthSelect: false,
         cargoWidthSelect: type === KitchenCabinetType.BASE_CARGO,
         cargoVariant: type === KitchenCabinetType.BASE_CARGO,
+        pantryPassageFrontType: type === KitchenCabinetType.PANTRY_PASSAGE,
         enclosureSection: false,
         openingType: type !== KitchenCabinetType.BASE_OPEN
       },

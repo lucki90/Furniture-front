@@ -230,6 +230,12 @@ function buildLinearCabinetsForWall(
   const bottomCabinets: CabinetOnFloorPlan[] = [];
   const topCabinets: CabinetOnFloorPlan[] = [];
   const fullCabinets: CabinetOnFloorPlan[] = [];
+  const referenceFrontDepth = Math.max(
+    0,
+    ...cabinets
+      .filter(cabinet => getCabinetZone(cabinet) !== 'TOP')
+      .map(cabinet => cabinet.depth * scale)
+  );
 
   for (const cabinet of cabinets) {
     const zone = getCabinetZone(cabinet);
@@ -254,7 +260,8 @@ function buildLinearCabinetsForWall(
       isCorner,
       isFreestanding,
       wallThickness,
-      cabinet.cabinetSide ?? 'FRONT'
+      cabinet.cabinetSide ?? 'FRONT',
+      cabinet.type === KitchenCabinetType.PANTRY_PASSAGE ? referenceFrontDepth : undefined
     );
 
     switch (zone) {
@@ -616,14 +623,18 @@ function createCabinetOnFloorPlan(
   isCorner: boolean,
   isFreestanding: boolean,
   wallThickness: number,
-  cabinetSide: 'FRONT' | 'BACK' = 'FRONT'
+  cabinetSide: 'FRONT' | 'BACK' = 'FRONT',
+  frontAlignedDepth?: number
 ): CabinetOnFloorPlan {
   if (pos.isHorizontal) {
+    const alignedFrontDepth = frontAlignedDepth && frontAlignedDepth > cabinetDepth
+      ? frontAlignedDepth
+      : cabinetDepth;
     return {
       cabinetId,
       name,
       x: pos.x + posX,
-      y: pos.y - cabinetDepth,
+      y: pos.y - alignedFrontDepth,
       width: cabinetWidth,
       depth: cabinetDepth,
       zone,
@@ -636,10 +647,13 @@ function createCabinetOnFloorPlan(
   }
 
   if (wallType === 'LEFT') {
+    const alignedFrontDepth = frontAlignedDepth && frontAlignedDepth > cabinetDepth
+      ? frontAlignedDepth
+      : cabinetDepth;
     return {
       cabinetId,
       name,
-      x: pos.x + wallThickness,
+      x: pos.x + wallThickness + (alignedFrontDepth - cabinetDepth),
       y: pos.y + posX,
       width: cabinetDepth,
       depth: cabinetWidth,
@@ -654,7 +668,7 @@ function createCabinetOnFloorPlan(
   return {
     cabinetId,
     name,
-    x: pos.x - cabinetDepth,
+    x: pos.x - (frontAlignedDepth && frontAlignedDepth > cabinetDepth ? frontAlignedDepth : cabinetDepth),
     y: pos.y + posX,
     width: cabinetDepth,
     depth: cabinetWidth,

@@ -396,6 +396,84 @@ describe('floor-plan-layout.builder', () => {
     expect(cabinets.find(cab => cab.cabinetId === 'back')?.hasDepthCollision).toBeTrue();
   });
 
+  it('should front-align pantry passage with deeper cabinets on a LEFT wall in top view', () => {
+    const [, wallPosition] = buildWallPositions([
+      createWall({ id: 'main', type: 'MAIN', widthMm: 3000 }),
+      createWall({
+        id: 'left',
+        type: 'LEFT',
+        widthMm: 2200,
+        cabinets: [
+          { id: 'base', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1 } as any,
+          { id: 'passage', type: KitchenCabinetType.PANTRY_PASSAGE, width: 550, depth: 120, height: 2200, openingType: 'HANDLE', shelfQuantity: 0, pantryPassageFrontType: 'ONE_DOOR' } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const cabinets = buildCabinetsForWall(wallPosition, 10);
+    const base = cabinets.find(cabinet => cabinet.cabinetId === 'base')!;
+    const passage = cabinets.find(cabinet => cabinet.cabinetId === 'passage')!;
+
+    expect(base.x + base.width).toBeCloseTo(passage.x + passage.width, 3);
+  });
+
+  it('should front-align pantry passage with deeper cabinets on a RIGHT wall in top view', () => {
+    const [, wallPosition] = buildWallPositions([
+      createWall({ id: 'main', type: 'MAIN', widthMm: 3000 }),
+      createWall({
+        id: 'right',
+        type: 'RIGHT',
+        widthMm: 2200,
+        cabinets: [
+          { id: 'base', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1 } as any,
+          { id: 'passage', type: KitchenCabinetType.PANTRY_PASSAGE, width: 550, depth: 120, height: 2200, openingType: 'HANDLE', shelfQuantity: 0, pantryPassageFrontType: 'ONE_DOOR' } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const cabinets = buildCabinetsForWall(wallPosition, 10);
+    const base = cabinets.find(cabinet => cabinet.cabinetId === 'base')!;
+    const passage = cabinets.find(cabinet => cabinet.cabinetId === 'passage')!;
+
+    expect(base.x).toBeCloseTo(passage.x, 3);
+  });
+
+  it('should front-align pantry passage with deeper cabinets on a MAIN wall in top view', () => {
+    const [wallPosition] = buildWallPositions([
+      createWall({
+        id: 'main',
+        type: 'MAIN',
+        widthMm: 3000,
+        cabinets: [
+          { id: 'base', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1 } as any,
+          { id: 'passage', type: KitchenCabinetType.PANTRY_PASSAGE, width: 550, depth: 120, height: 2200, openingType: 'HANDLE', shelfQuantity: 0, pantryPassageFrontType: 'ONE_DOOR' } as any
+        ]
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 30
+    });
+
+    const cabinets = buildCabinetsForWall(wallPosition, 10);
+    const base = cabinets.find(cabinet => cabinet.cabinetId === 'base')!;
+    const passage = cabinets.find(cabinet => cabinet.cabinetId === 'passage')!;
+
+    expect(base.y).toBeCloseTo(passage.y, 3);
+    expect(passage.depth).toBeCloseTo(120 * wallPosition.scale, 3);
+  });
+
   it('should not mark island cabinets when FRONT and BACK depths fit inside island depth', () => {
     const [wallPosition] = buildWallPositions([
       createWall({

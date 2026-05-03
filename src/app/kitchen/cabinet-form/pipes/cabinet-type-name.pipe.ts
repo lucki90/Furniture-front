@@ -22,6 +22,7 @@ const CABINET_TYPE_LABELS: Record<KitchenCabinetType, string> = {
   [KitchenCabinetType.BASE_OVEN_FREESTANDING]: 'Piekarnik wolnostojący',
   [KitchenCabinetType.BASE_FRIDGE]: 'Szafka na lodówkę',
   [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]: 'Lodówka wolnostojąca',
+  [KitchenCabinetType.PANTRY_PASSAGE]: 'Przejście do spiżarni',
   [KitchenCabinetType.UPPER_DRAINER]: 'Szafka z ociekaczem'
 };
 

@@ -175,6 +175,12 @@
   stroke-dasharray: 3 1;
 }
 
+/* Linia zalamania zintegrowanego cokolu na drzwiach PANTRY_PASSAGE */
+.pantry-plinth-break-line {
+  stroke: #616161;
+  stroke-width: 1.1;
+}
+
 /* Linia separatora: wnęka piekarnika / sekcja dolna (BASE_OVEN) */
 .oven-separator-line {
   stroke: #546e7a;

@@ -20,6 +20,8 @@ export interface CabinetRequest {
   openingType: string;
   drawerRequest: DrawerRequest | null;
   materialRequest: MaterialRequest;
+  attachedPlinthHeightMm?: number;
+  attachedPlinthSetbackMm?: number;
 }
 
 export interface DrawerRequest {

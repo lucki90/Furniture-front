@@ -216,4 +216,45 @@ describe('KitchenGeometryService', () => {
 
     expect(result[1]).toEqual(jasmine.objectContaining({ cabinetId: 'upper', x: 0, y: 1650 }));
   });
+
+  it('should place PANTRY_PASSAGE at floor level without feet offset', () => {
+    const passage = buildCabinet({
+      id: 'passage',
+      type: KitchenCabinetType.PANTRY_PASSAGE,
+      width: 900,
+      height: 2200,
+      depth: 120,
+      shelfQuantity: 0,
+      blockUpperAbove: true
+    } as Partial<KitchenCabinet>);
+
+    const result = service.calculateCabinetPositions([passage], settings);
+
+    expect(result[0]).toEqual(jasmine.objectContaining({ cabinetId: 'passage', x: 0, y: 0 }));
+  });
+
+  it('should use PANTRY_PASSAGE top at cabinet height when repositioning uppers', () => {
+    const passage = buildCabinet({
+      id: 'passage',
+      type: KitchenCabinetType.PANTRY_PASSAGE,
+      width: 900,
+      height: 2200,
+      depth: 120,
+      shelfQuantity: 0,
+      blockUpperAbove: true
+    } as Partial<KitchenCabinet>);
+    const upperCabinet = buildCabinet({
+      id: 'upper',
+      type: KitchenCabinetType.UPPER_ONE_DOOR,
+      width: 400,
+      height: 500,
+      depth: 320,
+      positioningMode: 'RELATIVE_TO_CEILING'
+      // ceilingY = 2600 - 50 - 500 = 2050 < passage top 2200 -> should skip
+    });
+
+    const result = service.calculateCabinetPositions([passage, upperCabinet], settings);
+
+    expect(result[1]).toEqual(jasmine.objectContaining({ cabinetId: 'upper', x: 900, y: 2050 }));
+  });
 });

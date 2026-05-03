@@ -36,6 +36,7 @@ export class CabinetFormEditingService {
       drawerModel: c.drawerModel,
       cargoVariant: c.cargoVariant ?? 'MECHANISM',
       cargoBrand: c.cargoBrand ?? 'BLUM',
+      pantryPassageFrontType: c.pantryPassageFrontType ?? 'TWO_DOORS',
       positioningMode: c.positioningMode ?? 'RELATIVE_TO_CEILING',
       gapFromCountertopMm: c.gapFromCountertopMm ?? 500,
       gapFromAnchorMm: c.gapFromAnchorMm ?? 0,

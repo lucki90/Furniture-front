@@ -365,4 +365,22 @@ describe('ProjectWallCabinetsBuilder', () => {
       }));
     });
   });
+
+  describe('PANTRY_PASSAGE mapping', () => {
+    it('should persist pantry passage front type in project request', () => {
+      const pantry = makeCabinet({
+        id: 'passage-1',
+        type: KitchenCabinetType.PANTRY_PASSAGE,
+        width: 550,
+        height: 2200,
+        depth: 120,
+        shelfQuantity: 0,
+        pantryPassageFrontType: 'ONE_DOOR'
+      } as Partial<KitchenCabinet>);
+
+      const [request] = buildRequests([pantry]);
+
+      expect(request.pantryPassageFrontType).toBe('ONE_DOOR');
+    });
+  });
 });

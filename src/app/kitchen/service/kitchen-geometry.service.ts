@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.builder';
 import { CabinetPosition, CabinetZone, KitchenCabinet, getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
+import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { WallType } from '../model/kitchen-project.model';
 
 export interface KitchenGeometrySettings {
@@ -78,7 +79,7 @@ export class KitchenGeometryService {
           const rightW = this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
           x = currentXBottom + gapBeforeMm + leftW;
           currentXBottom = x + cabinet.width + rightW;
-          y = settings.plinthHeightMm;
+          y = cabinet.type === KitchenCabinetType.PANTRY_PASSAGE ? 0 : settings.plinthHeightMm;
           break;
         }
         case 'TOP': {
@@ -194,7 +195,10 @@ export class KitchenGeometryService {
       const xAfterAnchor = xBodyEnd + rightW;
 
       if (zone === 'FULL') {
-        result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop: settings.plinthHeightMm + cabinet.height, blockUpperAbove: cabinet.blockUpperAbove ?? false });
+        const tallTop = cabinet.type === KitchenCabinetType.PANTRY_PASSAGE
+          ? cabinet.height
+          : settings.plinthHeightMm + cabinet.height;
+        result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop, blockUpperAbove: cabinet.blockUpperAbove ?? false });
       } else if (cabinet.blockUpperAbove) {
         // BOTTOM cabinet with explicit block — tallTop (plinthH + baseH ≈ 820mm) never exceeds
         // ceilingY, so only blockUpperAbove flag drives repositioning. Added so skipPast... fires.

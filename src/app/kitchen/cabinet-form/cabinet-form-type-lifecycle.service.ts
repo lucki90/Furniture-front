@@ -79,6 +79,7 @@ export class CabinetFormTypeLifecycleService {
       drainerFrontType: false,
       drainerWidthSelect: false,
       cargoWidthSelect: false,
+      pantryPassageFrontType: false,
       openingType: true
     };
   }
