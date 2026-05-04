@@ -1,80 +1,220 @@
-/* Puste - style są w globalnym styles.css */
-
-/* ─── Language Switcher (sidebar) ─────────────────────────────────────────── */
-.language-switcher {
-  padding: 8px 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 4px;
+/* ─── App Shell (TopNav layout) ──────────────────────────────────────────── */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.lang-select {
-  width: 100%;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
-  color: inherit;
-  font-size: 13px;
+.app-main {
+  flex: 1;
+  min-height: 0;
+  background: var(--bg-main);
+}
+
+/* ─── TopNav ──────────────────────────────────────────────────────────────── */
+.topnav {
+  height: 52px;
+  background: var(--primary-color);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  flex-shrink: 0;
+  z-index: 100;
+  position: sticky;
+  top: 0;
+}
+
+/* Brand */
+.topnav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 24px;
+  text-decoration: none;
   cursor: pointer;
-  outline: none;
-  transition: border-color 0.15s;
 }
 
-.lang-select:focus,
-.lang-select:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-.sidebar.collapsed .language-switcher {
-  display: none;
-}
-
-/* ─── User Menu (sidebar) ────────────────────────────────────────────────── */
-.user-menu {
-  padding: 10px 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+.topnav-logo {
+  width: 30px;
+  height: 30px;
+  background: var(--accent-color);
+  border-radius: 7px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
 }
 
-.user-info {
+.topnav-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+/* Nav links */
+.topnav-links {
   display: flex;
-  flex-direction: column;
+  height: 100%;
   gap: 2px;
 }
 
-.user-email {
+.topnav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 13px;
+  height: 100%;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.55);
+  background: transparent;
+  text-decoration: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.topnav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.topnav-link.active {
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom-color: var(--accent-color);
+}
+
+.topnav-link-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Right side */
+.topnav-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topnav-lang {
+  padding: 5px 8px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.topnav-lang:hover,
+.topnav-lang:focus {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.topnav-lang option {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+/* User pill */
+.topnav-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 10px 3px 4px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.topnav-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.topnav-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.2;
+}
+
+.topnav-user-email {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.85);
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.user-role {
-  font-size: 10px;
+.topnav-user-role {
+  font-size: 9.5px;
+  font-weight: 600;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.logout-btn {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.8);
+/* Logout button */
+.topnav-logout {
+  padding: 6px 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.75);
   font-size: 12px;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
-.logout-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.4);
+.topnav-logout:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
 }
 
-.sidebar.collapsed .user-menu {
-  display: none;
+/* Responsive — ukryj tekst linków przy wąskim viewport */
+@media (max-width: 1100px) {
+  .topnav-link-text {
+    display: none;
+  }
+  .topnav-link {
+    padding: 0 10px;
+  }
+  .topnav-user-info {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .topnav {
+    padding: 0 12px;
+  }
+  .topnav-title {
+    display: none;
+  }
+  .topnav-brand {
+    margin-right: 12px;
+  }
 }

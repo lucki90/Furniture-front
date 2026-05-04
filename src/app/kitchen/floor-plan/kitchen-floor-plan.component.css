@@ -5,9 +5,9 @@
 .floor-plan-svg {
   width: 100%;
   height: auto;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
 }
 
 /* Wall groups */
@@ -178,8 +178,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.78rem;
-  color: var(--text-secondary, #64748b);
+  font-size: 12px;
+  color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
@@ -187,7 +187,7 @@
 
 .fp-toggle input[type="checkbox"] {
   cursor: pointer;
-  accent-color: #1976d2;
+  accent-color: var(--accent-color);
   width: 13px;
   height: 13px;
 }
@@ -202,15 +202,16 @@
 .selected-wall-info {
   margin-top: 8px;
   padding: 6px 10px;
-  background: white;
-  border-radius: 4px;
-  border: 1px solid #e0e0e0;
+  background: var(--bg-card);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
   min-height: 24px;
-  font-size: 0.8rem;
+  font-size: 12px;
 }
 
 .wall-info-selected {
-  color: #1976d2;
+  color: var(--accent-color);
+  font-weight: 500;
 }
 
 .wall-info-selected strong {
@@ -218,6 +219,6 @@
 }
 
 .empty-hint {
-  color: #999;
+  color: var(--text-muted);
   font-style: italic;
 }

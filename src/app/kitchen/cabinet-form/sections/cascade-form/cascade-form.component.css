@@ -7,23 +7,23 @@
 .cascade-section {
   margin-top: 4px;
   padding-top: 16px;
-  border-top: 1px solid var(--border-color, #e2e8f0);
+  border-top: 1px solid var(--border-color);
 }
 
 .cascade-info {
   padding: 8px 12px;
-  background: rgba(139, 92, 246, 0.07);
-  border: 1px solid rgba(139, 92, 246, 0.18);
-  border-radius: 6px;
+  background: var(--info-bg);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  border-radius: var(--border-radius-sm);
   font-size: 12px;
-  color: var(--text-primary, #1e293b);
+  color: var(--text-primary);
   margin-bottom: 12px;
   line-height: 1.5;
 }
 
 .cascade-segment-card {
-  border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
   overflow: hidden;
   margin-bottom: 10px;
 }
@@ -36,13 +36,13 @@
 }
 
 .cascade-segment-header.lower-header {
-  background: rgba(59, 130, 246, 0.07);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+  background: var(--accent-soft);
+  border-bottom: 1px solid var(--accent-mid);
 }
 
 .cascade-segment-header.upper-header {
-  background: rgba(16, 185, 129, 0.07);
-  border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+  background: var(--success-bg);
+  border-bottom: 1px solid rgba(42, 125, 79, 0.25);
 }
 
 .cascade-segment-icon {
@@ -53,17 +53,17 @@
 .cascade-segment-title {
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-primary, #1e293b);
+  color: var(--text-primary);
 }
 
 .cascade-segment-badge {
   font-size: 10px;
-  color: var(--text-muted, #94a3b8);
+  color: var(--text-muted);
   margin-left: auto;
   text-align: right;
 }
 
 .cascade-segment-body {
   padding: 10px 12px;
-  background: var(--bg-card, #fff);
+  background: var(--bg-card);
 }

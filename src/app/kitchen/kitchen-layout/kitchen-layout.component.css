@@ -1,16 +1,16 @@
 .layout-container {
   padding: 12px;
-  background: var(--bg-main, #f8fafc);
-  border-radius: 8px;
-  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--bg-card);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
 }
 
 .layout-container h4 {
   margin: 0 0 8px 0;
-  color: var(--text-primary, #1e293b);
-  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
 }
-
 
 .visualization-wrapper {
   /* wrapper for all content */
@@ -22,10 +22,10 @@
   gap: 12px;
   align-items: center;
   margin-bottom: 8px;
-  padding: 4px 6px;
-  background: var(--bg-hover, #f1f5f9);
-  border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 6px;
+  padding: 5px 8px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
   flex-wrap: wrap;
 }
 
@@ -33,8 +33,8 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.8rem;
-  color: var(--text-secondary, #64748b);
+  font-size: 12px;
+  color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
@@ -42,25 +42,25 @@
 
 .svg-toggle input[type="checkbox"] {
   cursor: pointer;
-  accent-color: #1976d2;
+  accent-color: var(--accent-color);
   width: 14px;
   height: 14px;
 }
 
 .wall-info {
   margin: 0 0 8px 0;
-  font-size: 0.85rem;
-  color: var(--text-secondary, #64748b);
+  font-size: 12.5px;
+  color: var(--text-secondary);
 }
 
 .warning-inline {
-  color: var(--error-color, #ef4444);
+  color: var(--error-color);
   font-weight: 600;
   margin-left: 8px;
 }
 
 .success-inline {
-  color: var(--success-color, #10b981);
+  color: var(--success-color);
   font-weight: 600;
   margin-left: 8px;
 }
@@ -221,27 +221,27 @@
   align-items: flex-start;
   gap: 6px;
   padding: 6px 10px;
-  background: #fff3e0;
-  border-left: 3px solid #e65100;
-  border-radius: 0 4px 4px 0;
+  background: var(--warning-bg);
+  border-left: 3px solid var(--warning-color);
+  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
   font-size: 12px;
-  color: #4e342e;
+  color: var(--text-primary);
   line-height: 1.4;
 }
 
 .warning-item strong {
-  color: #d32f2f;
+  color: var(--warning-color);
 }
 
 /* Ostrzeżenie krytyczne (norma bezpieczeństwa płyty grzewczej) */
 .warning-item--danger {
-  background: #ffebee;
-  border-left-color: #c62828;
-  color: #b71c1c;
+  background: var(--error-bg);
+  border-left-color: var(--error-color);
+  color: var(--error-color);
 }
 
 .warning-item--danger strong {
-  color: #b71c1c;
+  color: var(--error-color);
 }
 
 .warning-icon {

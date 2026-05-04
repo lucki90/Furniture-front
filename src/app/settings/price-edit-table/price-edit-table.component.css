@@ -10,7 +10,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 0;
-  color: #c62828;
+  color: var(--error-color);
   font-size: 13px;
 }
 

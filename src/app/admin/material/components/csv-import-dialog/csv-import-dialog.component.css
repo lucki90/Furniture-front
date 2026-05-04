@@ -3,24 +3,24 @@ mat-dialog-content {
 }
 
 .drop-zone {
-  border: 2px dashed #ccc;
-  border-radius: 8px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--border-radius-sm);
   padding: 32px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s, background 0.2s;
   margin-bottom: 16px;
 }
 
 .drop-zone:hover {
-  border-color: #3f51b5;
-  background: #f5f5ff;
+  border-color: var(--accent-color);
+  background: var(--accent-soft);
 }
 
 .drop-zone.has-file {
   border-style: solid;
-  border-color: #4caf50;
-  background: #f1f8e9;
+  border-color: var(--success-color);
+  background: var(--success-bg);
   cursor: default;
 }
 
@@ -29,19 +29,19 @@ mat-dialog-content {
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .drop-content mat-icon {
   font-size: 48px;
   width: 48px;
   height: 48px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .drop-content .hint {
   font-size: 12px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .file-info {
@@ -54,7 +54,7 @@ mat-dialog-content {
   font-size: 32px;
   width: 32px;
   height: 32px;
-  color: #4caf50;
+  color: var(--success-color);
 }
 
 .file-details {
@@ -65,43 +65,47 @@ mat-dialog-content {
 }
 
 .file-name {
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .file-size {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .format-hint {
   padding: 12px;
-  background: #f5f5f5;
-  border-radius: 8px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
   font-size: 13px;
 }
 
 .format-hint h4 {
   margin: 0 0 8px 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #555;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
 }
 
 .format-hint code {
   display: block;
-  background: var(--bg-white, #ffffff);
+  background: var(--bg-card);
   padding: 8px;
-  border-radius: 4px;
+  border-radius: var(--border-radius-sm);
   font-size: 11px;
-  color: #333;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-primary);
   overflow-x: auto;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
 }
 
 .format-hint p {
   margin: 8px 0 0 0;
-  color: #888;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
@@ -134,35 +138,35 @@ mat-dialog-content {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: var(--border-radius-sm);
   margin-bottom: 16px;
 }
 
 .result-summary.success {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: var(--success-bg);
+  color: var(--success-color);
 }
 
 .result-summary.success mat-icon {
-  color: #4caf50;
+  color: var(--success-color);
 }
 
 .result-summary.partial {
-  background: #fff3e0;
-  color: #e65100;
+  background: var(--warning-bg);
+  color: var(--warning-color);
 }
 
 .result-summary.partial mat-icon {
-  color: #ff9800;
+  color: var(--warning-color);
 }
 
 .result-summary.failed {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--error-bg);
+  color: var(--error-color);
 }
 
 .result-summary.failed mat-icon {
-  color: #f44336;
+  color: var(--error-color);
 }
 
 .result-summary mat-icon {
@@ -174,6 +178,7 @@ mat-dialog-content {
 .summary-text h3 {
   margin: 0 0 4px 0;
   font-size: 16px;
+  font-weight: 700;
 }
 
 .summary-text p {
@@ -186,21 +191,24 @@ mat-dialog-content {
   max-height: 200px;
   overflow-y: auto;
   padding: 12px;
-  background: #fff8f8;
-  border-radius: 8px;
-  border: 1px solid #ffcdd2;
+  background: var(--error-bg);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(220, 38, 38, 0.3);
 }
 
 .errors-section h4 {
   margin: 0 0 8px 0;
-  color: #c62828;
-  font-size: 13px;
+  color: var(--error-color);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .error-row {
   padding: 4px 0;
   font-size: 12px;
-  border-bottom: 1px solid #fce4ec;
+  border-bottom: 1px solid rgba(220, 38, 38, 0.18);
 }
 
 .error-row:last-child {
@@ -208,13 +216,13 @@ mat-dialog-content {
 }
 
 .error-line {
-  font-weight: 600;
-  color: #c62828;
+  font-weight: 700;
+  color: var(--error-color);
   margin-right: 8px;
 }
 
 .error-msg {
-  color: #555;
+  color: var(--text-secondary);
 }
 
 .error-message {
@@ -222,8 +230,8 @@ mat-dialog-content {
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: #ffebee;
-  border-radius: 8px;
-  color: #c62828;
+  background: var(--error-bg);
+  border-radius: var(--border-radius-sm);
+  color: var(--error-color);
   font-size: 13px;
 }

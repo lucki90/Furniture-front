@@ -7,7 +7,7 @@
 
 .form-description {
   margin: 0 0 16px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .updates-list {
@@ -36,20 +36,20 @@
   align-items: flex-start;
   gap: 12px;
   padding: 12px;
-  background-color: #fff3e0;
-  border-radius: 8px;
-  border-left: 4px solid #ff9800;
+  background-color: var(--warning-bg);
+  border-radius: var(--border-radius-sm);
+  border-left: 4px solid var(--warning-color);
   margin-top: 16px;
 }
 
 .warning-box mat-icon {
-  color: #ff9800;
+  color: var(--warning-color);
   flex-shrink: 0;
 }
 
 .warning-box span {
   font-size: 14px;
-  color: #5d4037;
+  color: var(--text-primary);
 }
 
 .result-container {
@@ -69,14 +69,14 @@
   font-size: 48px;
   width: 48px;
   height: 48px;
-  color: #4caf50;
+  color: var(--success-color);
 }
 
 .result-partial mat-icon {
   font-size: 48px;
   width: 48px;
   height: 48px;
-  color: #ff9800;
+  color: var(--warning-color);
 }
 
 .result-success h3,
@@ -87,13 +87,13 @@
 .errors-list {
   margin-top: 16px;
   padding: 12px;
-  background-color: #ffebee;
-  border-radius: 8px;
+  background-color: var(--error-bg);
+  border-radius: var(--border-radius-sm);
 }
 
 .errors-list h4 {
   margin: 0 0 8px;
-  color: #c62828;
+  color: var(--error-color);
 }
 
 mat-dialog-content {

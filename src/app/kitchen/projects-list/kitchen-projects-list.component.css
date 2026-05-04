@@ -13,8 +13,10 @@
 
 .projects-header h1 {
   margin: 0;
-  font-size: 1.75rem;
-  color: var(--text-primary, #333);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
 }
 
 /* Loading state */
@@ -24,9 +26,8 @@
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted);
 }
-
 
 /* Error state */
 .error-state {
@@ -34,9 +35,10 @@
   flex-direction: column;
   align-items: center;
   padding: 40px 20px;
-  background: var(--error-bg, #fef2f2);
-  border-radius: 8px;
-  color: #991b1b;
+  background: var(--error-bg);
+  border: 1px solid var(--error-color);
+  border-radius: var(--border-radius);
+  color: var(--error-color);
 }
 
 .error-state p {
@@ -45,9 +47,9 @@
 
 /* Empty state — local overrides only (base defined globally) */
 .empty-state {
-  background: #f9fafb;
-  border-radius: 12px;
-  border: 2px dashed #d1d5db;
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  border: 2px dashed var(--border-strong);
 }
 
 .empty-icon {
@@ -57,34 +59,36 @@
 
 .empty-state h2 {
   margin: 0 0 8px 0;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .empty-state p {
   margin: 0 0 24px 0;
-  color: var(--text-muted, #6b7280);
+  color: var(--text-muted);
 }
 
 /* Projects grid */
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+  gap: 18px;
 }
 
 /* Project card */
 .project-card {
   position: relative;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  padding: 20px;
-  transition: all 0.2s ease;
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .project-card:hover {
-  border-color: var(--accent-dark, #2563eb);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+  border-color: var(--accent-color);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .project-card.deleting {
@@ -95,30 +99,37 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .project-name {
   margin: 0;
-  font-size: 1.1rem;
-  color: #111827;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-primary);
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .project-description {
-  margin: 0 0 16px 0;
-  font-size: 0.9rem;
-  color: var(--text-muted, #6b7280);
-  line-height: 1.4;
+  margin: 0 0 14px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.45;
 }
 
 /* Status badges - kolory ustawiane dynamicznie przez [style] binding */
 .status-badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.4px;
   white-space: nowrap;
 }
 
@@ -126,9 +137,9 @@
 .project-stats {
   display: flex;
   gap: 20px;
-  padding: 16px 0;
-  border-top: 1px solid #f3f4f6;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 14px 0;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
   margin-bottom: 12px;
 }
 
@@ -139,32 +150,37 @@
 }
 
 .stat-value {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: var(--font-mono, var(--font-sans));
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
 }
 
 .stat-label {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: 10.5px;
+  color: var(--text-muted);
   text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+  margin-top: 2px;
 }
 
 .stat.cost .stat-value {
-  color: var(--success-dark, #059669);
+  color: var(--success-color);
 }
 
 /* Project dates */
 .project-dates {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 16px;
+  gap: 3px;
+  margin-bottom: 14px;
 }
 
 .date-info {
-  font-size: 0.8rem;
-  color: #9ca3af;
+  font-size: 11.5px;
+  color: var(--text-muted);
 }
 
 /* Card actions */
@@ -181,8 +197,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: var(--border-radius);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -194,7 +210,7 @@
 .delete-overlay p {
   margin: 0 0 16px 0;
   text-align: center;
-  color: #374151;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -208,20 +224,21 @@
    ==================================================== */
 
 .flow-section {
-  background: var(--bg-main, #f8fafc);
-  border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 22px;
+  margin-bottom: 18px;
 }
 
 .flow-section-title {
-  font-size: 0.8rem;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin: 0 0 16px 0;
+  letter-spacing: 0.6px;
+  margin: 0 0 14px 0;
 }
 
 .flow-diagram {
@@ -230,7 +247,6 @@
   gap: 12px;
 }
 
-/* Główny rząd węzłów */
 .flow-main-row {
   display: flex;
   align-items: center;
@@ -238,13 +254,12 @@
   gap: 6px;
 }
 
-/* Węzeł statusu (button) */
 .flow-node {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 8px 14px;
-  border-radius: 8px;
+  border-radius: var(--border-radius-sm);
   border: 2px solid transparent;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
@@ -255,39 +270,36 @@
 
 .flow-node:hover {
   transform: translateY(-2px);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .flow-node--selected {
-  box-shadow: 0 0 0 3px currentColor, 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 0 0 3px currentColor, var(--shadow-md);
 }
 
-/* Numer kroku */
 .flow-node__num {
-  font-size: 0.6rem;
+  font-size: 9.5px;
   font-weight: 700;
   opacity: 0.65;
   line-height: 1;
   margin-bottom: 2px;
 }
 
-/* Etykieta statusu */
 .flow-node__label {
-  font-size: 0.73rem;
+  font-size: 11.5px;
   font-weight: 600;
   line-height: 1.2;
   text-align: center;
 }
 
-/* Badge z liczbą projektów */
 .flow-node__count {
   position: absolute;
   top: -7px;
   right: -7px;
-  background: var(--text-primary, #1e293b);
-  color: white;
+  background: var(--text-primary);
+  color: #fff;
   border-radius: 10px;
-  font-size: 0.62rem;
+  font-size: 10px;
   font-weight: 700;
   padding: 1px 5px;
   min-width: 18px;
@@ -295,15 +307,13 @@
   line-height: 1.4;
 }
 
-/* Strzałka między węzłami */
 .flow-arrow {
-  color: var(--text-muted, #94a3b8);
-  font-size: 1.1rem;
+  color: var(--text-muted);
+  font-size: 16px;
   flex-shrink: 0;
   font-weight: 400;
 }
 
-/* Rząd z CANCELLED + restore hint */
 .flow-bottom-row {
   display: flex;
   align-items: center;
@@ -317,36 +327,31 @@
 }
 
 .flow-cancel-bracket {
-  font-size: 0.7rem;
-  color: var(--text-muted, #94a3b8);
+  font-size: 11px;
+  color: var(--text-muted);
   font-style: italic;
 }
 
-.flow-node--cancelled {
-  /* Kolor ustawiany inline via [style] */
-}
-
 .flow-restore-hint {
-  font-size: 0.72rem;
-  color: var(--accent-dark, #2563eb);
+  font-size: 11.5px;
+  color: var(--accent-color);
   font-style: italic;
   font-weight: 500;
 }
 
-/* Notatki o niestandardowych przejściach */
 .flow-notes {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   padding-top: 8px;
-  border-top: 1px solid var(--border-color, #e2e8f0);
+  border-top: 1px solid var(--border-color);
 }
 
 .flow-note {
-  font-size: 0.68rem;
-  color: var(--text-secondary, #64748b);
-  background: white;
-  border: 1px solid var(--border-color, #e2e8f0);
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   padding: 2px 8px;
   white-space: nowrap;
@@ -363,10 +368,11 @@
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 20px;
-  padding: 14px 16px;
-  background: white;
-  border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 10px;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
 }
 
 .filter-group {
@@ -377,26 +383,26 @@
 }
 
 .filter-label {
-  font-size: 0.78rem;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.5px;
   white-space: nowrap;
 }
 
-/* Przycisk filtra statusu */
 .filter-btn {
   padding: 4px 10px;
-  border-radius: 20px;
+  border-radius: 999px;
   border: 1px solid;
-  font-size: 0.73rem;
+  font-size: 11.5px;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.12s ease, transform 0.1s ease;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  font-family: inherit;
 }
 
 .filter-btn:hover {
@@ -407,97 +413,95 @@
   font-weight: 700;
 }
 
-/* CANCELLED filter button (kolor czerwony) */
 .filter-btn--cancelled {
-  color: #991b1b;
-  border-color: #991b1b;
+  color: var(--error-color);
+  border-color: var(--error-color);
   background: transparent;
 }
 
 .filter-btn--cancelled.filter-btn--active {
-  background-color: var(--error-bg, #fee2e2);
+  background-color: var(--error-bg);
 }
 
-/* Liczba w filtrze */
 .filter-count {
   display: inline-block;
   background: currentColor;
-  color: white;
+  color: #fff;
   border-radius: 8px;
-  font-size: 0.6rem;
+  font-size: 9.5px;
   font-weight: 700;
   padding: 0 4px;
   min-width: 14px;
   text-align: center;
   line-height: 1.5;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
-/* Przycisk wyczyść filtry */
 .btn-clear-filters {
   padding: 4px 10px;
-  border-radius: 20px;
-  border: 1px solid var(--text-muted, #94a3b8);
-  font-size: 0.72rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   background: transparent;
-  color: var(--text-secondary, #475569);
-  transition: all 0.12s ease;
+  color: var(--text-secondary);
+  transition: background 0.12s ease, border-color 0.12s ease;
+  font-family: inherit;
 }
 
 .btn-clear-filters:hover {
-  background: var(--bg-hover, #f1f5f9);
+  background: var(--bg-hover);
+  border-color: var(--text-muted);
 }
 
-/* Sortowanie — group */
 .sort-group {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-/* Przycisk sortowania */
 .sort-btn {
   padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color, #e2e8f0);
-  font-size: 0.73rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+  font-size: 11.5px;
   font-weight: 500;
   cursor: pointer;
-  background: white;
-  color: #374151;
-  transition: all 0.12s ease;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: background 0.12s ease, border-color 0.12s ease;
   white-space: nowrap;
+  font-family: inherit;
 }
 
 .sort-btn:hover {
-  background: var(--bg-hover, #f1f5f9);
-  border-color: var(--text-muted, #94a3b8);
+  background: var(--bg-hover);
+  border-color: var(--text-muted);
 }
 
 .sort-btn--active {
-  background: var(--text-primary, #1e293b);
-  color: white;
-  border-color: var(--text-primary, #1e293b);
+  background: var(--text-primary);
+  color: #fff;
+  border-color: var(--text-primary);
 }
 
 .sort-btn--active:hover {
-  background: #334155;
+  background: var(--primary-light);
+  border-color: var(--primary-light);
 }
 
-/* Komunikat brak wyników po filtrowaniu */
 .empty-filtered {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   padding: 32px 20px;
-  background: #f9fafb;
-  border: 1px dashed #d1d5db;
-  border-radius: 10px;
-  color: var(--text-muted, #6b7280);
-  font-size: 0.9rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--border-radius);
+  color: var(--text-muted);
+  font-size: 13px;
   margin-bottom: 20px;
 }
 

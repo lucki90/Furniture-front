@@ -106,11 +106,11 @@ mat-dialog-actions button mat-spinner {
 }
 
 .translation-status.exists {
-  color: #1976d2;
+  color: var(--accent-color);
 }
 
 .translation-status.new {
-  color: #388e3c;
+  color: var(--success-color);
 }
 
 .translation-edit-section .form-row {

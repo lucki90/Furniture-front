@@ -17,8 +17,8 @@
   display: inline-block;
   width: 24px;
   height: 24px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-strong);
   flex-shrink: 0;
 }
 
@@ -75,14 +75,14 @@
 /* Info bar */
 .info-bar {
   padding: 10px 14px;
-  background: rgba(59, 130, 246, 0.07);
-  border: 1px solid rgba(59, 130, 246, 0.18);
-  border-radius: 8px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-mid);
+  border-radius: var(--border-radius-sm);
   display: flex;
   align-items: flex-start;
   gap: 8px;
   font-size: 13px;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
@@ -104,10 +104,10 @@
 
 .state-error {
   padding: 12px 16px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: 8px;
-  color: var(--error-color, #ef4444);
+  background: var(--error-bg);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: var(--border-radius-sm);
+  color: var(--error-color);
   font-size: 13px;
   display: flex;
   align-items: center;
@@ -123,15 +123,17 @@
   margin-left: auto;
   padding: 4px 10px;
   font-size: 12px;
-  border: 1px solid var(--error-color, #ef4444);
-  border-radius: 4px;
+  font-family: inherit;
+  border: 1px solid var(--error-color);
+  border-radius: var(--border-radius-sm);
   background: transparent;
-  color: var(--error-color, #ef4444);
+  color: var(--error-color);
   cursor: pointer;
+  transition: background 0.15s;
 }
 
 .btn-retry:hover {
-  background: rgba(239, 68, 68, 0.08);
+  background: var(--error-bg);
 }
 
 /* Settings card */
@@ -234,8 +236,8 @@
   display: inline-block;
   padding: 1px 6px;
   border-radius: 3px;
-  background: #e0f2fe;
-  color: #0284c7;
+  background: var(--info-bg);
+  color: var(--info-color);
   font-size: 11px;
   font-weight: 500;
   white-space: nowrap;
@@ -256,8 +258,8 @@
 
 .form-control:focus {
   outline: none;
-  border-color: var(--accent-color, #3b82f6);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(29, 111, 164, 0.12);
 }
 
 .form-control:disabled {
@@ -283,7 +285,7 @@ select.form-control {
 .save-success {
   font-size: 13px;
   font-weight: 600;
-  color: #10b981;
+  color: var(--success-color);
   display: flex;
   align-items: center;
   gap: 4px;

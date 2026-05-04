@@ -53,13 +53,20 @@ export class AppComponent implements OnInit {
     });
   }
 
-  toggleSidebar(): void {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
-  }
-
   onLanguageChange(event: Event): void {
     const lang = (event.target as HTMLSelectElement).value as AppLanguage;
     this.languageService.setLanguage(lang);
+  }
+
+  userInitials(): string {
+    const email = this.authService.user()?.email ?? '';
+    if (!email) return '?';
+    const local = email.split('@')[0];
+    const parts = local.split(/[._-]/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return local.slice(0, 2).toUpperCase();
   }
 
   protected trackByCode = (_: number, item: { code: string }) => item.code;

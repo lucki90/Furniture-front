@@ -105,9 +105,10 @@
 
 /* Ostrzeżenie w konfiguracji blatu (głębokość < głębokość szafek) */
 .warning-hint {
-  font-size: 9px;
-  color: #d97706;
+  font-size: 9.5px;
+  color: var(--warning-color);
   margin-top: 2px;
+  font-weight: 500;
 }
 
 /* Toggle label (globalna klasa — scoped kopia dla zgodności) */
