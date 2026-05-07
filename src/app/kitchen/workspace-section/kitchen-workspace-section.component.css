@@ -1,13 +1,20 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .main-workspace {
   display: grid;
   grid-template-columns: 340px 1fr 360px;
+  grid-template-rows: 1fr;   /* single row fills the flex-allocated height */
   gap: 14px;
-  margin-bottom: 18px;
-  align-items: start;
+  align-items: stretch;      /* all columns same height */
+  flex: 1;
+  min-height: 0;
+  /* no margin-bottom — footer is outside workspace */
 }
 
 .panel-card {
@@ -50,13 +57,32 @@
 
 .floor-plan-column {
   min-width: 340px;
-  position: sticky;
-  top: 16px;
-  align-self: start;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.floor-plan-column .panel-content {
-  padding: 12px;
+/* Left column scrolls as a whole; panel-card must NOT clip its content.
+   Panel header stays sticky at the top of the scrolling column. */
+.floor-plan-column .panel-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: visible; /* column is scroll container — card must not clip */
+}
+
+.floor-plan-column .panel-header {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.floor-plan-column .panel-content,
+.floor-plan-column .wall-dimensions-bar {
+  flex-shrink: 0;
 }
 
 .wall-dimensions-bar {
@@ -114,9 +140,11 @@
 
 .front-view-column {
   min-width: 0;
-  position: sticky;
-  top: 16px;
-  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .front-view-column .panel-content {
@@ -125,10 +153,15 @@
 
 .form-column {
   min-width: 360px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .form-column .panel-card {
   height: auto;
+  overflow: visible; /* column is scroll container — card must not clip */
 }
 
 .form-column .panel-content {
@@ -154,21 +187,32 @@
 }
 
 @media (max-width: 1000px) {
+  /* At tablet width the 3-column grid collapses — restore natural flow */
+  :host {
+    overflow: visible;
+    height: auto;
+    flex: none;
+  }
+
   .main-workspace {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto;
+    grid-template-rows: auto;   /* rows size to content again */
+    height: auto;
   }
 
   .floor-plan-column {
     grid-column: 1;
+    overflow-y: visible;
   }
 
   .front-view-column {
     grid-column: 2;
+    overflow-y: visible;
   }
 
   .form-column {
     grid-column: 1 / -1;
+    overflow-y: visible;
   }
 }
 

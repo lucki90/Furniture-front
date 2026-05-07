@@ -2,6 +2,25 @@
   padding: var(--spacing-lg);
   max-width: 1600px;
   margin: 0 auto;
+  box-sizing: border-box;
+  /* Fill viewport minus sticky topnav — no page-level scroll */
+  height: calc(100vh - 52px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Room settings bar — fixed height, doesn't grow */
+.project-room-settings {
+  flex-shrink: 0;
+}
+
+/* Restore normal page scrolling when columns collapse to vertical layout */
+@media (max-width: 1000px) {
+  .kitchen-page {
+    height: auto;
+    overflow: visible;
+  }
 }
 
 @media (max-width: 500px) {

@@ -1,5 +1,6 @@
 :host {
   display: block;
+  flex-shrink: 0;
 }
 
 .page-header {
@@ -17,40 +18,53 @@
 
 .page-title {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
+  flex-wrap: wrap;
 }
 
-.page-title h1 {
-  margin: 0;
+.page-title-icon {
   font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.project-name {
+  margin: 0;
+  font-size: 17px;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.2px;
   line-height: 1.25;
-  white-space: nowrap;
+  max-width: 320px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.page-subtitle {
-  font-size: 12px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.page-subtitle-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.project-status-control {
-  display: flex;
+.page-title-meta {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-family: var(--font-mono, var(--font-sans));
+}
+
+.page-title-meta--hint {
+  font-family: var(--font-sans);
+  font-style: italic;
+}
+
+.meta-item {
+  white-space: nowrap;
+}
+
+.meta-sep {
+  color: var(--border-strong);
+  font-weight: 700;
 }
 
 .status-badge-inline {
@@ -91,11 +105,78 @@
   cursor: not-allowed;
 }
 
+/* View toggle (Konfigurator / Koszty) */
+.view-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.view-toggle-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.view-toggle-btn:hover:not(:disabled):not(.active) {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.view-toggle-btn.active {
+  background: var(--bg-card);
+  color: var(--accent-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.view-toggle-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.view-toggle-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.view-toggle-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success-color);
+  display: inline-block;
+}
+
 .page-actions {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.actions-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 4px;
 }
 
 .page-actions .btn {
@@ -145,5 +226,8 @@
   }
   .page-actions {
     flex-wrap: wrap;
+  }
+  .view-toggle {
+    align-self: flex-start;
   }
 }

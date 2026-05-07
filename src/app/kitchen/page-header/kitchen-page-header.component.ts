@@ -8,6 +8,8 @@ export interface KitchenPageStatusOption {
   label: string;
 }
 
+export type KitchenPageView = 'config' | 'costs';
+
 @Component({
   selector: 'app-kitchen-page-header',
   standalone: true,
@@ -30,12 +32,22 @@ export class KitchenPageHeaderComponent {
   @Input() hasProjectId = false;
   @Input() canUndo = false;
   @Input() canRedo = false;
+  @Input() view: KitchenPageView = 'config';
+  @Input() hasCalculationResult = false;
+  @Input() isEditingCabinet = false;
 
   @Output() saveProject = new EventEmitter<void>();
   @Output() calculateProject = new EventEmitter<void>();
   @Output() statusChange = new EventEmitter<ProjectStatus>();
   @Output() undoAction = new EventEmitter<void>();
   @Output() redoAction = new EventEmitter<void>();
+  @Output() viewChange = new EventEmitter<KitchenPageView>();
+
+  setView(view: KitchenPageView): void {
+    if (this.isEditingCabinet) return;
+    if (this.view === view) return;
+    this.viewChange.emit(view);
+  }
 
   onStatusSelect(event: Event): void {
     const select = event.target as HTMLSelectElement;

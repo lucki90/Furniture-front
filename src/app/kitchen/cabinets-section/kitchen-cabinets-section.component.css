@@ -1,5 +1,86 @@
 .cabinets-section {
-  margin-bottom: 18px;
+  /* Bez margin-bottom — kolumna workspace zarządza odstępem przez gap. */
+}
+
+/* ─── Fit bar — pasek zajętości ściany ──────────────────── */
+.fit-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+}
+
+.fit-bar-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.fit-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 80px;
+}
+
+.fit-bar-fill {
+  height: 100%;
+  background: var(--accent-color);
+  border-radius: 3px;
+  transition: width 0.25s ease, background 0.15s;
+}
+
+.fit-bar-fill--over {
+  background: var(--error-color);
+}
+
+.fit-bar-value {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono, var(--font-sans));
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.fit-bar-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.fit-bar-badge--success {
+  background: var(--success-bg);
+  color: var(--success-color);
+}
+
+.fit-bar-badge--error {
+  background: var(--error-bg);
+  color: var(--error-color);
+}
+
+@media (max-width: 600px) {
+  .fit-bar {
+    flex-wrap: wrap;
+    border-radius: var(--border-radius);
+  }
+  .fit-bar-track {
+    flex-basis: 100%;
+    order: 5;
+  }
 }
 
 .inline-summary {

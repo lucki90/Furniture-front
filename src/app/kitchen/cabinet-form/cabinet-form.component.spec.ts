@@ -48,6 +48,7 @@ describe('CabinetFormComponent', () => {
 
   it('shows cabinet side field only for island wall', () => {
     stateService.selectedWallSignal.set(buildWall('ISLAND'));
+    component.setActiveTab('position');
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Strona wyspy');

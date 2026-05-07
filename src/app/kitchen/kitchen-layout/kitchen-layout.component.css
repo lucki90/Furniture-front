@@ -19,16 +19,49 @@
 /* Toolbar przełączników widoczności SVG */
 .svg-toolbar {
   display: flex;
-  gap: 12px;
+  gap: 5px;
   align-items: center;
   margin-bottom: 8px;
-  padding: 5px 8px;
-  background: var(--bg-main);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
+/* Pill toggle buttons (Etykiety / Blat / Szafki górne) */
+.svg-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.svg-toggle-pill:hover:not(.active) {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.svg-toggle-pill.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.svg-toggle-icon {
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Legacy checkbox toggle (zachowane dla floor-plan toolbar) */
 .svg-toggle {
   display: flex;
   align-items: center;
@@ -87,7 +120,9 @@
   justify-content: flex-end;
   padding-right: 5px;
   font-size: 9px;
-  color: #888;
+  font-family: var(--font-mono, var(--font-sans));
+  font-weight: 700;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -98,7 +133,57 @@
 
 .zone-label.counter-label {
   font-size: 8px;
+  font-weight: 700;
   color: #5d4037;
+}
+
+/* ────────────────────────────────────────────────────────
+   RULER — wartości szerokości pod widokiem frontu
+   ──────────────────────────────────────────────────────── */
+.ruler-bar {
+  margin-top: 4px;
+  padding-left: 45px; /* offset = .zone-labels width */
+}
+
+.ruler-track {
+  position: relative;
+  height: 14px;
+}
+
+.ruler-tick {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.ruler-tick:first-child {
+  transform: translateX(0);
+  align-items: flex-start;
+}
+
+.ruler-tick:last-child {
+  transform: translateX(-100%);
+  align-items: flex-end;
+}
+
+.ruler-tick-mark {
+  width: 1px;
+  height: 4px;
+  background: var(--text-muted);
+  opacity: 0.6;
+}
+
+.ruler-tick-value {
+  font-size: 8.5px;
+  font-family: var(--font-mono, var(--font-sans));
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: -0.2px;
+  margin-top: 1px;
 }
 
 /* ============================================

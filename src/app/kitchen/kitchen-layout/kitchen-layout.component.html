@@ -20,18 +20,30 @@
     </p>
 
     <div class="svg-toolbar">
-      <label class="svg-toggle">
-        <input type="checkbox" [checked]="showCabinetLabels()" (change)="showCabinetLabels.set(!showCabinetLabels())">
+      <button type="button"
+              class="svg-toggle-pill"
+              [class.active]="showCabinetLabels()"
+              (click)="showCabinetLabels.set(!showCabinetLabels())"
+              [attr.aria-pressed]="showCabinetLabels()">
+        <span class="svg-toggle-icon">🏷️</span>
         Etykiety
-      </label>
-      <label class="svg-toggle">
-        <input type="checkbox" [checked]="showCountertop()" (change)="showCountertop.set(!showCountertop())">
+      </button>
+      <button type="button"
+              class="svg-toggle-pill"
+              [class.active]="showCountertop()"
+              (click)="showCountertop.set(!showCountertop())"
+              [attr.aria-pressed]="showCountertop()">
+        <span class="svg-toggle-icon">🍳</span>
         Blat
-      </label>
-      <label class="svg-toggle">
-        <input type="checkbox" [checked]="showUpperCabinets()" (change)="showUpperCabinets.set(!showUpperCabinets())">
+      </button>
+      <button type="button"
+              class="svg-toggle-pill"
+              [class.active]="showUpperCabinets()"
+              (click)="showUpperCabinets.set(!showUpperCabinets())"
+              [attr.aria-pressed]="showUpperCabinets()">
+        <span class="svg-toggle-icon">▲</span>
         Szafki górne
-      </label>
+      </button>
     </div>
 
     <div class="wall-view-wrapper">
@@ -176,6 +188,18 @@
               [attr.y2]="totalHeight - 1"
               class="floor-line"/>
       </svg>
+    </div>
+
+    <!-- Ruler pod SVG: tick co 600 mm + tick końcowy -->
+    <div class="ruler-bar" *ngIf="rulerTicks().length > 0">
+      <div class="ruler-track" [style.width.px]="wallDisplayWidth()">
+        <span *ngFor="let tick of rulerTicks(); trackBy: trackByRulerValue"
+              class="ruler-tick"
+              [style.left.px]="tick.position">
+          <span class="ruler-tick-mark" aria-hidden="true"></span>
+          <span class="ruler-tick-value">{{ tick.value }}</span>
+        </span>
+      </div>
     </div>
 
     <app-kitchen-layout-info-panel

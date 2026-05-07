@@ -1,55 +1,55 @@
 <footer class="page-footer" *ngIf="totalCabinetCount > 0">
-  <div class="footer-info">
-    <span *ngIf="projectResult">
-      💰 <strong>{{ adjustedTotalCost.toFixed(0) }} zł</strong>
-      <span class="footer-details">({{ projectResult.wallCount }} ścian, {{ projectResult.totalCabinetCount }} szafek)</span>
-    </span>
-    <span *ngIf="!projectResult">
-      📐 <strong>{{ totalCabinetCount }}</strong> szafek
-      <span class="footer-details">({{ wallsCount }} ścian)</span>
-    </span>
+  <div class="footer-stats">
+    <div class="footer-stat">
+      <span class="footer-stat-label">Szafek</span>
+      <span class="footer-stat-value">{{ totalCabinetCount }}</span>
+    </div>
+    <div class="footer-stat">
+      <span class="footer-stat-label">Ścian</span>
+      <span class="footer-stat-value">{{ wallsCount }}</span>
+    </div>
+    <div class="footer-stat" *ngIf="projectResult">
+      <span class="footer-stat-label">Łącznie</span>
+      <span class="footer-stat-value footer-stat-value--accent">{{ adjustedTotalCost.toFixed(0) }} zł</span>
+    </div>
   </div>
+
   <div class="footer-actions">
     <button
-      class="btn btn-success"
+      class="btn-footer btn-footer-secondary"
       type="button"
-      (click)="saveProject.emit()"
-      [disabled]="totalCabinetCount === 0 || isSavingProject || editingCabinetId !== null">
-      <span>💾</span>
-      {{ isSavingProject ? 'Zapisuję...' : (currentProjectId ? 'Zapisz' : 'Zapisz projekt') }}
+      (click)="clearAll.emit()"
+      [disabled]="editingCabinetId !== null"
+      title="Wyczyść projekt">
+      <span class="btn-footer-icon">🗑️</span>
+      <span class="btn-footer-text">Wyczyść</span>
     </button>
     <button
-      class="btn btn-primary"
+      class="btn-footer btn-footer-secondary"
       type="button"
       (click)="calculateProject.emit()"
       [disabled]="totalCabinetCount === 0 || isCalculatingProject || editingCabinetId !== null">
-      <span>🧮</span>
-      {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
+      <span class="btn-footer-icon">🧮</span>
+      <span class="btn-footer-text">{{ isCalculatingProject ? 'Obliczam...' : 'Wylicz' }}</span>
     </button>
     <button
-      class="btn btn-secondary"
+      class="btn-footer btn-footer-primary"
       type="button"
-      (click)="clearAll.emit()"
-      [disabled]="editingCabinetId !== null">
-      <span>🗑️</span> Wyczyść
+      (click)="saveProject.emit()"
+      [disabled]="totalCabinetCount === 0 || isSavingProject || editingCabinetId !== null">
+      <span class="btn-footer-icon">💾</span>
+      <span class="btn-footer-text">{{ isSavingProject ? 'Zapisuję...' : (currentProjectId ? 'Zapisz' : 'Zapisz projekt') }}</span>
     </button>
 
     <ng-container *ngIf="projectResult">
-      <div class="footer-divider"></div>
       <button
-        class="btn btn-outline"
+        class="btn-footer btn-footer-secondary"
         type="button"
         (click)="downloadExcel.emit()"
         [disabled]="isExporting"
         [title]="isExporting ? 'Generowanie pliku...' : 'Pobierz listę płyt do zamówienia (.xlsx)'">
-        <span>{{ isExporting ? '⏳' : '📊' }}</span>
-        {{ isExporting ? 'Generowanie...' : 'Excel' }}
-      </button>
-      <button class="btn btn-outline" type="button" disabled>
-        <span>📄</span> PDF
-      </button>
-      <button class="btn btn-outline" type="button" disabled>
-        <span>📋</span> Instrukcja
+        <span class="btn-footer-icon">{{ isExporting ? '⏳' : '📊' }}</span>
+        <span class="btn-footer-text">{{ isExporting ? 'Generowanie...' : 'Excel' }}</span>
       </button>
     </ng-container>
   </div>

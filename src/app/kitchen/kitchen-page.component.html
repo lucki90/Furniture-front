@@ -15,11 +15,15 @@
     [hasProjectId]="!!currentProjectId()"
     [canUndo]="canUndo()"
     [canRedo]="canRedo()"
+    [view]="view"
+    [hasCalculationResult]="!!projectResult"
+    [isEditingCabinet]="editingCabinetId !== null"
     (saveProject)="onSaveProject()"
     (calculateProject)="calculateProject()"
     (statusChange)="onStatusChange($event)"
     (undoAction)="undo()"
-    (redoAction)="redo()">
+    (redoAction)="redo()"
+    (viewChange)="setView($event)">
   </app-kitchen-page-header>
 
   <section class="project-room-settings">
@@ -34,6 +38,8 @@
     <small>Opcjonalne. Używane do warningów clearance dla wyspy.</small>
   </section>
 
+  <!-- ============ TRYB: KONFIGURATOR (workspace + lista szafek) ============ -->
+  <ng-container *ngIf="view === 'config'">
   <!-- ============ SEKCJA 1: WIZUALIZACJA + FORMULARZ ============ -->
   <app-kitchen-workspace-section
       [editingCabinetId]="editingCabinetId"
@@ -50,26 +56,32 @@
     (wallConfigChanged)="onWallConfigChanged()"
     (cabinetCalculated)="onCabinetCalculated($event)"
     (cancelEdit)="onCancelEdit()">
+
+    <!-- ============ SEKCJA 2: PODSUMOWANIE + LISTA SZAFEK (projektowana do centralnej kolumny) ============ -->
+    <app-kitchen-cabinets-section
+      workspaceCenterExtra
+      [result]="result"
+      [hasEditingCabinet]="!!editingCabinet"
+      [cabinets]="cabinets()"
+      [selectedWallType]="selectedWall().type"
+      [selectedWallLabel]="selectedWallLabel"
+      [selectedWallTotalCost]="selectedWallTotalCost()"
+      [totalCabinetCount]="totalCabinetCount()"
+      [totalCost]="totalCost()"
+      [fitsOnWall]="fitsOnWall()"
+      [usedWidthMm]="totalWidth()"
+      [wallWidthMm]="wallLength"
+      [editingCabinetId]="editingCabinetId"
+      (clearSelectedWallCabinets)="clearSelectedWallCabinets()"
+      (editCabinet)="onEditCabinet($event)"
+      (removeCabinet)="onRemoveCabinet($event)"
+      (cloneCabinet)="onCloneCabinet($event)">
+    </app-kitchen-cabinets-section>
   </app-kitchen-workspace-section>
+  </ng-container>
 
-  <!-- ============ SEKCJA 2: PODSUMOWANIE + LISTA SZAFEK ============ -->
-  <app-kitchen-cabinets-section
-    [result]="result"
-    [hasEditingCabinet]="!!editingCabinet"
-    [cabinets]="cabinets()"
-    [selectedWallType]="selectedWall().type"
-    [selectedWallLabel]="selectedWallLabel"
-    [selectedWallTotalCost]="selectedWallTotalCost()"
-    [totalCabinetCount]="totalCabinetCount()"
-    [totalCost]="totalCost()"
-    [fitsOnWall]="fitsOnWall()"
-    [editingCabinetId]="editingCabinetId"
-    (clearSelectedWallCabinets)="clearSelectedWallCabinets()"
-    (editCabinet)="onEditCabinet($event)"
-    (removeCabinet)="onRemoveCabinet($event)"
-    (cloneCabinet)="onCloneCabinet($event)">
-  </app-kitchen-cabinets-section>
-
+  <!-- ============ TRYB: KOSZTY ============ -->
+  <ng-container *ngIf="view === 'costs'">
   <!-- ============ SEKCJA 3: MATERIALY I KOSZTY ============ -->
   <app-kitchen-costs-section
     [projectResult]="projectResult"
@@ -118,6 +130,8 @@
     (savePricing)="savePricing()"
     (downloadOfferPdf)="downloadOfferPdf()">
   </app-kitchen-costs-section>
+  </ng-container>
+
   <!-- ============ STICKY FOOTER - ZAWSZE WIDOCZNY ============ -->
   <app-kitchen-page-footer
     [totalCabinetCount]="totalCabinetCount()"

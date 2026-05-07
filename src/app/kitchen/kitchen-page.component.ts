@@ -36,6 +36,14 @@ import { KitchenPageFooterComponent } from './page-footer/kitchen-page-footer.co
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
 import { buildCalculationViewState, buildPricingViewStateFromResult, createEmptyCalculationViewState } from './kitchen-page-view-state';
 
+export function resolveKitchenPageInitialView(
+  storedView: string | null,
+  hasCostsContent: boolean
+): 'config' | 'costs' {
+  const normalized: 'config' | 'costs' = storedView === 'costs' ? 'costs' : 'config';
+  return normalized === 'costs' && !hasCostsContent ? 'config' : normalized;
+}
+
 // Fallback Polish material names used in Excel until backend translations are loaded.
 // MATERIAL.* translations live in the backend dictionary and are loaded reactively for the active language.
 // We keep local fallback labels here so export still works before translations arrive.
@@ -96,6 +104,13 @@ export class KitchenPageComponent {
   // Stan kalkulacji projektu (multi-wall)
   projectResult: MultiWallCalculateResponse | null = null;
   isCalculatingProject = false;
+
+  // Tryb widoku strony: 'config' (workspace + lista szafek) lub 'costs' (zestawienie kosztów).
+  // Persystowany w localStorage; auto-przełącza się na 'costs' po udanej kalkulacji.
+  view: 'config' | 'costs' = resolveKitchenPageInitialView(
+    localStorage.getItem('fp_view'),
+    this.stateService.totalCabinetCount() > 0
+  );
 
   // Active tab in project details panel
   activeDetailsTab: 'walls' | 'boards' | 'components' | 'jobs' | 'pricing' = 'walls';
@@ -423,7 +438,22 @@ export class KitchenPageComponent {
       this.result = null;
       this.editingCabinet = null;
       this.resetProjectResult();
+      this.setView('config');
     });
+  }
+
+  /** Zmiana trybu widoku (Konfigurator / Koszty). Persystuje wybór w localStorage. */
+  setView(view: 'config' | 'costs'): void {
+    if (view === 'costs') {
+      if (this.editingCabinetId !== null) return;
+      if (!this.canRenderCostsView()) {
+        view = 'config';
+      }
+    }
+
+    if (this.view === view) return;
+    this.view = view;
+    localStorage.setItem('fp_view', view);
   }
 
   clearSelectedWallCabinets(): void {
@@ -521,6 +551,7 @@ export class KitchenPageComponent {
       next: ({ response, aggregation, pricingWarnings }) => {
         Object.assign(this, buildCalculationViewState({ response, aggregation, pricingWarnings }));
         this.isCalculatingProject = false;
+        this.setView('costs');
 
         if (this.pricingWarnings.length > 0) {
           this.toast.warning('Uwagi projektu: ' + this.pricingWarnings.join(', '));
@@ -536,6 +567,13 @@ export class KitchenPageComponent {
 
   private resetProjectResult(): void {
     Object.assign(this, createEmptyCalculationViewState());
+    if (this.view === 'costs') {
+      this.setView('config');
+    }
+  }
+
+  private canRenderCostsView(): boolean {
+    return this.totalCabinetCount() > 0 || this.projectResult !== null;
   }
 
   // ============ WYCENA PROJEKTU ============

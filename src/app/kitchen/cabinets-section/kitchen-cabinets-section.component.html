@@ -17,6 +17,20 @@
     </div>
   </div>
 
+  <!-- Fit bar — wizualny pasek zajętości ściany -->
+  <div class="fit-bar" *ngIf="cabinets.length > 0 && wallWidthMm > 0">
+    <span class="fit-bar-label">Zajęto</span>
+    <div class="fit-bar-track">
+      <div class="fit-bar-fill"
+           [class.fit-bar-fill--over]="!fitsOnWall"
+           [style.width.%]="fitPercent"></div>
+    </div>
+    <span class="fit-bar-value">{{ usedWidthMm }} / {{ wallWidthMm }} mm</span>
+    <span class="fit-bar-badge" [class.fit-bar-badge--success]="fitsOnWall" [class.fit-bar-badge--error]="!fitsOnWall">
+      {{ fitsOnWall ? '✓ mieści się' : '✗ nie mieści się' }}
+    </span>
+  </div>
+
   <div class="cabinets-list-card">
     <div class="list-header">
       <h3>📋 Szafki: {{ selectedWallLabel }} <span class="count-badge">{{ cabinets.length }}</span></h3>

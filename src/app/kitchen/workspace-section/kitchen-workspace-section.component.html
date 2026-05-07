@@ -42,6 +42,9 @@
         <app-kitchen-layout [editingCabinetId]="editingCabinetId"></app-kitchen-layout>
       </div>
     </div>
+
+    <!-- Slot na liste szafek + summary, projektowane z kitchen-page -->
+    <ng-content select="[workspaceCenterExtra]"></ng-content>
   </div>
 
   <div class="form-column">

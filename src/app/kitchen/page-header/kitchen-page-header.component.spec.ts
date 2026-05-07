@@ -27,8 +27,9 @@ describe('KitchenPageHeaderComponent', () => {
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Projekt testowy');
-    expect(text).toContain('Projekt #42');
-    expect(text).toContain('wersja 3');
+    expect(text).toContain('#42');
+    expect(text).toContain('v3');
+    expect(text).toContain('ROBOCZY');
   });
 
   it('emits status change and resets select value', () => {
@@ -44,5 +45,33 @@ describe('KitchenPageHeaderComponent', () => {
 
     expect(component.statusChange.emit).toHaveBeenCalledWith('SENT' as any);
     expect(select.value).toBe('');
+  });
+
+  it('emits view change when switching tabs', () => {
+    spyOn(component.viewChange, 'emit');
+    component.totalCabinetCount = 2;
+
+    fixture.detectChanges();
+
+    const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('.view-toggle-btn');
+    buttons[1].click();
+
+    expect(component.viewChange.emit).toHaveBeenCalledWith('costs');
+  });
+
+  it('disables view toggle and workflow actions while editing cabinet', () => {
+    component.totalCabinetCount = 2;
+    component.isEditingCabinet = true;
+
+    fixture.detectChanges();
+
+    const toggleButtons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('.view-toggle-btn');
+    expect(toggleButtons[0].disabled).toBeTrue();
+    expect(toggleButtons[1].disabled).toBeTrue();
+
+    const saveButton: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-success');
+    const calculateButton: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-secondary');
+    expect(saveButton.disabled).toBeTrue();
+    expect(calculateButton.disabled).toBeTrue();
   });
 });

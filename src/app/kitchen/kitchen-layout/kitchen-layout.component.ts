@@ -108,6 +108,27 @@ export class KitchenLayoutComponent {
     return this.wall().length * this.scaleFactor();
   });
 
+  protected trackByRulerValue = (_: number, tick: { value: number }) => tick.value;
+
+  /** Tick marks dla rulera pod widokiem frontu — co 600 mm + ostatni przy końcu ściany. */
+  readonly rulerTicks = computed((): Array<{ value: number; position: number }> => {
+    const wallLength = this.wall().length;
+    const scale = this.scaleFactor();
+    if (wallLength <= 0 || scale <= 0) return [];
+
+    const step = 600;
+    const ticks: Array<{ value: number; position: number }> = [];
+    for (let mm = 0; mm <= wallLength; mm += step) {
+      ticks.push({ value: mm, position: mm * scale });
+    }
+    // Dodaj końcowy tick jeśli nie wypadł na pełnej setce
+    const last = ticks[ticks.length - 1];
+    if (last && last.value !== wallLength) {
+      ticks.push({ value: wallLength, position: wallLength * scale });
+    }
+    return ticks;
+  });
+
   readonly hasHangingCabinets = computed(() => {
     return this.filteredCabinets().some(cabinet => {
       const zone = getCabinetZone(cabinet);

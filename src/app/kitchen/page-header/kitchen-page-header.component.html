@@ -1,48 +1,79 @@
 <header class="page-header">
   <div class="page-title">
-    <h1>🍳 {{ projectDisplayName }}</h1>
-    <div class="page-subtitle-row">
-      <span class="page-subtitle">
-        <ng-container *ngIf="projectId; else newProjectSubtitle">
-          Projekt #{{ projectId }} • wersja {{ projectVersion }}
-        </ng-container>
-        <ng-template #newProjectSubtitle>{{ projectSubtitle }}</ng-template>
-      </span>
+    <span class="page-title-icon" aria-hidden="true">🍳</span>
+    <h1 class="project-name">{{ projectDisplayName }}</h1>
 
-      <div class="project-status-control" *ngIf="hasProjectId">
-        <span class="status-badge-inline"
-              [style.background-color]="projectStatusColor + '18'"
-              [style.color]="projectStatusColor"
-              [style.border-color]="projectStatusColor + '40'">
-          {{ projectStatusLabel }}
-        </span>
-        <select
-          *ngIf="allowedTransitions.length > 0"
-          class="status-select"
-          [disabled]="isChangingStatus"
-          (change)="onStatusSelect($event)"
-          [style.border-color]="projectStatusColor + '60'">
-          <option value="" disabled selected>{{ isChangingStatus ? 'Zmieniam...' : 'Zmien status...' }}</option>
-          <option *ngFor="let status of allowedTransitions" [value]="status.value">
-            {{ status.label }}
-          </option>
-        </select>
-      </div>
-    </div>
+    <span class="page-title-meta" *ngIf="projectId; else newProjectMeta">
+      <span class="meta-item">#{{ projectId }}</span>
+      <span class="meta-sep" aria-hidden="true">·</span>
+      <span class="meta-item">v{{ projectVersion }}</span>
+    </span>
+    <ng-template #newProjectMeta>
+      <span class="page-title-meta page-title-meta--hint">{{ projectSubtitle }}</span>
+    </ng-template>
+
+    <span class="status-badge-inline"
+          *ngIf="hasProjectId"
+          [style.background-color]="projectStatusColor + '18'"
+          [style.color]="projectStatusColor"
+          [style.border-color]="projectStatusColor + '40'">
+      {{ projectStatusLabel }}
+    </span>
+
+    <select
+      *ngIf="hasProjectId && allowedTransitions.length > 0"
+      class="status-select"
+      [disabled]="isChangingStatus"
+      (change)="onStatusSelect($event)"
+      [style.border-color]="projectStatusColor + '60'">
+      <option value="" disabled selected>{{ isChangingStatus ? 'Zmieniam...' : 'Zmien status...' }}</option>
+      <option *ngFor="let status of allowedTransitions" [value]="status.value">
+        {{ status.label }}
+      </option>
+    </select>
   </div>
 
   <div class="page-actions">
+    <div class="view-toggle" role="tablist" aria-label="Tryb widoku">
+      <button
+        type="button"
+        role="tab"
+        class="view-toggle-btn"
+        [class.active]="view === 'config'"
+        [attr.aria-selected]="view === 'config'"
+        [disabled]="isEditingCabinet"
+        [title]="isEditingCabinet ? 'Zakoncz edycje szafki, aby zmienic widok' : ''"
+        (click)="setView('config')">
+        <span class="view-toggle-icon">🛠️</span>
+        Konfigurator
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="view-toggle-btn"
+        [class.active]="view === 'costs'"
+        [attr.aria-selected]="view === 'costs'"
+        [disabled]="totalCabinetCount === 0 || isEditingCabinet"
+        [title]="isEditingCabinet ? 'Zakoncz edycje szafki, aby przejsc do kosztow' : (totalCabinetCount === 0 ? 'Dodaj szafki, aby zobaczyc koszty' : '')"
+        (click)="setView('costs')">
+        <span class="view-toggle-icon">💰</span>
+        Koszty
+        <span class="view-toggle-dot" *ngIf="hasCalculationResult && view !== 'costs'" aria-label="Wyniki kalkulacji"></span>
+      </button>
+    </div>
+
+    <div class="actions-divider" aria-hidden="true"></div>
     <a routerLink="/kitchen/projects" class="btn btn-outline">
       <span class="btn-icon-text">📁</span>
       Moje projekty
     </a>
     <button class="btn btn-icon-only" title="Cofnij (Ctrl+Z)" [disabled]="!canUndo" (click)="undoAction.emit()">↩</button>
-    <button class="btn btn-icon-only" title="Ponów (Ctrl+Y)" [disabled]="!canRedo" (click)="redoAction.emit()">↪</button>
-    <button class="btn btn-success" (click)="saveProject.emit()" [disabled]="totalCabinetCount === 0 || isSavingProject">
+    <button class="btn btn-icon-only" title="Ponow (Ctrl+Y)" [disabled]="!canRedo" (click)="redoAction.emit()">↪</button>
+    <button class="btn btn-success" (click)="saveProject.emit()" [disabled]="totalCabinetCount === 0 || isSavingProject || isEditingCabinet">
       <span class="btn-icon-text">💾</span>
       {{ isSavingProject ? 'Zapisuje...' : (projectId ? 'Zapisz zmiany' : 'Zapisz projekt') }}
     </button>
-    <button class="btn btn-secondary" (click)="calculateProject.emit()" [disabled]="totalCabinetCount === 0 || isCalculatingProject">
+    <button class="btn btn-secondary" (click)="calculateProject.emit()" [disabled]="totalCabinetCount === 0 || isCalculatingProject || isEditingCabinet">
       <span class="btn-icon-text">🧮</span>
       {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
     </button>

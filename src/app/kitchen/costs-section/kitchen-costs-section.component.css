@@ -1,5 +1,12 @@
+:host {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .costs-section {
-  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-lg);
 }
 
 /* ========== Pre-calculation summary ========== */
@@ -284,6 +291,24 @@
   padding: 22px;
   color: var(--text-muted);
   font-style: italic;
+}
+
+/* Accent total row w tabelach BOM (boards/components/jobs) */
+.tab-content table tfoot tr.total-row td {
+  padding: 12px 16px;
+  background: var(--accent-color);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  border-bottom: none;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.tab-content table tfoot tr.total-row td:last-child {
+  font-size: 16px;
+  font-family: var(--font-mono, var(--font-sans));
+  letter-spacing: -0.2px;
 }
 
 /* ========== Walls list ========== */

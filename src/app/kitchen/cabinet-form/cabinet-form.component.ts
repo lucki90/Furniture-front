@@ -77,6 +77,24 @@ export class CabinetFormComponent implements OnChanges {
   form: FormGroup;
   visibility: CabinetFormVisibility = {} as CabinetFormVisibility;
   loading = false;
+
+  /** Aktywny tab formularza: 'basic' (wymiary/typ), 'position' (pozycjonowanie/flagi), 'options' (sekcje specjalistyczne). */
+  activeTab: 'basic' | 'position' | 'options' = 'basic';
+
+  setActiveTab(tab: 'basic' | 'position' | 'options'): void {
+    if (this.activeTab === tab) return;
+    this.activeTab = tab;
+    this.cdr.markForCheck();
+  }
+
+  /** Tab "Opcje" jest widoczny tylko gdy istnieją sekcje specjalistyczne dla danego typu. */
+  hasOptionsTabContent(): boolean {
+    const v = this.visibility;
+    return !!(v.cornerWidthA || v.cascadeSegments || v.segments
+      || v.sinkFrontType || v.cooktopType || v.hoodFrontType || v.drainerFrontType
+      || v.ovenHeightType || v.fridgeSectionType || v.fridgeFreestandingType
+      || v.liftUp || v.extendedFront || v.enclosureSection);
+  }
   /** Opening types from DictionaryService, memoized to avoid rebuilding arrays on every CD cycle. */
   readonly openingTypes = computed(() =>
     this.dictionaryService.data().openingTypes.map(item => ({
@@ -386,6 +404,13 @@ export class CabinetFormComponent implements OnChanges {
   private onTypeChange(type: KitchenCabinetType): void {
     const lifecycleResult = this.typeLifecycleService.applyTypeChange(this.form, type, this.editingCabinet);
     this.visibility = lifecycleResult.visibility;
+
+    // Reset taba do "basic" — w przeciwnym razie po zmianie typu można utknąć w tabie Opcje
+    // który dla nowego typu może być pusty (np. przejście BASE_SINK -> BASE_OPEN).
+    if (this.activeTab !== 'basic') {
+      this.activeTab = 'basic';
+    }
+
     // OnPush: visibility is updated outside signals, so the view needs manual refresh.
     this.cdr.markForCheck();
 

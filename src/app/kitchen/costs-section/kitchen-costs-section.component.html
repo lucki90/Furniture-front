@@ -156,9 +156,9 @@
                 </tr>
               </tbody>
               <tfoot>
-                <tr>
-                  <td colspan="5"><strong>Suma płyt (szafki + blat + cokół):</strong></td>
-                  <td class="text-right"><strong>{{ totalAggregatedBoardsCost.toFixed(2) }} zł</strong></td>
+                <tr class="total-row">
+                  <td colspan="5">Suma płyt (szafki + blat + cokół)</td>
+                  <td class="text-right">{{ totalAggregatedBoardsCost.toFixed(2) }} zł</td>
                 </tr>
               </tfoot>
             </table>
@@ -193,9 +193,9 @@
                 </tr>
               </tbody>
               <tfoot>
-                <tr>
-                  <td colspan="4"><strong>Suma komponentów{{ wasteDetails.length > 0 && includeWasteCost ? ' (z odpadem)' : '' }}:</strong></td>
-                  <td class="text-right"><strong>{{ totalAggregatedComponentsCost.toFixed(2) }} zł</strong></td>
+                <tr class="total-row">
+                  <td colspan="4">Suma komponentów{{ wasteDetails.length > 0 && includeWasteCost ? ' (z odpadem)' : '' }}</td>
+                  <td class="text-right">{{ totalAggregatedComponentsCost.toFixed(2) }} zł</td>
                 </tr>
               </tfoot>
             </table>
@@ -225,9 +225,9 @@
                 </tr>
               </tbody>
               <tfoot>
-                <tr>
-                  <td colspan="4"><strong>Suma prac:</strong></td>
-                  <td class="text-right"><strong>{{ totalAggregatedJobsCost.toFixed(2) }} zł</strong></td>
+                <tr class="total-row">
+                  <td colspan="4">Suma prac</td>
+                  <td class="text-right">{{ totalAggregatedJobsCost.toFixed(2) }} zł</td>
                 </tr>
               </tfoot>
             </table>

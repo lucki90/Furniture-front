@@ -1,50 +1,67 @@
 <div class="cabinet-list">
   <div *ngIf="cabinets.length === 0" class="empty-state">
-    Brak dodanych szafek. Użyj formularza powyżej, aby dodać szafkę.
+    Brak dodanych szafek. Użyj formularza po prawej, aby dodać szafkę.
   </div>
 
   <ng-container *ngIf="cabinets.length > 0">
-    <div *ngFor="let group of groupedCabinets; trackBy: trackBySide">
-      <h4 *ngIf="wallType === 'ISLAND'">Strona {{ group.side }} ({{ group.cabinets.length }})</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Nazwa</th>
-            <th>Typ</th>
-            <th>Wymiary</th>
-            <th>Poz. Y</th>
-            <th class="cost-col">Płyty</th>
-            <th class="cost-col">Komponenty</th>
-            <th class="cost-col">Prace</th>
-            <th class="cost-col total-col">Razem</th>
-            <th>Akcje</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let cabinet of group.cabinets; let i = index; trackBy: trackByCabinetId"
-              [class.editing]="isEditing(cabinet.id)">
-            <td>{{ i + 1 }}</td>
-            <td>{{ cabinet.name || '-' }}</td>
-            <td>{{ cabinet.type | cabinetTypeName }}</td>
-            <td class="dims-col">{{ cabinet.width }}×{{ cabinet.height }}×{{ cabinet.depth }}</td>
-            <td>{{ cabinet.positionY || 0 }}</td>
-            <td class="cost-col">{{ cabinet.calculatedResult?.boardCosts?.toFixed(0) ?? '-' }}{{ cabinet.calculatedResult?.boardCosts != null ? ' zł' : '' }}</td>
-            <td class="cost-col">{{ cabinet.calculatedResult?.componentCosts?.toFixed(0) ?? '-' }}{{ cabinet.calculatedResult?.componentCosts != null ? ' zł' : '' }}</td>
-            <td class="cost-col">{{ cabinet.calculatedResult?.jobCosts?.toFixed(0) ?? '-' }}{{ cabinet.calculatedResult?.jobCosts != null ? ' zł' : '' }}</td>
-            <td class="cost-col total-col">
-              {{ cabinet.calculatedResult
-                ? (cabinet.calculatedResult.boardCosts + cabinet.calculatedResult.componentCosts + cabinet.calculatedResult.jobCosts).toFixed(0) + ' zł'
-                : '-' }}
-            </td>
-            <td class="actions">
-              <button class="btn-edit" (click)="onEdit(cabinet.id)" [disabled]="editingCabinetId !== null" title="Edytuj szafkę">✏️</button>
-              <button class="btn-clone" (click)="onClone(cabinet.id)" [disabled]="editingCabinetId !== null" title="Kopiuj szafkę">⎘</button>
-              <button class="btn-remove" (click)="onRemove(cabinet.id)" [disabled]="editingCabinetId !== null" title="Usuń szafkę">×</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="cabinet-strip-group" *ngFor="let group of groupedCabinets; trackBy: trackBySide">
+      <div class="cabinet-strip-side-label" *ngIf="wallType === 'ISLAND'">
+        Strona {{ group.side }}
+        <span class="cabinet-strip-count">{{ group.cabinets.length }}</span>
+      </div>
+
+      <div class="cabinet-strip" role="list">
+        <div *ngFor="let cabinet of group.cabinets; let i = index; trackBy: trackByCabinetId"
+             class="cabinet-card"
+             role="listitem"
+             [class.editing]="isEditing(cabinet.id)"
+             [style.--card-accent]="cabinetVisualMeta(cabinet).color"
+             [style.--card-accent-bg]="cabinetVisualMeta(cabinet).bg"
+             [title]="(cabinet.type | cabinetTypeName) + ' • ' + cabinet.width + '×' + cabinet.height + '×' + cabinet.depth + ' mm'">
+
+          <div class="cabinet-card-header">
+            <span class="cabinet-card-num">{{ i + 1 }}</span>
+            <span class="cabinet-card-dot" aria-hidden="true"></span>
+            <span class="cabinet-card-label">{{ cabinet.name || (cabinet.type | cabinetTypeName) }}</span>
+          </div>
+
+          <div class="cabinet-card-meta">
+            <span class="cabinet-card-abbr">{{ cabinetVisualMeta(cabinet).abbr }}</span>
+            <span class="cabinet-card-meta-sep">·</span>
+            <span class="cabinet-card-dims">{{ cabinet.width }}×{{ cabinet.height }}</span>
+          </div>
+
+          <div class="cabinet-card-footer">
+            <span class="cabinet-card-price" *ngIf="cabinetTotalCost(cabinet) !== null">
+              {{ cabinetTotalCost(cabinet) | number:'1.0-0' }} zł
+            </span>
+            <span class="cabinet-card-price cabinet-card-price--empty" *ngIf="cabinetTotalCost(cabinet) === null">
+              —
+            </span>
+
+            <div class="cabinet-card-actions">
+              <button type="button"
+                      class="cabinet-card-btn cabinet-card-btn--edit"
+                      (click)="onEdit(cabinet.id)"
+                      [disabled]="editingCabinetId !== null"
+                      title="Edytuj szafkę"
+                      aria-label="Edytuj szafkę">✏️</button>
+              <button type="button"
+                      class="cabinet-card-btn cabinet-card-btn--clone"
+                      (click)="onClone(cabinet.id)"
+                      [disabled]="editingCabinetId !== null"
+                      title="Kopiuj szafkę"
+                      aria-label="Kopiuj szafkę">⎘</button>
+              <button type="button"
+                      class="cabinet-card-btn cabinet-card-btn--remove"
+                      (click)="onRemove(cabinet.id)"
+                      [disabled]="editingCabinetId !== null"
+                      title="Usuń szafkę"
+                      aria-label="Usuń szafkę">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </ng-container>
 </div>

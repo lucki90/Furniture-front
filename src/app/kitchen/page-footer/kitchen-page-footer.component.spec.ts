@@ -16,6 +16,7 @@ describe('KitchenPageFooterComponent', () => {
 
   it('renders project summary in calculated mode', () => {
     component.totalCabinetCount = 4;
+    component.wallsCount = 2;
     component.adjustedTotalCost = 12345;
     component.projectResult = {
       wallCount: 2,
@@ -26,7 +27,9 @@ describe('KitchenPageFooterComponent', () => {
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('12345 zł');
-    expect(text).toContain('2 ścian, 4 szafek');
+    expect(text).toContain('Szafek');
+    expect(text).toContain('Ścian');
+    expect(text).toContain('Łącznie');
   });
 
   it('emits footer actions', () => {
@@ -35,6 +38,7 @@ describe('KitchenPageFooterComponent', () => {
     spyOn(component.clearAll, 'emit');
     spyOn(component.downloadExcel, 'emit');
     component.totalCabinetCount = 2;
+    component.wallsCount = 1;
     component.projectResult = {
       wallCount: 1,
       totalCabinetCount: 2
@@ -43,14 +47,15 @@ describe('KitchenPageFooterComponent', () => {
     fixture.detectChanges();
 
     const buttons = fixture.nativeElement.querySelectorAll('.footer-actions button');
+    // Kolejność w nowym ciemnym footerze: Wyczyść / Wylicz / Zapisz / Excel
     (buttons[0] as HTMLButtonElement).click();
     (buttons[1] as HTMLButtonElement).click();
     (buttons[2] as HTMLButtonElement).click();
     (buttons[3] as HTMLButtonElement).click();
 
-    expect(component.saveProject.emit).toHaveBeenCalled();
-    expect(component.calculateProject.emit).toHaveBeenCalled();
     expect(component.clearAll.emit).toHaveBeenCalled();
+    expect(component.calculateProject.emit).toHaveBeenCalled();
+    expect(component.saveProject.emit).toHaveBeenCalled();
     expect(component.downloadExcel.emit).toHaveBeenCalled();
   });
 });
