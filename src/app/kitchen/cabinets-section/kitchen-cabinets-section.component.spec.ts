@@ -20,7 +20,7 @@ describe('KitchenCabinetsSectionComponent', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Brak szafek na tej scianie');
+    expect(fixture.nativeElement.textContent).toContain('Brak szafek na tej ścianie');
   });
 
   it('renders summary and emits clear event when cabinets exist', () => {

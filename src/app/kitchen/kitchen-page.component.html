@@ -26,18 +26,6 @@
     (viewChange)="setView($event)">
   </app-kitchen-page-header>
 
-  <section class="project-room-settings">
-    <label>
-      Szerokość pomieszczenia (mm)
-      <input type="number" [ngModel]="roomWidthMm" (ngModelChange)="roomWidthMm = parseOptionalDimension($event)" min="1000" max="20000" step="10">
-    </label>
-    <label>
-      Głębokość pomieszczenia (mm)
-      <input type="number" [ngModel]="roomDepthMm" (ngModelChange)="roomDepthMm = parseOptionalDimension($event)" min="1000" max="20000" step="10">
-    </label>
-    <small>Opcjonalne. Używane do warningów clearance dla wyspy.</small>
-  </section>
-
   <!-- ============ TRYB: KONFIGURATOR (workspace + lista szafek) ============ -->
   <ng-container *ngIf="view === 'config'">
   <!-- ============ SEKCJA 1: WIZUALIZACJA + FORMULARZ ============ -->
@@ -49,10 +37,14 @@
       [selectedWallLabel]="selectedWallLabel"
       [wallLength]="wallLength"
       [wallHeight]="wallHeight"
+      [roomWidthMm]="roomWidthMm"
+      [roomDepthMm]="roomDepthMm"
     (addWallRequested)="onAddWallRequested()"
     (wallRemoved)="onWallRemoved($event)"
     (wallLengthChange)="wallLength = $event"
     (wallHeightChange)="wallHeight = $event"
+    (roomWidthChange)="roomWidthMm = $event"
+    (roomDepthChange)="roomDepthMm = $event"
     (wallConfigChanged)="onWallConfigChanged()"
     (cabinetCalculated)="onCabinetCalculated($event)"
     (cancelEdit)="onCancelEdit()">
@@ -69,8 +61,6 @@
       [totalCabinetCount]="totalCabinetCount()"
       [totalCost]="totalCost()"
       [fitsOnWall]="fitsOnWall()"
-      [usedWidthMm]="totalWidth()"
-      [wallWidthMm]="wallLength"
       [editingCabinetId]="editingCabinetId"
       (clearSelectedWallCabinets)="clearSelectedWallCabinets()"
       (editCabinet)="onEditCabinet($event)"

@@ -24,18 +24,10 @@ export class KitchenCabinetsSectionComponent {
   @Input() totalCost = 0;
   @Input() fitsOnWall = true;
   @Input() editingCabinetId: string | null = null;
-  @Input() usedWidthMm = 0;
-  @Input() wallWidthMm = 0;
 
   @Output() clearSelectedWallCabinets = new EventEmitter<void>();
   @Output() editCabinet = new EventEmitter<string>();
   @Output() removeCabinet = new EventEmitter<string>();
   @Output() cloneCabinet = new EventEmitter<string>();
-
-  /** Procent zajętej szerokości ściany (0-100). */
-  get fitPercent(): number {
-    if (this.wallWidthMm <= 0) return 0;
-    return Math.min(100, Math.round((this.usedWidthMm / this.wallWidthMm) * 100));
-  }
 }
 

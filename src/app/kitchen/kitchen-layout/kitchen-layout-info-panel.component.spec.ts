@@ -52,4 +52,22 @@ describe('KitchenLayoutInfoPanelComponent', () => {
     expect(labels).toContain('Blat');
     expect(labels).toContain('h/d = różnica wys./głęb.');
   });
+
+  it('renders fit bar under legend when wall usage data is provided', () => {
+    component.showFitBar = true;
+    component.usedWidthMm = 800;
+    component.wallWidthMm = 3600;
+    component.fitsOnWall = true;
+
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const legend = root.querySelector('.legend');
+    const fitBar = root.querySelector('.fit-bar');
+
+    expect(legend).not.toBeNull();
+    expect(fitBar).not.toBeNull();
+    expect((legend as HTMLElement).compareDocumentPosition(fitBar as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(fitBar?.textContent).toContain('800 / 3600 mm');
+  });
 });

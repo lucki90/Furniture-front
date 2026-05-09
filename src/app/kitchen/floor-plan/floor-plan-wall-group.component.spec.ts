@@ -43,7 +43,7 @@ class TestHostComponent {
     },
     {
       cabinetId: 'cab-2',
-      name: 'Szafka górna',
+      name: 'Szafka gorna',
       x: 95,
       y: 65,
       width: 40,
@@ -88,7 +88,7 @@ describe('FloorPlanWallGroupComponent', () => {
 
     const wall = {
       id: 'wall-1',
-      label: 'Ściana główna',
+      label: 'Sciana glowna',
       type: 'MAIN',
       widthMm: 3000,
       heightMm: 2400,
@@ -117,6 +117,48 @@ describe('FloorPlanWallGroupComponent', () => {
     expect(root.querySelector('.countertop-rect')).not.toBeNull();
     expect(root.querySelector('.wall-label')?.textContent).toContain('G');
     expect(root.querySelector('.cabinet-count')?.textContent).toContain('2');
+  });
+
+  it('renders wall meta for every wall and highlights the selected one', () => {
+    host.selected = true;
+    fixture.detectChanges();
+
+    const meta = fixture.nativeElement.querySelector('.wall-meta') as SVGTextElement | null;
+    expect(meta).not.toBeNull();
+    expect(meta?.textContent).toContain('3000');
+    expect(meta?.textContent).toContain('2400');
+    expect(meta?.textContent).toContain('2 szafki');
+  });
+
+  it('rotates wall label and meta for vertical side walls', () => {
+    const verticalWall = {
+      id: 'wall-left',
+      label: 'Sciana lewa',
+      type: 'LEFT',
+      widthMm: 2200,
+      heightMm: 2600,
+      cabinets: [{ id: 'cab-1' }]
+    } as unknown as WallWithCabinets;
+
+    host.wallPosition = {
+      wall: verticalWall,
+      x: 20,
+      y: 40,
+      width: 10,
+      height: 100,
+      scale: 0.04,
+      rotation: 0,
+      isHorizontal: false,
+      labelX: 12,
+      labelY: 90
+    };
+
+    fixture.detectChanges();
+
+    const wallLabel = fixture.nativeElement.querySelector('.wall-label') as SVGTextElement;
+    const wallMeta = fixture.nativeElement.querySelector('.wall-meta') as SVGTextElement;
+    expect(wallLabel.getAttribute('transform')).toContain('rotate(-90');
+    expect(wallMeta.getAttribute('transform')).toContain('rotate(-90');
   });
 
   it('emits selection and removal events', () => {

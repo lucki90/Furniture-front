@@ -1,21 +1,22 @@
 .kitchen-page {
-  padding: var(--spacing-lg);
-  max-width: 1600px;
+  --topnav-height: 46px;
+  --workflow-footer-height: 40px;
+  --workflow-footer-clearance: 4px;
+  width: 100%;
+  padding: 12px 14px var(--workflow-footer-clearance);
+  max-width: 1820px;
   margin: 0 auto;
   box-sizing: border-box;
-  /* Fill viewport minus sticky topnav — no page-level scroll */
-  height: calc(100vh - 52px);
+  /* Keep the workspace clear of the fixed footer so no panel visually touches it. */
+  height: calc(
+    100vh - var(--topnav-height) - var(--workflow-footer-height) - var(--workflow-footer-clearance)
+  );
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  gap: 10px;
 }
 
-/* Room settings bar — fixed height, doesn't grow */
-.project-room-settings {
-  flex-shrink: 0;
-}
-
-/* Restore normal page scrolling when columns collapse to vertical layout */
 @media (max-width: 1000px) {
   .kitchen-page {
     height: auto;
@@ -25,6 +26,6 @@
 
 @media (max-width: 500px) {
   .kitchen-page {
-    padding: 12px;
+    padding: 12px 12px var(--workflow-footer-clearance);
   }
 }

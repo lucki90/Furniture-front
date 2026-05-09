@@ -38,19 +38,4 @@
       🚪 Otwarcie drzwi
     </label>
   </div>
-
-  <div class="selected-wall-info">
-    @for (pos of wallPositions(); track pos.wall.id) {
-      @if (isSelected(pos.wall.id)) {
-        <span class="wall-info-selected">
-          <strong>{{ getWallLabel(pos.wall.type) }}</strong>
-          {{ pos.wall.widthMm }}×{{ pos.wall.heightMm }}mm
-          · {{ pos.wall.cabinets.length }} szafek
-        </span>
-      }
-    }
-    @if (wallPositions().length === 0) {
-      <span class="empty-hint">Kliknij "+ Ściana"</span>
-    }
-  </div>
 </div>

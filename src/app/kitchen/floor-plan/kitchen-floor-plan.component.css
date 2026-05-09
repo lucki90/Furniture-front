@@ -1,5 +1,5 @@
 .floor-plan-container {
-  /* usunieto padding - kontrolowane przez rodzica */
+  /* padding handled by parent */
 }
 
 .floor-plan-svg {
@@ -10,7 +10,6 @@
   border-radius: var(--border-radius-sm);
 }
 
-/* Wall groups */
 .wall-group {
   cursor: pointer;
   transition: opacity 0.2s;
@@ -29,9 +28,6 @@
   transition: fill 0.2s, stroke 0.2s;
 }
 
-/* Wyspa — obramowanie przerywane jak blat, transparentne tło, by szafki były widoczne.
-   Rect renderowany JAKO PIERWSZY (za szafkami), więc pointer-events mogą być aktywne —
-   kliknięcie pustego obszaru wyspy trafia w ten prostokąt i selekcjonuje ścianę. */
 .island-wall-rect {
   stroke: #6d4c41;
   stroke-width: 1;
@@ -44,7 +40,6 @@
   stroke-dasharray: none;
 }
 
-/* Cabinet rectangles on floor plan */
 .cabinet-rect {
   opacity: 0.8;
   transition: opacity 0.2s, stroke-width 0.2s;
@@ -54,20 +49,18 @@
   opacity: 1;
 }
 
-/* Countertop (blat) - przezroczysta warstwa */
 .countertop-rect {
-  fill: rgba(141, 110, 99, 0.25);  /* brązowy, przezroczysty */
+  fill: rgba(141, 110, 99, 0.25);
   stroke: #6d4c41;
   stroke-width: 1;
-  stroke-dasharray: 3 2;  /* linia przerywana */
-  pointer-events: none;  /* nie blokuje kliknięć na szafki */
+  stroke-dasharray: 3 2;
+  pointer-events: none;
 }
 
 .countertop-group {
   pointer-events: none;
 }
 
-/* Wymiary blatu */
 .countertop-dimension {
   font-size: 8px;
   font-weight: 700;
@@ -79,13 +72,11 @@
   stroke-width: 2px;
 }
 
-/* Edytowana szafka - podświetlenie */
 .cabinet-rect.editing {
   opacity: 1;
   filter: drop-shadow(0 0 3px #f59e0b);
 }
 
-/* Wall labels */
 .wall-label {
   font-size: 9px;
   font-weight: 600;
@@ -94,7 +85,23 @@
   user-select: none;
 }
 
-/* Cabinet badge */
+.wall-meta {
+  font-size: 7px;
+  font-weight: 600;
+  fill: #6b7280;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 0 2px white, 0 0 2px white;
+  paint-order: stroke fill;
+  stroke: white;
+  stroke-width: 2px;
+}
+
+.wall-group.selected .wall-label,
+.wall-group.selected .wall-meta {
+  fill: var(--accent-color);
+}
+
 .cabinet-badge {
   fill: #ff9800;
   stroke: white;
@@ -108,7 +115,6 @@
   pointer-events: none;
 }
 
-/* Remove button */
 .remove-btn {
   cursor: pointer;
   opacity: 0.8;
@@ -119,13 +125,12 @@
   opacity: 1;
 }
 
-/* Narożny segment blatu (Faza 13.1) */
 .corner-countertop-group {
   pointer-events: none;
 }
 
 .corner-countertop-rect {
-  fill: rgba(141, 110, 99, 0.40); /* ciemniejszy brąz — odróżnia od zwykłego blatu */
+  fill: rgba(141, 110, 99, 0.4);
   stroke: #4e342e;
   stroke-width: 1.5;
 }
@@ -133,7 +138,7 @@
 .corner-miter-line {
   stroke: #4e342e;
   stroke-width: 1.5;
-  stroke-dasharray: 4 3; /* przerywana linia = linia cięcia 45° */
+  stroke-dasharray: 4 3;
 }
 
 .corner-countertop-label {
@@ -143,10 +148,6 @@
   pointer-events: none;
 }
 
-/* ============================================================
-   ŁUKI OTWARCIA DRZWI (Faza 13.2) — rzut z góry
-   ============================================================ */
-
 .door-arc {
   pointer-events: none;
   stroke-width: 1;
@@ -155,17 +156,16 @@
 
 .arc-clear {
   fill: rgba(76, 175, 80, 0.15);
-  stroke: #4CAF50;
+  stroke: #4caf50;
 }
 
 .arc-collision {
-  fill: rgba(244, 67, 54, 0.20);
+  fill: rgba(244, 67, 54, 0.2);
   stroke: #f44336;
   stroke-width: 1.5;
   stroke-dasharray: 4 2;
 }
 
-/* Toolbar przełączników widoczności rzutu z góry */
 .floor-plan-toolbar {
   margin-top: 4px;
   display: flex;
@@ -192,33 +192,7 @@
   height: 13px;
 }
 
-/* Legend */
 .legend-item {
   font-size: 7px;
   fill: #999;
-}
-
-/* Selected wall info panel */
-.selected-wall-info {
-  margin-top: 8px;
-  padding: 6px 10px;
-  background: var(--bg-card);
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--border-color);
-  min-height: 24px;
-  font-size: 12px;
-}
-
-.wall-info-selected {
-  color: var(--accent-color);
-  font-weight: 500;
-}
-
-.wall-info-selected strong {
-  margin-right: 5px;
-}
-
-.empty-hint {
-  color: var(--text-muted);
-  font-style: italic;
 }

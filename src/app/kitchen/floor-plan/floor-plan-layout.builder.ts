@@ -90,7 +90,11 @@ export function buildWallPositions(
   const scale = Math.min(scaleX, scaleY, 0.12);
 
   const centerX = settings.svgWidth / 2;
-  const centerY = settings.svgHeight - settings.padding - 15;
+  // Tighter baseline + smaller outer padding make the floor-plan legible at 100% browser zoom
+  // without changing the actual wall/cabinet proportions or the geometry source of truth.
+  // TODO(CODEX): If future wall-meta labels start colliding in denser layouts, replace this
+  // heuristic fit with bounds-based auto-scaling instead of tweaking padding and baseline by hand.
+  const centerY = settings.svgHeight - settings.padding - 8;
 
   if (mainWall) {
     const width = mainWall.widthMm * scale;

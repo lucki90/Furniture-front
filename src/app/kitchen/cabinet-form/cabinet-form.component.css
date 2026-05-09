@@ -1,8 +1,7 @@
 /* ============================================
-   CABINET FORM - KOMPAKTOWY STYL
+   CABINET FORM - COMPACT LAYOUT
    ============================================ */
 
-/* ============ Obudowa boczna ============ */
 .enclosure-section {
   border-top: 1px solid var(--border-color);
   padding-top: 12px;
@@ -55,14 +54,12 @@
   margin-top: 4px;
 }
 
-/* ============ Cabinet form layout ============ */
 .cabinet-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
-/* ─── Tabs (Podstawowe / Pozycja / Opcje) ─── */
 .form-tabs {
   display: flex;
   gap: 0;
@@ -73,7 +70,7 @@
 
 .form-tab {
   flex: 1;
-  padding: 9px 6px;
+  padding: 8px 6px;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
@@ -120,7 +117,7 @@
 
 .form-with-preview {
   display: flex;
-  gap: 20px;
+  gap: 16px;
   align-items: flex-start;
 }
 
@@ -129,14 +126,13 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
-/* Panel podglądu szafki */
 .cabinet-preview-panel {
   flex-shrink: 0;
-  width: 220px;
-  padding: 12px;
+  width: 204px;
+  padding: 10px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
@@ -163,10 +159,9 @@
   text-align: center;
 }
 
-/* Wiersze i grupy formularza */
 .form-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -192,11 +187,10 @@
   margin: 0;
 }
 
-/* Inputy i selecty */
 .cabinet-form .form-control {
   width: 100%;
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 7px 9px;
+  font-size: 12.5px;
   font-family: inherit;
   border: 1px solid var(--input-border);
   border-radius: var(--border-radius-sm);
@@ -224,14 +218,13 @@
   padding-right: 28px;
 }
 
-/* Trigger pickera typu szafki */
 .type-picker-trigger {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 7px 9px;
+  font-size: 12.5px;
   font-family: inherit;
   border: 1px solid var(--input-border);
   border-radius: var(--border-radius-sm);
@@ -266,7 +259,6 @@
   flex-shrink: 0;
 }
 
-/* Input z jednostką */
 .input-with-unit {
   display: flex;
   align-items: stretch;
@@ -291,7 +283,6 @@
   white-space: nowrap;
 }
 
-/* Błędy i podpowiedzi */
 .form-error {
   font-size: 10.5px;
   color: var(--error-color);
@@ -304,19 +295,18 @@
   margin-top: 2px;
 }
 
-/* Przyciski formularza */
 .form-actions {
   display: flex;
   gap: 8px;
   margin-top: 4px;
-  padding-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid var(--border-color);
 }
 
 .form-actions .btn {
   flex: 1;
-  padding: 10px 16px;
-  font-size: 13px;
+  padding: 9px 14px;
+  font-size: 12.5px;
   font-weight: 600;
   font-family: inherit;
   border: none;
@@ -354,12 +344,8 @@
   cursor: not-allowed;
 }
 
-/* ============================================
-   INFO BAR - OBLICZONA WYSOKOŚĆ BLATU / UPPER
-   ============================================ */
-
 .countertop-info-bar {
-  padding: 8px 12px;
+  padding: 7px 10px;
   background: var(--accent-soft);
   border: 1px solid var(--accent-mid);
   border-radius: var(--border-radius-sm);
@@ -381,13 +367,9 @@
   border-color: rgba(2, 132, 199, 0.25);
 }
 
-/* ============================================
-   SEKCJA SEGMENTÓW (TALL_CABINET)
-   ============================================ */
-
 .segments-section {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid var(--border-color);
 }
 
@@ -459,18 +441,14 @@
   font-size: 12px;
 }
 
-/* ============================================
-   SEKCJA SZAFKI NAROŻNEJ (CORNER_CABINET)
-   ============================================ */
-
 .corner-section {
-  margin-top: 16px;
-  padding-top: 16px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid var(--border-color);
 }
 
 .corner-preview {
-  margin-top: 16px;
+  margin-top: 14px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -484,12 +462,8 @@
   border: 1px solid var(--border-color);
 }
 
-/* ============================================
-   SEKCJA POZYCJONOWANIA (UPPER_*)
-   ============================================ */
-
 .positioning-section {
-  padding: 12px 14px;
+  padding: 10px 12px;
   background: var(--bg-main);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
@@ -514,10 +488,6 @@
   flex-shrink: 0;
   line-height: 1.4;
 }
-
-/* ============================================
-   SEKCJA KASKADOWA (UPPER_CASCADE)
-   ============================================ */
 
 .cascade-section {
   margin-top: 4px;
@@ -579,13 +549,9 @@
 }
 
 .cascade-segment-body {
-  padding: 10px 12px;
+  padding: 9px 10px;
   background: var(--bg-card);
 }
-
-/* ============================================
-   POPUP EDYCJI SEGMENTU
-   ============================================ */
 
 .segment-popup-backdrop {
   position: fixed;
@@ -665,10 +631,6 @@
 .btn-popup-done:hover {
   background: var(--accent-hover);
 }
-
-/* ============================================
-   PODSUMOWANIE BŁĘDÓW WALIDACJI
-   ============================================ */
 
 .validation-summary {
   display: flex;

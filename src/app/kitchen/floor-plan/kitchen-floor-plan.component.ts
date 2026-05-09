@@ -58,7 +58,7 @@ export class KitchenFloorPlanComponent {
   private readonly SVG_WIDTH = 320;
   private readonly SVG_HEIGHT = 240;
   private readonly WALL_THICKNESS = 10;
-  private readonly PADDING = 30;
+  private readonly PADDING = 4;
   private readonly COUNTERTOP_OVERHANG = 30;
   private readonly COUNTERTOP_STANDARD_DEPTH = 600;
 

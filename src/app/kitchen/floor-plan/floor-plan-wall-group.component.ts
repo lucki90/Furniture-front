@@ -55,8 +55,6 @@ export class FloorPlanWallGroupComponent {
 
   protected getWallColor(type: WallType, isSelected: boolean): string {
     if (type === 'ISLAND') {
-      // Wyspa: transparentna warstwa, by szafki były widoczne spod prostokąta wyspy.
-      // Taki sam odcień brązu jak blat (.countertop-rect), by styl był spójny.
       return isSelected ? 'rgba(25, 118, 210, 0.22)' : 'rgba(141, 110, 99, 0.22)';
     }
     return isSelected ? '#1976d2' : '#9e9e9e';
@@ -65,6 +63,63 @@ export class FloorPlanWallGroupComponent {
   protected getWallTooltip(): string {
     const wall = this.wallPosition.wall;
     return `${wall.type}: ${wall.widthMm}mm, ${wall.cabinets.length} szafek`;
+  }
+
+  protected getWallMetaText(): string {
+    const wall = this.wallPosition.wall;
+    return `${wall.widthMm}x${wall.heightMm}mm · ${this.formatCabinetCount(wall.cabinets.length)}`;
+  }
+
+  protected getWallLabelTransform(): string | null {
+    if (!this.isVerticalWall()) {
+      return null;
+    }
+    return `rotate(-90 ${this.wallPosition.labelX} ${this.wallPosition.labelY})`;
+  }
+
+  protected getWallMetaTransform(): string | null {
+    if (!this.isVerticalWall()) {
+      return null;
+    }
+    return `rotate(-90 ${this.getWallMetaX()} ${this.getWallMetaY()})`;
+  }
+
+  protected getWallMetaX(): number {
+    const wallType = this.wallPosition.wall.type;
+    if (wallType === 'LEFT') {
+      return this.wallPosition.labelX - 12;
+    }
+    if (wallType === 'RIGHT') {
+      return this.wallPosition.labelX + 12;
+    }
+    return this.wallPosition.labelX;
+  }
+
+  protected getWallMetaY(): number {
+    return this.wallPosition.isHorizontal
+      ? this.wallPosition.labelY + 9
+      : this.wallPosition.labelY;
+  }
+
+  protected getWallMetaAnchor(): 'middle' {
+    return 'middle';
+  }
+
+  private formatCabinetCount(count: number): string {
+    if (count === 1) {
+      return '1 szafka';
+    }
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+    if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
+      return `${count} szafki`;
+    }
+    return `${count} szafek`;
+  }
+
+  private isVerticalWall(): boolean {
+    const wallType = this.wallPosition.wall.type;
+    return wallType === 'LEFT' || wallType === 'RIGHT';
   }
 
   protected getCabinetFill(cab: CabinetOnFloorPlan): string {

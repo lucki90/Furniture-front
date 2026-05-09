@@ -8,27 +8,13 @@
       <span class="summary-icon">🧱</span>
       <span class="summary-text">{{ selectedWallLabel }}: <strong>{{ cabinets.length }}</strong> szafek, <strong>{{ selectedWallTotalCost.toFixed(0) }} zl</strong></span>
       <span class="fit-indicator" [class.success]="fitsOnWall" [class.error]="!fitsOnWall">
-        {{ fitsOnWall ? '✓' : '✗' }}
+        {{ fitsOnWall ? '✓' : '✕' }}
       </span>
     </div>
     <div class="summary-badge highlight">
       <span class="summary-icon">📐</span>
       <span class="summary-text">Projekt: <strong>{{ totalCabinetCount }}</strong> szafek, <strong>{{ totalCost.toFixed(0) }} zl</strong></span>
     </div>
-  </div>
-
-  <!-- Fit bar — wizualny pasek zajętości ściany -->
-  <div class="fit-bar" *ngIf="cabinets.length > 0 && wallWidthMm > 0">
-    <span class="fit-bar-label">Zajęto</span>
-    <div class="fit-bar-track">
-      <div class="fit-bar-fill"
-           [class.fit-bar-fill--over]="!fitsOnWall"
-           [style.width.%]="fitPercent"></div>
-    </div>
-    <span class="fit-bar-value">{{ usedWidthMm }} / {{ wallWidthMm }} mm</span>
-    <span class="fit-bar-badge" [class.fit-bar-badge--success]="fitsOnWall" [class.fit-bar-badge--error]="!fitsOnWall">
-      {{ fitsOnWall ? '✓ mieści się' : '✗ nie mieści się' }}
-    </span>
   </div>
 
   <div class="cabinets-list-card">
@@ -40,12 +26,13 @@
           class="btn btn-sm btn-secondary"
           (click)="clearSelectedWallCabinets.emit()"
           [disabled]="editingCabinetId !== null">
-          Wyczysc
+          Wyczyść
         </button>
       </div>
     </div>
     <div class="list-content">
       <app-kitchen-cabinet-list
+        *ngIf="cabinets.length > 0"
         [cabinets]="cabinets"
         [wallType]="selectedWallType"
         [editingCabinetId]="editingCabinetId"
@@ -56,8 +43,8 @@
 
       <div class="empty-list" *ngIf="cabinets.length === 0">
         <span class="empty-icon">📦</span>
-        <p>Brak szafek na tej scianie</p>
-        <small>Uzyj formularza powyzej, aby dodac szafke</small>
+        <p>Brak szafek na tej ścianie</p>
+        <small>Użyj formularza powyżej, aby dodać szafkę</small>
       </div>
     </div>
   </div>

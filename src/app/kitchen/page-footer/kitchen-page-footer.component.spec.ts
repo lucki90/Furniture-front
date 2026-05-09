@@ -58,4 +58,22 @@ describe('KitchenPageFooterComponent', () => {
     expect(component.saveProject.emit).toHaveBeenCalled();
     expect(component.downloadExcel.emit).toHaveBeenCalled();
   });
+
+  it('renders in empty state and keeps workflow actions disabled', () => {
+    component.totalCabinetCount = 0;
+    component.wallsCount = 1;
+    component.projectResult = null;
+
+    fixture.detectChanges();
+
+    const footer = fixture.nativeElement.querySelector('.page-footer');
+    const buttons = fixture.nativeElement.querySelectorAll('.footer-actions button');
+    const text = fixture.nativeElement.textContent;
+
+    expect(footer).not.toBeNull();
+    expect(text).toContain('Szafek');
+    expect(text).toContain('0');
+    expect((buttons[1] as HTMLButtonElement).disabled).toBeTrue();
+    expect((buttons[2] as HTMLButtonElement).disabled).toBeTrue();
+  });
 });

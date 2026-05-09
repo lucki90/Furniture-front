@@ -8,13 +8,12 @@
 
 .main-workspace {
   display: grid;
-  grid-template-columns: 340px 1fr 360px;
-  grid-template-rows: 1fr;   /* single row fills the flex-allocated height */
-  gap: 14px;
-  align-items: stretch;      /* all columns same height */
+  grid-template-columns: 338px minmax(0, 1fr) 364px;
+  grid-template-rows: 1fr;
+  gap: 10px;
+  align-items: stretch;
   flex: 1;
   min-height: 0;
-  /* no margin-bottom — footer is outside workspace */
 }
 
 .panel-card {
@@ -31,46 +30,90 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
+  gap: 10px;
+  min-height: 40px;
+  padding: 6px 12px;
   background: var(--primary-color);
   color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .panel-title {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
+  line-height: 1.2;
 }
 
 .panel-info {
+  margin-left: auto;
   font-size: 11px;
-  opacity: 0.7;
+  opacity: 0.72;
   font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel-header .btn {
+  flex-shrink: 0;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.panel-header .btn.btn-sm {
+  padding: 0 12px;
+}
+
+.panel-header .btn-primary {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.panel-header .btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.panel-header .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.panel-header .btn:disabled {
+  opacity: 0.45;
 }
 
 .panel-content {
   flex: 1;
-  padding: 10px;
+  padding: 8px;
   background: var(--bg-main);
 }
 
 .floor-plan-column {
-  min-width: 340px;
+  min-width: 338px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-/* Left column scrolls as a whole; panel-card must NOT clip its content.
-   Panel header stays sticky at the top of the scrolling column. */
+/* Left column scrolls as a whole; the card itself should not clip content. */
 .floor-plan-column .panel-card {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: visible; /* column is scroll container — card must not clip */
+  flex: 0 0 auto;
+  min-height: 100%;
+  overflow: visible;
+  border-bottom-left-radius: calc(var(--border-radius) + 2px);
+  border-bottom-right-radius: calc(var(--border-radius) + 2px);
 }
 
 .floor-plan-column .panel-header {
@@ -88,16 +131,10 @@
 .wall-dimensions-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 7px 10px;
   background: var(--bg-card);
   border-top: 1px solid var(--border-color);
-  font-size: 12px;
-}
-
-.wall-label {
-  font-weight: 700;
-  color: var(--accent-color);
   font-size: 12px;
 }
 
@@ -114,8 +151,8 @@
 }
 
 .dim-field input {
-  width: 60px;
-  padding: 4px 6px;
+  width: 58px;
+  padding: 3px 6px;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   font-size: 12px;
@@ -138,21 +175,121 @@
   font-weight: 500;
 }
 
+.room-config-section {
+  padding: 0 10px 10px;
+  background: var(--bg-card);
+}
+
+.floor-plan-column .room-config-section:last-of-type {
+  padding-bottom: 10px;
+}
+
+.floor-plan-column app-wall-config {
+  display: block;
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+  overflow: hidden;
+}
+
+.room-config-group {
+  background: var(--bg-main);
+  border-radius: var(--border-radius-sm);
+  padding: 8px 9px;
+  border: 1px solid var(--border-color);
+}
+
+.room-config-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.room-config-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: -0.1px;
+}
+
+.room-config-info {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: auto;
+  font-family: var(--font-mono, var(--font-sans));
+}
+
+.room-config-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.room-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.room-config-field--full {
+  grid-column: 1 / -1;
+}
+
+.room-config-field label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.room-config-field input[type="number"] {
+  padding: 5px 6px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--border-radius-sm);
+  font-size: 11.5px;
+  font-family: inherit;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+
+.room-config-field input[type="number"]:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(29, 111, 164, 0.12);
+}
+
+.room-config-field small {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 .front-view-column {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
 .front-view-column .panel-content {
-  min-height: 280px;
+  min-height: 350px;
+  display: flex;
+}
+
+.front-view-column .panel-card {
+  min-height: 430px;
 }
 
 .form-column {
-  min-width: 360px;
+  min-width: 364px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -161,17 +298,21 @@
 
 .form-column .panel-card {
   height: auto;
-  overflow: visible; /* column is scroll container — card must not clip */
+  overflow: visible;
+  border-bottom-left-radius: calc(var(--border-radius) + 2px);
+  border-bottom-right-radius: calc(var(--border-radius) + 2px);
 }
 
 .form-column .panel-content {
   background: var(--bg-card);
-  padding: 14px;
+  padding: 12px;
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
 }
 
 @media (max-width: 1400px) {
   .main-workspace {
-    grid-template-columns: 300px 1fr 320px;
+    grid-template-columns: 314px minmax(0, 1fr) 336px;
   }
 
   .floor-plan-column,
@@ -182,12 +323,11 @@
 
 @media (max-width: 1200px) {
   .main-workspace {
-    grid-template-columns: 280px 1fr 300px;
+    grid-template-columns: 292px minmax(0, 1fr) 314px;
   }
 }
 
 @media (max-width: 1000px) {
-  /* At tablet width the 3-column grid collapses — restore natural flow */
   :host {
     overflow: visible;
     height: auto;
@@ -196,7 +336,7 @@
 
   .main-workspace {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;   /* rows size to content again */
+    grid-template-rows: auto;
     height: auto;
   }
 
@@ -225,5 +365,9 @@
 @media (max-width: 500px) {
   .wall-dimensions-bar {
     flex-wrap: wrap;
+  }
+
+  .room-config-fields {
+    grid-template-columns: 1fr;
   }
 }

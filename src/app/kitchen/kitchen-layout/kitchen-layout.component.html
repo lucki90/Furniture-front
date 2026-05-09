@@ -93,7 +93,7 @@
               [attr.height]="bottomZoneHeight"
               class="zone-bg lower-zone-bg"/>
 
-        <!-- Cień szafek z drugiej strony wyspy (ghosting) — półprzezroczyste, nieinteraktywne -->
+        <!-- Cień szafek z drugiej strony wyspy — półprzezroczyste, nieinteraktywne -->
         <g *ngIf="ghostVisualPositions().length > 0"
            appKitchenLayoutCabinetsLayer
            [positions]="ghostVisualPositions()"
@@ -207,7 +207,10 @@
       [gapMm]="gapMm()"
       [fitsOnWall]="fitsOnWall()"
       [wallLength]="wall().length"
-      [cooktopGapWarning]="cooktopGapWarning()">
+      [cooktopGapWarning]="cooktopGapWarning()"
+      [showFitBar]="filteredCabinetPositions().length > 0"
+      [usedWidthMm]="totalWidth()"
+      [wallWidthMm]="wall().length">
     </app-kitchen-layout-info-panel>
   </div>
 </div>

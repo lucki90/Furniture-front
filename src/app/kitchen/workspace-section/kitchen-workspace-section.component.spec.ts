@@ -26,8 +26,8 @@ describe('KitchenWorkspaceSectionComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Sciana glowna:');
     expect(text).toContain('Sciana glowna - 3600x2600 mm');
+    expect(fixture.nativeElement.querySelector('.wall-dimensions-bar .wall-label')).toBeNull();
   });
 
   it('emits add wall and cancel edit actions', () => {
@@ -72,5 +72,26 @@ describe('KitchenWorkspaceSectionComponent', () => {
 
     expect(component.wallLengthChange.emit).toHaveBeenCalledWith(4200);
     expect(component.wallHeightChange.emit).toHaveBeenCalledWith(2750);
+  });
+
+  it('emits room dimension updates from room settings card', () => {
+    spyOn(component.roomWidthChange, 'emit');
+    spyOn(component.roomDepthChange, 'emit');
+    component.roomWidthMm = 4200;
+    component.roomDepthMm = 3100;
+
+    fixture.detectChanges();
+
+    const inputs = fixture.nativeElement.querySelectorAll('.room-config-field input');
+    const widthInput = inputs[0] as HTMLInputElement;
+    const depthInput = inputs[1] as HTMLInputElement;
+
+    widthInput.value = '5000';
+    widthInput.dispatchEvent(new Event('input'));
+    depthInput.value = '';
+    depthInput.dispatchEvent(new Event('input'));
+
+    expect(component.roomWidthChange.emit).toHaveBeenCalledWith(5000);
+    expect(component.roomDepthChange.emit).toHaveBeenCalledWith(null);
   });
 });

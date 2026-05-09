@@ -30,12 +30,16 @@ export class KitchenWorkspaceSectionComponent {
   @Input() selectedWallLabel = '';
   @Input() wallLength = 3600;
   @Input() wallHeight = 2600;
+  @Input() roomWidthMm: number | null = null;
+  @Input() roomDepthMm: number | null = null;
   @Input() projectResult: MultiWallCalculateResponse | null = null;
 
   @Output() addWallRequested = new EventEmitter<void>();
   @Output() wallRemoved = new EventEmitter<string>();
   @Output() wallLengthChange = new EventEmitter<number>();
   @Output() wallHeightChange = new EventEmitter<number>();
+  @Output() roomWidthChange = new EventEmitter<number | null>();
+  @Output() roomDepthChange = new EventEmitter<number | null>();
   @Output() wallConfigChanged = new EventEmitter<void>();
   @Output() cabinetCalculated = new EventEmitter<CabinetCalculatedEvent>();
   @Output() cancelEdit = new EventEmitter<void>();
@@ -52,5 +56,22 @@ export class KitchenWorkspaceSectionComponent {
     if (!Number.isNaN(parsedValue)) {
       this.wallHeightChange.emit(parsedValue);
     }
+  }
+
+  onRoomWidthInput(value: string | number | null): void {
+    this.roomWidthChange.emit(this.parseOptionalDimension(value));
+  }
+
+  onRoomDepthInput(value: string | number | null): void {
+    this.roomDepthChange.emit(this.parseOptionalDimension(value));
+  }
+
+  private parseOptionalDimension(value: string | number | null): number | null {
+    if (value === '' || value === null) {
+      return null;
+    }
+
+    const parsedValue = Number(value);
+    return Number.isNaN(parsedValue) ? null : parsedValue;
   }
 }

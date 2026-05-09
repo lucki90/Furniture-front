@@ -15,7 +15,6 @@
       </div>
 
       <div class="wall-dimensions-bar" *ngIf="hasSelectedWall">
-        <span class="wall-label">{{ selectedWallLabel }}:</span>
         <div class="dim-field">
           <span class="dim-label">Dlug.</span>
           <input type="number" [ngModel]="wallLength" (ngModelChange)="onWallLengthInput($event)">
@@ -25,6 +24,40 @@
           <span class="dim-label">Wys.</span>
           <input type="number" [ngModel]="wallHeight" (ngModelChange)="onWallHeightInput($event)">
           <span class="dim-unit">mm</span>
+        </div>
+      </div>
+
+      <div class="room-config-section">
+        <div class="room-config-group">
+          <div class="room-config-header">
+            <span class="room-config-title">Pomieszczenie</span>
+            <span class="room-config-info">opcjonalne</span>
+          </div>
+          <div class="room-config-fields">
+            <div class="room-config-field">
+              <label>Szerokosc pomieszczenia (mm)</label>
+              <input
+                type="number"
+                [ngModel]="roomWidthMm"
+                (ngModelChange)="onRoomWidthInput($event)"
+                min="1000"
+                max="20000"
+                step="10">
+            </div>
+            <div class="room-config-field">
+              <label>Glebokosc pomieszczenia (mm)</label>
+              <input
+                type="number"
+                [ngModel]="roomDepthMm"
+                (ngModelChange)="onRoomDepthInput($event)"
+                min="1000"
+                max="20000"
+                step="10">
+            </div>
+            <div class="room-config-field room-config-field--full">
+              <small>Uzywane do warningow clearance dla wyspy.</small>
+            </div>
+          </div>
         </div>
       </div>
 

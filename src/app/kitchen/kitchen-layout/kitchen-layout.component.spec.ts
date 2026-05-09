@@ -40,6 +40,7 @@ describe('KitchenLayoutComponent', () => {
     expect(component.countertopSegmentLabels()[0].lengthMm).toBe(410);
     expect(component.countertopZoneRects()[0].x).toBeCloseTo(100 * component.scaleFactor() - 5 * component.scaleFactor(), 3);
   });
+
 });
 
 class KitchenStateServiceStub {

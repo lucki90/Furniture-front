@@ -290,16 +290,6 @@ export class KitchenPageComponent {
     this.resetProjectResult();
   }
 
-  parseOptionalDimension(value: string | number | null): number | null {
-    if (value === '' || value === null) {
-      return null;
-    }
-
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-
   get selectedWallLabel(): string {
     const wall = this.selectedWall();
     return wall ? this.stateService.getWallLabel(wall.type) : '';
