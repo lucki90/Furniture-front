@@ -36,6 +36,8 @@
   background: var(--primary-color);
   color: #fff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
 }
 
 .panel-title {
@@ -303,10 +305,21 @@
 }
 
 .form-column .panel-card {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  min-height: 100%;
   height: auto;
   overflow: visible;
   border-bottom-left-radius: calc(var(--border-radius) + 2px);
   border-bottom-right-radius: calc(var(--border-radius) + 2px);
+}
+
+.form-column .panel-header {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .form-column .panel-content {

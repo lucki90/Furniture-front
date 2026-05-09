@@ -12,11 +12,12 @@
       <span class="page-title-meta page-title-meta--hint">{{ projectSubtitle }}</span>
     </ng-template>
 
-    <span class="status-badge-inline"
-          *ngIf="hasProjectId"
-          [style.background-color]="projectStatusColor + '18'"
-          [style.color]="projectStatusColor"
-          [style.border-color]="projectStatusColor + '40'">
+    <span
+      class="status-badge-inline"
+      *ngIf="hasProjectId"
+      [style.background-color]="projectStatusColor + '18'"
+      [style.color]="projectStatusColor"
+      [style.border-color]="projectStatusColor + '40'">
       {{ projectStatusLabel }}
     </span>
 
@@ -63,19 +64,44 @@
     </div>
 
     <div class="actions-divider" aria-hidden="true"></div>
-    <a routerLink="/kitchen/projects" class="btn btn-outline">
-      <span class="btn-icon-text">📁</span>
-      Moje projekty
-    </a>
-    <button class="btn btn-icon-only" title="Cofnij (Ctrl+Z)" [disabled]="!canUndo" (click)="undoAction.emit()">↩</button>
-    <button class="btn btn-icon-only" title="Ponow (Ctrl+Y)" [disabled]="!canRedo" (click)="redoAction.emit()">↪</button>
-    <button class="btn btn-success" (click)="saveProject.emit()" [disabled]="totalCabinetCount === 0 || isSavingProject || isEditingCabinet">
-      <span class="btn-icon-text">💾</span>
-      {{ isSavingProject ? 'Zapisuje...' : (projectId ? 'Zapisz zmiany' : 'Zapisz projekt') }}
-    </button>
-    <button class="btn btn-secondary" (click)="calculateProject.emit()" [disabled]="totalCabinetCount === 0 || isCalculatingProject || isEditingCabinet">
-      <span class="btn-icon-text">🧮</span>
-      {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz projekt' }}
-    </button>
+
+    <div class="page-actions-secondary">
+      <a routerLink="/kitchen/projects" class="btn btn-outline">
+        <span class="btn-icon-text">📁</span>
+        Moje projekty
+      </a>
+      <button class="btn btn-icon-only" title="Cofnij (Ctrl+Z)" [disabled]="!canUndo" (click)="undoAction.emit()">↩</button>
+      <button class="btn btn-icon-only" title="Ponow (Ctrl+Y)" [disabled]="!canRedo" (click)="redoAction.emit()">↪</button>
+    </div>
+
+    <div class="page-actions-aux"></div>
+
+    <div class="workflow-actions page-actions-workflow">
+      <button
+        class="btn workflow-action-btn workflow-action-btn--clear"
+        type="button"
+        (click)="clearAll.emit()"
+        [disabled]="totalCabinetCount === 0 || isEditingCabinet"
+        title="Wyczysc projekt">
+        <span class="workflow-action-icon">🗑️</span>
+        Wyczyść
+      </button>
+      <button
+        class="btn workflow-action-btn workflow-action-btn--calculate"
+        type="button"
+        (click)="calculateProject.emit()"
+        [disabled]="totalCabinetCount === 0 || isCalculatingProject || isEditingCabinet">
+        <span class="workflow-action-icon">🧮</span>
+        {{ isCalculatingProject ? 'Wyliczam...' : 'Wylicz' }}
+      </button>
+      <button
+        class="btn workflow-action-btn workflow-action-btn--save"
+        type="button"
+        (click)="saveProject.emit()"
+        [disabled]="totalCabinetCount === 0 || isSavingProject || isEditingCabinet">
+        <span class="workflow-action-icon">💾</span>
+        {{ isSavingProject ? 'Zapisuję...' : 'Zapisz' }}
+      </button>
+    </div>
   </div>
 </header>

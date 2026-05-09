@@ -205,6 +205,69 @@ body {
   font-size: 16px;
 }
 
+/* Workflow actions (header + footer) */
+.workflow-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.workflow-action-btn {
+  min-width: 104px;
+  height: 30px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.workflow-action-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.workflow-action-btn--clear {
+  background: var(--error-color);
+  border-color: var(--error-color);
+  color: #fff;
+}
+
+.workflow-action-btn--clear:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
+.workflow-action-btn--calculate {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #fff;
+}
+
+.workflow-action-btn--calculate:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.workflow-action-btn--save {
+  background: var(--success-color);
+  border-color: var(--success-color);
+  color: #fff;
+}
+
+.workflow-action-btn--save:hover:not(:disabled) {
+  background: var(--success-hover);
+  border-color: var(--success-hover);
+}
+
 /* Formularze */
 .form-group {
   margin-bottom: var(--spacing-md);

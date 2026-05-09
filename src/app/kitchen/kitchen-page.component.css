@@ -1,13 +1,12 @@
 .kitchen-page {
   --topnav-height: 46px;
   --workflow-footer-height: 40px;
-  --workflow-footer-clearance: 4px;
+  --workflow-footer-clearance: 0px;
   width: 100%;
   padding: 12px 14px var(--workflow-footer-clearance);
   max-width: 1820px;
   margin: 0 auto;
   box-sizing: border-box;
-  /* Keep the workspace clear of the fixed footer so no panel visually touches it. */
   height: calc(
     100vh - var(--topnav-height) - var(--workflow-footer-height) - var(--workflow-footer-clearance)
   );

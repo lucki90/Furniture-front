@@ -69,9 +69,24 @@ describe('KitchenPageHeaderComponent', () => {
     expect(toggleButtons[0].disabled).toBeTrue();
     expect(toggleButtons[1].disabled).toBeTrue();
 
-    const saveButton: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-success');
-    const calculateButton: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-secondary');
+    const workflowButtons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('.workflow-action-btn');
+    const clearButton = workflowButtons[0];
+    const calculateButton = workflowButtons[1];
+    const saveButton = workflowButtons[2];
+    expect(clearButton.disabled).toBeTrue();
     expect(saveButton.disabled).toBeTrue();
     expect(calculateButton.disabled).toBeTrue();
+  });
+
+  it('emits clear action from workflow group', () => {
+    spyOn(component.clearAll, 'emit');
+    component.totalCabinetCount = 2;
+
+    fixture.detectChanges();
+
+    const clearButton: HTMLButtonElement = fixture.nativeElement.querySelector('.workflow-action-btn--clear');
+    clearButton.click();
+
+    expect(component.clearAll.emit).toHaveBeenCalled();
   });
 });

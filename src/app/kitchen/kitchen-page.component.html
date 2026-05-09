@@ -18,6 +18,7 @@
     [view]="view"
     [hasCalculationResult]="!!projectResult"
     [isEditingCabinet]="editingCabinetId !== null"
+    (clearAll)="clearAll()"
     (saveProject)="onSaveProject()"
     (calculateProject)="calculateProject()"
     (statusChange)="onStatusChange($event)"

@@ -32,7 +32,7 @@ describe('KitchenPageFooterComponent', () => {
     expect(text).toContain('Łącznie');
   });
 
-  it('emits footer actions', () => {
+  it('emits footer actions in aux + workflow order', () => {
     spyOn(component.saveProject, 'emit');
     spyOn(component.calculateProject, 'emit');
     spyOn(component.clearAll, 'emit');
@@ -47,16 +47,16 @@ describe('KitchenPageFooterComponent', () => {
     fixture.detectChanges();
 
     const buttons = fixture.nativeElement.querySelectorAll('.footer-actions button');
-    // Kolejność w nowym ciemnym footerze: Wyczyść / Wylicz / Zapisz / Excel
+    // Kolejność: Excel (warunkowy po lewej) / Wyczyść / Wylicz / Zapisz
     (buttons[0] as HTMLButtonElement).click();
     (buttons[1] as HTMLButtonElement).click();
     (buttons[2] as HTMLButtonElement).click();
     (buttons[3] as HTMLButtonElement).click();
 
+    expect(component.downloadExcel.emit).toHaveBeenCalled();
     expect(component.clearAll.emit).toHaveBeenCalled();
     expect(component.calculateProject.emit).toHaveBeenCalled();
     expect(component.saveProject.emit).toHaveBeenCalled();
-    expect(component.downloadExcel.emit).toHaveBeenCalled();
   });
 
   it('renders in empty state and keeps workflow actions disabled', () => {
@@ -73,6 +73,7 @@ describe('KitchenPageFooterComponent', () => {
     expect(footer).not.toBeNull();
     expect(text).toContain('Szafek');
     expect(text).toContain('0');
+    expect((buttons[0] as HTMLButtonElement).disabled).toBeTrue();
     expect((buttons[1] as HTMLButtonElement).disabled).toBeTrue();
     expect((buttons[2] as HTMLButtonElement).disabled).toBeTrue();
   });

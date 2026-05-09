@@ -15,42 +15,46 @@
   </div>
 
   <div class="footer-actions">
-    <button
-      class="btn-footer btn-footer-secondary"
-      type="button"
-      (click)="clearAll.emit()"
-      [disabled]="editingCabinetId !== null"
-      title="Wyczyść projekt">
-      <span class="btn-footer-icon">🗑️</span>
-      <span class="btn-footer-text">Wyczyść</span>
-    </button>
-    <button
-      class="btn-footer btn-footer-secondary"
-      type="button"
-      (click)="calculateProject.emit()"
-      [disabled]="totalCabinetCount === 0 || isCalculatingProject || editingCabinetId !== null">
-      <span class="btn-footer-icon">🧮</span>
-      <span class="btn-footer-text">{{ isCalculatingProject ? 'Obliczam...' : 'Wylicz' }}</span>
-    </button>
-    <button
-      class="btn-footer btn-footer-primary"
-      type="button"
-      (click)="saveProject.emit()"
-      [disabled]="totalCabinetCount === 0 || isSavingProject || editingCabinetId !== null">
-      <span class="btn-footer-icon">💾</span>
-      <span class="btn-footer-text">{{ isSavingProject ? 'Zapisuję...' : (currentProjectId ? 'Zapisz' : 'Zapisz projekt') }}</span>
-    </button>
+    <div class="footer-actions-aux">
+      <ng-container *ngIf="projectResult">
+        <button
+          class="btn-footer btn-footer-secondary"
+          type="button"
+          (click)="downloadExcel.emit()"
+          [disabled]="isExporting"
+          [title]="isExporting ? 'Generowanie pliku...' : 'Pobierz liste plyt do zamowienia (.xlsx)'">
+          <span class="btn-footer-icon">{{ isExporting ? '⟳' : '📊' }}</span>
+          <span class="btn-footer-text">{{ isExporting ? 'Generowanie...' : 'Excel' }}</span>
+        </button>
+      </ng-container>
+    </div>
 
-    <ng-container *ngIf="projectResult">
+    <div class="workflow-actions">
       <button
-        class="btn-footer btn-footer-secondary"
+        class="btn workflow-action-btn workflow-action-btn--clear"
         type="button"
-        (click)="downloadExcel.emit()"
-        [disabled]="isExporting"
-        [title]="isExporting ? 'Generowanie pliku...' : 'Pobierz listę płyt do zamówienia (.xlsx)'">
-        <span class="btn-footer-icon">{{ isExporting ? '⏳' : '📊' }}</span>
-        <span class="btn-footer-text">{{ isExporting ? 'Generowanie...' : 'Excel' }}</span>
+        (click)="clearAll.emit()"
+        [disabled]="totalCabinetCount === 0 || editingCabinetId !== null"
+        title="Wyczysc projekt">
+        <span class="workflow-action-icon">🗑️</span>
+        Wyczyść
       </button>
-    </ng-container>
+      <button
+        class="btn workflow-action-btn workflow-action-btn--calculate"
+        type="button"
+        (click)="calculateProject.emit()"
+        [disabled]="totalCabinetCount === 0 || isCalculatingProject || editingCabinetId !== null">
+        <span class="workflow-action-icon">🧮</span>
+        <span class="btn-footer-text">{{ isCalculatingProject ? 'Wyliczam...' : 'Wylicz' }}</span>
+      </button>
+      <button
+        class="btn workflow-action-btn workflow-action-btn--save"
+        type="button"
+        (click)="saveProject.emit()"
+        [disabled]="totalCabinetCount === 0 || isSavingProject || editingCabinetId !== null">
+        <span class="workflow-action-icon">💾</span>
+        <span class="btn-footer-text">{{ isSavingProject ? 'Zapisuję...' : 'Zapisz' }}</span>
+      </button>
+    </div>
   </div>
 </footer>

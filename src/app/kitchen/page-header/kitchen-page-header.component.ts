@@ -38,6 +38,7 @@ export class KitchenPageHeaderComponent {
 
   @Output() saveProject = new EventEmitter<void>();
   @Output() calculateProject = new EventEmitter<void>();
+  @Output() clearAll = new EventEmitter<void>();
   @Output() statusChange = new EventEmitter<ProjectStatus>();
   @Output() undoAction = new EventEmitter<void>();
   @Output() redoAction = new EventEmitter<void>();
