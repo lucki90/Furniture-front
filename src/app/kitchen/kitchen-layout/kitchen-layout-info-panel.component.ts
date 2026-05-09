@@ -21,12 +21,4 @@ export class KitchenLayoutInfoPanelComponent {
   @Input() fitsOnWall = true;
   @Input() wallLength = 0;
   @Input() cooktopGapWarning: KitchenLayoutCooktopGapWarning | null = null;
-  @Input() showFitBar = false;
-  @Input() usedWidthMm = 0;
-  @Input() wallWidthMm = 0;
-
-  get fitPercent(): number {
-    if (this.wallWidthMm <= 0) return 0;
-    return Math.min(100, Math.round((this.usedWidthMm / this.wallWidthMm) * 100));
-  }
 }

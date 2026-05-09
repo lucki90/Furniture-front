@@ -23,6 +23,26 @@ describe('KitchenCabinetsSectionComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Brak szafek na tej ścianie');
   });
 
+  it('renders summary badges even before the first calculation and keeps project-wall-last order', () => {
+    component.selectedWallLabel = 'Sciana glowna';
+    component.totalCabinetCount = 0;
+    component.totalCost = 0;
+    component.selectedWallTotalCost = 0;
+
+    fixture.detectChanges();
+
+    const badges = Array.from(
+      fixture.nativeElement.querySelectorAll('.summary-badge')
+    ) as HTMLElement[];
+    const labels = badges.map(badge => badge.textContent?.trim() ?? '');
+
+    expect(labels.length).toBe(3);
+    expect(labels[0]).toContain('Projekt:');
+    expect(labels[1]).toContain('Sciana glowna:');
+    expect(labels[2]).toContain('Ostatnia szafka:');
+    expect(labels[1]).toContain('0 szafek');
+  });
+
   it('renders summary and emits clear event when cabinets exist', () => {
     spyOn(component.clearSelectedWallCabinets, 'emit');
     component.result = {
@@ -51,6 +71,8 @@ describe('KitchenCabinetsSectionComponent', () => {
 
     fixture.detectChanges();
 
+    expect(fixture.nativeElement.textContent).toContain('Projekt:');
+    expect(fixture.nativeElement.textContent).toContain('Sciana glowna:');
     expect(fixture.nativeElement.textContent).toContain('Ostatnia szafka:');
     fixture.nativeElement.querySelector('.list-actions button').click();
     expect(component.clearSelectedWallCabinets.emit).toHaveBeenCalled();

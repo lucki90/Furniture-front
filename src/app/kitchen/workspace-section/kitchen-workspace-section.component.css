@@ -284,6 +284,12 @@
   display: flex;
 }
 
+.front-view-column .panel-content > app-kitchen-layout {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
 .front-view-column .panel-card {
   min-height: 430px;
 }

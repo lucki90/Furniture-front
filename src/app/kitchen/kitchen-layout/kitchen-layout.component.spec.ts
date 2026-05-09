@@ -41,6 +41,21 @@ describe('KitchenLayoutComponent', () => {
     expect(component.countertopZoneRects()[0].x).toBeCloseTo(100 * component.scaleFactor() - 5 * component.scaleFactor(), 3);
   });
 
+  it('should render fit bar inline with svg toolbar controls', () => {
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    const toolbar = root.querySelector('.svg-toolbar--top');
+    const fitBar = root.querySelector('.fit-bar--inline');
+    const actions = root.querySelector('.svg-toolbar-actions');
+
+    expect(toolbar).not.toBeNull();
+    expect(fitBar).not.toBeNull();
+    expect(actions).not.toBeNull();
+    expect(toolbar?.textContent).toContain('400 / 3000 mm');
+    expect((fitBar as HTMLElement).compareDocumentPosition(actions as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
 });
 
 class KitchenStateServiceStub {

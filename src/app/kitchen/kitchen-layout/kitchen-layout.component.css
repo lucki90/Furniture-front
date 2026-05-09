@@ -1,9 +1,12 @@
 :host {
-  display: block;
+  display: flex;
+  flex: 1;
   min-width: 0;
 }
 
 .layout-container {
+  flex: 1;
+  min-height: 100%;
   padding: 12px;
   background: var(--bg-card);
   border-radius: var(--border-radius-sm);
@@ -26,7 +29,7 @@
 }
 
 .empty-state {
-  min-height: 188px;
+  min-height: 230px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -47,6 +50,20 @@
   margin-bottom: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.svg-toolbar--top {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.svg-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 /* Pill toggle buttons (Etykiety / Blat / Szafki górne) */
@@ -609,6 +626,23 @@
     flex-basis: 100%;
     order: 5;
   }
+}
+
+.fit-bar--inline {
+  margin-top: 0;
+  padding: 5px 10px;
+  min-height: 30px;
+  flex: 0 1 360px;
+  max-width: min(100%, 430px);
+}
+
+.fit-bar--inline .fit-bar-label {
+  font-size: 10.5px;
+}
+
+.fit-bar--inline .fit-bar-value,
+.fit-bar--inline .fit-bar-badge {
+  font-size: 11px;
 }
 
 .legend-item {

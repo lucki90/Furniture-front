@@ -129,6 +129,12 @@ export class KitchenLayoutComponent {
     return ticks;
   });
 
+  readonly fitPercent = computed(() => {
+    const wallLength = this.wall().length;
+    if (wallLength <= 0) return 0;
+    return Math.min(100, Math.round((this.totalWidth() / wallLength) * 100));
+  });
+
   readonly hasHangingCabinets = computed(() => {
     return this.filteredCabinets().some(cabinet => {
       const zone = getCabinetZone(cabinet);

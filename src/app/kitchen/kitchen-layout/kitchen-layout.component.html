@@ -19,31 +19,47 @@
       <span *ngIf="fitsOnWall()" class="success-inline">✓</span>
     </p>
 
-    <div class="svg-toolbar">
-      <button type="button"
-              class="svg-toggle-pill"
-              [class.active]="showCabinetLabels()"
-              (click)="showCabinetLabels.set(!showCabinetLabels())"
-              [attr.aria-pressed]="showCabinetLabels()">
-        <span class="svg-toggle-icon">🏷️</span>
-        Etykiety
-      </button>
-      <button type="button"
-              class="svg-toggle-pill"
-              [class.active]="showCountertop()"
-              (click)="showCountertop.set(!showCountertop())"
-              [attr.aria-pressed]="showCountertop()">
-        <span class="svg-toggle-icon">🍳</span>
-        Blat
-      </button>
-      <button type="button"
-              class="svg-toggle-pill"
-              [class.active]="showUpperCabinets()"
-              (click)="showUpperCabinets.set(!showUpperCabinets())"
-              [attr.aria-pressed]="showUpperCabinets()">
-        <span class="svg-toggle-icon">▲</span>
-        Szafki górne
-      </button>
+    <div class="svg-toolbar svg-toolbar--top">
+      <div class="fit-bar fit-bar--inline" *ngIf="filteredCabinetPositions().length > 0 && wall().length > 0">
+        <span class="fit-bar-label">Zajęto</span>
+        <div class="fit-bar-track">
+          <div
+            class="fit-bar-fill"
+            [class.fit-bar-fill--over]="!fitsOnWall()"
+            [style.width.%]="fitPercent()"></div>
+        </div>
+        <span class="fit-bar-value">{{ totalWidth() }} / {{ wall().length }} mm</span>
+        <span class="fit-bar-badge" [class.fit-bar-badge--success]="fitsOnWall()" [class.fit-bar-badge--error]="!fitsOnWall()">
+          {{ fitsOnWall() ? '✓ mieści się' : '✕ nie mieści się' }}
+        </span>
+      </div>
+
+      <div class="svg-toolbar-actions">
+        <button type="button"
+                class="svg-toggle-pill"
+                [class.active]="showCabinetLabels()"
+                (click)="showCabinetLabels.set(!showCabinetLabels())"
+                [attr.aria-pressed]="showCabinetLabels()">
+          <span class="svg-toggle-icon">🏷️</span>
+          Etykiety
+        </button>
+        <button type="button"
+                class="svg-toggle-pill"
+                [class.active]="showCountertop()"
+                (click)="showCountertop.set(!showCountertop())"
+                [attr.aria-pressed]="showCountertop()">
+          <span class="svg-toggle-icon">🍳</span>
+          Blat
+        </button>
+        <button type="button"
+                class="svg-toggle-pill"
+                [class.active]="showUpperCabinets()"
+                (click)="showUpperCabinets.set(!showUpperCabinets())"
+                [attr.aria-pressed]="showUpperCabinets()">
+          <span class="svg-toggle-icon">▲</span>
+          Szafki górne
+        </button>
+      </div>
     </div>
 
     <div class="wall-view-wrapper">
@@ -190,7 +206,6 @@
       </svg>
     </div>
 
-    <!-- Ruler pod SVG: tick co 600 mm + tick końcowy -->
     <div class="ruler-bar" *ngIf="rulerTicks().length > 0">
       <div class="ruler-track" [style.width.px]="wallDisplayWidth()">
         <span *ngFor="let tick of rulerTicks(); trackBy: trackByRulerValue"
@@ -207,10 +222,7 @@
       [gapMm]="gapMm()"
       [fitsOnWall]="fitsOnWall()"
       [wallLength]="wall().length"
-      [cooktopGapWarning]="cooktopGapWarning()"
-      [showFitBar]="filteredCabinetPositions().length > 0"
-      [usedWidthMm]="totalWidth()"
-      [wallWidthMm]="wall().length">
+      [cooktopGapWarning]="cooktopGapWarning()">
     </app-kitchen-layout-info-panel>
   </div>
 </div>
