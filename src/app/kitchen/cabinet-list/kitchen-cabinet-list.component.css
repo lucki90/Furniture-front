@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 92px;
 }
 
 .empty-state {

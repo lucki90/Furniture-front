@@ -13,6 +13,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  box-sizing: border-box;
   padding: 7px 14px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -20,6 +21,19 @@
   box-shadow: var(--shadow-sm);
   font-size: 13px;
   color: var(--text-secondary);
+  min-height: 38px;
+}
+
+.summary-badge--project {
+  min-inline-size: 255px;
+}
+
+.summary-badge--wall {
+  min-inline-size: 322px;
+}
+
+.summary-badge--last {
+  min-inline-size: 234px;
 }
 
 .summary-badge.highlight {
@@ -32,9 +46,14 @@
   font-size: 14px;
 }
 
+.summary-text {
+  min-width: 0;
+}
+
 .summary-text strong {
   color: var(--text-primary);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .summary-badge.highlight .summary-text strong {
@@ -73,10 +92,18 @@
   flex-direction: column;
 }
 
+.cabinets-list-card--fixed {
+  height: 166px;
+}
+
 .list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  height: 50px;
+  min-height: 50px;
   padding: 11px 16px;
   background: var(--bg-main);
   border-bottom: 1px solid var(--border-color);
@@ -106,20 +133,44 @@
   font-weight: 700;
 }
 
+.list-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 28px;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.list-actions .btn {
+  min-width: 90px;
+}
+
 .list-content {
+  box-sizing: border-box;
   padding: 12px;
   flex: 0 0 auto;
-  min-height: 104px;
+  min-height: 116px;
   display: flex;
   flex-direction: column;
 }
 
+.list-content--fixed {
+  height: 116px;
+}
+
+.list-content > app-kitchen-cabinet-list {
+  display: block;
+  min-height: 92px;
+}
+
 .empty-list {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 80px;
+  min-height: 68px;
   padding: 12px 20px;
   color: var(--text-muted);
   text-align: center;
@@ -146,5 +197,6 @@
 
   .summary-badge {
     width: 100%;
+    min-inline-size: 0;
   }
 }

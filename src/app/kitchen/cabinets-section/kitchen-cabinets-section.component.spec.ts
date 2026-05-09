@@ -23,6 +23,17 @@ describe('KitchenCabinetsSectionComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Brak szafek na tej ścianie');
   });
 
+  it('keeps clear action visible but disabled when there are no cabinets', () => {
+    component.selectedWallLabel = 'Sciana glowna';
+
+    fixture.detectChanges();
+
+    const clearButton = fixture.nativeElement.querySelector('.list-actions button') as HTMLButtonElement;
+
+    expect(clearButton).withContext('expected clear button placeholder to stay visible').not.toBeNull();
+    expect(clearButton.disabled).toBeTrue();
+  });
+
   it('renders summary badges even before the first calculation and keeps project-wall-last order', () => {
     component.selectedWallLabel = 'Sciana glowna';
     component.totalCabinetCount = 0;
@@ -74,7 +85,9 @@ describe('KitchenCabinetsSectionComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Projekt:');
     expect(fixture.nativeElement.textContent).toContain('Sciana glowna:');
     expect(fixture.nativeElement.textContent).toContain('Ostatnia szafka:');
-    fixture.nativeElement.querySelector('.list-actions button').click();
+    const clearButton = fixture.nativeElement.querySelector('.list-actions button') as HTMLButtonElement;
+    expect(clearButton.disabled).toBeFalse();
+    clearButton.click();
     expect(component.clearSelectedWallCabinets.emit).toHaveBeenCalled();
   });
 });
