@@ -72,6 +72,14 @@ export class KitchenCostsSectionComponent {
   // niż w KitchenPageComponent, ale przy dalszym rozwoju warto będzie rozdzielić
   // przynajmniej pricing tab od reszty kosztorysu, żeby zmniejszyć ryzyko regresji.
 
+  /** Local state — which BOM sub-tab is active (boards/components/jobs).
+   *  Intentionally NOT an @Input; parent owns walls/pricing via activeDetailsTab. */
+  bomTab: 'boards' | 'components' | 'jobs' = 'boards';
+
+  setBomTab(tab: 'boards' | 'components' | 'jobs'): void {
+    this.bomTab = tab;
+  }
+
   readonly trackByIndex = (index: number) => index;
   readonly trackByWall = (_: number, wall: WallCalculationSummary) => wall.wallType;
   readonly trackByCabinet = (_: number, cabinet: CabinetSummary) => cabinet.cabinetId ?? cabinet.kitchenCabinetType;

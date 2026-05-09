@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  min-height: 92px;
+  min-height: 100px;
 }
 
 .empty-state {
@@ -52,13 +52,13 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 4px 2px 10px;
+  padding: 4px 2px 12px;
   scroll-snap-type: x mandatory;
   scrollbar-width: thin;
 }
 
 .cabinet-strip::-webkit-scrollbar {
-  height: 6px;
+  height: 7px;
 }
 
 .cabinet-strip::-webkit-scrollbar-thumb {

@@ -93,7 +93,7 @@
 }
 
 .cabinets-list-card--fixed {
-  height: 166px;
+  height: 174px;
 }
 
 .list-header {
@@ -150,18 +150,18 @@
   box-sizing: border-box;
   padding: 12px;
   flex: 0 0 auto;
-  min-height: 116px;
+  min-height: 124px;
   display: flex;
   flex-direction: column;
 }
 
 .list-content--fixed {
-  height: 116px;
+  height: 124px;
 }
 
 .list-content > app-kitchen-cabinet-list {
   display: block;
-  min-height: 92px;
+  min-height: 100px;
 }
 
 .empty-list {
