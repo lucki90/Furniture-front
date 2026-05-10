@@ -1,108 +1,90 @@
-/* ============================================
-   SETTINGS PAGE
-   ============================================ */
+/* ============================================================
+   SETTINGS PAGE — panel-card visual language (spójny z Koszty/Konfigurator)
+   ============================================================ */
 
-/* Color swatch next to color select dropdown */
-.color-select-wrapper {
+/*
+ * Zajmuje dokładnie obszar viewportu poniżej topnav (46px).
+ * Tworzy zamknięty pojemnik, dzięki czemu settings-body może
+ * scrollować wewnętrznie — settings-header nigdy nie znika.
+ */
+:host {
   display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.color-select-wrapper .form-control {
-  flex: 1;
-}
-
-.color-swatch {
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--border-strong);
-  flex-shrink: 0;
-}
-
-/* Checkbox label — disabled state (non-MDF material) */
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.checkbox-label.disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+  flex-direction: column;
+  height: calc(100vh - 46px); /* 46px = stała wysokość topnav */
+  overflow: hidden;
 }
 
 .settings-page {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  background: var(--bg-main);
 }
 
-/* Header */
-.page-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+/* ── Fixed header — always visible, outside the scroll area ── */
 
-.page-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-primary, #1e293b);
-  margin: 0;
+.settings-header {
+  flex-shrink: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
-.page-title-icon {
-  font-size: 20px;
-}
-
-.page-subtitle {
-  font-size: 13px;
-  color: var(--text-secondary, #64748b);
-  margin: 0;
-}
-
-/* Info bar */
-.info-bar {
-  padding: 10px 14px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-mid);
-  border-radius: var(--border-radius-sm);
+.settings-title-group {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.5;
+  align-items: center;
+  gap: 10px;
 }
 
-.info-icon {
+.settings-title-icon {
+  font-size: 20px;
+  line-height: 1;
   flex-shrink: 0;
-  font-size: 15px;
-  line-height: 1.4;
 }
 
-/* States */
+.settings-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+
+.settings-subtitle {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.settings-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── State messages ────────────────────────────────────────── */
+
 .state-loading {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 20px;
-  color: var(--text-secondary, #64748b);
+  padding: 24px 16px;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .state-error {
+  margin: 12px 16px;
   padding: 12px 16px;
   background: var(--error-bg);
   border: 1px solid rgba(220, 38, 38, 0.3);
@@ -115,9 +97,7 @@
   flex-wrap: wrap;
 }
 
-.error-icon {
-  font-size: 16px;
-}
+.error-icon { font-size: 16px; }
 
 .btn-retry {
   margin-left: auto;
@@ -132,93 +112,236 @@
   transition: background 0.15s;
 }
 
-.btn-retry:hover {
-  background: var(--error-bg);
-}
+.btn-retry:hover { background: var(--error-bg); }
 
-/* Settings card */
-.settings-card {
-  background: var(--bg-card, #fff);
-  border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 10px;
-  padding: 20px 24px;
+/* ── Body layout: sidebar + content — THIS is the scroll container ── */
+
+.settings-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: 16px;
+  padding: 16px;
 }
 
-.card-section-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary, #64748b);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-color, #e2e8f0);
-}
+/* ── Sidebar nav — sticky within .settings-body ─────────────── */
 
-/* Accordion */
-.settings-accordion {
+.settings-nav {
+  width: 180px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;                  /* sticky względem .settings-body (scroll container) */
+  max-height: 100%;        /* nie wyrośnie poza scroll container */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 1px;
+  padding: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
 }
 
-::ng-deep .settings-accordion .mat-expansion-panel {
-  border-radius: 10px !important;
-  border: 1px solid var(--border-color, #e2e8f0);
-  box-shadow: none !important;
-  background: var(--bg-card, #fff);
+.nav-title {
+  padding: 8px 9px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-::ng-deep .settings-accordion .mat-expansion-panel-header {
-  font-size: 14px;
-  font-weight: 600;
-  padding: 0 20px;
+.nav-group-label {
+  margin: 8px 6px 2px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
-::ng-deep .settings-accordion .mat-expansion-panel-header-title {
+.nav-group-label:first-child { margin-top: 2px; }
+
+.nav-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 5px 9px;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.nav-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ── Main content area ─────────────────────────────────────── */
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Panel card (spójny z Koszty/Konfigurator) ─────────────── */
+
+.panel-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-primary, #1e293b);
+  padding: 8px 14px;
+  background: var(--primary-color);
+  flex-shrink: 0;
+  min-height: 36px;
 }
 
-::ng-deep .settings-accordion .mat-expansion-panel-header-description {
-  font-size: 12px;
+.panel-header-icon {
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.panel-header-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: -0.1px;
+}
+
+.panel-header-desc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 400;
-  color: var(--text-muted, #94a3b8);
+  margin-left: 4px;
 }
 
-.panel-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  color: var(--accent-color, #3b82f6);
+.panel-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
-::ng-deep .settings-accordion .mat-expansion-panel-body {
-  padding: 0 20px 16px;
-}
+/* ── Form helpers ──────────────────────────────────────────── */
 
 .section-hint {
   font-size: 12px;
-  color: var(--text-muted, #94a3b8);
-  margin: 0 0 12px 0;
-  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0 0 14px;
+  line-height: 1.55;
 }
 
 .subsection-title {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: var(--text-primary, #334155);
-  margin: 16px 0 8px 0;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-color, #e2e8f0);
+  color: var(--text-primary);
+  margin: 14px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
 }
 
-/* Component price toolbar (filter row) */
-.component-price-toolbar {
+/* Avoid top margin on the first subsection title */
+.subsection-title:first-child {
+  margin-top: 0;
+}
+
+/* Color select with swatch */
+.color-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-select-wrapper .form-control {
+  flex: 1;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-strong);
+  flex-shrink: 0;
+}
+
+/* Checkboxes */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+}
+
+.checkbox-label.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Form controls (projected into app-form-field) */
+.form-control {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  font-size: 13px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(29, 111, 164, 0.12);
+}
+
+.form-control:disabled {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+select.form-control {
+  cursor: pointer;
+}
+
+/* ── Cennik toolbar ────────────────────────────────────────── */
+
+.price-toolbar {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -227,11 +350,22 @@
 
 .filter-label {
   font-size: 12px;
-  color: var(--text-secondary, #64748b);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
-/* Category chip */
+.filter-select {
+  width: 200px;
+  flex: none;
+}
+
+.filter-count {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── Category chip ─────────────────────────────────────────── */
+
 .category-chip {
   display: inline-block;
   padding: 1px 6px;
@@ -243,45 +377,25 @@
   white-space: nowrap;
 }
 
-/* Inputs projected into app-form-field — styling for .form-control inside settings */
-.form-control {
-  flex: 1;
-  min-width: 0;
-  padding: 8px 10px;
-  font-size: 13px;
-  border: 1px solid var(--border-color, #e2e8f0);
-  border-radius: 6px;
-  background: var(--bg-card, #fff);
-  color: var(--text-primary, #1e293b);
-  transition: border-color 0.2s, box-shadow 0.2s;
+/* ── Row inline status / warning helpers ───────────────────── */
+
+.row-warn-icon {
+  font-size: 12px;
+  vertical-align: middle;
+  margin-right: 2px;
 }
 
-.form-control:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(29, 111, 164, 0.12);
+.row-extra-info {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-left: 4px;
 }
 
-.form-control:disabled {
-  background: var(--bg-hover, #f1f5f9);
-  color: var(--text-muted, #94a3b8);
-  cursor: not-allowed;
-}
+.status-ok { color: #388e3c; }
+.status-err { color: #c62828; }
 
-select.form-control {
-  cursor: pointer;
-}
+/* ── Save success toast ────────────────────────────────────── */
 
-/* Form actions */
-.form-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-color, #e2e8f0);
-}
-
-/* Success indicator */
 .save-success {
   font-size: 13px;
   font-weight: 600;
@@ -297,13 +411,48 @@ select.form-control {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .settings-page {
-    padding: 16px;
+/* ── Responsive ────────────────────────────────────────────── */
+
+@media (max-width: 960px) {
+  .settings-body {
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
   }
 
-  .settings-card {
-    padding: 16px;
+  .settings-nav {
+    position: static;
+    width: 100%;
+    max-height: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 6px 8px;
+    gap: 2px;
+  }
+
+  .nav-title {
+    display: none;
+  }
+
+  .nav-group-label {
+    display: none;
+  }
+
+  .nav-item {
+    width: auto;
+    padding: 5px 10px;
+    font-size: 11.5px;
+  }
+}
+
+@media (max-width: 600px) {
+  .settings-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .settings-header-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }

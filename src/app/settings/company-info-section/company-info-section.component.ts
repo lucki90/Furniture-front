@@ -1,8 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatIconModule } from '@angular/material/icon';
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
 import { SettingsService } from '../settings.service';
 
@@ -20,7 +18,7 @@ import { SettingsService } from '../settings.service';
   templateUrl: './company-info-section.component.html',
   styleUrls: ['./company-info-section.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, FormFieldComponent, MatExpansionModule, MatIconModule],
+  imports: [CommonModule, FormsModule, FormFieldComponent],
 })
 export class CompanyInfoSectionComponent {
 

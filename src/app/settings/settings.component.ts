@@ -5,8 +5,6 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { SettingsService } from './settings.service';
 import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
 import { SettingsOptions, UserSettings } from './settings.model';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatIconModule } from '@angular/material/icon';
 import { FormFieldComponent } from '../shared/form-field/form-field.component';
 import { BoardPrice } from './board-price.service';
 import { ComponentPriceService, ComponentPrice } from './component-price.service';
@@ -24,7 +22,7 @@ import { CompanyInfoSectionComponent } from './company-info-section/company-info
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, FormFieldComponent, MatExpansionModule, MatIconModule, PriceEditTableComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent],
+  imports: [CommonModule, FormsModule, FormFieldComponent, PriceEditTableComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent],
 })
 export class SettingsComponent implements OnInit, AfterViewInit {
 
@@ -503,6 +501,22 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       },
       error: () => event.complete(false),
     });
+  }
+
+  scrollTo(id: string): void {
+    const el = document.getElementById(id);
+    if (!el) return;
+    // .settings-body jest scroll containerem — obliczamy pozycję przez getBoundingClientRect,
+    // żeby nagłówek sekcji trafił precyzyjnie na top widocznego obszaru (+ 8px oddechu).
+    const bodyEl = document.querySelector('.settings-body') as HTMLElement | null;
+    if (bodyEl) {
+      const elTop = el.getBoundingClientRect().top;
+      const bodyTop = bodyEl.getBoundingClientRect().top;
+      const targetScrollTop = bodyEl.scrollTop + (elTop - bodyTop) - 8;
+      bodyEl.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 
   protected trackByIndex = (index: number) => index;

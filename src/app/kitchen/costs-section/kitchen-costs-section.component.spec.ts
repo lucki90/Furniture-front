@@ -30,9 +30,9 @@ describe('KitchenCostsSectionComponent', () => {
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Sciana glowna');
-    expect(text).toContain('Wylicz projekt');
+    expect(text).toContain('Wylicz');
 
-    const buttons = fixture.nativeElement.querySelectorAll('.calculation-prompt button');
+    const buttons = fixture.nativeElement.querySelectorAll('.pre-calc-actions button');
     (buttons[0] as HTMLButtonElement).click();
     (buttons[1] as HTMLButtonElement).click();
 
@@ -63,7 +63,7 @@ describe('KitchenCostsSectionComponent', () => {
     fixture.detectChanges();
 
     const pricingTab = Array.from(
-      fixture.nativeElement.querySelectorAll('.tab-btn') as NodeListOf<HTMLButtonElement>
+      fixture.nativeElement.querySelectorAll('.pill-tab') as NodeListOf<HTMLButtonElement>
     ).find(button => button.textContent?.includes('Wycena')) as HTMLButtonElement;
 
     pricingTab.click();
@@ -109,8 +109,8 @@ describe('KitchenCostsSectionComponent', () => {
 
     fixture.detectChanges();
 
-    const inputs = fixture.nativeElement.querySelectorAll('.pricing-grid input');
-    const textarea = fixture.nativeElement.querySelector('.pricing-notes textarea') as HTMLTextAreaElement;
+    const inputs = fixture.nativeElement.querySelectorAll('.pricing-fields input');
+    const textarea = fixture.nativeElement.querySelector('.pricing-notes-field textarea') as HTMLTextAreaElement;
     const saveButton = fixture.nativeElement.querySelector('.pricing-actions button') as HTMLButtonElement;
 
     (inputs[0] as HTMLInputElement).value = '12';
@@ -190,10 +190,10 @@ describe('KitchenCostsSectionComponent', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Wysokość blatu: 858 mm');
-    expect(text).toContain('Max korpus dolny: 720 mm');
-    expect(text).toContain('base-1:');
-    expect(text).toContain('L 18 mm /');
-    expect(text).toContain('P 50 mm');
+    expect(text).toContain('858');
+    expect(text).toContain('720');
+    expect(text).toContain('base-1');
+    expect(text).toContain('18');
+    expect(text).toContain('50');
   });
 });

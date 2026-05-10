@@ -1,10 +1,4 @@
-<mat-expansion-panel [expanded]="true">
-  <mat-expansion-panel-header>
-    <mat-panel-title>
-      <mat-icon class="panel-icon">attach_money</mat-icon>
-      Cennik płyt
-    </mat-panel-title>
-  </mat-expansion-panel-header>
+<div class="board-prices-content">
 
   <div class="board-price-actions">
     <button class="btn btn-sm btn-outline" (click)="downloadCsvTemplate()" title="Pobierz szablon CSV">⬇ Szablon CSV</button>
@@ -119,9 +113,7 @@
           </td>
           <!-- Materiał -->
           <td>
-            <mat-icon *ngIf="!bp.materialActive"
-                      style="font-size:14px; width:14px; height:14px; color:#f57c00; vertical-align:middle; margin-right:2px;"
-                      title="Materiał nieaktywny">warning</mat-icon>
+            <span *ngIf="!bp.materialActive" class="material-warn-icon" title="Materiał nieaktywny">⚠️</span>
             {{ getMaterialDisplay(bp) }}
           </td>
           <td>{{ bp.thicknessMm }}</td>
@@ -163,4 +155,4 @@
     Brak cen. Dodaj pierwszą pozycję lub zaimportuj CSV.
   </div>
 
-</mat-expansion-panel>
+</div>

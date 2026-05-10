@@ -1,21 +1,21 @@
 <div class="settings-page">
 
-  <!-- Header -->
-  <div class="page-header">
-    <h1 class="page-title">
-      <span class="page-title-icon">⚙️</span>
-      Ustawienia
-    </h1>
-    <p class="page-subtitle">Globalne domyślne wartości dla nowych projektów</p>
-  </div>
-
-  <!-- Info bar -->
-  <div class="info-bar">
-    <span class="info-icon">ℹ️</span>
-    <span class="info-text">
-      Poniższe wartości są stosowane automatycznie przy tworzeniu nowych projektów.
-      Każdy projekt może nadpisać je indywidualnie.
-    </span>
+  <!-- Sticky header -->
+  <div class="settings-header">
+    <div class="settings-title-group">
+      <span class="settings-title-icon">⚙️</span>
+      <div>
+        <h1 class="settings-title">Ustawienia</h1>
+        <p class="settings-subtitle">Globalne domyślne wartości dla nowych projektów</p>
+      </div>
+    </div>
+    <div class="settings-header-actions">
+      <div *ngIf="savedSuccess" class="save-success">✓ Zapisano</div>
+      <button class="btn btn-primary" (click)="saveSettings()" [disabled]="saving || loading">
+        <span *ngIf="saving" class="spinner spinner-sm"></span>
+        {{ saving ? 'Zapisuję…' : '💾 Zapisz ustawienia' }}
+      </button>
+    </div>
   </div>
 
   <!-- Loading state -->
@@ -31,524 +31,520 @@
     <button class="btn-retry" (click)="loadSettings()">Spróbuj ponownie</button>
   </div>
 
-  <!-- Settings Accordion -->
-  <div *ngIf="!loading" class="settings-accordion">
-    <mat-accordion multi>
+  <!-- Settings body -->
+  <div *ngIf="!loading" class="settings-body">
+
+    <!-- Sidebar navigation -->
+    <nav class="settings-nav">
+      <div class="nav-title">📋 Spis treści</div>
+      <p class="nav-group-label">Projekt</p>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-kitchen')">🏠 Kuchnia</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-enclosures')">📦 Obudowy</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-technical')">📐 Wymiary tech.</button>
+      <p class="nav-group-label">Materiały</p>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-waste')">♻️ Odpad i słoje</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-materials')">🎨 Materiały</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-margins')">💰 Marże i rabaty</button>
+      <p class="nav-group-label">Cenniki</p>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-board-prices')">💵 Cennik płyt</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-comp-prices')">🔧 Komponenty</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-job-prices')">🛠️ Prace</button>
+      <p class="nav-group-label">Firma</p>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-company')">🏢 Dane firmy</button>
+    </nav>
+
+    <!-- Main content -->
+    <div class="settings-content">
 
       <!-- SEKCJA 1: Kuchnia — domyślne -->
-      <mat-expansion-panel [expanded]="true">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="panel-icon">kitchen</mat-icon>
-            Kuchnia — domyślne
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-
-        <div class="form-grid">
-          <app-form-field label="Cokół" unit="mm" hint="Wysokość cokołu pod szafkami dolnymi">
-            <select class="form-control" [(ngModel)]="plinthHeightMm" [disabled]="saving">
-              <option *ngFor="let opt of plinthOptions; trackBy: trackByIndex" [ngValue]="opt">{{ opt }}</option>
-            </select>
-          </app-form-field>
-
-          <app-form-field label="Blat" unit="mm" hint="Grubość blatu roboczego">
-            <select class="form-control" [(ngModel)]="countertopThicknessMm" [disabled]="saving">
-              <option *ngFor="let opt of countertopOptions; trackBy: trackByIndex" [ngValue]="opt">{{ opt }}</option>
-            </select>
-          </app-form-field>
-
-          <app-form-field label="Blenda górna" unit="mm" hint="Przestrzeń nad szafkami wiszącymi (0–150 mm)">
-            <select class="form-control" [(ngModel)]="upperFillerHeightMm" [disabled]="saving">
-              <option *ngFor="let opt of upperFillerHeightOptions; trackBy: trackByIndex" [ngValue]="opt">{{ opt }}</option>
-            </select>
-          </app-form-field>
+      <section id="sec-kitchen" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">🏠</span>
+          <span class="panel-header-title">Kuchnia — domyślne</span>
         </div>
-      </mat-expansion-panel>
+        <div class="panel-body">
+          <div class="form-grid">
+            <app-form-field label="Cokół" unit="mm" hint="Wysokość cokołu pod szafkami dolnymi">
+              <select class="form-control" [(ngModel)]="plinthHeightMm" [disabled]="saving">
+                <option *ngFor="let opt of plinthOptions; trackBy: trackByIndex" [ngValue]="opt">{{ opt }}</option>
+              </select>
+            </app-form-field>
+
+            <app-form-field label="Blat" unit="mm" hint="Grubość blatu roboczego">
+              <select class="form-control" [(ngModel)]="countertopThicknessMm" [disabled]="saving">
+                <option *ngFor="let opt of countertopOptions; trackBy: trackByIndex" [ngValue]="opt">{{ opt }}</option>
+              </select>
+            </app-form-field>
+
+            <app-form-field label="Blenda górna" unit="mm" hint="Przestrzeń nad szafkami wiszącymi (0–150 mm)">
+              <select class="form-control" [(ngModel)]="upperFillerHeightMm" [disabled]="saving">
+                <option *ngFor="let opt of upperFillerHeightOptions; trackBy: trackByIndex" [ngValue]="opt">{{ opt }}</option>
+              </select>
+            </app-form-field>
+          </div>
+        </div>
+      </section>
 
       <!-- SEKCJA 2: Obudowy szafek -->
-      <mat-expansion-panel [expanded]="true">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="panel-icon">view_in_ar</mat-icon>
-            Obudowy szafek — domyślne
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-
-        <div class="form-grid">
-          <app-form-field label="Głębokość zabudowy" unit="mm" hint="Odległość od tylnej ściany (400–700 mm)">
-            <input type="number" class="form-control" [(ngModel)]="distanceFromWallMm" [disabled]="saving" min="400" max="700" step="10" />
-          </app-form-field>
-
-          <app-form-field label="Cofnięcie cokołu" unit="mm" hint="Cofnięcie cokołu od frontu szafki (0–100 mm)">
-            <input type="number" class="form-control" [(ngModel)]="plinthSetbackMm" [disabled]="saving" min="0" max="100" step="5" />
-          </app-form-field>
-
-          <app-form-field label="Szerokość blendy bocznej" unit="mm" hint="Szerokość blendy równoległej do frontu (20–150 mm)">
-            <input type="number" class="form-control" [(ngModel)]="fillerWidthMm" [disabled]="saving" min="20" max="150" step="5" />
-          </app-form-field>
-
-          <app-form-field label="Szczelina frontowa" unit="mm" hint="Szczelina między frontem szafki a blendą (0–20 mm)">
-            <input type="number" class="form-control" [(ngModel)]="frontGapMm" [disabled]="saving" min="0" max="20" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Zmniejsz podporę (H)" unit="mm" hint="Pomniejszenie podpory blendy w pionie (0–100 mm)">
-            <input type="number" class="form-control" [(ngModel)]="supportHeightReductionMm" [disabled]="saving" min="0" max="100" step="5" />
-          </app-form-field>
-
-          <app-form-field label="Zmniejsz podporę (W)" unit="mm" hint="Pomniejszenie podpory blendy w poziomie (0–200 mm)">
-            <input type="number" class="form-control" [(ngModel)]="supportWidthReductionMm" [disabled]="saving" min="0" max="200" step="10" />
-          </app-form-field>
+      <section id="sec-enclosures" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">📦</span>
+          <span class="panel-header-title">Obudowy szafek — domyślne</span>
         </div>
-      </mat-expansion-panel>
+        <div class="panel-body">
+          <div class="form-grid">
+            <app-form-field label="Głębokość zabudowy" unit="mm" hint="Odległość od tylnej ściany (400–700 mm)">
+              <input type="number" class="form-control" [(ngModel)]="distanceFromWallMm" [disabled]="saving" min="400" max="700" step="10" />
+            </app-form-field>
+
+            <app-form-field label="Cofnięcie cokołu" unit="mm" hint="Cofnięcie cokołu od frontu szafki (0–100 mm)">
+              <input type="number" class="form-control" [(ngModel)]="plinthSetbackMm" [disabled]="saving" min="0" max="100" step="5" />
+            </app-form-field>
+
+            <app-form-field label="Szerokość blendy bocznej" unit="mm" hint="Szerokość blendy równoległej do frontu (20–150 mm)">
+              <input type="number" class="form-control" [(ngModel)]="fillerWidthMm" [disabled]="saving" min="20" max="150" step="5" />
+            </app-form-field>
+
+            <app-form-field label="Szczelina frontowa" unit="mm" hint="Szczelina między frontem szafki a blendą (0–20 mm)">
+              <input type="number" class="form-control" [(ngModel)]="frontGapMm" [disabled]="saving" min="0" max="20" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Zmniejsz podporę (H)" unit="mm" hint="Pomniejszenie podpory blendy w pionie (0–100 mm)">
+              <input type="number" class="form-control" [(ngModel)]="supportHeightReductionMm" [disabled]="saving" min="0" max="100" step="5" />
+            </app-form-field>
+
+            <app-form-field label="Zmniejsz podporę (W)" unit="mm" hint="Pomniejszenie podpory blendy w poziomie (0–200 mm)">
+              <input type="number" class="form-control" [(ngModel)]="supportWidthReductionMm" [disabled]="saving" min="0" max="200" step="10" />
+            </app-form-field>
+          </div>
+        </div>
+      </section>
 
       <!-- SEKCJA 3: Wymiary techniczne szafek -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="panel-icon">straighten</mat-icon>
-            Wymiary techniczne szafek
-          </mat-panel-title>
-          <mat-panel-description>
-            Zaawansowane — zmień tylko jeśli wiesz co robisz
-          </mat-panel-description>
-        </mat-expansion-panel-header>
-
-        <p class="section-hint">
-          Zaawansowane parametry konstrukcyjne. Domyślne wartości są zgodne ze standardami meblarskimi.
-        </p>
-        <div class="form-grid">
-          <app-form-field label="Grubość płyt szuflad (Sevroll)" unit="mm" hint="Płyty szuflad Sevroll Ball Slide (16–22 mm)">
-            <input type="number" class="form-control" [(ngModel)]="ballSlideSevrollDrawerThicknessMm" [disabled]="saving" min="16" max="22" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Grubość płyt szuflad (Antaro/Tandembox)" unit="mm" hint="Stała właściwość systemu Blum — nie można zmienić">
-            <input type="number" class="form-control" [ngModel]="antaroTandemboxDrawerThicknessMm" [disabled]="true" readonly />
-          </app-form-field>
-
-          <app-form-field label="Grubość HDF (tył)" unit="mm" hint="Grubość płyty tylnej HDF (1–5 mm)">
-            <input type="number" class="form-control" [(ngModel)]="hdfThicknessMm" [disabled]="saving" min="1" max="5" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Odl. nutu od krawędzi" unit="mm" hint="Odległość nutu pod HDF od tylnej krawędzi boku (10–35 mm)">
-            <input type="number" class="form-control" [(ngModel)]="hdfGrooveDistanceMm" [disabled]="saving" min="10" max="35" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Głębokość nutu HDF" unit="mm" hint="Głębokość frezowanego nutu (5–15 mm)">
-            <input type="number" class="form-control" [(ngModel)]="hdfGrooveDepthMm" [disabled]="saving" min="5" max="15" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Odl. HDF od krawędzi" unit="mm" hint="Odległość płyty HDF od krawędzi korpusu (2–15 mm)">
-            <input type="number" class="form-control" [(ngModel)]="hdfBorderDistanceMm" [disabled]="saving" min="2" max="15" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Wysunięcie frontu" unit="mm" hint="O ile front wystaje poza ramę szafki (0–10 mm)">
-            <input type="number" class="form-control" [(ngModel)]="frontShiftMm" [disabled]="saving" min="0" max="10" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Naddatek frontu górnego" unit="mm" hint="Naddatek wysokości frontu szafki wiszącej (15–35 mm)">
-            <input type="number" class="form-control" [(ngModel)]="extendedFrontMm" [disabled]="saving" min="15" max="35" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Szczelina bok–front" unit="mm" hint="Szczelina między frontem a bokiem szafki (0–10 mm)">
-            <input type="number" class="form-control" [(ngModel)]="spaceBetweenSideAndFrontMm" [disabled]="saving" min="0" max="10" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Szczelina wieniec–front" unit="mm" hint="Szczelina pionowa między frontem a wieńcem (1–10 mm)">
-            <input type="number" class="form-control" [(ngModel)]="spaceBetweenWreathAndFrontMm" [disabled]="saving" min="1" max="10" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Szczelina między drzwiami (pion)" unit="mm" hint="Szczelina pionowa między dwoma frontami (2–10 mm)">
-            <input type="number" class="form-control" [(ngModel)]="verticallySpaceBetweenTwoFrontsMm" [disabled]="saving" min="2" max="10" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Szczelina między szufladami (poziom)" unit="mm" hint="Szczelina pozioma między frontami szuflad (2–10 mm)">
-            <input type="number" class="form-control" [(ngModel)]="horizontallySpaceBetweenTwoFrontsMm" [disabled]="saving" min="2" max="10" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Grubość okleiny" unit="mm" hint="Grubość okleiny krawędziowej (0–3 mm)">
-            <input type="number" class="form-control" [(ngModel)]="veneerMm" [disabled]="saving" min="0" max="3" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Wcięcie półki (bok)" unit="mm" hint="Wcięcie półki od boku szafki (0–5 mm)">
-            <input type="number" class="form-control" [(ngModel)]="shelfCutoutWidthMm" [disabled]="saving" min="0" max="5" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Wcięcie półki (głębokość)" unit="mm" hint="Wcięcie półki od tylnej ścianki HDF (0–10 mm)">
-            <input type="number" class="form-control" [(ngModel)]="shelfCutoutDepthMm" [disabled]="saving" min="0" max="10" step="1" />
-          </app-form-field>
+      <section id="sec-technical" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">📐</span>
+          <span class="panel-header-title">Wymiary techniczne szafek</span>
+          <span class="panel-header-desc">Zaawansowane — zmień tylko jeśli wiesz co robisz</span>
         </div>
-      </mat-expansion-panel>
+        <div class="panel-body">
+          <p class="section-hint">
+            Zaawansowane parametry konstrukcyjne. Domyślne wartości są zgodne ze standardami meblarskimi.
+          </p>
+          <div class="form-grid">
+            <app-form-field label="Grubość płyt szuflad (Sevroll)" unit="mm" hint="Płyty szuflad Sevroll Ball Slide (16–22 mm)">
+              <input type="number" class="form-control" [(ngModel)]="ballSlideSevrollDrawerThicknessMm" [disabled]="saving" min="16" max="22" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Grubość płyt szuflad (Antaro/Tandembox)" unit="mm" hint="Stała właściwość systemu Blum — nie można zmienić">
+              <input type="number" class="form-control" [ngModel]="antaroTandemboxDrawerThicknessMm" [disabled]="true" readonly />
+            </app-form-field>
+
+            <app-form-field label="Grubość HDF (tył)" unit="mm" hint="Grubość płyty tylnej HDF (1–5 mm)">
+              <input type="number" class="form-control" [(ngModel)]="hdfThicknessMm" [disabled]="saving" min="1" max="5" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Odl. nutu od krawędzi" unit="mm" hint="Odległość nutu pod HDF od tylnej krawędzi boku (10–35 mm)">
+              <input type="number" class="form-control" [(ngModel)]="hdfGrooveDistanceMm" [disabled]="saving" min="10" max="35" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Głębokość nutu HDF" unit="mm" hint="Głębokość frezowanego nutu (5–15 mm)">
+              <input type="number" class="form-control" [(ngModel)]="hdfGrooveDepthMm" [disabled]="saving" min="5" max="15" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Odl. HDF od krawędzi" unit="mm" hint="Odległość płyty HDF od krawędzi korpusu (2–15 mm)">
+              <input type="number" class="form-control" [(ngModel)]="hdfBorderDistanceMm" [disabled]="saving" min="2" max="15" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Wysunięcie frontu" unit="mm" hint="O ile front wystaje poza ramę szafki (0–10 mm)">
+              <input type="number" class="form-control" [(ngModel)]="frontShiftMm" [disabled]="saving" min="0" max="10" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Naddatek frontu górnego" unit="mm" hint="Naddatek wysokości frontu szafki wiszącej (15–35 mm)">
+              <input type="number" class="form-control" [(ngModel)]="extendedFrontMm" [disabled]="saving" min="15" max="35" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Szczelina bok–front" unit="mm" hint="Szczelina między frontem a bokiem szafki (0–10 mm)">
+              <input type="number" class="form-control" [(ngModel)]="spaceBetweenSideAndFrontMm" [disabled]="saving" min="0" max="10" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Szczelina wieniec–front" unit="mm" hint="Szczelina pionowa między frontem a wieńcem (1–10 mm)">
+              <input type="number" class="form-control" [(ngModel)]="spaceBetweenWreathAndFrontMm" [disabled]="saving" min="1" max="10" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Szczelina między drzwiami (pion)" unit="mm" hint="Szczelina pionowa między dwoma frontami (2–10 mm)">
+              <input type="number" class="form-control" [(ngModel)]="verticallySpaceBetweenTwoFrontsMm" [disabled]="saving" min="2" max="10" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Szczelina między szufladami (poziom)" unit="mm" hint="Szczelina pozioma między frontami szuflad (2–10 mm)">
+              <input type="number" class="form-control" [(ngModel)]="horizontallySpaceBetweenTwoFrontsMm" [disabled]="saving" min="2" max="10" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Grubość okleiny" unit="mm" hint="Grubość okleiny krawędziowej (0–3 mm)">
+              <input type="number" class="form-control" [(ngModel)]="veneerMm" [disabled]="saving" min="0" max="3" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Wcięcie półki (bok)" unit="mm" hint="Wcięcie półki od boku szafki (0–5 mm)">
+              <input type="number" class="form-control" [(ngModel)]="shelfCutoutWidthMm" [disabled]="saving" min="0" max="5" step="1" />
+            </app-form-field>
+
+            <app-form-field label="Wcięcie półki (głębokość)" unit="mm" hint="Wcięcie półki od tylnej ścianki HDF (0–10 mm)">
+              <input type="number" class="form-control" [(ngModel)]="shelfCutoutDepthMm" [disabled]="saving" min="0" max="10" step="1" />
+            </app-form-field>
+          </div>
+        </div>
+      </section>
 
       <!-- SEKCJA 4: Kalkulacja odpadu i kierunek słoi -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="panel-icon">recycling</mat-icon>
-            Kalkulacja odpadu i kierunek słoi
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-
-        <p class="section-hint">
-          Odpad jest liczony per materiał — hurtownie odpadów HDF/MDF zazwyczaj nie wliczają.
-          Ciągłość słoi zachowuje kierunek słojów na frontach i widocznych płytach (może zwiększyć odpad o 5–15%).
-        </p>
-        <div class="form-grid">
-          <app-form-field label="Odpad — płyta wiórowa" hint="Obliczaj odpad z arkuszy płyty wiórowej (chipboard)">
-            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" [(ngModel)]="wasteChipboardEnabled" [disabled]="saving" />
-              <span>{{ wasteChipboardEnabled ? 'Włączony' : 'Wyłączony' }}</span>
-            </label>
-          </app-form-field>
-
-          <app-form-field label="Odpad — HDF (tył)" hint="Obliczaj odpad z arkuszy HDF (zazwyczaj wyłączone)">
-            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" [(ngModel)]="wasteHdfEnabled" [disabled]="saving" />
-              <span>{{ wasteHdfEnabled ? 'Włączony' : 'Wyłączony' }}</span>
-            </label>
-          </app-form-field>
-
-          <app-form-field label="Odpad — MDF" hint="Obliczaj odpad z arkuszy MDF (zazwyczaj wyłączone)">
-            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" [(ngModel)]="wasteMdfEnabled" [disabled]="saving" />
-              <span>{{ wasteMdfEnabled ? 'Włączony' : 'Wyłączony' }}</span>
-            </label>
-          </app-form-field>
-
-          <app-form-field label="Ciągłość słoi" hint="Zachowaj kierunek słojów na frontach i widocznych płytach (zwiększa odpad)">
-            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" [(ngModel)]="grainContinuityEnabled" [disabled]="saving" />
-              <span>{{ grainContinuityEnabled ? 'Włączona' : 'Wyłączona' }}</span>
-            </label>
-          </app-form-field>
+      <section id="sec-waste" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">♻️</span>
+          <span class="panel-header-title">Kalkulacja odpadu i kierunek słoi</span>
         </div>
-      </mat-expansion-panel>
+        <div class="panel-body">
+          <p class="section-hint">
+            Odpad jest liczony per materiał — hurtownie odpadów HDF/MDF zazwyczaj nie wliczają.
+            Ciągłość słoi zachowuje kierunek słojów na frontach i widocznych płytach (może zwiększyć odpad o 5–15%).
+          </p>
+          <div class="form-grid">
+            <app-form-field label="Odpad — płyta wiórowa" hint="Obliczaj odpad z arkuszy płyty wiórowej (chipboard)">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="wasteChipboardEnabled" [disabled]="saving" />
+                <span>{{ wasteChipboardEnabled ? 'Włączony' : 'Wyłączony' }}</span>
+              </label>
+            </app-form-field>
+
+            <app-form-field label="Odpad — HDF (tył)" hint="Obliczaj odpad z arkuszy HDF (zazwyczaj wyłączone)">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="wasteHdfEnabled" [disabled]="saving" />
+                <span>{{ wasteHdfEnabled ? 'Włączony' : 'Wyłączony' }}</span>
+              </label>
+            </app-form-field>
+
+            <app-form-field label="Odpad — MDF" hint="Obliczaj odpad z arkuszy MDF (zazwyczaj wyłączone)">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="wasteMdfEnabled" [disabled]="saving" />
+                <span>{{ wasteMdfEnabled ? 'Włączony' : 'Wyłączony' }}</span>
+              </label>
+            </app-form-field>
+
+            <app-form-field label="Ciągłość słoi" hint="Zachowaj kierunek słojów na frontach i widocznych płytach (zwiększa odpad)">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="grainContinuityEnabled" [disabled]="saving" />
+                <span>{{ grainContinuityEnabled ? 'Włączona' : 'Wyłączona' }}</span>
+              </label>
+            </app-form-field>
+          </div>
+        </div>
+      </section>
 
       <!-- SEKCJA 5: Domyślne materiały i kolory płyt -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="panel-icon">palette</mat-icon>
-            Domyślne materiały i kolory płyt
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-
-        <p class="section-hint">
-          Materiał i kolor stosowane domyślnie przy kalkulacji nowych szafek.
-          Można nadpisać per-szafka w przyszłości. Zmiany dotyczą tylko nowych kalkulacji.
-        </p>
-
-        <p class="subsection-title">Korpus szafki</p>
-        <div class="form-grid">
-          <app-form-field label="Materiał korpusu" hint="Materiał płyt korpusu (boki, wieńce, półki)">
-            <select class="form-control" [ngModel]="defaultBoxMaterial" (ngModelChange)="onBoxMaterialChange($event)" [disabled]="saving">
-              <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
-              <option value="MDF">MDF</option>
-              <option value="MDF_LAMINATED">MDF laminowany</option>
-            </select>
-          </app-form-field>
-
-          <app-form-field label="Grubość korpusu" unit="mm" hint="Grubość płyt korpusu (typowo 18mm)">
-            <select class="form-control" [(ngModel)]="defaultBoxBoardThickness" [disabled]="saving">
-              <option [ngValue]="16">16 mm</option>
-              <option [ngValue]="18">18 mm</option>
-              <option [ngValue]="22">22 mm</option>
-              <option [ngValue]="25">25 mm</option>
-              <option [ngValue]="28">28 mm</option>
-            </select>
-          </app-form-field>
-
-          <app-form-field label="Kolor korpusu" hint="Kolor płyt korpusu — lista pochodzi z dodanych wariantów płyt">
-            <div class="color-select-wrapper">
-              <ng-container *ngIf="boxColorOptions.length > 0; else boxColorFallback">
-                <select class="form-control" [(ngModel)]="defaultBoxColor" [disabled]="saving">
-                  <option *ngFor="let opt of boxColorOptions; trackBy: trackByColorCode" [value]="opt.colorCode">
-                    {{ opt.colorName || opt.colorCode }}
-                  </option>
-                </select>
-                <span class="color-swatch" *ngIf="getColorHex(boxColorOptions, defaultBoxColor) as hex"
-                      [style.background]="hex" title="{{ hex }}"></span>
-              </ng-container>
-              <ng-template #boxColorFallback>
-                <input type="text" class="form-control" [(ngModel)]="defaultBoxColor" [disabled]="saving" maxlength="100"
-                       placeholder="np. WHITE, OAK_NATURAL" />
-              </ng-template>
-            </div>
-          </app-form-field>
+      <section id="sec-materials" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">🎨</span>
+          <span class="panel-header-title">Domyślne materiały i kolory płyt</span>
         </div>
+        <div class="panel-body">
+          <p class="section-hint">
+            Materiał i kolor stosowane domyślnie przy kalkulacji nowych szafek.
+            Można nadpisać per-szafka w przyszłości. Zmiany dotyczą tylko nowych kalkulacji.
+          </p>
 
-        <p class="subsection-title">Front szafki</p>
-        <div class="form-grid">
-          <app-form-field label="Materiał frontu" hint="Materiał płyt frontów">
-            <select class="form-control" [ngModel]="defaultFrontMaterial" (ngModelChange)="onFrontMaterialChange($event)" [disabled]="saving">
-              <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
-              <option value="MDF">MDF</option>
-              <option value="MDF_LAMINATED">MDF laminowany</option>
-            </select>
-          </app-form-field>
+          <p class="subsection-title">Korpus szafki</p>
+          <div class="form-grid">
+            <app-form-field label="Materiał korpusu" hint="Materiał płyt korpusu (boki, wieńce, półki)">
+              <select class="form-control" [ngModel]="defaultBoxMaterial" (ngModelChange)="onBoxMaterialChange($event)" [disabled]="saving">
+                <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
+                <option value="MDF">MDF</option>
+                <option value="MDF_LAMINATED">MDF laminowany</option>
+              </select>
+            </app-form-field>
 
-          <app-form-field label="Grubość frontu" unit="mm" hint="Grubość płyt frontów (typowo 18mm)">
-            <select class="form-control" [(ngModel)]="defaultFrontBoardThickness" [disabled]="saving">
-              <option [ngValue]="16">16 mm</option>
-              <option [ngValue]="18">18 mm</option>
-              <option [ngValue]="22">22 mm</option>
-              <option [ngValue]="25">25 mm</option>
-              <option [ngValue]="28">28 mm</option>
-            </select>
-          </app-form-field>
+            <app-form-field label="Grubość korpusu" unit="mm" hint="Grubość płyt korpusu (typowo 18mm)">
+              <select class="form-control" [(ngModel)]="defaultBoxBoardThickness" [disabled]="saving">
+                <option [ngValue]="16">16 mm</option>
+                <option [ngValue]="18">18 mm</option>
+                <option [ngValue]="22">22 mm</option>
+                <option [ngValue]="25">25 mm</option>
+                <option [ngValue]="28">28 mm</option>
+              </select>
+            </app-form-field>
 
-          <app-form-field label="Kolor frontu" hint="Kolor płyt frontów — lista pochodzi z dodanych wariantów płyt">
-            <div class="color-select-wrapper">
-              <ng-container *ngIf="frontColorOptions.length > 0; else frontColorFallback">
-                <select class="form-control" [(ngModel)]="defaultFrontColor" [disabled]="saving">
-                  <option *ngFor="let opt of frontColorOptions; trackBy: trackByColorCode" [value]="opt.colorCode">
-                    {{ opt.colorName || opt.colorCode }}
-                  </option>
-                </select>
-                <span class="color-swatch" *ngIf="getColorHex(frontColorOptions, defaultFrontColor) as hex"
-                      [style.background]="hex" title="{{ hex }}"></span>
-              </ng-container>
-              <ng-template #frontColorFallback>
-                <input type="text" class="form-control" [(ngModel)]="defaultFrontColor" [disabled]="saving" maxlength="100"
-                       placeholder="np. ANTHRACITE, WHITE" />
-              </ng-template>
-            </div>
-          </app-form-field>
+            <app-form-field label="Kolor korpusu" hint="Kolor płyt korpusu — lista pochodzi z dodanych wariantów płyt">
+              <div class="color-select-wrapper">
+                <ng-container *ngIf="boxColorOptions.length > 0; else boxColorFallback">
+                  <select class="form-control" [(ngModel)]="defaultBoxColor" [disabled]="saving">
+                    <option *ngFor="let opt of boxColorOptions; trackBy: trackByColorCode" [value]="opt.colorCode">
+                      {{ opt.colorName || opt.colorCode }}
+                    </option>
+                  </select>
+                  <span class="color-swatch" *ngIf="getColorHex(boxColorOptions, defaultBoxColor) as hex"
+                        [style.background]="hex" [title]="hex"></span>
+                </ng-container>
+                <ng-template #boxColorFallback>
+                  <input type="text" class="form-control" [(ngModel)]="defaultBoxColor" [disabled]="saving" maxlength="100"
+                         placeholder="np. WHITE, OAK_NATURAL" />
+                </ng-template>
+              </div>
+            </app-form-field>
+          </div>
 
-          <app-form-field label="Domyślnie lakierowany front"
-                         [hint]="canVarnishFront ? 'Fronty MDF lakierowane — okleina krawędzi nie jest liczona' : 'Lakierowanie dostępne tylko dla MDF'">
-            <label class="checkbox-label" [class.disabled]="!canVarnishFront || saving">
-              <input type="checkbox" [(ngModel)]="defaultVarnishedFront"
-                     [disabled]="saving || !canVarnishFront" />
-              <span>Front lakierowany</span>
-            </label>
-          </app-form-field>
+          <p class="subsection-title">Front szafki</p>
+          <div class="form-grid">
+            <app-form-field label="Materiał frontu" hint="Materiał płyt frontów">
+              <select class="form-control" [ngModel]="defaultFrontMaterial" (ngModelChange)="onFrontMaterialChange($event)" [disabled]="saving">
+                <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
+                <option value="MDF">MDF</option>
+                <option value="MDF_LAMINATED">MDF laminowany</option>
+              </select>
+            </app-form-field>
+
+            <app-form-field label="Grubość frontu" unit="mm" hint="Grubość płyt frontów (typowo 18mm)">
+              <select class="form-control" [(ngModel)]="defaultFrontBoardThickness" [disabled]="saving">
+                <option [ngValue]="16">16 mm</option>
+                <option [ngValue]="18">18 mm</option>
+                <option [ngValue]="22">22 mm</option>
+                <option [ngValue]="25">25 mm</option>
+                <option [ngValue]="28">28 mm</option>
+              </select>
+            </app-form-field>
+
+            <app-form-field label="Kolor frontu" hint="Kolor płyt frontów — lista pochodzi z dodanych wariantów płyt">
+              <div class="color-select-wrapper">
+                <ng-container *ngIf="frontColorOptions.length > 0; else frontColorFallback">
+                  <select class="form-control" [(ngModel)]="defaultFrontColor" [disabled]="saving">
+                    <option *ngFor="let opt of frontColorOptions; trackBy: trackByColorCode" [value]="opt.colorCode">
+                      {{ opt.colorName || opt.colorCode }}
+                    </option>
+                  </select>
+                  <span class="color-swatch" *ngIf="getColorHex(frontColorOptions, defaultFrontColor) as hex"
+                        [style.background]="hex" [title]="hex"></span>
+                </ng-container>
+                <ng-template #frontColorFallback>
+                  <input type="text" class="form-control" [(ngModel)]="defaultFrontColor" [disabled]="saving" maxlength="100"
+                         placeholder="np. ANTHRACITE, WHITE" />
+                </ng-template>
+              </div>
+            </app-form-field>
+
+            <app-form-field label="Domyślnie lakierowany front"
+                           [hint]="canVarnishFront ? 'Fronty MDF lakierowane — okleina krawędzi nie jest liczona' : 'Lakierowanie dostępne tylko dla MDF'">
+              <label class="checkbox-label" [class.disabled]="!canVarnishFront || saving">
+                <input type="checkbox" [(ngModel)]="defaultVarnishedFront"
+                       [disabled]="saving || !canVarnishFront" />
+                <span>Front lakierowany</span>
+              </label>
+            </app-form-field>
+          </div>
+
+          <p class="subsection-title">Tył szafki (HDF)</p>
+          <div class="form-grid">
+            <app-form-field label="Materiał tyłu" hint="Materiał tylnej ścianki (zazwyczaj HDF)">
+              <select class="form-control" [(ngModel)]="defaultBackMaterial" [disabled]="saving">
+                <option value="HDF">HDF</option>
+                <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
+              </select>
+            </app-form-field>
+
+            <app-form-field label="Grubość tyłu" unit="mm" hint="Grubość tylnej ścianki HDF (typowo 3mm)">
+              <select class="form-control" [(ngModel)]="defaultBackBoardThickness" [disabled]="saving">
+                <option [ngValue]="3">3 mm</option>
+                <option [ngValue]="4">4 mm</option>
+                <option [ngValue]="6">6 mm</option>
+              </select>
+            </app-form-field>
+          </div>
+
+          <p class="subsection-title">Kalkulacja odpadu arkuszowego</p>
+          <div class="form-grid">
+            <app-form-field label="Rozmiar arkusza" hint="Maksymalny rozmiar arkusza w obliczeniach odpadu (FULL = 2800×2070, HALF = 2800×1035, QUARTER = 1400×1035)">
+              <select class="form-control" [(ngModel)]="defaultSheetSizeMode" [disabled]="saving">
+                <option value="FULL">Pełny arkusz (2800×2070 mm)</option>
+                <option value="HALF">Pół arkusza (2800×1035 mm)</option>
+                <option value="QUARTER">Ćwierć arkusza (1400×1035 mm)</option>
+              </select>
+            </app-form-field>
+          </div>
         </div>
-
-        <p class="subsection-title">Tył szafki (HDF)</p>
-        <div class="form-grid">
-          <app-form-field label="Materiał tyłu" hint="Materiał tylnej ścianki (zazwyczaj HDF)">
-            <select class="form-control" [(ngModel)]="defaultBackMaterial" [disabled]="saving">
-              <option value="HDF">HDF</option>
-              <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
-            </select>
-          </app-form-field>
-
-          <app-form-field label="Grubość tyłu" unit="mm" hint="Grubość tylnej ścianki HDF (typowo 3mm)">
-            <select class="form-control" [(ngModel)]="defaultBackBoardThickness" [disabled]="saving">
-              <option [ngValue]="3">3 mm</option>
-              <option [ngValue]="4">4 mm</option>
-              <option [ngValue]="6">6 mm</option>
-            </select>
-          </app-form-field>
-        </div>
-
-        <p class="subsection-title">Kalkulacja odpadu arkuszowego</p>
-        <div class="form-grid">
-          <app-form-field label="Rozmiar arkusza" hint="Maksymalny rozmiar arkusza w obliczeniach odpadu (FULL = 2800×2070, HALF = 2800×1035, QUARTER = 1400×1035)">
-            <select class="form-control" [(ngModel)]="defaultSheetSizeMode" [disabled]="saving">
-              <option value="FULL">Pełny arkusz (2800×2070 mm)</option>
-              <option value="HALF">Pół arkusza (2800×1035 mm)</option>
-              <option value="QUARTER">Ćwierć arkusza (1400×1035 mm)</option>
-            </select>
-          </app-form-field>
-        </div>
-      </mat-expansion-panel>
+      </section>
 
       <!-- SEKCJA 6: Marże i rabaty -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="panel-icon">percent</mat-icon>
-            Marże i rabaty
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-
-        <p class="section-hint">
-          Marże są doliczane do kosztów netto materiałów, komponentów i prac.
-          Domyślny rabat stosowany przy nowych projektach (można nadpisać per-projekt w zakładce Wycena).
-        </p>
-        <div class="form-grid">
-          <app-form-field label="Marża — płyty" unit="%" hint="Marża na materiały / płyty (0–300%)">
-            <input type="number" class="form-control" [(ngModel)]="markupMaterialsPct" [disabled]="saving" min="0" max="300" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Marża — komponenty" unit="%" hint="Marża na zawiasy, prowadnice, nóżki (0–300%)">
-            <input type="number" class="form-control" [(ngModel)]="markupComponentsPct" [disabled]="saving" min="0" max="300" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Marża — robocizna" unit="%" hint="Marża na usługi: cięcie, oklejanie, wiercenie (0–300%)">
-            <input type="number" class="form-control" [(ngModel)]="markupJobsPct" [disabled]="saving" min="0" max="300" step="1" />
-          </app-form-field>
-
-          <app-form-field label="Domyślny rabat" unit="%" hint="Rabat stosowany domyślnie przy nowych projektach (0–100%)">
-            <input type="number" class="form-control" [(ngModel)]="defaultDiscountPct" [disabled]="saving" min="0" max="100" step="1" />
-          </app-form-field>
+      <section id="sec-margins" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">💰</span>
+          <span class="panel-header-title">Marże i rabaty</span>
         </div>
-      </mat-expansion-panel>
+        <div class="panel-body">
+          <p class="section-hint">
+            Marże są doliczane do kosztów netto materiałów, komponentów i prac.
+            Domyślny rabat stosowany przy nowych projektach (można nadpisać per-projekt w zakładce Wycena).
+          </p>
+          <div class="form-grid">
+            <app-form-field label="Marża — płyty" unit="%" hint="Marża na materiały / płyty (0–300%)">
+              <input type="number" class="form-control" [(ngModel)]="markupMaterialsPct" [disabled]="saving" min="0" max="300" step="1" />
+            </app-form-field>
 
-      <!-- SEKCJA 6: Cennik płyt — delegowane do BoardPricesSectionComponent (R.2.3) -->
-      <app-board-prices-section
-        [translations]="translations"
-        [materialOptions]="materialOptions"
-        [saving]="saving"
-        (boardPricesChanged)="onBoardPricesChanged($event)">
-      </app-board-prices-section>
+            <app-form-field label="Marża — komponenty" unit="%" hint="Marża na zawiasy, prowadnice, nóżki (0–300%)">
+              <input type="number" class="form-control" [(ngModel)]="markupComponentsPct" [disabled]="saving" min="0" max="300" step="1" />
+            </app-form-field>
 
-      <!-- SEKCJA 7: Cennik komponentów -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="panel-icon">build</mat-icon>
-            Cennik komponentów
-          </mat-panel-title>
-          <mat-panel-description>
-            Zawiasy, szuflady, nóżki, wieszaki
-          </mat-panel-description>
-        </mat-expansion-panel-header>
+            <app-form-field label="Marża — robocizna" unit="%" hint="Marża na usługi: cięcie, oklejanie, wiercenie (0–300%)">
+              <input type="number" class="form-control" [(ngModel)]="markupJobsPct" [disabled]="saving" min="0" max="300" step="1" />
+            </app-form-field>
 
-        <app-price-edit-table
-            [rows]="filteredComponentPrices"
-            priceField="pricePerUnit"
-            priceLabel="Cena / jedn."
-            priceUnit="zł"
-            [loading]="componentPricesLoading"
-            [error]="componentPricesError"
-            [rowClassFn]="componentRowClass"
-            [emptyText]="componentCategoryFilter ? 'Brak komponentów w kategorii ' + componentCategoryFilter + '.' : 'Brak komponentów.'"
-            (save)="onComponentPriceSave($event)"
-            (retry)="loadComponentPrices()">
+            <app-form-field label="Domyślny rabat" unit="%" hint="Rabat stosowany domyślnie przy nowych projektach (0–100%)">
+              <input type="number" class="form-control" [(ngModel)]="defaultDiscountPct" [disabled]="saving" min="0" max="100" step="1" />
+            </app-form-field>
+          </div>
+        </div>
+      </section>
 
-          <!-- Toolbar: category filter -->
-          <ng-template #toolbar>
-            <div class="component-price-toolbar">
-              <label class="filter-label">Filtruj kategorie:</label>
-              <select class="form-control" style="width:200px;" [(ngModel)]="componentCategoryFilter">
-                <option value="">— wszystkie —</option>
-                <option *ngFor="let cat of componentCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
-              </select>
-              <span *ngIf="componentCategoryFilter" style="font-size:12px; color:#888; margin-left:8px;">
-                {{ filteredComponentPrices.length }} / {{ componentPrices.length }} pozycji
-              </span>
-            </div>
-          </ng-template>
+      <!-- SEKCJA 7: Cennik płyt -->
+      <section id="sec-board-prices" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">💵</span>
+          <span class="panel-header-title">Cennik płyt</span>
+        </div>
+        <div class="panel-body">
+          <app-board-prices-section
+            [translations]="translations"
+            [materialOptions]="materialOptions"
+            [saving]="saving"
+            (boardPricesChanged)="onBoardPricesChanged($event)">
+          </app-board-prices-section>
+        </div>
+      </section>
 
-          <!-- Column headers -->
-          <ng-template #headers>
-            <th>Kategoria</th>
-            <th>Komponent</th>
-            <th>Model</th>
-            <th>Jedn.</th>
-            <th>Aktywny</th>
-          </ng-template>
+      <!-- SEKCJA 8: Cennik komponentów -->
+      <section id="sec-comp-prices" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">🔧</span>
+          <span class="panel-header-title">Cennik komponentów</span>
+          <span class="panel-header-desc">Zawiasy, szuflady, nóżki, wieszaki</span>
+        </div>
+        <div class="panel-body">
+          <app-price-edit-table
+              [rows]="filteredComponentPrices"
+              priceField="pricePerUnit"
+              priceLabel="Cena / jedn."
+              priceUnit="zł"
+              [loading]="componentPricesLoading"
+              [error]="componentPricesError"
+              [rowClassFn]="componentRowClass"
+              [emptyText]="componentCategoryFilter ? 'Brak komponentów w kategorii ' + componentCategoryFilter + '.' : 'Brak komponentów.'"
+              (save)="onComponentPriceSave($event)"
+              (retry)="loadComponentPrices()">
 
-          <!-- Row cells -->
-          <ng-template #rowCells let-cp>
-            <td><span class="category-chip">{{ cp.category }}</span></td>
-            <td>
-              <mat-icon *ngIf="!cp.componentActive"
-                        style="font-size:14px; width:14px; height:14px; color:#f57c00; vertical-align:middle; margin-right:2px;"
-                        title="Komponent nieaktywny">warning</mat-icon>
-              {{ cp.componentCode }}
-            </td>
-            <td>
-              {{ cp.modelCode }}
-              <span *ngIf="cp.additionalInfo" style="color:#888; font-size:11px; margin-left:4px;">({{ cp.additionalInfo }})</span>
-            </td>
-            <td>{{ cp.unit || '—' }}</td>
-            <td>
-              <span *ngIf="cp.componentActive && cp.variantActive" style="color:#388e3c;">✓</span>
-              <span *ngIf="!cp.componentActive || !cp.variantActive" style="color:#c62828;">✗</span>
-            </td>
-          </ng-template>
+            <ng-template #toolbar>
+              <div class="price-toolbar">
+                <label class="filter-label">Filtruj kategorie:</label>
+                <select class="form-control filter-select" [(ngModel)]="componentCategoryFilter">
+                  <option value="">— wszystkie —</option>
+                  <option *ngFor="let cat of componentCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
+                </select>
+                <span *ngIf="componentCategoryFilter" class="filter-count">
+                  {{ filteredComponentPrices.length }} / {{ componentPrices.length }} pozycji
+                </span>
+              </div>
+            </ng-template>
 
-        </app-price-edit-table>
-      </mat-expansion-panel>
+            <ng-template #headers>
+              <th>Kategoria</th>
+              <th>Komponent</th>
+              <th>Model</th>
+              <th>Jedn.</th>
+              <th>Aktywny</th>
+            </ng-template>
 
-      <!-- SEKCJA 8: Cennik prac -->
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <mat-icon class="panel-icon">handyman</mat-icon>
-            Cennik prac
-          </mat-panel-title>
-          <mat-panel-description>
-            Cięcie, oklejanie, wiercenie, frezowanie
-          </mat-panel-description>
-        </mat-expansion-panel-header>
+            <ng-template #rowCells let-cp>
+              <td><span class="category-chip">{{ cp.category }}</span></td>
+              <td>
+                <span *ngIf="!cp.componentActive" class="row-warn-icon" title="Komponent nieaktywny">⚠️</span>
+                {{ cp.componentCode }}
+              </td>
+              <td>
+                {{ cp.modelCode }}
+                <span *ngIf="cp.additionalInfo" class="row-extra-info">({{ cp.additionalInfo }})</span>
+              </td>
+              <td>{{ cp.unit || '—' }}</td>
+              <td>
+                <span *ngIf="cp.componentActive && cp.variantActive" class="status-ok">✓</span>
+                <span *ngIf="!cp.componentActive || !cp.variantActive" class="status-err">✗</span>
+              </td>
+            </ng-template>
 
-        <app-price-edit-table
-            [rows]="filteredJobPrices"
-            priceField="pricePerUnit"
-            priceLabel="Cena / jedn."
-            priceUnit="zł"
-            [loading]="jobPricesLoading"
-            [error]="jobPricesError"
-            [rowClassFn]="jobRowClass"
-            [emptyText]="jobCategoryFilter ? 'Brak prac w kategorii ' + jobCategoryFilter + '.' : 'Brak prac.'"
-            (save)="onJobPriceSave($event)"
-            (retry)="loadJobPrices()">
+          </app-price-edit-table>
+        </div>
+      </section>
 
-          <!-- Toolbar: category filter -->
-          <ng-template #toolbar>
-            <div class="component-price-toolbar">
-              <label class="filter-label">Filtruj kategorie:</label>
-              <select class="form-control" style="width:200px;" [(ngModel)]="jobCategoryFilter">
-                <option value="">— wszystkie —</option>
-                <option *ngFor="let cat of jobCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
-              </select>
-              <span *ngIf="jobCategoryFilter" style="font-size:12px; color:#888; margin-left:8px;">
-                {{ filteredJobPrices.length }} / {{ jobPrices.length }} pozycji
-              </span>
-            </div>
-          </ng-template>
+      <!-- SEKCJA 9: Cennik prac -->
+      <section id="sec-job-prices" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">🛠️</span>
+          <span class="panel-header-title">Cennik prac</span>
+          <span class="panel-header-desc">Cięcie, oklejanie, wiercenie, frezowanie</span>
+        </div>
+        <div class="panel-body">
+          <app-price-edit-table
+              [rows]="filteredJobPrices"
+              priceField="pricePerUnit"
+              priceLabel="Cena / jedn."
+              priceUnit="zł"
+              [loading]="jobPricesLoading"
+              [error]="jobPricesError"
+              [rowClassFn]="jobRowClass"
+              [emptyText]="jobCategoryFilter ? 'Brak prac w kategorii ' + jobCategoryFilter + '.' : 'Brak prac.'"
+              (save)="onJobPriceSave($event)"
+              (retry)="loadJobPrices()">
 
-          <!-- Column headers -->
-          <ng-template #headers>
-            <th>Kategoria</th>
-            <th>Praca</th>
-            <th>Wariant</th>
-            <th>Próg gr.</th>
-            <th>Jedn.</th>
-          </ng-template>
+            <ng-template #toolbar>
+              <div class="price-toolbar">
+                <label class="filter-label">Filtruj kategorie:</label>
+                <select class="form-control filter-select" [(ngModel)]="jobCategoryFilter">
+                  <option value="">— wszystkie —</option>
+                  <option *ngFor="let cat of jobCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
+                </select>
+                <span *ngIf="jobCategoryFilter" class="filter-count">
+                  {{ filteredJobPrices.length }} / {{ jobPrices.length }} pozycji
+                </span>
+              </div>
+            </ng-template>
 
-          <!-- Row cells -->
-          <ng-template #rowCells let-jp>
-            <td><span class="category-chip">{{ jp.jobCategory }}</span></td>
-            <td>
-              <mat-icon *ngIf="!jp.jobActive"
-                        style="font-size:14px; width:14px; height:14px; color:#f57c00; vertical-align:middle; margin-right:2px;"
-                        title="Praca nieaktywna">warning</mat-icon>
-              {{ jp.jobCode }}
-            </td>
-            <td>{{ jp.variantCode }}</td>
-            <td>{{ jp.thicknessThresholdMm != null ? jp.thicknessThresholdMm + ' mm' : '—' }}</td>
-            <td>{{ jp.unit || '—' }}</td>
-          </ng-template>
+            <ng-template #headers>
+              <th>Kategoria</th>
+              <th>Praca</th>
+              <th>Wariant</th>
+              <th>Próg gr.</th>
+              <th>Jedn.</th>
+            </ng-template>
 
-        </app-price-edit-table>
-      </mat-expansion-panel>
+            <ng-template #rowCells let-jp>
+              <td><span class="category-chip">{{ jp.jobCategory }}</span></td>
+              <td>
+                <span *ngIf="!jp.jobActive" class="row-warn-icon" title="Praca nieaktywna">⚠️</span>
+                {{ jp.jobCode }}
+              </td>
+              <td>{{ jp.variantCode }}</td>
+              <td>{{ jp.thicknessThresholdMm != null ? jp.thicknessThresholdMm + ' mm' : '—' }}</td>
+              <td>{{ jp.unit || '—' }}</td>
+            </ng-template>
 
-      <!-- SEKCJA 9: Dane firmy — delegowane do CompanyInfoSectionComponent (R.2.4) -->
-      <app-company-info-section></app-company-info-section>
+          </app-price-edit-table>
+        </div>
+      </section>
 
-    </mat-accordion>
+      <!-- SEKCJA 10: Dane firmy -->
+      <section id="sec-company" class="panel-card">
+        <div class="panel-header">
+          <span class="panel-header-icon">🏢</span>
+          <span class="panel-header-title">Dane firmy</span>
+        </div>
+        <div class="panel-body">
+          <app-company-info-section></app-company-info-section>
+        </div>
+      </section>
 
-    <!-- Actions -->
-    <div class="form-actions">
-      <button
-        class="btn btn-primary"
-        (click)="saveSettings()"
-        [disabled]="saving || loading">
-        <span *ngIf="saving" class="spinner spinner-sm"></span>
-        <span *ngIf="!saving">💾</span>
-        {{ saving ? 'Zapisuję…' : 'Zapisz ustawienia' }}
-      </button>
+    </div><!-- /settings-content -->
+  </div><!-- /settings-body -->
 
-      <!-- Success toast inline -->
-      <div *ngIf="savedSuccess" class="save-success">
-        ✓ Zapisano
-      </div>
-    </div>
-  </div>
-
-</div>
+</div><!-- /settings-page -->
