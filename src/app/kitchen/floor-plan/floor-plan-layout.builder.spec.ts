@@ -37,6 +37,33 @@ describe('floor-plan-layout.builder', () => {
     }));
   });
 
+  it('should keep main wall scale stable when adding LEFT and RIGHT walls without corners', () => {
+    const [singleMain] = buildWallPositions([
+      createWall({ id: 'main', type: 'MAIN', widthMm: 3600 })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 4
+    });
+
+    const positionsWithSides = buildWallPositions([
+      createWall({ id: 'main', type: 'MAIN', widthMm: 3600 }),
+      createWall({ id: 'left', type: 'LEFT', widthMm: 2200 }),
+      createWall({ id: 'right', type: 'RIGHT', widthMm: 2200 })
+    ], {
+      svgWidth: 320,
+      svgHeight: 240,
+      wallThickness: 10,
+      padding: 4
+    });
+
+    const mainWithSides = positionsWithSides.find(position => position.wall.type === 'MAIN')!;
+
+    expect(mainWithSides.scale).toBeCloseTo(singleMain.scale, 4);
+    expect(mainWithSides.width).toBeCloseTo(singleMain.width, 2);
+  });
+
   it('should build cabinets for wall with bottom, full and top ordering', () => {
     const [wallPosition] = buildWallPositions([
       createWall({

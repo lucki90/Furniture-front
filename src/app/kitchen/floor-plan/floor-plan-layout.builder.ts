@@ -11,6 +11,10 @@ const DEFAULT_SIDE_OVERHANG_EXTRA_MM = 5;
 /** Default fillerWidthMm gdy ustawienia uzytkownika nie sa propagowane do floor plan. */
 const DEFAULT_FILLER_WIDTH_MM = 50;
 const DEFAULT_PLINTH_HEIGHT_MM = 100;
+const FLOOR_PLAN_REFERENCE_WIDTH_MM = 4400;
+const FLOOR_PLAN_REFERENCE_HEIGHT_MM = 3200;
+const FLOOR_PLAN_ISLAND_VERTICAL_BUFFER_MM = 1100;
+const FLOOR_PLAN_CAMERA_ZOOM = 0.9;
 
 const geometryService = kitchenGeometrySharedSingleton;
 const addonsBuilder = new ProjectWallAddonsRequestBuilder();
@@ -79,15 +83,31 @@ export function buildWallPositions(
   const cornerRight = walls.find(wall => wall.type === 'CORNER_RIGHT');
   const island = walls.find(wall => wall.type === 'ISLAND');
 
-  const maxWidth = Math.max(
-    mainWall?.widthMm ?? 0,
-    (leftWall?.widthMm ?? 0) + (mainWall?.widthMm ?? 0) + (rightWall?.widthMm ?? 0)
-  );
-  const maxHeight = Math.max(leftWall?.widthMm ?? 0, rightWall?.widthMm ?? 0, 2000);
+  const mainWidthMm = mainWall?.widthMm ?? 3000;
+  const cornerLeftWidthMm = cornerLeft?.widthMm ?? 0;
+  const cornerRightWidthMm = cornerRight?.widthMm ?? 0;
+  const islandWidthMm = island?.widthMm ?? 0;
+  const islandDepthMm = island?.islandDepthMm ?? island?.countertopConfig?.manualDepthMm ?? 900;
 
-  const scaleX = (settings.svgWidth - 2 * settings.padding) / Math.max(maxWidth, 1000);
-  const scaleY = (settings.svgHeight - 2 * settings.padding) / Math.max(maxHeight, 1000);
-  const scale = Math.min(scaleX, scaleY, 0.12);
+  // Floor-plan zoom should stay reasonably stable when LEFT/RIGHT walls are added.
+  // Using left/right lengths as horizontal footprint made the view jump dramatically,
+  // even though those walls mostly expand the plan vertically, not horizontally.
+  const footprintWidthMm = Math.max(
+    FLOOR_PLAN_REFERENCE_WIDTH_MM,
+    mainWidthMm + cornerLeftWidthMm + cornerRightWidthMm,
+    islandWidthMm
+  );
+
+  const footprintHeightMm = Math.max(
+    FLOOR_PLAN_REFERENCE_HEIGHT_MM,
+    (leftWall?.widthMm ?? 0) + cornerLeftWidthMm,
+    (rightWall?.widthMm ?? 0) + cornerRightWidthMm,
+    island ? islandDepthMm + FLOOR_PLAN_ISLAND_VERTICAL_BUFFER_MM : 0
+  );
+
+  const scaleX = (settings.svgWidth - 2 * settings.padding) / footprintWidthMm;
+  const scaleY = (settings.svgHeight - 2 * settings.padding) / footprintHeightMm;
+  const scale = Math.min(scaleX, scaleY, 0.12) * FLOOR_PLAN_CAMERA_ZOOM;
 
   const centerX = settings.svgWidth / 2;
   // Tighter baseline + smaller outer padding make the floor-plan legible at 100% browser zoom
