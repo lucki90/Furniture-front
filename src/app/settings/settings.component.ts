@@ -9,7 +9,8 @@ import { FormFieldComponent } from '../shared/form-field/form-field.component';
 import { BoardPrice } from './board-price.service';
 import { ComponentPriceService, ComponentPrice } from './component-price.service';
 import { JobPriceService, JobPrice } from './job-price.service';
-import { PriceEditTableComponent, PriceSaveEvent } from './price-edit-table/price-edit-table.component';
+import { forkJoin } from 'rxjs';
+import { PriceEditTableComponent, PriceSaveEvent, BulkSaveEvent } from './price-edit-table/price-edit-table.component';
 import { TranslationService } from '../translation/translation.service';
 import { LanguageService } from '../service/language.service';
 import { MaterialAdminService } from '../admin/material/service/material-admin.service';
@@ -109,15 +110,19 @@ export class SettingsComponent implements OnInit, AfterViewInit {
 
   // Cennik komponentów
   componentPrices: ComponentPrice[] = [];
+  filteredComponentPrices: ComponentPrice[] = [];
   componentPricesLoading = false;
   componentPricesError: string | null = null;
   componentCategoryFilter = '';
+  componentModelFilter = '';
 
   // Cennik prac
   jobPrices: JobPrice[] = [];
+  filteredJobPrices: JobPrice[] = [];
   jobPricesLoading = false;
   jobPricesError: string | null = null;
   jobCategoryFilter = '';
+  jobVariantFilter = '';
 
   /** Row-class function passed to PriceEditTableComponent. */
   readonly componentRowClass = (cp: ComponentPrice): string =>
@@ -424,6 +429,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       next: (prices) => {
         this.componentPrices = prices;
         this.componentPricesLoading = false;
+        this.recomputeComponentFilter();
       },
       error: () => {
         this.componentPricesError = 'Nie udało się załadować cennika komponentów.';
@@ -444,15 +450,49 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     return result.sort();
   }
 
-  get filteredComponentPrices(): ComponentPrice[] {
-    if (!this.componentCategoryFilter) return this.componentPrices;
-    return this.componentPrices.filter(cp => cp.category === this.componentCategoryFilter);
+  /** Distinct model codes for the currently selected category (or all categories). */
+  get componentModels(): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    const source = this.componentCategoryFilter
+      ? this.componentPrices.filter(cp => cp.category === this.componentCategoryFilter)
+      : this.componentPrices;
+    for (const cp of source) {
+      if (!seen.has(cp.modelCode)) {
+        seen.add(cp.modelCode);
+        result.push(cp.modelCode);
+      }
+    }
+    return result.sort();
+  }
+
+  private recomputeComponentFilter(): void {
+    let result = this.componentPrices;
+    if (this.componentCategoryFilter) {
+      result = result.filter(cp => cp.category === this.componentCategoryFilter);
+    }
+    if (this.componentModelFilter) {
+      result = result.filter(cp => cp.modelCode === this.componentModelFilter);
+    }
+    this.filteredComponentPrices = result;
+  }
+
+  onComponentCategoryChange(cat: string): void {
+    this.componentCategoryFilter = cat;
+    this.componentModelFilter = '';
+    this.recomputeComponentFilter();
+  }
+
+  onComponentModelFilterChange(model: string): void {
+    this.componentModelFilter = model;
+    this.recomputeComponentFilter();
   }
 
   onComponentPriceSave(event: PriceSaveEvent): void {
     this.componentPriceService.update(event.id, { pricePerUnit: event.price }).subscribe({
       next: (updated) => {
         this.componentPrices = this.componentPrices.map(p => p.id === updated.id ? updated : p);
+        this.recomputeComponentFilter();
         event.complete(true);
       },
       error: () => event.complete(false),
@@ -468,6 +508,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       next: (prices) => {
         this.jobPrices = prices;
         this.jobPricesLoading = false;
+        this.recomputeJobFilter();
       },
       error: () => {
         this.jobPricesError = 'Nie udało się załadować cennika prac.';
@@ -488,15 +529,81 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     return result.sort();
   }
 
-  get filteredJobPrices(): JobPrice[] {
-    if (!this.jobCategoryFilter) return this.jobPrices;
-    return this.jobPrices.filter(jp => jp.jobCategory === this.jobCategoryFilter);
+  /** Distinct variant codes for the currently selected category (or all categories). */
+  get jobVariants(): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    const source = this.jobCategoryFilter
+      ? this.jobPrices.filter(jp => jp.jobCategory === this.jobCategoryFilter)
+      : this.jobPrices;
+    for (const jp of source) {
+      if (!seen.has(jp.variantCode)) {
+        seen.add(jp.variantCode);
+        result.push(jp.variantCode);
+      }
+    }
+    return result.sort();
+  }
+
+  private recomputeJobFilter(): void {
+    let result = this.jobPrices;
+    if (this.jobCategoryFilter) {
+      result = result.filter(jp => jp.jobCategory === this.jobCategoryFilter);
+    }
+    if (this.jobVariantFilter) {
+      result = result.filter(jp => jp.variantCode === this.jobVariantFilter);
+    }
+    this.filteredJobPrices = result;
+  }
+
+  onJobCategoryChange(cat: string): void {
+    this.jobCategoryFilter = cat;
+    this.jobVariantFilter = '';
+    this.recomputeJobFilter();
+  }
+
+  onJobVariantFilterChange(variant: string): void {
+    this.jobVariantFilter = variant;
+    this.recomputeJobFilter();
   }
 
   onJobPriceSave(event: PriceSaveEvent): void {
     this.jobPriceService.update(event.id, { pricePerUnit: event.price }).subscribe({
       next: (updated) => {
         this.jobPrices = this.jobPrices.map(p => p.id === updated.id ? updated : p);
+        this.recomputeJobFilter();
+        event.complete(true);
+      },
+      error: () => event.complete(false),
+    });
+  }
+
+  onComponentBulkSave(event: BulkSaveEvent): void {
+    const requests = event.ids.map(id =>
+      this.componentPriceService.update(id, { pricePerUnit: event.price })
+    );
+    forkJoin(requests).subscribe({
+      next: (updated) => {
+        updated.forEach(u => {
+          this.componentPrices = this.componentPrices.map(p => p.id === u.id ? u : p);
+        });
+        this.recomputeComponentFilter();
+        event.complete(true);
+      },
+      error: () => event.complete(false),
+    });
+  }
+
+  onJobBulkSave(event: BulkSaveEvent): void {
+    const requests = event.ids.map(id =>
+      this.jobPriceService.update(id, { pricePerUnit: event.price })
+    );
+    forkJoin(requests).subscribe({
+      next: (updated) => {
+        updated.forEach(u => {
+          this.jobPrices = this.jobPrices.map(p => p.id === u.id ? u : p);
+        });
+        this.recomputeJobFilter();
         event.complete(true);
       },
       error: () => event.complete(false),

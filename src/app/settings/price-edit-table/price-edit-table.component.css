@@ -1,3 +1,57 @@
+/* Action bar — shown when rows are selected */
+.pte-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  margin-bottom: 6px;
+}
+
+.pte-action-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  white-space: nowrap;
+}
+
+.pte-action-input {
+  width: 90px;
+}
+
+.pte-action-unit {
+  font-size: 12px;
+  color: var(--text-muted, #888);
+}
+
+/* Checkbox column */
+.pte-checkbox-col {
+  width: 32px;
+  min-width: 32px;
+  text-align: center;
+  padding-left: 4px !important;
+  padding-right: 4px !important;
+}
+
+/* Page size selector */
+.pte-page-size-label {
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--text-muted, #888);
+  white-space: nowrap;
+}
+
+.pte-page-size-select {
+  font-size: 12px;
+  padding: 2px 4px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1e293b);
+  cursor: pointer;
+}
+
 /* Loading & error states */
 .pte-loading {
   padding: 10px 0;
@@ -65,3 +119,50 @@ tr.inactive td {
   color: var(--text-muted, #888);
   font-size: 13px;
 }
+
+/* Pagination */
+.pte-pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 4px;
+  flex-wrap: wrap;
+}
+
+.pte-page-btn {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 12px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 4px;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1e293b);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.pte-page-btn:hover:not(:disabled) {
+  background: var(--bg-hover, #f1f5f9);
+  border-color: var(--primary-color, #4f46e5);
+}
+
+.pte-page-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pte-page-active {
+  background: var(--primary-color, #4f46e5) !important;
+  color: #fff !important;
+  border-color: var(--primary-color, #4f46e5) !important;
+  font-weight: 600;
+}
+
+.pte-page-info {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--text-muted, #888);
+  white-space: nowrap;
+}
+

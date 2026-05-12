@@ -70,11 +70,82 @@
   <!-- Loading -->
   <div *ngIf="boardPricesLoading" style="color:#888; padding: 8px 0;">Ładowanie cennika...</div>
 
+  <!-- Filter bar -->
+  <div *ngIf="!boardPricesLoading && boardPrices.length > 0" class="board-filter-bar">
+    <label class="board-filter-label">Kolor:</label>
+    <input type="text" class="form-control board-filter-input"
+           [(ngModel)]="colorFilter"
+           (ngModelChange)="onFilterChange()"
+           placeholder="szukaj…" />
+    <label class="board-filter-label">Materiał:</label>
+    <select class="form-control board-filter-select"
+            [(ngModel)]="materialFilter"
+            (ngModelChange)="onFilterChange()">
+      <option value="">— wszystkie —</option>
+      <option *ngFor="let m of distinctMaterials; trackBy: trackByIndex" [value]="m">
+        {{ translations['MATERIAL.' + m] || m }}
+      </option>
+    </select>
+    <label class="board-filter-label">Gr.:</label>
+    <select class="form-control board-filter-select board-filter-select--sm"
+            [ngModel]="thicknessFilter"
+            (ngModelChange)="thicknessFilter = $event === 'null' ? null : +$event; onFilterChange()">
+      <option value="null">— —</option>
+      <option *ngFor="let t of distinctThicknesses; trackBy: trackByIndex" [value]="t">{{ t }} mm</option>
+    </select>
+    <label class="board-filter-label">Lak.:</label>
+    <select class="form-control board-filter-select board-filter-select--sm"
+            [(ngModel)]="varnishedFilter"
+            (ngModelChange)="onFilterChange()">
+      <option value="">— —</option>
+      <option value="true">Tak</option>
+      <option value="false">Nie</option>
+    </select>
+    <button *ngIf="hasActiveFilters"
+            class="btn btn-sm btn-outline board-filter-clear"
+            (click)="clearFilters()"
+            title="Wyczyść filtry">✕</button>
+    <span *ngIf="hasActiveFilters" class="board-filter-count">
+      {{ filteredBoardPrices.length }} / {{ boardPrices.length }}
+    </span>
+  </div>
+
+  <!-- Bulk action bar — visible when rows are selected -->
+  <div *ngIf="!boardPricesLoading && selectedBoardCount > 0" class="board-action-bar">
+    <span class="board-action-label">Zaznaczono {{ selectedBoardCount }}:</span>
+    <input type="number" class="board-action-input"
+           [(ngModel)]="bulkPrice"
+           min="0.01" step="0.01"
+           placeholder="0.00" />
+    <span class="board-action-unit">zł/m²</span>
+    <button class="btn btn-sm btn-primary board-action-btn"
+            (click)="submitBulkForSelected()"
+            [disabled]="bulkSaving || bulkPrice <= 0">
+      {{ bulkSaving ? '⏳ Zapisuję...' : 'Ustal cenę zaznaczonym' }}
+    </button>
+    <button class="btn btn-sm btn-danger board-action-btn"
+            (click)="deactivateSelected()"
+            [disabled]="deactivatingSelected || bulkSaving">
+      {{ deactivatingSelected ? '⏳ Usuwam...' : '🗑 Usuń zaznaczone' }}
+    </button>
+    <button class="btn btn-sm btn-outline board-action-btn"
+            (click)="clearBoardSelection()"
+            [disabled]="bulkSaving || deactivatingSelected">
+      Odznacz wszystkie
+    </button>
+  </div>
+
   <!-- Table -->
-  <div *ngIf="!boardPricesLoading && boardPrices.length > 0" class="table-container" style="margin-top:8px;">
+  <div *ngIf="!boardPricesLoading && filteredBoardPrices.length > 0" class="table-container" style="margin-top:8px;">
     <table style="font-size:13px;">
       <thead>
         <tr>
+          <th class="board-checkbox-col">
+            <input type="checkbox"
+                   [checked]="allCurrentPageBoardsSelected"
+                   (change)="toggleAllCurrentPageBoards()"
+                   title="Zaznacz/odznacz wszystkie na tej stronie" />
+          </th>
           <th>Kolor</th>
           <th>Materiał</th>
           <th>Gr.</th>
@@ -85,7 +156,13 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let bp of boardPrices; trackBy: trackById" [class.board-price-row-inactive]="!bp.materialActive">
+        <tr *ngFor="let bp of boardPaginatedPrices; trackBy: trackById" [class.board-price-row-inactive]="!bp.materialActive">
+          <!-- Checkbox -->
+          <td class="board-checkbox-col">
+            <input type="checkbox"
+                   [checked]="selectedBoardIds.has(bp.id)"
+                   (change)="toggleBoardSelection(bp.id)" />
+          </td>
           <!-- Kolor: swatch + nazwa + kod -->
           <td>
             <ng-container *ngIf="editingBoardId !== bp.id">
@@ -103,10 +180,12 @@
                 <input type="color"
                        [value]="editBoardColorHex || '#ffffff'"
                        (input)="editBoardColorHex = $any($event.target).value"
-                       style="width:30px; height:26px; border:1px solid #ccc; border-radius:3px; cursor:pointer; padding:1px;" />
-                <input type="text" style="width:70px; font-size:12px;" [(ngModel)]="editBoardColorHex"
+                       class="board-color-picker" />
+                <input type="text" class="form-control board-edit-input board-edit-input--hex"
+                       [(ngModel)]="editBoardColorHex"
                        placeholder="#FFFFFF" maxlength="7" />
-                <input type="text" style="width:90px; font-size:12px;" [(ngModel)]="editBoardColorName"
+                <input type="text" class="form-control board-edit-input board-edit-input--name"
+                       [(ngModel)]="editBoardColorName"
                        placeholder="Nazwa koloru" maxlength="200" />
               </div>
             </ng-container>
@@ -119,9 +198,16 @@
           <td>{{ bp.thicknessMm }}</td>
           <td>{{ bp.varnished ? 'Tak' : '—' }}</td>
           <!-- Cena -->
-          <td *ngIf="editingBoardId !== bp.id">{{ bp.pricePerM2 != null ? bp.pricePerM2.toFixed(2) + ' zł' : '—' }}</td>
+          <td *ngIf="editingBoardId !== bp.id">
+            <ng-container *ngIf="bp.pricePerM2 != null">{{ bp.pricePerM2.toFixed(2) }} zł</ng-container>
+            <button *ngIf="bp.pricePerM2 === null"
+                    class="btn-set-price"
+                    (click)="startEditBoard(bp)"
+                    title="Kliknij aby ustawić cenę">Ustaw cenę →</button>
+          </td>
           <td *ngIf="editingBoardId === bp.id">
-            <input type="number" style="width:80px; font-size:12px;" [(ngModel)]="editBoardPrice" min="0.01" step="0.01" />
+            <input type="number" class="form-control board-edit-input board-edit-input--price"
+                   [(ngModel)]="editBoardPrice" min="0.01" step="0.01" />
           </td>
           <!-- Źródło -->
           <td>
@@ -131,28 +217,78 @@
               {{ bp.source === 'OWN' ? 'Własna' : 'Systemowa' }}
             </span>
           </td>
-          <!-- Akcje -->
+          <!-- Akcje — available for ALL boards (OWN and GLOBAL) -->
           <td style="white-space:nowrap;">
-            <ng-container *ngIf="bp.source === 'OWN'">
-              <ng-container *ngIf="editingBoardId !== bp.id">
-                <button class="btn btn-sm btn-outline" (click)="startEditBoard(bp)" style="font-size:11px; padding:2px 6px;">Edytuj</button>
-              </ng-container>
-              <ng-container *ngIf="editingBoardId === bp.id">
-                <button class="btn btn-sm btn-primary" (click)="submitEditBoard(bp)" [disabled]="editBoardSaving" style="font-size:11px; padding:2px 6px;">
-                  {{ editBoardSaving ? '...' : 'Zapisz' }}
-                </button>
-                <button class="btn btn-sm btn-outline" (click)="cancelEditBoard()" style="font-size:11px; padding:2px 6px; margin-left:4px;">Anuluj</button>
-              </ng-container>
+            <ng-container *ngIf="editingBoardId !== bp.id">
+              <button class="btn btn-sm btn-outline"
+                      (click)="startEditBoard(bp)"
+                      [title]="bp.source === 'GLOBAL' ? 'Edytuj — zmiana w Twoim kontekście' : 'Edytuj'"
+                      style="font-size:11px; padding:2px 6px;">Edytuj</button>
+              <button class="btn btn-sm btn-danger board-delete-btn"
+                      (click)="deleteBoard(bp.id)"
+                      [disabled]="deletingBoardId === bp.id || deactivatingSelected || bulkSaving"
+                      [title]="bp.source === 'GLOBAL' ? 'Ukryj systemową płytę (w Twoim kontekście)' : 'Dezaktywuj tę płytę'"
+                      style="margin-left:4px;">
+                {{ deletingBoardId === bp.id ? '...' : '🗑' }}
+              </button>
             </ng-container>
-            <span *ngIf="bp.source !== 'OWN'" style="color:#aaa; font-size:11px;">—</span>
+            <ng-container *ngIf="editingBoardId === bp.id">
+              <button class="btn btn-sm btn-primary"
+                      (click)="submitEditBoard(bp)"
+                      [disabled]="editBoardSaving"
+                      style="font-size:11px; padding:2px 6px;">
+                {{ editBoardSaving ? '...' : 'Zapisz' }}
+              </button>
+              <button class="btn btn-sm btn-outline"
+                      (click)="cancelEditBoard()"
+                      style="font-size:11px; padding:2px 6px; margin-left:4px;">Anuluj</button>
+            </ng-container>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
+  <!-- Pagination footer -->
+  <div *ngIf="!boardPricesLoading && filteredBoardPrices.length > 0" class="board-pagination">
+    <ng-container *ngIf="filteredBoardPrices.length > boardPageSize">
+      <button class="board-page-btn"
+              [disabled]="boardCurrentPage === 1"
+              (click)="goToBoardPage(boardCurrentPage - 1)">
+        ‹
+      </button>
+      <button *ngFor="let p of boardPageNumbers; trackBy: trackByIndex"
+              class="board-page-btn"
+              [class.board-page-active]="p === boardCurrentPage"
+              (click)="goToBoardPage(p)">
+        {{ p }}
+      </button>
+      <button class="board-page-btn"
+              [disabled]="boardCurrentPage === boardTotalPages"
+              (click)="goToBoardPage(boardCurrentPage + 1)">
+        ›
+      </button>
+      <span class="board-page-info">
+        {{ (boardCurrentPage - 1) * boardPageSize + 1 }}–{{ boardCurrentPageEnd }} z {{ filteredBoardPrices.length }}
+      </span>
+    </ng-container>
+    <!-- Page size selector — always visible when there are rows -->
+    <span class="board-page-size-label">Pokaż:</span>
+    <select class="board-page-size-select" [ngModel]="boardPageSize" (ngModelChange)="setBoardPageSize($event)">
+      <option *ngFor="let s of boardPageSizeOptions; trackBy: trackByIndex" [value]="s">{{ s }}</option>
+    </select>
+  </div>
+
+  <!-- Empty: no boards at all -->
   <div *ngIf="!boardPricesLoading && boardPrices.length === 0 && !boardPricesError" style="color:#888; padding:12px 0;">
     Brak cen. Dodaj pierwszą pozycję lub zaimportuj CSV.
+  </div>
+
+  <!-- Empty: boards exist but filtered out -->
+  <div *ngIf="!boardPricesLoading && boardPrices.length > 0 && filteredBoardPrices.length === 0 && !boardPricesError"
+       style="color:#888; padding:12px 0;">
+    Brak wyników dla wybranych filtrów.
+    <button class="btn btn-sm btn-outline" style="margin-left:8px;" (click)="clearFilters()">Wyczyść filtry</button>
   </div>
 
 </div>

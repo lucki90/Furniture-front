@@ -431,18 +431,28 @@
               [loading]="componentPricesLoading"
               [error]="componentPricesError"
               [rowClassFn]="componentRowClass"
-              [emptyText]="componentCategoryFilter ? 'Brak komponentów w kategorii ' + componentCategoryFilter + '.' : 'Brak komponentów.'"
+              [emptyText]="(componentCategoryFilter || componentModelFilter) ? 'Brak komponentów dla wybranych filtrów.' : 'Brak komponentów.'"
               (save)="onComponentPriceSave($event)"
+              (bulkSave)="onComponentBulkSave($event)"
               (retry)="loadComponentPrices()">
 
             <ng-template #toolbar>
               <div class="price-toolbar">
-                <label class="filter-label">Filtruj kategorie:</label>
-                <select class="form-control filter-select" [(ngModel)]="componentCategoryFilter">
+                <label class="filter-label">Kategoria:</label>
+                <select class="form-control filter-select"
+                        [ngModel]="componentCategoryFilter"
+                        (ngModelChange)="onComponentCategoryChange($event)">
                   <option value="">— wszystkie —</option>
                   <option *ngFor="let cat of componentCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
                 </select>
-                <span *ngIf="componentCategoryFilter" class="filter-count">
+                <label class="filter-label">Model:</label>
+                <select class="form-control filter-select"
+                        [ngModel]="componentModelFilter"
+                        (ngModelChange)="onComponentModelFilterChange($event)">
+                  <option value="">— wszystkie —</option>
+                  <option *ngFor="let m of componentModels; trackBy: trackByIndex" [value]="m">{{ m }}</option>
+                </select>
+                <span *ngIf="componentCategoryFilter || componentModelFilter" class="filter-count">
                   {{ filteredComponentPrices.length }} / {{ componentPrices.length }} pozycji
                 </span>
               </div>
@@ -493,18 +503,28 @@
               [loading]="jobPricesLoading"
               [error]="jobPricesError"
               [rowClassFn]="jobRowClass"
-              [emptyText]="jobCategoryFilter ? 'Brak prac w kategorii ' + jobCategoryFilter + '.' : 'Brak prac.'"
+              [emptyText]="(jobCategoryFilter || jobVariantFilter) ? 'Brak prac dla wybranych filtrów.' : 'Brak prac.'"
               (save)="onJobPriceSave($event)"
+              (bulkSave)="onJobBulkSave($event)"
               (retry)="loadJobPrices()">
 
             <ng-template #toolbar>
               <div class="price-toolbar">
-                <label class="filter-label">Filtruj kategorie:</label>
-                <select class="form-control filter-select" [(ngModel)]="jobCategoryFilter">
+                <label class="filter-label">Kategoria:</label>
+                <select class="form-control filter-select"
+                        [ngModel]="jobCategoryFilter"
+                        (ngModelChange)="onJobCategoryChange($event)">
                   <option value="">— wszystkie —</option>
                   <option *ngFor="let cat of jobCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
                 </select>
-                <span *ngIf="jobCategoryFilter" class="filter-count">
+                <label class="filter-label">Wariant:</label>
+                <select class="form-control filter-select"
+                        [ngModel]="jobVariantFilter"
+                        (ngModelChange)="onJobVariantFilterChange($event)">
+                  <option value="">— wszystkie —</option>
+                  <option *ngFor="let v of jobVariants; trackBy: trackByIndex" [value]="v">{{ v }}</option>
+                </select>
+                <span *ngIf="jobCategoryFilter || jobVariantFilter" class="filter-count">
                   {{ filteredJobPrices.length }} / {{ jobPrices.length }} pozycji
                 </span>
               </div>

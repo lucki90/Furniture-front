@@ -60,6 +60,14 @@ export class BoardPriceService {
     return this.http.put<BoardPrice>(`${BASE_URL}/${id}`, request);
   }
 
+  deactivate(id: number): Observable<void> {
+    return this.http.delete<void>(`${BASE_URL}/${id}`);
+  }
+
+  deactivateBulk(ids: number[]): Observable<{ deactivated: number }> {
+    return this.http.post<{ deactivated: number }>(`${BASE_URL}/deactivate`, ids);
+  }
+
   downloadTemplate(): Observable<Blob> {
     return this.http.get(`${BASE_URL}/template`, { responseType: 'blob' });
   }

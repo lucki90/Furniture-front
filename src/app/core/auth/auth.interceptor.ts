@@ -26,13 +26,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      // TODO(CODEX): Każdy 401 poza /auth/ kończy się pełnym logoutem, a logout czyści też lokalny stan projektów. To oznacza ryzyko utraty niezapisanej pracy przy wygaśnięciu tokena albo chwilowym problemie autoryzacji. Warto rozdzielić "utrata sesji" od "wyczyść lokalne dane użytkownika".
       if (error.status === 401 && !req.url.includes('/auth/')) {
+        // 401 = unauthenticated (expired/missing token) → log out and redirect to login.
+        // Domain-level resource access denial (e.g. "board not owned by you") returns 403,
+        // not 401, so all 401s here reliably indicate a broken/expired session.
         authService.logout();
         router.navigate(['/login']);
       } else if (error.status === 403) {
+        // 403 = authenticated but not authorized for this specific resource.
+        // Show a toast so the user knows the action was rejected, but do NOT navigate away —
+        // the component will handle the error and restore its own state (e.g. re-enable a button).
         toast.error('Brak uprawnień do wykonania tej operacji.');
-        router.navigate(['/']);
       }
       return throwError(() => error);
     })
