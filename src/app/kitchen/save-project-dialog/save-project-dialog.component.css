@@ -1,6 +1,11 @@
 .dialog-container {
   padding: 24px;
   min-width: 400px;
+  --control-min-height: 38px;
+  --control-padding-y: 9px;
+  --control-padding-x: 12px;
+  --control-font-size: 14px;
+  --control-line-height: 1.4;
 }
 
 .dialog-title {
@@ -31,10 +36,12 @@
 
 .form-control {
   width: 100%;
-  padding: 9px 12px;
   border: 1px solid var(--input-border);
   border-radius: var(--border-radius-sm);
-  font-size: 14px;
+  min-height: var(--control-min-height);
+  padding: var(--control-padding-y) var(--control-padding-x);
+  font-size: var(--control-font-size);
+  line-height: var(--control-line-height);
   font-family: inherit;
   background: var(--bg-card);
   color: var(--text-primary);

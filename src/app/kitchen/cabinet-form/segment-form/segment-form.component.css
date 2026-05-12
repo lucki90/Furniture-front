@@ -59,10 +59,12 @@
 }
 
 .form-control {
-  padding: 8px 12px;
+  min-height: var(--control-min-height, var(--control-min-height-compact));
+  padding: var(--control-padding-y, var(--control-padding-y-compact)) var(--control-padding-x, var(--control-padding-x-compact));
   border: 1px solid var(--input-border);
   border-radius: var(--border-radius-sm);
-  font-size: 13px;
+  font-size: var(--control-font-size, var(--control-font-size-compact));
+  line-height: var(--control-line-height, var(--control-line-height-compact));
   font-family: inherit;
   background: var(--bg-card);
   color: var(--text-primary);

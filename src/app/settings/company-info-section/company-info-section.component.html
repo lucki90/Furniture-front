@@ -17,7 +17,7 @@
         <input type="file" accept="image/png,image/jpeg"
                (change)="onLogoSelected($event)"
                [disabled]="logoUploading"
-               style="display:none;" />
+               class="settings-hidden-file-input" />
       </label>
     </div>
 
@@ -33,9 +33,9 @@
           <input type="file" accept="image/png,image/jpeg"
                  (change)="onLogoSelected($event)"
                  [disabled]="logoUploading"
-                 style="display:none;" />
+                 class="settings-hidden-file-input" />
         </label>
-        <button class="btn btn-sm btn-danger-outline"
+        <button class="btn btn-sm btn-outline-danger"
                 (click)="removeLogo()" [disabled]="logoUploading">
           Usuń
         </button>

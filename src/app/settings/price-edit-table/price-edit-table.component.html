@@ -1,51 +1,47 @@
-<!-- Optional toolbar (filters, actions etc.) -->
 <ng-container *ngIf="toolbarTemplate">
   <ng-container *ngTemplateOutlet="toolbarTemplate"></ng-container>
 </ng-container>
 
-<!-- Action bar — visible when rows are selected -->
-<div *ngIf="!loading && !error && selectedCount > 0" class="pte-action-bar">
-  <span class="pte-action-label">Zaznaczono {{ selectedCount }}:</span>
-  <input type="number" class="pte-price-input pte-action-input"
-         [(ngModel)]="bulkPrice"
-         min="0.01" step="0.01"
-         placeholder="0.00" />
+<div *ngIf="!loading && !error && selectedCount > 0" class="pte-action-bar settings-toolbar settings-toolbar--selection">
+  <span class="settings-toolbar-label pte-action-label">Zaznaczono {{ selectedCount }}:</span>
+  <input
+    type="number"
+    class="form-control form-control--compact pte-price-input pte-action-input settings-selection-input"
+    [(ngModel)]="bulkPrice"
+    min="0.01"
+    step="0.01"
+    placeholder="0.00" />
   <span class="pte-action-unit">{{ priceUnit }}</span>
-  <button class="btn btn-sm btn-primary pte-btn"
-          (click)="submitBulkForSelected()"
-          [disabled]="bulkSaving || bulkPrice <= 0">
-    {{ bulkSaving ? '⏳ Zapisuję...' : 'Ustal cenę zaznaczonym' }}
+  <button class="btn btn-sm btn-primary pte-btn" (click)="submitBulkForSelected()" [disabled]="bulkSaving || bulkPrice <= 0">
+    {{ bulkSaving ? '⟳ Zapisuję...' : 'Ustal cenę zaznaczonym' }}
   </button>
-  <button class="btn btn-sm btn-outline pte-btn pte-btn-cancel"
-          (click)="clearSelection()"
-          [disabled]="bulkSaving">
+  <button class="btn btn-sm btn-outline pte-btn pte-btn-cancel" (click)="clearSelection()" [disabled]="bulkSaving">
     Odznacz wszystkie
   </button>
 </div>
 
-<!-- Loading state -->
-<div *ngIf="loading" class="pte-loading">⏳ Ładowanie...</div>
+<div *ngIf="loading" class="settings-inline-status settings-inline-status--loading pte-loading">
+  ⟳ Ładowanie...
+</div>
 
-<!-- Error state -->
-<div *ngIf="error && !loading" class="pte-error">
-  {{ error }}
-  <button class="btn btn-sm btn-outline" (click)="retry.emit()" style="margin-left:8px;">
+<div *ngIf="error && !loading" class="settings-inline-status settings-inline-status--error pte-error">
+  <span>{{ error }}</span>
+  <button class="btn btn-sm btn-outline pte-error-action" (click)="retry.emit()">
     Spróbuj ponownie
   </button>
 </div>
 
-<!-- Table -->
 <ng-container *ngIf="!loading && !error">
-  <div class="table-container">
-    <table *ngIf="rows.length > 0" class="pte-table">
+  <div class="table-container settings-table-shell pte-table-shell">
+    <table *ngIf="rows.length > 0" class="settings-table pte-table">
       <thead>
         <tr>
-          <!-- Checkbox header — selects/deselects all on current page -->
           <th class="pte-checkbox-col">
-            <input type="checkbox"
-                   [checked]="allCurrentPageSelected"
-                   (change)="toggleAllCurrentPage()"
-                   title="Zaznacz/odznacz wszystkie na tej stronie" />
+            <input
+              type="checkbox"
+              [checked]="allCurrentPageSelected"
+              (change)="toggleAllCurrentPage()"
+              title="Zaznacz/odznacz wszystkie na tej stronie" />
           </th>
           <ng-container *ngTemplateOutlet="headersTemplate"></ng-container>
           <th>{{ priceLabel }}</th>
@@ -54,39 +50,34 @@
       </thead>
       <tbody>
         <tr *ngFor="let row of paginatedRows; trackBy: trackById" [ngClass]="getRowClass(row)">
-          <!-- Checkbox cell -->
           <td class="pte-checkbox-col">
-            <input type="checkbox"
-                   [checked]="selectedIds.has(row.id)"
-                   (change)="toggleSelection(row.id)" />
+            <input
+              type="checkbox"
+              [checked]="selectedIds.has(row.id)"
+              (change)="toggleSelection(row.id)" />
           </td>
 
-          <!-- Custom row cells (provided by parent) -->
-          <ng-container *ngTemplateOutlet="rowCellsTemplate; context: {$implicit: row}"></ng-container>
+          <ng-container *ngTemplateOutlet="rowCellsTemplate; context: { $implicit: row }"></ng-container>
 
-          <!-- Price cell -->
           <td *ngIf="!isEditing(row)" class="pte-price-cell">{{ formatPrice(row) }}</td>
           <td *ngIf="isEditing(row)">
-            <input type="number" class="pte-price-input"
-                   [(ngModel)]="editPrice"
-                   min="0.01" step="0.01" />
+            <input
+              type="number"
+              class="form-control form-control--compact pte-price-input"
+              [(ngModel)]="editPrice"
+              min="0.01"
+              step="0.01" />
           </td>
 
-          <!-- Actions cell -->
           <td class="pte-actions-cell">
-            <button *ngIf="!isEditing(row)"
-                    class="btn btn-sm btn-outline pte-btn"
-                    (click)="startEdit(row)">
+            <button *ngIf="!isEditing(row)" class="btn btn-sm btn-outline pte-btn" (click)="startEdit(row)">
               Edytuj
             </button>
             <ng-container *ngIf="isEditing(row)">
-              <button class="btn btn-sm btn-primary pte-btn"
-                      (click)="submitEdit(row)"
-                      [disabled]="saving">
+              <button class="btn btn-sm btn-primary pte-btn" (click)="submitEdit(row)" [disabled]="saving">
                 {{ saving ? '...' : 'Zapisz' }}
               </button>
-              <button class="btn btn-sm btn-outline pte-btn pte-btn-cancel"
-                      (click)="cancelEdit()">
+              <button class="btn btn-sm btn-outline pte-btn pte-btn-cancel" (click)="cancelEdit()">
                 Anuluj
               </button>
             </ng-container>
@@ -96,34 +87,31 @@
     </table>
   </div>
 
-  <!-- Pagination footer -->
-  <div *ngIf="rows.length > internalPageSize || rows.length > pageSizeOptions[0]" class="pte-pagination">
-    <button class="pte-page-btn"
-            [disabled]="currentPage === 1"
-            (click)="goToPage(currentPage - 1)">
+  <div *ngIf="rows.length > internalPageSize || rows.length > pageSizeOptions[0]" class="pte-pagination settings-pagination">
+    <button class="pte-page-btn settings-page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
       ‹
     </button>
-    <button *ngFor="let p of pageNumbers"
-            class="pte-page-btn"
-            [class.pte-page-active]="p === currentPage"
-            (click)="goToPage(p)">
+    <button
+      *ngFor="let p of pageNumbers"
+      class="pte-page-btn settings-page-btn"
+      [class.is-active]="p === currentPage"
+      (click)="goToPage(p)">
       {{ p }}
     </button>
-    <button class="pte-page-btn"
-            [disabled]="currentPage === totalPages"
-            (click)="goToPage(currentPage + 1)">
+    <button class="pte-page-btn settings-page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
       ›
     </button>
-    <span *ngIf="rows.length > internalPageSize" class="pte-page-info">
+    <span *ngIf="rows.length > internalPageSize" class="pte-page-info settings-page-info">
       {{ (currentPage - 1) * internalPageSize + 1 }}–{{ currentPageEnd }} z {{ rows.length }}
     </span>
-    <!-- Page size selector -->
-    <span class="pte-page-size-label">Pokaż:</span>
-    <select class="pte-page-size-select" [ngModel]="internalPageSize" (ngModelChange)="setPageSize($event)">
+    <span class="pte-page-size-label settings-page-size-label">Pokaż:</span>
+    <select
+      class="form-control form-control--compact pte-page-size-select settings-page-size-select"
+      [ngModel]="internalPageSize"
+      (ngModelChange)="setPageSize($event)">
       <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
     </select>
   </div>
 
-  <!-- Empty state -->
-  <div *ngIf="rows.length === 0" class="pte-empty">{{ emptyText }}</div>
+  <div *ngIf="rows.length === 0" class="settings-empty-note pte-empty">{{ emptyText }}</div>
 </ng-container>

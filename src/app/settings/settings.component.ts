@@ -139,6 +139,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   error: string | null = null;
 
   // UI — sekcja techniczna zwinięta domyślnie
+  private collapsedSectionIds = new Set<string>(['sec-technical']);
 
   // Options for select fields — loaded from backend
   plinthOptions: number[] = [80, 100, 150];
@@ -610,20 +611,39 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     });
   }
 
-  scrollTo(id: string): void {
-    const el = document.getElementById(id);
-    if (!el) return;
-    // .settings-body jest scroll containerem — obliczamy pozycję przez getBoundingClientRect,
-    // żeby nagłówek sekcji trafił precyzyjnie na top widocznego obszaru (+ 8px oddechu).
-    const bodyEl = document.querySelector('.settings-body') as HTMLElement | null;
-    if (bodyEl) {
-      const elTop = el.getBoundingClientRect().top;
-      const bodyTop = bodyEl.getBoundingClientRect().top;
-      const targetScrollTop = bodyEl.scrollTop + (elTop - bodyTop) - 8;
-      bodyEl.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+  isSectionCollapsed(id: string): boolean {
+    return this.collapsedSectionIds.has(id);
+  }
+
+  toggleSection(id: string): void {
+    if (this.collapsedSectionIds.has(id)) {
+      this.collapsedSectionIds.delete(id);
     } else {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.collapsedSectionIds.add(id);
     }
+  }
+
+  private expandSection(id: string): void {
+    this.collapsedSectionIds.delete(id);
+  }
+
+  scrollTo(id: string): void {
+    this.expandSection(id);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      // .settings-body jest scroll containerem — obliczamy pozycję przez getBoundingClientRect,
+      // żeby nagłówek sekcji trafił precyzyjnie na top widocznego obszaru (+ 8px oddechu).
+      const bodyEl = document.querySelector('.settings-body') as HTMLElement | null;
+      if (bodyEl) {
+        const elTop = el.getBoundingClientRect().top;
+        const bodyTop = bodyEl.getBoundingClientRect().top;
+        const targetScrollTop = bodyEl.scrollTop + (elTop - bodyTop) - 8;
+        bodyEl.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
   }
 
   protected trackByIndex = (index: number) => index;

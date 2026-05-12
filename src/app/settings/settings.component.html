@@ -57,12 +57,13 @@
     <div class="settings-content">
 
       <!-- SEKCJA 1: Kuchnia — domyślne -->
-      <section id="sec-kitchen" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-kitchen" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-kitchen')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-kitchen')" (click)="toggleSection('sec-kitchen')">
           <span class="panel-header-icon">🏠</span>
           <span class="panel-header-title">Kuchnia — domyślne</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" *ngIf="!isSectionCollapsed('sec-kitchen')">
           <div class="form-grid">
             <app-form-field label="Cokół" unit="mm" hint="Wysokość cokołu pod szafkami dolnymi">
               <select class="form-control" [(ngModel)]="plinthHeightMm" [disabled]="saving">
@@ -86,12 +87,13 @@
       </section>
 
       <!-- SEKCJA 2: Obudowy szafek -->
-      <section id="sec-enclosures" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-enclosures" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-enclosures')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-enclosures')" (click)="toggleSection('sec-enclosures')">
           <span class="panel-header-icon">📦</span>
           <span class="panel-header-title">Obudowy szafek — domyślne</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" *ngIf="!isSectionCollapsed('sec-enclosures')">
           <div class="form-grid">
             <app-form-field label="Głębokość zabudowy" unit="mm" hint="Odległość od tylnej ściany (400–700 mm)">
               <input type="number" class="form-control" [(ngModel)]="distanceFromWallMm" [disabled]="saving" min="400" max="700" step="10" />
@@ -121,13 +123,14 @@
       </section>
 
       <!-- SEKCJA 3: Wymiary techniczne szafek -->
-      <section id="sec-technical" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-technical" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-technical')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-technical')" (click)="toggleSection('sec-technical')">
           <span class="panel-header-icon">📐</span>
           <span class="panel-header-title">Wymiary techniczne szafek</span>
           <span class="panel-header-desc">Zaawansowane — zmień tylko jeśli wiesz co robisz</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" *ngIf="!isSectionCollapsed('sec-technical')">
           <p class="section-hint">
             Zaawansowane parametry konstrukcyjne. Domyślne wartości są zgodne ze standardami meblarskimi.
           </p>
@@ -196,12 +199,13 @@
       </section>
 
       <!-- SEKCJA 4: Kalkulacja odpadu i kierunek słoi -->
-      <section id="sec-waste" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-waste" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-waste')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-waste')" (click)="toggleSection('sec-waste')">
           <span class="panel-header-icon">♻️</span>
           <span class="panel-header-title">Kalkulacja odpadu i kierunek słoi</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" *ngIf="!isSectionCollapsed('sec-waste')">
           <p class="section-hint">
             Odpad jest liczony per materiał — hurtownie odpadów HDF/MDF zazwyczaj nie wliczają.
             Ciągłość słoi zachowuje kierunek słojów na frontach i widocznych płytach (może zwiększyć odpad o 5–15%).
@@ -239,12 +243,13 @@
       </section>
 
       <!-- SEKCJA 5: Domyślne materiały i kolory płyt -->
-      <section id="sec-materials" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-materials" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-materials')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-materials')" (click)="toggleSection('sec-materials')">
           <span class="panel-header-icon">🎨</span>
           <span class="panel-header-title">Domyślne materiały i kolory płyt</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" *ngIf="!isSectionCollapsed('sec-materials')">
           <p class="section-hint">
             Materiał i kolor stosowane domyślnie przy kalkulacji nowych szafek.
             Można nadpisać per-szafka w przyszłości. Zmiany dotyczą tylko nowych kalkulacji.
@@ -369,12 +374,13 @@
       </section>
 
       <!-- SEKCJA 6: Marże i rabaty -->
-      <section id="sec-margins" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-margins" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-margins')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-margins')" (click)="toggleSection('sec-margins')">
           <span class="panel-header-icon">💰</span>
           <span class="panel-header-title">Marże i rabaty</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" *ngIf="!isSectionCollapsed('sec-margins')">
           <p class="section-hint">
             Marże są doliczane do kosztów netto materiałów, komponentów i prac.
             Domyślny rabat stosowany przy nowych projektach (można nadpisać per-projekt w zakładce Wycena).
@@ -400,12 +406,13 @@
       </section>
 
       <!-- SEKCJA 7: Cennik płyt -->
-      <section id="sec-board-prices" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-board-prices" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-board-prices')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-board-prices')" (click)="toggleSection('sec-board-prices')">
           <span class="panel-header-icon">💵</span>
           <span class="panel-header-title">Cennik płyt</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" [hidden]="isSectionCollapsed('sec-board-prices')">
           <app-board-prices-section
             [translations]="translations"
             [materialOptions]="materialOptions"
@@ -416,13 +423,14 @@
       </section>
 
       <!-- SEKCJA 8: Cennik komponentów -->
-      <section id="sec-comp-prices" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-comp-prices" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-comp-prices')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-comp-prices')" (click)="toggleSection('sec-comp-prices')">
           <span class="panel-header-icon">🔧</span>
           <span class="panel-header-title">Cennik komponentów</span>
           <span class="panel-header-desc">Zawiasy, szuflady, nóżki, wieszaki</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" *ngIf="!isSectionCollapsed('sec-comp-prices')">
           <app-price-edit-table
               [rows]="filteredComponentPrices"
               priceField="pricePerUnit"
@@ -437,22 +445,22 @@
               (retry)="loadComponentPrices()">
 
             <ng-template #toolbar>
-              <div class="price-toolbar">
-                <label class="filter-label">Kategoria:</label>
-                <select class="form-control filter-select"
+              <div class="settings-toolbar settings-toolbar--filters price-toolbar">
+                <label class="settings-toolbar-label">Kategoria:</label>
+                <select class="form-control form-control--compact settings-filter-control settings-filter-control--wide"
                         [ngModel]="componentCategoryFilter"
                         (ngModelChange)="onComponentCategoryChange($event)">
                   <option value="">— wszystkie —</option>
                   <option *ngFor="let cat of componentCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
                 </select>
-                <label class="filter-label">Model:</label>
-                <select class="form-control filter-select"
+                <label class="settings-toolbar-label">Model:</label>
+                <select class="form-control form-control--compact settings-filter-control settings-filter-control--wide"
                         [ngModel]="componentModelFilter"
                         (ngModelChange)="onComponentModelFilterChange($event)">
                   <option value="">— wszystkie —</option>
                   <option *ngFor="let m of componentModels; trackBy: trackByIndex" [value]="m">{{ m }}</option>
                 </select>
-                <span *ngIf="componentCategoryFilter || componentModelFilter" class="filter-count">
+                <span *ngIf="componentCategoryFilter || componentModelFilter" class="settings-toolbar-count">
                   {{ filteredComponentPrices.length }} / {{ componentPrices.length }} pozycji
                 </span>
               </div>
@@ -488,13 +496,14 @@
       </section>
 
       <!-- SEKCJA 9: Cennik prac -->
-      <section id="sec-job-prices" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-job-prices" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-job-prices')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-job-prices')" (click)="toggleSection('sec-job-prices')">
           <span class="panel-header-icon">🛠️</span>
           <span class="panel-header-title">Cennik prac</span>
           <span class="panel-header-desc">Cięcie, oklejanie, wiercenie, frezowanie</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" *ngIf="!isSectionCollapsed('sec-job-prices')">
           <app-price-edit-table
               [rows]="filteredJobPrices"
               priceField="pricePerUnit"
@@ -509,22 +518,22 @@
               (retry)="loadJobPrices()">
 
             <ng-template #toolbar>
-              <div class="price-toolbar">
-                <label class="filter-label">Kategoria:</label>
-                <select class="form-control filter-select"
+              <div class="settings-toolbar settings-toolbar--filters price-toolbar">
+                <label class="settings-toolbar-label">Kategoria:</label>
+                <select class="form-control form-control--compact settings-filter-control settings-filter-control--wide"
                         [ngModel]="jobCategoryFilter"
                         (ngModelChange)="onJobCategoryChange($event)">
                   <option value="">— wszystkie —</option>
                   <option *ngFor="let cat of jobCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
                 </select>
-                <label class="filter-label">Wariant:</label>
-                <select class="form-control filter-select"
+                <label class="settings-toolbar-label">Wariant:</label>
+                <select class="form-control form-control--compact settings-filter-control settings-filter-control--wide"
                         [ngModel]="jobVariantFilter"
                         (ngModelChange)="onJobVariantFilterChange($event)">
                   <option value="">— wszystkie —</option>
                   <option *ngFor="let v of jobVariants; trackBy: trackByIndex" [value]="v">{{ v }}</option>
                 </select>
-                <span *ngIf="jobCategoryFilter || jobVariantFilter" class="filter-count">
+                <span *ngIf="jobCategoryFilter || jobVariantFilter" class="settings-toolbar-count">
                   {{ filteredJobPrices.length }} / {{ jobPrices.length }} pozycji
                 </span>
               </div>
@@ -554,12 +563,13 @@
       </section>
 
       <!-- SEKCJA 10: Dane firmy -->
-      <section id="sec-company" class="panel-card">
-        <div class="panel-header">
+      <section id="sec-company" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-company')">
+        <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-company')" (click)="toggleSection('sec-company')">
           <span class="panel-header-icon">🏢</span>
           <span class="panel-header-title">Dane firmy</span>
-        </div>
-        <div class="panel-body">
+          <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
+        </button>
+        <div class="panel-body" *ngIf="!isSectionCollapsed('sec-company')">
           <app-company-info-section></app-company-info-section>
         </div>
       </section>

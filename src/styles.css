@@ -65,6 +65,38 @@
   --input-focus-border: #1d6fa4;
   --input-disabled-bg: #f3f4f6;
 
+  /* Unified control sizing */
+  --control-radius: var(--border-radius-sm);
+  --control-font-size: 14px;
+  --control-line-height: 1.4;
+  --control-min-height: 40px;
+  --control-padding-y: 10px;
+  --control-padding-x: 14px;
+  --control-select-padding-right: 40px;
+
+  --control-font-size-compact: 13px;
+  --control-line-height-compact: 1.35;
+  --control-min-height-compact: 34px;
+  --control-padding-y-compact: 7px;
+  --control-padding-x-compact: 10px;
+  --control-select-padding-right-compact: 32px;
+
+  /* Unified button sizing */
+  --btn-radius: var(--border-radius-sm);
+  --btn-font-size: 14px;
+  --btn-font-weight: 500;
+  --btn-line-height: 1.2;
+  --btn-min-height: 40px;
+  --btn-padding-y: 10px;
+  --btn-padding-x: 20px;
+
+  --btn-font-size-compact: 13px;
+  --btn-font-weight-compact: 600;
+  --btn-line-height-compact: 1.15;
+  --btn-min-height-compact: 32px;
+  --btn-padding-y-compact: 6px;
+  --btn-padding-x-compact: 12px;
+
   /* Typografia */
   --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -124,15 +156,18 @@ body {
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
-  padding: 10px 20px;
-  font-size: 14px;
-  font-weight: 500;
-  border-radius: var(--border-radius-sm);
+  min-height: 0;
+  padding: var(--btn-padding-y) var(--btn-padding-x);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  line-height: var(--btn-line-height);
+  border-radius: var(--btn-radius);
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
   white-space: nowrap;
+  font-family: inherit;
 }
 
 .btn-primary {
@@ -190,19 +225,34 @@ body {
 }
 
 .btn-icon {
-  padding: var(--spacing-sm);
+  padding: 0;
   width: 36px;
   height: 36px;
+  min-height: 36px;
 }
 
 .btn-sm {
-  padding: 6px 12px;
-  font-size: 13px;
+  min-height: 0;
+  padding: var(--btn-padding-y-compact) var(--btn-padding-x-compact);
+  font-size: var(--btn-font-size-compact);
+  font-weight: var(--btn-font-weight-compact);
+  line-height: var(--btn-line-height-compact);
 }
 
 .btn-lg {
   padding: 14px 28px;
   font-size: 16px;
+}
+
+.btn-outline-danger {
+  background: transparent;
+  color: var(--error-color);
+  border: 1px solid var(--error-color);
+}
+
+.btn-outline-danger:hover:not(:disabled) {
+  background: var(--error-bg);
+  color: var(--error-color);
 }
 
 /* Workflow actions (header + footer) */
@@ -268,6 +318,256 @@ body {
   border-color: var(--success-hover);
 }
 
+/* Settings / admin toolbars and compact tables */
+.settings-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.98));
+}
+
+.settings-toolbar--actions,
+.settings-toolbar--filters,
+.settings-toolbar--selection {
+  margin-bottom: 10px;
+}
+
+.settings-toolbar-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.settings-toolbar-count {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.settings-filter-control {
+  flex: none;
+}
+
+.settings-filter-control--wide {
+  width: 168px;
+}
+
+.settings-filter-control--medium {
+  width: 140px;
+}
+
+.settings-filter-control--narrow {
+  width: 86px;
+}
+
+.settings-selection-input {
+  width: 96px;
+}
+
+.settings-inline-status {
+  padding: 10px 12px;
+  border-radius: var(--border-radius-sm);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.settings-inline-status--loading {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+}
+
+.settings-inline-status--error {
+  color: var(--error-color);
+  background: var(--error-bg);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.settings-inline-status--info {
+  color: #075985;
+  background: var(--info-bg);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+}
+
+.settings-inline-status-error {
+  display: block;
+  margin-top: 4px;
+  color: var(--error-color);
+  font-size: 12px;
+}
+
+.settings-empty-note {
+  padding: 12px 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.settings-empty-note-action {
+  margin-left: 8px;
+}
+
+.settings-table-shell {
+  margin-top: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  background: var(--bg-card);
+  overflow: auto;
+}
+
+.settings-table {
+  font-size: 13px;
+}
+
+.settings-table th,
+.settings-table td {
+  padding: 10px 12px;
+}
+
+.settings-pagination {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 0 4px;
+  flex-wrap: wrap;
+}
+
+.settings-page-btn {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.settings-page-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--accent-color);
+}
+
+.settings-page-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.settings-page-btn.is-active {
+  background: var(--accent-color);
+  color: #fff;
+  border-color: var(--accent-color);
+  font-weight: 600;
+}
+
+.settings-page-info,
+.settings-page-size-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.settings-page-info {
+  margin-left: 6px;
+}
+
+.settings-page-size-label {
+  margin-left: 8px;
+}
+
+.settings-page-size-select {
+  width: 72px;
+}
+
+.settings-source-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.settings-source-badge--own {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.settings-source-badge--system {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.settings-hidden-file-input {
+  display: none;
+}
+
+.settings-color-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.settings-color-picker {
+  width: 36px;
+  height: 30px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 1px;
+  flex-shrink: 0;
+  background: transparent;
+}
+
+.settings-color-text {
+  flex: 1 1 84px;
+  min-width: 84px;
+}
+
+.settings-color-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid var(--border-strong);
+  flex-shrink: 0;
+}
+
+.settings-color-swatch-placeholder {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.settings-checkbox-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.settings-form-grid--dense {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
 /* Formularze */
 .form-group {
   margin-bottom: var(--spacing-md);
@@ -283,13 +583,25 @@ body {
 
 .form-control {
   width: 100%;
-  padding: 10px 14px;
-  font-size: 14px;
+  min-height: var(--control-min-height);
+  padding: var(--control-padding-y) var(--control-padding-x);
+  font-size: var(--control-font-size);
+  line-height: var(--control-line-height);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--control-radius);
   background: var(--bg-card);
   color: var(--text-primary);
   transition: all 0.2s ease;
+  font-family: inherit;
+  cursor: text;
+  caret-color: var(--text-primary);
+}
+
+.form-control--compact {
+  min-height: var(--control-min-height-compact);
+  padding: var(--control-padding-y-compact) var(--control-padding-x-compact);
+  font-size: var(--control-font-size-compact);
+  line-height: var(--control-line-height-compact);
 }
 
 .form-control:focus {
@@ -309,7 +621,12 @@ select.form-control {
   background-position: right 10px center;
   background-repeat: no-repeat;
   background-size: 16px;
-  padding-right: 40px;
+  padding-right: var(--control-select-padding-right);
+  cursor: pointer;
+}
+
+select.form-control.form-control--compact {
+  padding-right: var(--control-select-padding-right-compact);
 }
 
 /* Input groups */

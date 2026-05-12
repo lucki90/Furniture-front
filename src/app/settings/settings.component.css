@@ -20,6 +20,18 @@
   flex: 1;
   min-height: 0;
   background: var(--bg-main);
+  --control-min-height: var(--control-min-height-compact);
+  --control-padding-y: var(--control-padding-y-compact);
+  --control-padding-x: var(--control-padding-x-compact);
+  --control-font-size: var(--control-font-size-compact);
+  --control-line-height: var(--control-line-height-compact);
+  --control-select-padding-right: var(--control-select-padding-right-compact);
+  --btn-min-height: 34px;
+  --btn-padding-y: 7px;
+  --btn-padding-x: 12px;
+  --btn-font-size: 13px;
+  --btn-font-weight: 600;
+  --btn-line-height: 1.15;
 }
 
 /* ── Fixed header — always visible, outside the scroll area ── */
@@ -220,10 +232,25 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   padding: 8px 14px;
   background: var(--primary-color);
   flex-shrink: 0;
   min-height: 36px;
+  border: none;
+  appearance: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.panel-header:hover {
+  background: var(--primary-light);
+}
+
+.panel-header:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: -2px;
 }
 
 .panel-header-icon {
@@ -244,6 +271,22 @@
   color: rgba(255, 255, 255, 0.5);
   font-weight: 400;
   margin-left: 4px;
+}
+
+.panel-header-toggle-indicator {
+  margin-left: auto;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 12px;
+  line-height: 1;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.panel-card.is-collapsed .panel-header-toggle-indicator {
+  transform: rotate(-90deg);
+}
+
+.panel-card.is-collapsed .panel-header-desc {
+  color: rgba(255, 255, 255, 0.42);
 }
 
 .panel-body {
@@ -314,54 +357,23 @@
 .form-control {
   flex: 1;
   min-width: 0;
-  padding: 7px 10px;
-  font-size: 13px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.form-control:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(29, 111, 164, 0.12);
+.settings-page input.form-control:not([type='color']):not([type='checkbox']):not([type='radio']),
+.settings-page textarea.form-control {
+  cursor: default;
+  caret-color: var(--text-primary);
 }
 
-.form-control:disabled {
-  background: var(--bg-hover);
-  color: var(--text-muted);
-  cursor: not-allowed;
-}
-
-select.form-control {
-  cursor: pointer;
+.settings-page input.form-control:not([type='color']):not([type='checkbox']):not([type='radio']):focus,
+.settings-page textarea.form-control:focus {
+  cursor: text;
 }
 
 /* ── Cennik toolbar ────────────────────────────────────────── */
 
 .price-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin-bottom: 10px;
-}
-
-.filter-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-}
-
-.filter-select {
-  width: 200px;
-  flex: none;
-}
-
-.filter-count {
-  font-size: 12px;
-  color: var(--text-muted);
 }
 
 /* ── Category chip ─────────────────────────────────────────── */
