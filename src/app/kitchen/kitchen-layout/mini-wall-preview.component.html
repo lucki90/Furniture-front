@@ -1,0 +1,39 @@
+<svg
+  class="mini-wall-preview"
+  [attr.viewBox]="'0 0 ' + displayWidth + ' ' + displayHeight"
+  preserveAspectRatio="xMidYMid meet"
+  role="img"
+  aria-label="Mini podglad sciany">
+
+  <rect x="0" y="0" [attr.width]="displayWidth" [attr.height]="displayHeight" class="mini-wall-bg"></rect>
+
+  <rect
+    *ngFor="let plinth of plinthRuns; trackBy: trackByIndex"
+    [attr.x]="plinth.x"
+    [attr.y]="plinth.y"
+    [attr.width]="plinth.width"
+    [attr.height]="plinth.height"
+    class="mini-wall-plinth">
+  </rect>
+
+  <rect
+    *ngFor="let countertop of countertopRuns; trackBy: trackByIndex"
+    [attr.x]="countertop.x"
+    [attr.y]="countertop.y"
+    [attr.width]="countertop.width"
+    [attr.height]="countertop.height"
+    class="mini-wall-countertop">
+  </rect>
+
+  <rect
+    *ngFor="let pos of visualPositions; trackBy: trackByCabinetId"
+    [attr.x]="pos.displayX"
+    [attr.y]="pos.displayY"
+    [attr.width]="pos.displayWidth"
+    [attr.height]="pos.bodyHeight"
+    [attr.class]="cabinetZoneClass(pos)"
+    rx="1">
+  </rect>
+
+  <line x1="0" [attr.y1]="displayHeight - 1" [attr.x2]="displayWidth" [attr.y2]="displayHeight - 1" class="mini-wall-floor"></line>
+</svg>

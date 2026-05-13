@@ -48,7 +48,10 @@
     (roomDepthChange)="roomDepthMm = $event"
     (wallConfigChanged)="onWallConfigChanged()"
     (cabinetCalculated)="onCabinetCalculated($event)"
-    (cancelEdit)="onCancelEdit()">
+    (cancelEdit)="onCancelEdit()"
+    (editCabinet)="onEditCabinet($event)"
+    (cloneCabinet)="onCloneCabinet($event)"
+    (removeCabinet)="onRemoveCabinet($event)">
 
     <!-- ============ SEKCJA 2: PODSUMOWANIE + LISTA SZAFEK (projektowana do centralnej kolumny) ============ -->
     <app-kitchen-cabinets-section

@@ -1,0 +1,142 @@
+<aside class="front-context-panel" #panelEl>
+  <section class="context-card context-card--switcher">
+    <header class="context-card-header">
+      <div>
+        <span class="context-eyebrow">Sciany projektu</span>
+      </div>
+      <span class="context-count">{{ wallCards().length }} szt.</span>
+    </header>
+
+    <div class="wall-card-list" [class.wall-card-list--scrollable]="wallCards().length > 3">
+      <button
+        type="button"
+        class="wall-card"
+        *ngFor="let card of wallCards(); trackBy: trackByWallId"
+        [class.active]="card.isActive"
+        (click)="onWallCardClick(card.id)">
+        <div class="wall-card-top">
+          <strong class="wall-card-title">{{ card.label }}</strong>
+          <div class="wall-card-statuses">
+            <span class="wall-card-active" *ngIf="card.isActive">Aktywna</span>
+            <span class="wall-card-fit" [class.wall-card-fit--error]="!card.fits">
+              {{ card.fits ? 'OK' : '!' }}
+            </span>
+          </div>
+        </div>
+
+        <app-mini-wall-preview
+          [cabinets]="card.previewCabinets"
+          [wallType]="card.type"
+          [wallWidthMm]="card.widthMm"
+          [wallHeightMm]="card.heightMm"
+          [plinthHeightMm]="card.plinthHeightMm"
+          [countertopThicknessMm]="card.countertopThicknessMm"
+          [upperFillerHeightMm]="card.upperFillerHeightMm"
+          [fillerWidthMm]="card.fillerWidthMm">
+        </app-mini-wall-preview>
+
+        <div class="wall-card-meta">
+          <span>{{ card.widthMm }} mm | {{ formatCabinetCount(card.cabinetCount) }}</span>
+          <strong>{{ formatPrice(card.totalCost) }}</strong>
+        </div>
+      </button>
+    </div>
+
+    <button type="button" class="add-wall-button" (click)="addWallRequested.emit()">
+      + Dodaj sciane
+    </button>
+  </section>
+
+  <section class="context-card context-card--details" #detailsCardEl>
+    <ng-container *ngIf="showInspector() && selectedCabinetValue() as cabinet; else wallSummary">
+      <header class="context-card-header context-card-header--details">
+        <div class="context-header-main">
+          <span [class]="cabinetAccentClass(cabinet)"></span>
+          <div>
+            <strong class="context-heading">
+              #{{ selectedCabinetOrder() ?? '?' }} | {{ cabinet.name || (cabinet.type | cabinetTypeName) }}
+            </strong>
+            <div class="context-subheading">{{ cabinet.type | cabinetTypeName }}</div>
+          </div>
+        </div>
+        <button type="button" class="icon-close-btn" (click)="onClearSelection()">x</button>
+      </header>
+
+      <div class="inspector-scroll">
+        <div class="metric-grid">
+          <div class="metric-card">
+            <span class="metric-label">Szer.</span>
+            <strong>{{ cabinet.width }} mm</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Wys.</span>
+            <strong>{{ cabinet.height }} mm</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Gleb.</span>
+            <strong>{{ cabinet.depth }} mm</strong>
+          </div>
+        </div>
+
+        <div class="details-list">
+          <div class="details-row" *ngFor="let row of cabinetPropertyRows(cabinet, selectedCabinetPositionValue())">
+            <span class="details-label">{{ row.label }}</span>
+            <span class="details-value">{{ row.value }}</span>
+          </div>
+        </div>
+
+        <div class="price-card">
+          <span class="price-label">Cena</span>
+          <strong class="price-value">{{ formatPrice(cabinet.calculatedResult?.totalCost ?? 0) }}</strong>
+        </div>
+
+        <div class="inspector-actions">
+          <button type="button" class="btn btn-primary" [disabled]="isEditingCabinetValue()" (click)="onEditSelectedCabinet()">Edytuj</button>
+          <button type="button" class="btn btn-secondary" [disabled]="isEditingCabinetValue()" (click)="onCloneSelectedCabinet()">Duplikuj</button>
+          <button type="button" class="btn btn-danger" [disabled]="isEditingCabinetValue()" (click)="onRemoveSelectedCabinet()">Usun</button>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #wallSummary>
+      <header class="context-card-header context-card-header--details">
+        <div class="context-header-main">
+          <span class="front-accent front-accent--summary"></span>
+          <div>
+            <strong class="context-heading">Podsumowanie sciany</strong>
+            <div class="context-subheading">Kliknij szafke na rysunku, aby zobaczyc szczegoly.</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="inspector-scroll">
+        <div class="metric-grid">
+          <div class="metric-card">
+            <span class="metric-label">Dolne</span>
+            <strong>{{ selectedBottomCount() }}</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Gorne</span>
+            <strong>{{ selectedUpperCount() }}</strong>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Slupki</span>
+            <strong>{{ selectedTallCount() }}</strong>
+          </div>
+        </div>
+
+        <div class="details-list">
+          <div class="details-row" *ngFor="let row of summaryRows()">
+            <span class="details-label">{{ row.label }}</span>
+            <span class="details-value">{{ row.value }}</span>
+          </div>
+        </div>
+
+        <div class="total-card">
+          <span class="total-label">Razem sciana</span>
+          <strong class="total-value">{{ formatPrice(selectedWallVisibleCost()) }}</strong>
+        </div>
+      </div>
+    </ng-template>
+  </section>
+</aside>

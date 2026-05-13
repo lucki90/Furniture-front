@@ -1,228 +1,283 @@
 <div class="layout-container">
   <h4>Widok od frontu: {{ wallLabel() }}</h4>
 
-  <div *ngIf="selectedWall()?.type === 'ISLAND'" class="svg-toolbar">
-    <button type="button" class="btn btn-sm" [class.btn-primary]="visibleIslandSide() === 'FRONT'" [class.btn-secondary]="visibleIslandSide() !== 'FRONT'" (click)="visibleIslandSide.set('FRONT')">FRONT</button>
-    <button type="button" class="btn btn-sm" [class.btn-primary]="visibleIslandSide() === 'BACK'" [class.btn-secondary]="visibleIslandSide() !== 'BACK'" (click)="visibleIslandSide.set('BACK')">BACK</button>
-  </div>
-
-  <div *ngIf="filteredCabinetPositions().length === 0 && ghostVisualPositions().length === 0" class="empty-state">
-    Dodaj szafki, aby zobaczyć wizualizację
-  </div>
-
-  <div *ngIf="filteredCabinetPositions().length > 0 || ghostVisualPositions().length > 0" class="visualization-wrapper">
-    <p class="wall-info">
-      {{ wallLabel() }}: {{ wall().length }} mm |
-      Dolne: {{ usedWidthBottom() }}/{{ wall().length }} mm |
-      Górne: {{ usedWidthTop() }}/{{ wall().length }} mm
-      <span *ngIf="!fitsOnWall()" class="warning-inline">⚠ Nie mieści się!</span>
-      <span *ngIf="fitsOnWall()" class="success-inline">✓</span>
-    </p>
-
-    <div class="svg-toolbar svg-toolbar--top">
-      <div class="fit-bar fit-bar--inline" *ngIf="filteredCabinetPositions().length > 0 && wall().length > 0">
-        <span class="fit-bar-label">Zajęto</span>
-        <div class="fit-bar-track">
-          <div
-            class="fit-bar-fill"
-            [class.fit-bar-fill--over]="!fitsOnWall()"
-            [style.width.%]="fitPercent()"></div>
-        </div>
-        <span class="fit-bar-value">{{ totalWidth() }} / {{ wall().length }} mm</span>
-        <span class="fit-bar-badge" [class.fit-bar-badge--success]="fitsOnWall()" [class.fit-bar-badge--error]="!fitsOnWall()">
-          {{ fitsOnWall() ? '✓ mieści się' : '✕ nie mieści się' }}
-        </span>
+  <div class="layout-body">
+    <div class="layout-visual-column">
+      <div *ngIf="selectedWall()?.type === 'ISLAND'" class="svg-toolbar">
+        <button
+          type="button"
+          class="btn btn-sm"
+          [class.btn-primary]="visibleIslandSide() === 'FRONT'"
+          [class.btn-secondary]="visibleIslandSide() !== 'FRONT'"
+          (click)="visibleIslandSide.set('FRONT')">
+          FRONT
+        </button>
+        <button
+          type="button"
+          class="btn btn-sm"
+          [class.btn-primary]="visibleIslandSide() === 'BACK'"
+          [class.btn-secondary]="visibleIslandSide() !== 'BACK'"
+          (click)="visibleIslandSide.set('BACK')">
+          BACK
+        </button>
       </div>
 
-      <div class="svg-toolbar-actions">
-        <button type="button"
+      <div *ngIf="filteredCabinetPositions().length === 0 && ghostVisualPositions().length === 0; else wallVisualization" class="empty-state">
+        Dodaj szafki, aby zobaczyc wizualizacje
+      </div>
+
+      <ng-template #wallVisualization>
+        <div class="visualization-wrapper">
+          <p class="wall-info">
+            {{ wallLabel() }}: {{ wall().length }} mm |
+            Dolne: {{ usedWidthBottom() }}/{{ wall().length }} mm |
+            Gorne: {{ usedWidthTop() }}/{{ wall().length }} mm
+            <span *ngIf="!fitsOnWall()" class="warning-inline">Uwaga: nie miesci sie</span>
+            <span *ngIf="fitsOnWall()" class="success-inline">OK</span>
+          </p>
+
+          <div class="svg-toolbar svg-toolbar--top">
+            <div class="fit-bar fit-bar--inline" *ngIf="filteredCabinetPositions().length > 0 && wall().length > 0">
+              <span class="fit-bar-label">Zajeto</span>
+              <div class="fit-bar-track">
+                <div
+                  class="fit-bar-fill"
+                  [class.fit-bar-fill--over]="!fitsOnWall()"
+                  [style.width.%]="fitPercent()"></div>
+              </div>
+              <span class="fit-bar-value">{{ totalWidth() }} / {{ wall().length }} mm</span>
+              <span class="fit-bar-badge" [class.fit-bar-badge--success]="fitsOnWall()" [class.fit-bar-badge--error]="!fitsOnWall()">
+                {{ fitsOnWall() ? 'miesci sie' : 'nie miesci sie' }}
+              </span>
+            </div>
+
+            <div class="svg-toolbar-actions">
+              <button
+                type="button"
                 class="svg-toggle-pill"
                 [class.active]="showCabinetLabels()"
                 (click)="showCabinetLabels.set(!showCabinetLabels())"
                 [attr.aria-pressed]="showCabinetLabels()">
-          <span class="svg-toggle-icon">🏷️</span>
-          Etykiety
-        </button>
-        <button type="button"
+                <span class="svg-toggle-icon">T</span>
+                Etykiety
+              </button>
+              <button
+                type="button"
                 class="svg-toggle-pill"
                 [class.active]="showCountertop()"
                 (click)="showCountertop.set(!showCountertop())"
                 [attr.aria-pressed]="showCountertop()">
-          <span class="svg-toggle-icon">🍳</span>
-          Blat
-        </button>
-        <button type="button"
+                <span class="svg-toggle-icon">B</span>
+                Blat
+              </button>
+              <button
+                type="button"
                 class="svg-toggle-pill"
                 [class.active]="showUpperCabinets()"
                 (click)="showUpperCabinets.set(!showUpperCabinets())"
                 [attr.aria-pressed]="showUpperCabinets()">
-          <span class="svg-toggle-icon">▲</span>
-          Szafki górne
-        </button>
-      </div>
+                <span class="svg-toggle-icon">G</span>
+                Szafki gorne
+              </button>
+            </div>
+          </div>
+
+          <div class="wall-view-wrapper">
+            <div class="zone-labels" [style.height.px]="totalHeight">
+              <span *ngIf="showUpperCabinets()" class="zone-label" [style.top.px]="topZoneY" [style.height.px]="topZoneHeight">Gorne</span>
+              <span class="zone-label gap-label" [style.top.px]="gapZoneY" [style.height.px]="gapZoneHeight"></span>
+              <span class="zone-label counter-label" [style.top.px]="counterZoneY" [style.height.px]="counterZoneHeight">Blat</span>
+              <span class="zone-label" [style.top.px]="bottomZoneY" [style.height.px]="bottomZoneHeight">Dolne</span>
+            </div>
+
+            <svg
+              class="wall-svg"
+              [attr.width]="wallDisplayWidth() + (gapDimensionLine() ? 40 : 0)"
+              [attr.height]="totalHeight"
+              [class.overflow]="!fitsOnWall()"
+              (click)="clearSelectedFrontCabinet()">
+
+              <defs>
+                <linearGradient id="frontGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#e8e8e8;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="openFrontGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#f5f5f5;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1" />
+                </linearGradient>
+                <linearGradient id="countertopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#8d6e63;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#6d4c41;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+
+              <rect
+                *ngIf="showUpperCabinets()"
+                [attr.x]="0"
+                [attr.y]="topZoneY"
+                [attr.width]="wallDisplayWidth()"
+                [attr.height]="topZoneHeight"
+                class="zone-bg upper-zone-bg" />
+
+              <rect
+                [attr.x]="0"
+                [attr.y]="gapZoneY"
+                [attr.width]="wallDisplayWidth()"
+                [attr.height]="gapZoneHeight"
+                class="zone-bg gap-zone-bg" />
+
+              <rect
+                [attr.x]="0"
+                [attr.y]="bottomZoneY"
+                [attr.width]="wallDisplayWidth()"
+                [attr.height]="bottomZoneHeight"
+                class="zone-bg lower-zone-bg" />
+
+              <g
+                *ngIf="ghostVisualPositions().length > 0"
+                appKitchenLayoutCabinetsLayer
+                [positions]="ghostVisualPositions()"
+                [showUpperCabinets]="showUpperCabinets()"
+                [showCabinetLabels]="false"
+                [editingCabinetId]="null"
+                [selectedCabinetId]="null"
+                style="opacity: 0.22; pointer-events: none;">
+              </g>
+
+              <g
+                appKitchenLayoutCabinetsLayer
+                [positions]="visualPositions()"
+                [showUpperCabinets]="showUpperCabinets()"
+                [showCabinetLabels]="showCabinetLabels()"
+                [editingCabinetId]="editingCabinetId"
+                [selectedCabinetId]="selectedFrontCabinetId()"
+                (cabinetSelected)="onFrontCabinetSelected($event)">
+              </g>
+
+              <g
+                appKitchenLayoutSurfacesLayer
+                [showCountertop]="showCountertop()"
+                [showUpperCabinets]="showUpperCabinets()"
+                [counterZoneY]="counterZoneY"
+                [counterZoneHeight]="counterZoneHeight"
+                [countertopZoneRects]="countertopZoneRects()"
+                [countertopDimensions]="countertopDimensions()"
+                [countertopSegmentLabels]="countertopSegmentLabels()"
+                [fillerPosition]="fillerPosition()"
+                [fillerJoinXPositions]="fillerJoinXPositions()"
+                [plinthSegments]="plinthSegments()"
+                [plinthJoinXPositions]="plinthJoinXPositions()"
+                [plinthPosition]="plinthPosition()">
+              </g>
+
+              <rect
+                *ngIf="showUpperCabinets() && hasHangingCabinets() && remainingTopSpaceWidth() > 0"
+                [attr.x]="remainingTopSpaceX()"
+                [attr.y]="topZoneY"
+                [attr.width]="remainingTopSpaceWidth()"
+                [attr.height]="topZoneHeight"
+                class="remaining-space-rect" />
+
+              <rect
+                *ngIf="hasBottomCabinets() && remainingBottomSpaceWidth() > 0"
+                [attr.x]="remainingBottomSpaceX()"
+                [attr.y]="bottomZoneY"
+                [attr.width]="remainingBottomSpaceWidth()"
+                [attr.height]="bottomZoneHeight"
+                class="remaining-space-rect" />
+
+              <g *ngIf="showUpperCabinets() && gapDimensionLine() as dim" class="gap-dimension-group">
+                <line
+                  [attr.x1]="dim.x + 8"
+                  [attr.y1]="dim.y1"
+                  [attr.x2]="dim.x + 8"
+                  [attr.y2]="dim.y2"
+                  class="gap-dimension-line"
+                  [class.gap-dimension-warning]="dim.isWarning" />
+                <line
+                  [attr.x1]="dim.x + 5"
+                  [attr.y1]="dim.y1 + 3"
+                  [attr.x2]="dim.x + 8"
+                  [attr.y2]="dim.y1"
+                  class="gap-dimension-line"
+                  [class.gap-dimension-warning]="dim.isWarning" />
+                <line
+                  [attr.x1]="dim.x + 11"
+                  [attr.y1]="dim.y1 + 3"
+                  [attr.x2]="dim.x + 8"
+                  [attr.y2]="dim.y1"
+                  class="gap-dimension-line"
+                  [class.gap-dimension-warning]="dim.isWarning" />
+                <line
+                  [attr.x1]="dim.x + 5"
+                  [attr.y1]="dim.y2 - 3"
+                  [attr.x2]="dim.x + 8"
+                  [attr.y2]="dim.y2"
+                  class="gap-dimension-line"
+                  [class.gap-dimension-warning]="dim.isWarning" />
+                <line
+                  [attr.x1]="dim.x + 11"
+                  [attr.y1]="dim.y2 - 3"
+                  [attr.x2]="dim.x + 8"
+                  [attr.y2]="dim.y2"
+                  class="gap-dimension-line"
+                  [class.gap-dimension-warning]="dim.isWarning" />
+                <text
+                  [attr.x]="dim.x + 8"
+                  [attr.y]="(dim.y1 + dim.y2) / 2 + 3"
+                  class="gap-dimension-text"
+                  [class.gap-dimension-warning]="dim.isWarning"
+                  text-anchor="middle"
+                  [attr.transform]="'rotate(-90, ' + (dim.x + 8) + ', ' + ((dim.y1 + dim.y2) / 2) + ')'">
+                  {{ dim.label }}
+                </text>
+              </g>
+
+              <line
+                [attr.x1]="0"
+                [attr.y1]="totalHeight - 1"
+                [attr.x2]="wallDisplayWidth()"
+                [attr.y2]="totalHeight - 1"
+                class="floor-line" />
+            </svg>
+          </div>
+
+          <div class="ruler-bar" *ngIf="rulerTicks().length > 0">
+            <div class="ruler-track" [style.width.px]="wallDisplayWidth()">
+              <span
+                *ngFor="let tick of rulerTicks(); trackBy: trackByRulerValue"
+                class="ruler-tick"
+                [style.left.px]="tick.position">
+                <span class="ruler-tick-mark" aria-hidden="true"></span>
+                <span class="ruler-tick-value">{{ tick.value }}</span>
+              </span>
+            </div>
+          </div>
+
+          <app-kitchen-layout-info-panel
+            [isWorkspaceGapViolation]="isWorkspaceGapViolation()"
+            [gapMm]="gapMm()"
+            [fitsOnWall]="fitsOnWall()"
+            [wallLength]="wall().length"
+            [cooktopGapWarning]="cooktopGapWarning()">
+          </app-kitchen-layout-info-panel>
+        </div>
+      </ng-template>
     </div>
 
-    <div class="wall-view-wrapper">
-      <div class="zone-labels" [style.height.px]="totalHeight">
-        <span *ngIf="showUpperCabinets()" class="zone-label" [style.top.px]="topZoneY" [style.height.px]="topZoneHeight">Górne</span>
-        <span class="zone-label gap-label" [style.top.px]="gapZoneY" [style.height.px]="gapZoneHeight"></span>
-        <span class="zone-label counter-label" [style.top.px]="counterZoneY" [style.height.px]="counterZoneHeight">Blat</span>
-        <span class="zone-label" [style.top.px]="bottomZoneY" [style.height.px]="bottomZoneHeight">Dolne</span>
-      </div>
-
-      <svg class="wall-svg"
-           [attr.width]="wallDisplayWidth() + (gapDimensionLine() ? 40 : 0)"
-           [attr.height]="totalHeight"
-           [class.overflow]="!fitsOnWall()">
-
-        <defs>
-          <linearGradient id="frontGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#e8e8e8;stop-opacity:1" />
-          </linearGradient>
-          <linearGradient id="openFrontGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#f5f5f5;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:1" />
-          </linearGradient>
-          <linearGradient id="countertopGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" style="stop-color:#8d6e63;stop-opacity:1" />
-            <stop offset="100%" style="stop-color:#6d4c41;stop-opacity:1" />
-          </linearGradient>
-        </defs>
-
-        <rect *ngIf="showUpperCabinets()"
-              [attr.x]="0"
-              [attr.y]="topZoneY"
-              [attr.width]="wallDisplayWidth()"
-              [attr.height]="topZoneHeight"
-              class="zone-bg upper-zone-bg"/>
-
-        <rect [attr.x]="0"
-              [attr.y]="gapZoneY"
-              [attr.width]="wallDisplayWidth()"
-              [attr.height]="gapZoneHeight"
-              class="zone-bg gap-zone-bg"/>
-
-        <rect [attr.x]="0"
-              [attr.y]="bottomZoneY"
-              [attr.width]="wallDisplayWidth()"
-              [attr.height]="bottomZoneHeight"
-              class="zone-bg lower-zone-bg"/>
-
-        <!-- Cień szafek z drugiej strony wyspy — półprzezroczyste, nieinteraktywne -->
-        <g *ngIf="ghostVisualPositions().length > 0"
-           appKitchenLayoutCabinetsLayer
-           [positions]="ghostVisualPositions()"
-           [showUpperCabinets]="showUpperCabinets()"
-           [showCabinetLabels]="false"
-           [editingCabinetId]="null"
-           style="opacity: 0.22; pointer-events: none;">
-        </g>
-
-        <g
-          appKitchenLayoutCabinetsLayer
-          [positions]="visualPositions()"
-          [showUpperCabinets]="showUpperCabinets()"
-          [showCabinetLabels]="showCabinetLabels()"
-          [editingCabinetId]="editingCabinetId">
-        </g>
-
-        <g
-          appKitchenLayoutSurfacesLayer
-          [showCountertop]="showCountertop()"
-          [showUpperCabinets]="showUpperCabinets()"
-          [counterZoneY]="counterZoneY"
-          [counterZoneHeight]="counterZoneHeight"
-          [countertopZoneRects]="countertopZoneRects()"
-          [countertopDimensions]="countertopDimensions()"
-          [countertopSegmentLabels]="countertopSegmentLabels()"
-          [fillerPosition]="fillerPosition()"
-          [fillerJoinXPositions]="fillerJoinXPositions()"
-          [plinthSegments]="plinthSegments()"
-          [plinthJoinXPositions]="plinthJoinXPositions()"
-          [plinthPosition]="plinthPosition()">
-        </g>
-
-        <rect *ngIf="showUpperCabinets() && hasHangingCabinets() && remainingTopSpaceWidth() > 0"
-              [attr.x]="remainingTopSpaceX()"
-              [attr.y]="topZoneY"
-              [attr.width]="remainingTopSpaceWidth()"
-              [attr.height]="topZoneHeight"
-              class="remaining-space-rect"/>
-
-        <rect *ngIf="hasBottomCabinets() && remainingBottomSpaceWidth() > 0"
-              [attr.x]="remainingBottomSpaceX()"
-              [attr.y]="bottomZoneY"
-              [attr.width]="remainingBottomSpaceWidth()"
-              [attr.height]="bottomZoneHeight"
-              class="remaining-space-rect"/>
-
-        <g *ngIf="showUpperCabinets() && gapDimensionLine() as dim" class="gap-dimension-group">
-          <line [attr.x1]="dim.x + 8"
-                [attr.y1]="dim.y1"
-                [attr.x2]="dim.x + 8"
-                [attr.y2]="dim.y2"
-                class="gap-dimension-line"
-                [class.gap-dimension-warning]="dim.isWarning"/>
-          <line [attr.x1]="dim.x + 5"
-                [attr.y1]="dim.y1 + 3"
-                [attr.x2]="dim.x + 8"
-                [attr.y2]="dim.y1"
-                class="gap-dimension-line"
-                [class.gap-dimension-warning]="dim.isWarning"/>
-          <line [attr.x1]="dim.x + 11"
-                [attr.y1]="dim.y1 + 3"
-                [attr.x2]="dim.x + 8"
-                [attr.y2]="dim.y1"
-                class="gap-dimension-line"
-                [class.gap-dimension-warning]="dim.isWarning"/>
-          <line [attr.x1]="dim.x + 5"
-                [attr.y1]="dim.y2 - 3"
-                [attr.x2]="dim.x + 8"
-                [attr.y2]="dim.y2"
-                class="gap-dimension-line"
-                [class.gap-dimension-warning]="dim.isWarning"/>
-          <line [attr.x1]="dim.x + 11"
-                [attr.y1]="dim.y2 - 3"
-                [attr.x2]="dim.x + 8"
-                [attr.y2]="dim.y2"
-                class="gap-dimension-line"
-                [class.gap-dimension-warning]="dim.isWarning"/>
-          <text [attr.x]="dim.x + 8"
-                [attr.y]="(dim.y1 + dim.y2) / 2 + 3"
-                class="gap-dimension-text"
-                [class.gap-dimension-warning]="dim.isWarning"
-                text-anchor="middle"
-                [attr.transform]="'rotate(-90, ' + (dim.x + 8) + ', ' + ((dim.y1 + dim.y2) / 2) + ')'">
-            {{ dim.label }}
-          </text>
-        </g>
-
-        <line [attr.x1]="0"
-              [attr.y1]="totalHeight - 1"
-              [attr.x2]="wallDisplayWidth()"
-              [attr.y2]="totalHeight - 1"
-              class="floor-line"/>
-      </svg>
-    </div>
-
-    <div class="ruler-bar" *ngIf="rulerTicks().length > 0">
-      <div class="ruler-track" [style.width.px]="wallDisplayWidth()">
-        <span *ngFor="let tick of rulerTicks(); trackBy: trackByRulerValue"
-              class="ruler-tick"
-              [style.left.px]="tick.position">
-          <span class="ruler-tick-mark" aria-hidden="true"></span>
-          <span class="ruler-tick-value">{{ tick.value }}</span>
-        </span>
-      </div>
-    </div>
-
-    <app-kitchen-layout-info-panel
-      [isWorkspaceGapViolation]="isWorkspaceGapViolation()"
-      [gapMm]="gapMm()"
-      [fitsOnWall]="fitsOnWall()"
-      [wallLength]="wall().length"
-      [cooktopGapWarning]="cooktopGapWarning()">
-    </app-kitchen-layout-info-panel>
+    <app-front-context-panel
+      class="layout-context-panel"
+      [visibleCabinets]="filteredCabinets()"
+      [selectedCabinet]="selectedFrontCabinet()"
+      [selectedCabinetPosition]="selectedFrontCabinetPosition()"
+      [isEditingCabinet]="editingCabinetId !== null"
+      (selectWall)="onContextSelectWall($event)"
+      (addWallRequested)="addWallRequested.emit()"
+      (clearSelection)="clearSelectedFrontCabinet()"
+      (editCabinet)="onContextEditCabinet($event)"
+      (cloneCabinet)="onContextCloneCabinet($event)"
+      (removeCabinet)="onContextRemoveCabinet($event)">
+    </app-front-context-panel>
   </div>
 </div>

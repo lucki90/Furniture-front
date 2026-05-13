@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, computed, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, effect, inject, computed, Input, signal } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { getCabinetZone } from '../model/kitchen-state.model';
@@ -15,6 +15,7 @@ import { buildVisualCabinetPositions, VisualCabinetPosition } from './kitchen-la
 import { KitchenLayoutCabinetsLayerComponent } from './kitchen-layout-cabinets-layer.component';
 import { KitchenLayoutSurfacesLayerComponent } from './kitchen-layout-surfaces-layer.component';
 import { KitchenLayoutInfoPanelComponent } from './kitchen-layout-info-panel.component';
+import { FrontContextPanelComponent } from './front-context-panel.component';
 import { CabinetSide } from '../model/kitchen-project.model';
 
 @Component({
@@ -27,7 +28,8 @@ import { CabinetSide } from '../model/kitchen-project.model';
     CommonModule,
     KitchenLayoutCabinetsLayerComponent,
     KitchenLayoutSurfacesLayerComponent,
-    KitchenLayoutInfoPanelComponent
+    KitchenLayoutInfoPanelComponent,
+    FrontContextPanelComponent
   ]
 })
 export class KitchenLayoutComponent {
@@ -38,6 +40,11 @@ export class KitchenLayoutComponent {
   /** ID aktualnie edytowanej szafki - do podświetlenia */
   @Input() editingCabinetId: string | null = null;
 
+  @Output() editCabinet = new EventEmitter<string>();
+  @Output() cloneCabinet = new EventEmitter<string>();
+  @Output() removeCabinet = new EventEmitter<string>();
+  @Output() addWallRequested = new EventEmitter<void>();
+
   // ===== Sygnały przełączników widoczności (toolbar SVG) =====
   readonly showCabinetLabels = signal(true);
   // showCountertop i showUpperCabinets współdzielone ze state service (wpływają też na floor plan)
@@ -45,6 +52,9 @@ export class KitchenLayoutComponent {
   readonly showUpperCabinets = this.stateService.showUpperCabinets;
   // visibleIslandSide współdzielony ze state service — cabinet-form używa go jako default cabinetSide
   readonly visibleIslandSide = this.stateService.visibleIslandSide;
+  readonly walls = this.stateService.walls;
+  readonly selectedWallId = this.stateService.selectedWallId;
+  readonly selectedFrontCabinetId = signal<string | null>(null);
 
   readonly wall = this.stateService.wall;
   readonly selectedWall = this.stateService.selectedWall;
@@ -52,6 +62,24 @@ export class KitchenLayoutComponent {
   readonly fitsOnWall = this.stateService.fitsOnWall;
   readonly totalWidth = this.stateService.totalWidth;
   readonly remainingWidth = this.stateService.remainingWidth;
+  private frontSelectionContext: { wallId: string | null; side: CabinetSide } = { wallId: null, side: 'FRONT' };
+
+  private readonly resetFrontSelectionEffect = effect(() => {
+    const wallId = this.selectedWallId();
+    const side = this.visibleIslandSide();
+
+    if (
+      this.frontSelectionContext.wallId !== null &&
+      (
+        this.frontSelectionContext.wallId !== wallId ||
+        (this.selectedWall()?.type === 'ISLAND' && this.frontSelectionContext.side !== side)
+      )
+    ) {
+      this.selectedFrontCabinetId.set(null);
+    }
+
+    this.frontSelectionContext = { wallId, side };
+  });
 
   // Stałe do wizualizacji
   private readonly BASE_WALL_DISPLAY_WIDTH = 500;
@@ -162,6 +190,36 @@ export class KitchenLayoutComponent {
   readonly filteredCabinetPositions = computed(() => {
     const filteredIds = new Set(this.filteredCabinets().map(cabinet => cabinet.id));
     return this.cabinetPositions().filter(position => filteredIds.has(position.cabinetId));
+  });
+
+  readonly selectedFrontCabinet = computed(() => {
+    const selectedId = this.selectedFrontCabinetId();
+    if (!selectedId) {
+      return null;
+    }
+
+    return this.filteredCabinets().find(cabinet => cabinet.id === selectedId) ?? null;
+  });
+
+  readonly selectedFrontCabinetPosition = computed(() => {
+    const selectedId = this.selectedFrontCabinetId();
+    if (!selectedId) {
+      return null;
+    }
+
+    return this.filteredCabinetPositions().find(position => position.cabinetId === selectedId) ?? null;
+  });
+
+  private readonly syncSelectedFrontCabinetEffect = effect(() => {
+    const selectedId = this.selectedFrontCabinetId();
+    if (!selectedId) {
+      return;
+    }
+
+    const stillExists = this.filteredCabinets().some(cabinet => cabinet.id === selectedId);
+    if (!stillExists) {
+      this.selectedFrontCabinetId.set(null);
+    }
   });
 
   /** Szafki z DRUGIEJ strony wyspy — renderowane jako cień (ghosting) gdy brak szafek po aktywnej stronie. */
@@ -629,5 +687,30 @@ export class KitchenLayoutComponent {
   });
 
   /** Używane dla elementów SVG bez unikalnego ID (fronty, uchwyty, nóżki, markery spoin) */
+  protected onFrontCabinetSelected(cabinetId: string): void {
+    this.selectedFrontCabinetId.update(current => current === cabinetId ? null : cabinetId);
+  }
+
+  protected clearSelectedFrontCabinet(): void {
+    this.selectedFrontCabinetId.set(null);
+  }
+
+  protected onContextSelectWall(wallId: string): void {
+    this.stateService.selectWall(wallId);
+  }
+
+  protected onContextEditCabinet(cabinetId: string): void {
+    this.editCabinet.emit(cabinetId);
+  }
+
+  protected onContextCloneCabinet(cabinetId: string): void {
+    this.cloneCabinet.emit(cabinetId);
+  }
+
+  protected onContextRemoveCabinet(cabinetId: string): void {
+    this.selectedFrontCabinetId.set(null);
+    this.removeCabinet.emit(cabinetId);
+  }
+
   protected trackByIndex = (index: number) => index;
 }

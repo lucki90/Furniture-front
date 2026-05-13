@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CabinetZone } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
@@ -17,12 +17,24 @@ export class KitchenLayoutCabinetsLayerComponent {
   @Input() showUpperCabinets = true;
   @Input() showCabinetLabels = true;
   @Input() editingCabinetId: string | null = null;
+  @Input() selectedCabinetId: string | null = null;
+
+  @Output() cabinetSelected = new EventEmitter<string>();
 
   protected trackByCabinetId = (_: number, pos: VisualCabinetPosition) => pos.cabinetId;
   protected trackByIndex = (index: number) => index;
 
   protected isEditing(cabinetId: string): boolean {
     return this.editingCabinetId === cabinetId;
+  }
+
+  protected isSelected(cabinetId: string): boolean {
+    return this.selectedCabinetId === cabinetId;
+  }
+
+  protected onCabinetClick(event: MouseEvent, cabinetId: string): void {
+    event.stopPropagation();
+    this.cabinetSelected.emit(cabinetId);
   }
 
   protected getCabinetLabel(pos: VisualCabinetPosition, index: number): string {

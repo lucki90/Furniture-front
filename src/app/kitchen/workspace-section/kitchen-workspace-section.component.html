@@ -1,5 +1,5 @@
 <section class="main-workspace">
-  <div class="floor-plan-column">
+  <div class="floor-plan-column" [class.editing-mode]="editingCabinetId !== null">
     <div class="panel-card">
       <div class="panel-header">
         <span class="panel-title">Widok z gory</span>
@@ -65,14 +65,20 @@
     </div>
   </div>
 
-  <div class="front-view-column">
+  <div class="front-view-column" [class.editing-mode]="editingCabinetId !== null">
     <div class="panel-card">
       <div class="panel-header">
         <span class="panel-title">Widok od frontu</span>
         <span class="panel-info" *ngIf="hasSelectedWall">{{ selectedWallLabel }} - {{ wallLength }}x{{ wallHeight }} mm</span>
       </div>
       <div class="panel-content">
-        <app-kitchen-layout [editingCabinetId]="editingCabinetId"></app-kitchen-layout>
+        <app-kitchen-layout
+          [editingCabinetId]="editingCabinetId"
+          (addWallRequested)="addWallRequested.emit()"
+          (editCabinet)="editCabinet.emit($event)"
+          (cloneCabinet)="cloneCabinet.emit($event)"
+          (removeCabinet)="removeCabinet.emit($event)">
+        </app-kitchen-layout>
       </div>
     </div>
 

@@ -43,6 +43,9 @@ export class KitchenWorkspaceSectionComponent {
   @Output() wallConfigChanged = new EventEmitter<void>();
   @Output() cabinetCalculated = new EventEmitter<CabinetCalculatedEvent>();
   @Output() cancelEdit = new EventEmitter<void>();
+  @Output() editCabinet = new EventEmitter<string>();
+  @Output() cloneCabinet = new EventEmitter<string>();
+  @Output() removeCabinet = new EventEmitter<string>();
 
   onWallLengthInput(value: string): void {
     const parsedValue = Number(value);

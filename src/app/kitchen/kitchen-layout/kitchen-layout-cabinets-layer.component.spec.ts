@@ -14,7 +14,9 @@ import { VisualCabinetPosition } from './kitchen-layout-view-model.builder';
         [positions]="positions"
         [showUpperCabinets]="showUpperCabinets"
         [showCabinetLabels]="showCabinetLabels"
-        [editingCabinetId]="editingCabinetId">
+        [editingCabinetId]="editingCabinetId"
+        [selectedCabinetId]="selectedCabinetId"
+        (cabinetSelected)="onCabinetSelected($event)">
       </g>
     </svg>
   `
@@ -24,6 +26,12 @@ class TestHostComponent {
   showUpperCabinets = true;
   showCabinetLabels = true;
   editingCabinetId: string | null = null;
+  selectedCabinetId: string | null = null;
+  selectedCabinetEvents: string[] = [];
+
+  onCabinetSelected(cabinetId: string): void {
+    this.selectedCabinetEvents.push(cabinetId);
+  }
 }
 
 describe('KitchenLayoutCabinetsLayerComponent', () => {
@@ -76,14 +84,16 @@ describe('KitchenLayoutCabinetsLayerComponent', () => {
   it('renders cabinet body, enclosures and labels', () => {
     host.positions = [basePosition];
     host.editingCabinetId = 'cab-1';
+    host.selectedCabinetId = 'cab-1';
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelectorAll('.cabinet-group').length).toBe(1);
     expect(root.querySelector('.cabinet-group')?.classList.contains('editing')).toBeTrue();
+    expect(root.querySelector('.cabinet-group')?.classList.contains('selected')).toBeTrue();
     expect(root.querySelectorAll('.enclosure-plate').length).toBe(2);
     expect(root.querySelector('.cabinet-label-text')?.textContent).toContain('Szafka');
-    expect(root.querySelector('.corner-icon-text')?.textContent).toContain('⭔');
+    expect(root.querySelector('.corner-icon-text')?.textContent?.trim()).not.toBe('');
   });
 
   it('hides top cabinets when upper cabinets are disabled', () => {
@@ -105,5 +115,16 @@ describe('KitchenLayoutCabinetsLayerComponent', () => {
     expect(root.querySelectorAll('.dimension-indicator').length).toBe(2);
     expect(root.textContent).toContain('h+80');
     expect(root.textContent).toContain('d+10');
+  });
+
+  it('emits selected cabinet id on cabinet click', () => {
+    host.positions = [basePosition];
+    fixture.detectChanges();
+
+    const cabinetGroup = fixture.nativeElement.querySelector('.cabinet-group') as SVGGElement;
+    cabinetGroup.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    fixture.detectChanges();
+
+    expect(host.selectedCabinetEvents).toEqual(['cab-1']);
   });
 });

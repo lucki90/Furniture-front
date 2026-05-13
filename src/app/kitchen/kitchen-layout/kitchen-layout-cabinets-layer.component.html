@@ -1,6 +1,8 @@
 <svg:g *ngFor="let pos of positions; let i = index; trackBy: trackByCabinetId"
        class="cabinet-group"
        [class.editing]="isEditing(pos.cabinetId)"
+       [class.selected]="isSelected(pos.cabinetId)"
+       (click)="onCabinetClick($event, pos.cabinetId)"
        [style.display]="!showUpperCabinets && pos.zone === 'TOP' ? 'none' : null">
 
   <svg:rect *ngIf="pos.leftEnclosureDisplayWidth > 0"

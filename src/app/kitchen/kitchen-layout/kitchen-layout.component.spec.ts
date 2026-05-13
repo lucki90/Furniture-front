@@ -56,6 +56,16 @@ describe('KitchenLayoutComponent', () => {
     expect((fitBar as HTMLElement).compareDocumentPosition(actions as Node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
+  it('should render right context panel with wall cards and wall summary by default', () => {
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('app-front-context-panel')).not.toBeNull();
+    expect(root.querySelectorAll('.wall-card').length).toBe(1);
+    expect(root.querySelector('.context-heading')?.textContent).toContain('Podsumowanie sciany');
+    expect(root.textContent).toContain('Razem sciana');
+  });
+
 });
 
 class KitchenStateServiceStub {
@@ -106,6 +116,10 @@ class KitchenStateServiceStub {
 
   getWallLabel(): string {
     return 'Sciana glowna';
+  }
+
+  selectWall(wallId: string): void {
+    this.selectedWallId.set(wallId);
   }
 
   private buildWall(): WallWithCabinets {
