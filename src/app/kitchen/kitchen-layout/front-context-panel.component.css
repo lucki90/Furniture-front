@@ -92,11 +92,6 @@
   padding: 10px;
 }
 
-.wall-card-list--scrollable {
-  max-height: 260px;
-  overflow-y: auto;
-}
-
 .wall-card {
   position: relative;
   display: flex;
