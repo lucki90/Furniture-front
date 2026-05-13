@@ -56,11 +56,15 @@ export class KitchenFloorPlanComponent {
   wallRemoved = output<string>();
 
   private readonly SVG_WIDTH = 320;
-  private readonly SVG_HEIGHT = 240;
+  private readonly SVG_HEIGHT = 252;
   private readonly WALL_THICKNESS = 10;
-  private readonly PADDING = 4;
+  private readonly PADDING = 10;
   private readonly COUNTERTOP_OVERHANG = 30;
   private readonly COUNTERTOP_STANDARD_DEPTH = 600;
+
+  protected readonly svgWidth = this.SVG_WIDTH;
+  protected readonly svgHeight = this.SVG_HEIGHT;
+  protected readonly sceneInset = 6;
 
   readonly wallPositions = computed((): WallPosition[] =>
     buildWallPositions(this.walls(), {

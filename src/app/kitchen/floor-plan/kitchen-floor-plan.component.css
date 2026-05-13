@@ -5,9 +5,20 @@
 .floor-plan-svg {
   width: 100%;
   height: auto;
+  display: block;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
+}
+
+.floor-plan-bg {
+  fill: #f7f9fc;
+}
+
+.floor-plan-stage {
+  fill: rgba(255, 255, 255, 0.88);
+  stroke: rgba(148, 163, 184, 0.28);
+  stroke-width: 1;
 }
 
 .wall-group {
@@ -21,7 +32,7 @@
 
 .wall-group.selected .wall-rect {
   stroke: #1976d2;
-  stroke-width: 2;
+  stroke-width: 2.2;
 }
 
 .wall-rect {
@@ -41,7 +52,7 @@
 }
 
 .cabinet-rect {
-  opacity: 0.8;
+  opacity: 0.9;
   transition: opacity 0.2s, stroke-width 0.2s;
 }
 
@@ -62,7 +73,7 @@
 }
 
 .countertop-dimension {
-  font-size: 8px;
+  font-size: 8.5px;
   font-weight: 700;
   fill: #4e342e;
   pointer-events: none;
@@ -78,20 +89,24 @@
 }
 
 .wall-label {
-  font-size: 9px;
-  font-weight: 600;
-  fill: #555;
-  pointer-events: none;
-  user-select: none;
-}
-
-.wall-meta {
-  font-size: 7px;
-  font-weight: 600;
-  fill: #6b7280;
+  font-size: 10px;
+  font-weight: 700;
+  fill: #475569;
   pointer-events: none;
   user-select: none;
   text-shadow: 0 0 2px white, 0 0 2px white;
+  paint-order: stroke fill;
+  stroke: white;
+  stroke-width: 2px;
+}
+
+.wall-meta {
+  font-size: 7.6px;
+  font-weight: 600;
+  fill: #64748b;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 0 2px white, 0 0 2px white, 0 0 2px white;
   paint-order: stroke fill;
   stroke: white;
   stroke-width: 2px;
@@ -103,9 +118,9 @@
 }
 
 .cabinet-badge {
-  fill: #ff9800;
+  fill: #f59e0b;
   stroke: white;
-  stroke-width: 0.5;
+  stroke-width: 0.75;
 }
 
 .cabinet-count {

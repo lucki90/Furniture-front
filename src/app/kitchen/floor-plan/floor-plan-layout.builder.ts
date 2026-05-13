@@ -11,10 +11,10 @@ const DEFAULT_SIDE_OVERHANG_EXTRA_MM = 5;
 /** Default fillerWidthMm gdy ustawienia uzytkownika nie sa propagowane do floor plan. */
 const DEFAULT_FILLER_WIDTH_MM = 50;
 const DEFAULT_PLINTH_HEIGHT_MM = 100;
-const FLOOR_PLAN_REFERENCE_WIDTH_MM = 4400;
-const FLOOR_PLAN_REFERENCE_HEIGHT_MM = 3200;
-const FLOOR_PLAN_ISLAND_VERTICAL_BUFFER_MM = 1100;
-const FLOOR_PLAN_CAMERA_ZOOM = 0.9;
+const FLOOR_PLAN_REFERENCE_WIDTH_MM = 4800;
+const FLOOR_PLAN_REFERENCE_HEIGHT_MM = 3600;
+const FLOOR_PLAN_ISLAND_VERTICAL_BUFFER_MM = 1200;
+const FLOOR_PLAN_CAMERA_ZOOM = 0.82;
 
 const geometryService = kitchenGeometrySharedSingleton;
 const addonsBuilder = new ProjectWallAddonsRequestBuilder();
@@ -114,7 +114,7 @@ export function buildWallPositions(
   // without changing the actual wall/cabinet proportions or the geometry source of truth.
   // TODO(CODEX): If future wall-meta labels start colliding in denser layouts, replace this
   // heuristic fit with bounds-based auto-scaling instead of tweaking padding and baseline by hand.
-  const centerY = settings.svgHeight - settings.padding - 8;
+  const centerY = settings.svgHeight - settings.padding - 16;
 
   if (mainWall) {
     const width = mainWall.widthMm * scale;
