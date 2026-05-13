@@ -109,6 +109,28 @@ describe('KitchenFloorPlanComponent', () => {
     expect(fixture.nativeElement.querySelector('.corner-countertop-label')?.textContent).toContain('45');
     expect(fixture.nativeElement.querySelector('.corner-countertop-rect title')?.textContent).toContain('600x600');
   });
+
+  it('should show island nudge controls when an island wall exists', () => {
+    stateService.walls.set([
+      buildWall('main', 'MAIN', 3000),
+      buildWall('island', 'ISLAND', 1800)
+    ]);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.fp-island-controls')).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.fp-nudge-btn').length).toBe(4);
+  });
+
+  it('should render a symbolic room outline when room dimensions are provided', () => {
+    stateService.currentProjectRoomWidthMm.set(4200);
+    stateService.currentProjectRoomDepthMm.set(3100);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.room-outline')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.room-outline-label')?.textContent).toContain('4200 x 3100 mm');
+  });
 });
 
 class KitchenStateServiceStub {
@@ -123,6 +145,8 @@ class KitchenStateServiceStub {
   readonly plinthHeightMm = signal(100);
   readonly upperFillerHeightMm = signal(100);
   readonly fillerWidthMm = signal(50);
+  readonly currentProjectRoomWidthMm = signal<number | null>(null);
+  readonly currentProjectRoomDepthMm = signal<number | null>(null);
 
   selectWall(wallId: string): void {
     this.selectedWallId.set(wallId);

@@ -64,6 +64,31 @@ describe('floor-plan-layout.builder', () => {
     expect(mainWithSides.width).toBeCloseTo(singleMain.width, 2);
   });
 
+  it('should use room dimensions as the primary framing when they are provided', () => {
+    const [fallbackMain] = buildWallPositions([
+      createWall({ id: 'main', type: 'MAIN', widthMm: 3600 })
+    ], {
+      svgWidth: 320,
+      svgHeight: 252,
+      wallThickness: 10,
+      padding: 10
+    });
+
+    const [roomSizedMain] = buildWallPositions([
+      createWall({ id: 'main', type: 'MAIN', widthMm: 3600 })
+    ], {
+      svgWidth: 320,
+      svgHeight: 252,
+      wallThickness: 10,
+      padding: 10,
+      roomWidthMm: 3600,
+      roomDepthMm: 3000
+    });
+
+    expect(roomSizedMain.scale).toBeGreaterThan(fallbackMain.scale);
+    expect(roomSizedMain.width).toBeGreaterThan(fallbackMain.width);
+  });
+
   it('should build cabinets for wall with bottom, full and top ordering', () => {
     const [wallPosition] = buildWallPositions([
       createWall({
@@ -228,6 +253,43 @@ describe('floor-plan-layout.builder', () => {
       isReversed: true
     }));
     expect(cabinets.find(cab => cab.cabinetId === 'front')!.y).toBeGreaterThan(cabinets.find(cab => cab.cabinetId === 'back')!.y);
+  });
+
+  it('should apply visual island offsets without affecting its actual size', () => {
+    const [baseIsland] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 1000,
+        cabinets: []
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 252,
+      wallThickness: 10,
+      padding: 10
+    });
+
+    const [shiftedIsland] = buildWallPositions([
+      createWall({
+        type: 'ISLAND',
+        widthMm: 2400,
+        islandDepthMm: 1000,
+        cabinets: []
+      })
+    ], {
+      svgWidth: 320,
+      svgHeight: 252,
+      wallThickness: 10,
+      padding: 10,
+      islandOffsetXmm: 200,
+      islandOffsetYmm: 150
+    });
+
+    expect(shiftedIsland.width).toBeCloseTo(baseIsland.width, 5);
+    expect(shiftedIsland.height).toBeCloseTo(baseIsland.height, 5);
+    expect(shiftedIsland.x).toBeGreaterThan(baseIsland.x);
+    expect(shiftedIsland.y).toBeLessThan(baseIsland.y);
   });
 
   it('should apply 4D overhangs (front/back/left/right) to island countertop dimensions', () => {

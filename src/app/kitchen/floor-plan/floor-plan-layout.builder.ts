@@ -69,11 +69,15 @@ export interface FloorPlanLayoutSettings {
   countertopStandardDepth: number;
   /** Globalna szerokosc blendy bocznej (mm). Uzywana do liczenia overhangow LEFT/RIGHT na wyspie. */
   fillerWidthMm?: number;
+  roomWidthMm?: number | null;
+  roomDepthMm?: number | null;
+  islandOffsetXmm?: number;
+  islandOffsetYmm?: number;
 }
 
 export function buildWallPositions(
   walls: WallWithCabinets[],
-  settings: Pick<FloorPlanLayoutSettings, 'svgWidth' | 'svgHeight' | 'wallThickness' | 'padding'>
+  settings: Pick<FloorPlanLayoutSettings, 'svgWidth' | 'svgHeight' | 'wallThickness' | 'padding' | 'roomWidthMm' | 'roomDepthMm' | 'islandOffsetXmm' | 'islandOffsetYmm'>
 ): WallPosition[] {
   const positions: WallPosition[] = [];
   const mainWall = walls.find(wall => wall.type === 'MAIN');
@@ -88,21 +92,27 @@ export function buildWallPositions(
   const cornerRightWidthMm = cornerRight?.widthMm ?? 0;
   const islandWidthMm = island?.widthMm ?? 0;
   const islandDepthMm = island?.islandDepthMm ?? island?.countertopConfig?.manualDepthMm ?? 900;
+  const islandOffsetXmm = settings.islandOffsetXmm ?? 0;
+  const islandOffsetYmm = settings.islandOffsetYmm ?? 0;
+  const roomWidthMm = normalizePositiveDimension(settings.roomWidthMm);
+  const roomDepthMm = normalizePositiveDimension(settings.roomDepthMm);
+  const referenceWidthMm = roomWidthMm ?? FLOOR_PLAN_REFERENCE_WIDTH_MM;
+  const referenceHeightMm = roomDepthMm ?? FLOOR_PLAN_REFERENCE_HEIGHT_MM;
 
   // Floor-plan zoom should stay reasonably stable when LEFT/RIGHT walls are added.
   // Using left/right lengths as horizontal footprint made the view jump dramatically,
   // even though those walls mostly expand the plan vertically, not horizontally.
   const footprintWidthMm = Math.max(
-    FLOOR_PLAN_REFERENCE_WIDTH_MM,
+    referenceWidthMm,
     mainWidthMm + cornerLeftWidthMm + cornerRightWidthMm,
-    islandWidthMm
+    islandWidthMm + Math.abs(islandOffsetXmm) * 2
   );
 
   const footprintHeightMm = Math.max(
-    FLOOR_PLAN_REFERENCE_HEIGHT_MM,
+    referenceHeightMm,
     (leftWall?.widthMm ?? 0) + cornerLeftWidthMm,
     (rightWall?.widthMm ?? 0) + cornerRightWidthMm,
-    island ? islandDepthMm + FLOOR_PLAN_ISLAND_VERTICAL_BUFFER_MM : 0
+    island ? islandDepthMm + FLOOR_PLAN_ISLAND_VERTICAL_BUFFER_MM + Math.max(islandOffsetYmm, 0) : 0
   );
 
   const scaleX = (settings.svgWidth - 2 * settings.padding) / footprintWidthMm;
@@ -210,13 +220,13 @@ export function buildWallPositions(
     const depth = islandDepthMm * scale;
     positions.push({
       wall: island,
-      x: centerX - width / 2,
-      y: centerY - settings.wallThickness - 80 - depth,
+      x: centerX - width / 2 + islandOffsetXmm * scale,
+      y: centerY - settings.wallThickness - 80 - depth - islandOffsetYmm * scale,
       width,
       height: depth,
       rotation: 0,
-      labelX: centerX,
-      labelY: centerY - settings.wallThickness - 80 - depth / 2,
+      labelX: centerX + islandOffsetXmm * scale,
+      labelY: centerY - settings.wallThickness - 80 - depth / 2 - islandOffsetYmm * scale,
       isHorizontal: true,
       scale
     });
@@ -350,6 +360,10 @@ function buildIslandCabinetsForWall(
 
   markIslandDepthCollisions(islandCabinets);
   return islandCabinets;
+}
+
+function normalizePositiveDimension(value: number | null | undefined): number | null {
+  return typeof value === 'number' && value > 0 ? value : null;
 }
 
 export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorPlanLayoutSettings, 'wallThickness' | 'countertopOverhang' | 'countertopStandardDepth' | 'fillerWidthMm'>): CountertopOnFloorPlan[] {

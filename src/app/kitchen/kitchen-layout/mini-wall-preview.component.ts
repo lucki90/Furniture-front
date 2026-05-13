@@ -27,7 +27,6 @@ export class MiniWallPreviewComponent implements OnChanges {
   @Input() fillerWidthMm = 50;
 
   protected visualPositions: VisualCabinetPosition[] = [];
-  protected countertopRuns: Array<{ x: number; width: number; y: number; height: number }> = [];
   protected plinthRuns: Array<{ x: number; width: number; y: number; height: number }> = [];
 
   protected readonly displayWidth = MiniWallPreviewComponent.DISPLAY_WIDTH;
@@ -64,55 +63,11 @@ export class MiniWallPreviewComponent implements OnChanges {
       frontGap: 1
     });
 
-    this.countertopRuns = this.buildCountertopRuns(scale, scaleVert);
     this.plinthRuns = this.buildPlinthRuns(scaleVert);
   }
 
   protected trackByCabinetId = (_: number, pos: VisualCabinetPosition) => pos.cabinetId;
   protected trackByIndex = (index: number) => index;
-
-  private buildCountertopRuns(scale: number, scaleVert: number): Array<{ x: number; width: number; y: number; height: number }> {
-    if (this.countertopThicknessMm <= 0) {
-      return [];
-    }
-
-    const bottomPositions = this.visualPositions
-      .filter(position => position.zone === 'BOTTOM' || position.zone === 'FULL')
-      .sort((a, b) => a.displayX - b.displayX);
-
-    if (bottomPositions.length === 0) {
-      return [];
-    }
-
-    const runs: Array<{ x: number; end: number }> = [];
-    let current = {
-      x: bottomPositions[0].displayX,
-      end: bottomPositions[0].displayX + bottomPositions[0].displayWidth
-    };
-
-    for (let index = 1; index < bottomPositions.length; index += 1) {
-      const pos = bottomPositions[index];
-      const nextStart = pos.displayX;
-      const nextEnd = pos.displayX + pos.displayWidth;
-      if (nextStart > current.end + 1) {
-        runs.push(current);
-        current = { x: nextStart, end: nextEnd };
-      } else {
-        current.end = Math.max(current.end, nextEnd);
-      }
-    }
-    runs.push(current);
-
-    const topY = Math.min(...bottomPositions.map(position => position.displayY)) - Math.max(1, Math.round(this.countertopThicknessMm * scaleVert));
-    const height = Math.max(2, Math.round(this.countertopThicknessMm * scaleVert));
-
-    return runs.map(run => ({
-      x: run.x,
-      width: run.end - run.x,
-      y: Math.max(0, topY),
-      height
-    }));
-  }
 
   private buildPlinthRuns(scaleVert: number): Array<{ x: number; width: number; y: number; height: number }> {
     const plinthPositions = this.visualPositions

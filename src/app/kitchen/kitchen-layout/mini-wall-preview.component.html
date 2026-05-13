@@ -17,15 +17,6 @@
   </rect>
 
   <rect
-    *ngFor="let countertop of countertopRuns; trackBy: trackByIndex"
-    [attr.x]="countertop.x"
-    [attr.y]="countertop.y"
-    [attr.width]="countertop.width"
-    [attr.height]="countertop.height"
-    class="mini-wall-countertop">
-  </rect>
-
-  <rect
     *ngFor="let pos of visualPositions; trackBy: trackByCabinetId"
     [attr.x]="pos.displayX"
     [attr.y]="pos.displayY"

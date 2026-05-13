@@ -18,7 +18,6 @@ interface WallCardVm {
   label: string;
   widthMm: number;
   heightMm: number;
-  countertopEnabled: boolean;
   plinthHeightMm: number;
   countertopThicknessMm: number;
   upperFillerHeightMm: number;
@@ -159,7 +158,6 @@ export class FrontContextPanelComponent {
         label: this.stateService.getWallLabel(wall.type),
         widthMm: wall.widthMm,
         heightMm: wall.heightMm,
-        countertopEnabled: wall.countertopConfig?.enabled ?? true,
         plinthHeightMm: wall.plinthConfig?.enabled === false ? 0 : (wall.plinthConfig?.heightMm ?? globalPlinthHeightMm),
         countertopThicknessMm: (wall.countertopConfig?.enabled ?? true)
           ? (wall.countertopConfig?.thicknessMm ?? globalCountertopThicknessMm)
