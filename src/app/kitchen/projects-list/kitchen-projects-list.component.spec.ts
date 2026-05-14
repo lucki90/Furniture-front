@@ -50,6 +50,9 @@ describe('KitchenProjectsListComponent - klonowanie i przejscia projektu', () =>
       hooks.onProceed();
     });
     stateService = jasmine.createSpyObj('KitchenStateService', ['loadProject', 'clearAll', 'startNewProject']);
+    Object.assign(stateService, {
+      currentProjectId: jasmine.createSpy('currentProjectId').and.returnValue(null)
+    });
     kitchenService.getProjects.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
@@ -118,9 +121,12 @@ describe('KitchenProjectsListComponent - klonowanie i przejscia projektu', () =>
     component.cloningProjectId = 1;
     fixture.detectChanges();
 
-    const cloneBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button[title="Klonuj projekt"]');
+    const cloneButtons = Array.from(
+      fixture.nativeElement.querySelectorAll('button')
+    ) as HTMLButtonElement[];
+    const cloneBtn = cloneButtons.find(button => button.textContent?.includes('Klonuj'));
     expect(cloneBtn).toBeTruthy();
-    expect(cloneBtn.disabled).toBeTrue();
+    expect(cloneBtn?.disabled).toBeTrue();
   });
 
   it('nowy projekt przechodzi przez guard i startNewProject', () => {

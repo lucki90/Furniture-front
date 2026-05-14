@@ -1,15 +1,15 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { KitchenService } from '../service/kitchen.service';
-import { KitchenProjectTransitionGuardService } from '../service/kitchen-project-transition-guard.service';
-import { KitchenStateService } from '../service/kitchen-state.service';
 import {
   KitchenProjectListResponse,
   ProjectStatus,
   getStatusColor,
   getStatusLabel as getLabel
 } from '../model/kitchen-project.model';
+import { KitchenProjectTransitionGuardService } from '../service/kitchen-project-transition-guard.service';
+import { KitchenService } from '../service/kitchen.service';
+import { KitchenStateService } from '../service/kitchen-state.service';
 
 type SortField = 'updatedAt' | 'createdAt' | 'totalCost' | 'status';
 
@@ -22,6 +22,13 @@ const STATUS_ORDER: ProjectStatus[] = [
   'COMPLETED',
   'CANCELLED'
 ];
+
+const CANCELLED_FLOW_STEP = {
+  color: '#991b1b',
+  activeBackground: '#fee2e233',
+  idleBackground: '#fee2e214',
+  idleBorder: '#fca5a5'
+} as const;
 
 @Component({
   selector: 'app-kitchen-projects-list',
@@ -38,6 +45,9 @@ export class KitchenProjectsListComponent implements OnInit {
   private readonly projectTransitionGuard = inject(KitchenProjectTransitionGuardService);
   private readonly stateService = inject(KitchenStateService);
   private readonly router = inject(Router);
+
+  readonly currentProjectId = this.stateService.currentProjectId;
+  readonly cancelledFlowStepStyles = CANCELLED_FLOW_STEP;
 
   projects: KitchenProjectListResponse[] = [];
   filteredAndSortedProjects: KitchenProjectListResponse[] = [];
@@ -84,7 +94,7 @@ export class KitchenProjectsListComponent implements OnInit {
   }
 
   openProject(projectId: number): void {
-    this.projectTransitionGuard.confirmUnsavedAndProceed('otwórz inny projekt', {
+    this.projectTransitionGuard.confirmUnsavedAndProceed('otworz inny projekt', {
       onProceed: () => {
         this.loading = true;
 
@@ -133,7 +143,7 @@ export class KitchenProjectsListComponent implements OnInit {
       return;
     }
 
-    this.projectTransitionGuard.confirmUnsavedAndProceed('otwórz sklonowany projekt', {
+    this.projectTransitionGuard.confirmUnsavedAndProceed('otworz sklonowany projekt', {
       onProceed: () => {
         this.cloningProjectId = projectId;
 
@@ -154,7 +164,7 @@ export class KitchenProjectsListComponent implements OnInit {
   }
 
   createNewProject(): void {
-    this.projectTransitionGuard.confirmUnsavedAndProceed('utwórz nowy projekt', {
+    this.projectTransitionGuard.confirmUnsavedAndProceed('utworz nowy projekt', {
       onProceed: () => {
         this.stateService.startNewProject();
         this.router.navigate(['/kitchen']);
@@ -180,6 +190,18 @@ export class KitchenProjectsListComponent implements OnInit {
     return this.activeStatusFilters.size > 0;
   }
 
+  get visibleProjectsCountLabel(): string {
+    return this.projectCountLabel(this.filteredAndSortedProjects.length);
+  }
+
+  get allProjectsCountLabel(): string {
+    return this.projectCountLabel(this.projects.length);
+  }
+
+  get activeStatusesCountLabel(): string {
+    return this.pluralize(this.activeStatusFilters.size, 'aktywny filtr', 'aktywne filtry', 'aktywnych filtrow');
+  }
+
   clearFilters(): void {
     this.activeStatusFilters = new Set();
     this.updateFilteredList();
@@ -199,11 +221,61 @@ export class KitchenProjectsListComponent implements OnInit {
     if (this.sortField !== field) {
       return '';
     }
-    return this.sortDirection === 'asc' ? ' ↑' : ' ↓';
+    return this.sortDirection === 'asc' ? ' \u2191' : ' \u2193';
   }
 
   countByStatus(status: ProjectStatus): number {
     return this.projects.filter(project => project.status === status).length;
+  }
+
+  trackById(_index: number, project: KitchenProjectListResponse): number {
+    return project.id;
+  }
+
+  trackByFlowStepStatus(_index: number, step: { status: ProjectStatus }): ProjectStatus {
+    return step.status;
+  }
+
+  getStatusLabel(status: ProjectStatus): string {
+    return getLabel(status);
+  }
+
+  getStatusColor(status: ProjectStatus): string {
+    return getStatusColor(status);
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pl-PL', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  formatCost(cost: number): string {
+    return cost.toLocaleString('pl-PL', {
+      style: 'currency',
+      currency: 'PLN'
+    });
+  }
+
+  projectCountLabel(count: number): string {
+    return this.pluralize(count, 'projekt', 'projekty', 'projektow');
+  }
+
+  wallCountLabel(count: number): string {
+    return this.pluralize(count, 'sciana', 'sciany', 'scian');
+  }
+
+  cabinetCountLabel(count: number): string {
+    return this.pluralize(count, 'szafka', 'szafki', 'szafek');
+  }
+
+  isCurrentProject(projectId: number): boolean {
+    return this.currentProjectId() === projectId;
   }
 
   private updateFilteredList(): void {
@@ -232,33 +304,18 @@ export class KitchenProjectsListComponent implements OnInit {
     this.filteredAndSortedProjects = list;
   }
 
-  trackById(_index: number, project: KitchenProjectListResponse): number {
-    return project.id;
-  }
+  private pluralize(count: number, singular: string, paucal: string, plural: string): string {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
 
-  getStatusLabel(status: ProjectStatus): string {
-    return getLabel(status);
-  }
+    if (count === 1) {
+      return `${count} ${singular}`;
+    }
 
-  getStatusColor(status: ProjectStatus): string {
-    return getStatusColor(status);
-  }
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+      return `${count} ${paucal}`;
+    }
 
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pl-PL', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  formatCost(cost: number): string {
-    return cost.toLocaleString('pl-PL', {
-      style: 'currency',
-      currency: 'PLN'
-    });
+    return `${count} ${plural}`;
   }
 }
