@@ -24,7 +24,7 @@
         <button
           type="button"
           class="btn btn-primary drawer-new-btn"
-          [disabled]="openingProjectId !== null"
+          [disabled]="isTransitioning || openingProjectId !== null"
           (click)="requestCreateProject()">
           + Nowy projekt
         </button>
@@ -70,7 +70,7 @@
         <button
           type="button"
           class="btn btn-primary"
-          [disabled]="openingProjectId !== null"
+          [disabled]="isTransitioning || openingProjectId !== null"
           (click)="requestCreateProject()">
           Utworz pierwszy projekt
         </button>
@@ -119,7 +119,7 @@
             <button
               type="button"
               class="btn btn-primary btn-sm drawer-project-actions__open"
-              [disabled]="isCurrentProject(project.id) || openingProjectId !== null"
+              [disabled]="isCurrentProject(project.id) || isTransitioning || openingProjectId !== null"
               (click)="requestOpenProject(project.id)">
               {{
                 isCurrentProject(project.id)
@@ -131,7 +131,7 @@
             <button
               type="button"
               class="btn btn-outline btn-sm"
-              [disabled]="cloningProjectId === project.id || deletingProjectId !== null"
+              [disabled]="isTransitioning || cloningProjectId === project.id || deletingProjectId !== null"
               (click)="cloneProject(project.id)">
               {{ cloningProjectId === project.id ? 'Klonuje...' : 'Klonuj' }}
             </button>
@@ -139,7 +139,7 @@
             <button
               type="button"
               class="btn btn-outline-danger btn-sm"
-              [disabled]="isCurrentProject(project.id) || deletingProjectId === project.id || cloningProjectId !== null"
+              [disabled]="isTransitioning || isCurrentProject(project.id) || deletingProjectId === project.id || cloningProjectId !== null"
               (click)="confirmDelete(project)">
               {{ deletingProjectId === project.id ? 'Usuwam...' : 'Usun' }}
             </button>

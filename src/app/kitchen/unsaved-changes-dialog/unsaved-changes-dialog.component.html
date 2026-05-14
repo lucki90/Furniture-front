@@ -1,0 +1,18 @@
+<div class="dialog-container">
+  <h2 class="dialog-title">Masz niezapisane zmiany</h2>
+
+  <div class="dialog-content">
+    <p class="dialog-message">
+      Jeśli teraz przejdziesz dalej, utracisz niezapisane zmiany w bieżącym projekcie.
+    </p>
+    <p class="dialog-target">
+      Następna akcja: <strong>{{ data.targetLabel }}</strong>
+    </p>
+  </div>
+
+  <div class="dialog-actions">
+    <button type="button" class="btn btn-secondary" (click)="onCancel()">Anuluj</button>
+    <button type="button" class="btn btn-danger" (click)="onDiscard()">Odrzuć zmiany</button>
+    <button type="button" class="btn btn-success" (click)="onSave()">Zapisz i przejdź</button>
+  </div>
+</div>

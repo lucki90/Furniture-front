@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { AddWallDialogComponent, AddWallDialogData, AddWallDialogResult } from './add-wall-dialog/add-wall-dialog.component';
-import { SaveProjectDialogComponent, SaveProjectDialogData, SaveProjectDialogResult } from './save-project-dialog/save-project-dialog.component';
 import { OfferOptionsDialogComponent } from './offer-options-dialog/offer-options-dialog.component';
 import { KitchenStateService } from './service/kitchen-state.service';
 import { AggregatedBoard, AggregatedComponent, AggregatedJob } from './service/project-details-aggregator.service';
@@ -37,6 +36,7 @@ import { KitchenProjectsDrawerComponent } from './projects-drawer/kitchen-projec
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
 import { buildCalculationViewState, buildPricingViewStateFromResult, createEmptyCalculationViewState } from './kitchen-page-view-state';
 import { KitchenService } from './service/kitchen.service';
+import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 
 export function resolveKitchenPageInitialView(
   storedView: string | null,
@@ -100,6 +100,7 @@ export class KitchenPageComponent {
   private bomTranslationsService = inject(KitchenBomTranslationsService);
   private languageService = inject(LanguageService);
   private destroyRef = inject(DestroyRef);
+  private projectTransitionGuard = inject(KitchenProjectTransitionGuardService);
 
   // Single cabinet calculation result shown in the sidebar detail panel
   // (not the same as projectResult which is a multi-wall aggregation)
@@ -464,39 +465,49 @@ export class KitchenPageComponent {
   }
 
   createNewProjectFromDrawer(): void {
-    // TODO(CODEX): Przy follow-upie "niezapisane zmiany" ten flow powinien przejsc przez wspolny dialog:
-    // Zapisz i przelacz / Odrzuc i przelacz / Anuluj.
-    if (this.openingProjectFromDrawerId !== null) {
+    if (this.isSavingProject || this.openingProjectFromDrawerId !== null) {
       return;
     }
-    this.stateService.clearAll();
-    this.clearLocalWorkspaceViewState();
-    this.closeProjectsDrawer();
-    this.router.navigate(['/kitchen']);
+    this.projectTransitionGuard.confirmUnsavedAndProceed('utwórz nowy projekt', {
+      onProceed: () => {
+        this.stateService.startNewProject();
+        this.clearLocalWorkspaceViewState();
+        this.closeProjectsDrawer();
+        this.router.navigate(['/kitchen']);
+      },
+      onSavingChange: isSaving => {
+        this.isSavingProject = isSaving;
+      }
+    });
   }
 
   openProjectFromDrawer(projectId: number): void {
-    // TODO(CODEX): Przy follow-upie "niezapisane zmiany" otwieranie projektu z drawera
-    // powinno przejsc przez wspolny dialog zapisu/porzucenia zmian.
-    if (projectId === this.currentProjectId() || this.openingProjectFromDrawerId !== null) {
+    if (projectId === this.currentProjectId() || this.isSavingProject || this.openingProjectFromDrawerId !== null) {
       return;
     }
 
-    this.openingProjectFromDrawerId = projectId;
-    this.kitchenService.getProjectById(projectId).subscribe({
-      next: project => {
-        this.stateService.loadProject(project);
-        this.clearLocalWorkspaceViewState();
-        this.closeProjectsDrawer();
-        this.router.navigate(['/kitchen'], {
-          queryParams: { projectId: project.id }
+    this.projectTransitionGuard.confirmUnsavedAndProceed('otwórz inny projekt', {
+      onProceed: () => {
+        this.openingProjectFromDrawerId = projectId;
+        this.kitchenService.getProjectById(projectId).subscribe({
+          next: project => {
+            this.stateService.loadProject(project);
+            this.clearLocalWorkspaceViewState();
+            this.closeProjectsDrawer();
+            this.router.navigate(['/kitchen'], {
+              queryParams: { projectId: project.id }
+            });
+            this.openingProjectFromDrawerId = null;
+          },
+          error: err => {
+            console.error('Error loading project from drawer:', err);
+            this.openingProjectFromDrawerId = null;
+            this.errorHandler.handle(err);
+          }
         });
-        this.openingProjectFromDrawerId = null;
       },
-      error: err => {
-        console.error('Error loading project from drawer:', err);
-        this.openingProjectFromDrawerId = null;
-        this.errorHandler.handle(err);
+      onSavingChange: isSaving => {
+        this.isSavingProject = isSaving;
       }
     });
   }
@@ -519,62 +530,10 @@ export class KitchenPageComponent {
    * Otwiera dialog zapisywania projektu i zapisuje go w bazie.
    */
   onSaveProject(): void {
-    const isUpdate = this.currentProjectId() !== null;
-
-    const dialogRef = this.dialog.open(SaveProjectDialogComponent, {
-      data: {
-        projectName: this.currentProjectName() || '',
-        projectDescription: this.currentProjectDescription() || '',
-        clientName: this.stateService.currentProjectClientName() || '',
-        clientPhone: this.stateService.currentProjectClientPhone() || '',
-        clientEmail: this.stateService.currentProjectClientEmail() || '',
-        isUpdate
-      } as SaveProjectDialogData,
-      width: '500px'
-    });
-
-    dialogRef.afterClosed().subscribe((result: SaveProjectDialogResult | undefined) => {
-      if (!result) return;
-
-      this.isSavingProject = true;
-
-      this.projectWorkflowFacade.saveProject(this.currentProjectId(), result, {
-        buildCreateRequest: dialogResult => this.stateService.buildMultiWallProjectRequest(
-          dialogResult.name,
-          dialogResult.description,
-          dialogResult.clientName,
-          dialogResult.clientPhone,
-          dialogResult.clientEmail
-        ),
-        buildUpdateRequest: dialogResult => this.stateService.buildUpdateProjectRequest(
-          dialogResult.name,
-          dialogResult.description,
-          dialogResult.clientName,
-          dialogResult.clientPhone,
-          dialogResult.clientEmail
-        )
-      }).subscribe({
-        next: ({ projectInfo, successMessage }) => {
-          this.stateService.setProjectInfo(
-            projectInfo.id,
-            projectInfo.name,
-            projectInfo.version,
-            projectInfo.description,
-            projectInfo.status,
-            projectInfo.allowedTransitions,
-            projectInfo.clientName,
-            projectInfo.clientPhone,
-            projectInfo.clientEmail
-          );
-          this.isSavingProject = false;
-          this.toast.success(successMessage);
-        },
-        error: (err) => {
-          console.error('Error saving project:', err);
-          this.isSavingProject = false;
-          this.errorHandler.handle(err);
-        }
-      });
+    this.projectTransitionGuard.openSaveProjectDialogAndPersist({
+      onSavingChange: isSaving => {
+        this.isSavingProject = isSaving;
+      }
     });
   }
 

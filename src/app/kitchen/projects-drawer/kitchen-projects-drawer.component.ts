@@ -50,6 +50,7 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
   @Input() open = false;
   @Input() currentProjectId: number | null = null;
   @Input() openingProjectId: number | null = null;
+  @Input() isTransitioning = false;
 
   @Output() closeRequested = new EventEmitter<void>();
   @Output() openProjectRequested = new EventEmitter<number>();
@@ -137,21 +138,21 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
   }
 
   requestCreateProject(): void {
-    if (this.openingProjectId !== null) {
+    if (this.isBusy()) {
       return;
     }
     this.createProjectRequested.emit();
   }
 
   requestOpenProject(projectId: number): void {
-    if (projectId === this.currentProjectId || this.openingProjectId !== null) {
+    if (projectId === this.currentProjectId || this.isBusy()) {
       return;
     }
     this.openProjectRequested.emit(projectId);
   }
 
   cloneProject(projectId: number): void {
-    if (this.cloningProjectId !== null) {
+    if (this.cloningProjectId !== null || this.isBusy()) {
       return;
     }
 
@@ -175,7 +176,7 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
   }
 
   confirmDelete(project: KitchenProjectListResponse): void {
-    if (project.id === this.currentProjectId || this.deletingProjectId !== null) {
+    if (project.id === this.currentProjectId || this.deletingProjectId !== null || this.isBusy()) {
       return;
     }
 
@@ -314,5 +315,9 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
     }
 
     return `${count} ${plural}`;
+  }
+
+  private isBusy(): boolean {
+    return this.isTransitioning || this.openingProjectId !== null;
   }
 }

@@ -2,18 +2,25 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { KitchenService } from '../service/kitchen.service';
+import { KitchenProjectTransitionGuardService } from '../service/kitchen-project-transition-guard.service';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import {
   KitchenProjectListResponse,
   ProjectStatus,
-  getStatusLabel as getLabel,
-  getStatusColor
+  getStatusColor,
+  getStatusLabel as getLabel
 } from '../model/kitchen-project.model';
 
 type SortField = 'updatedAt' | 'createdAt' | 'totalCost' | 'status';
 
 const STATUS_ORDER: ProjectStatus[] = [
-  'DRAFT', 'OFFER_SENT', 'ACCEPTED', 'IN_PRODUCTION', 'IN_INSTALLATION', 'COMPLETED', 'CANCELLED'
+  'DRAFT',
+  'OFFER_SENT',
+  'ACCEPTED',
+  'IN_PRODUCTION',
+  'IN_INSTALLATION',
+  'COMPLETED',
+  'CANCELLED'
 ];
 
 @Component({
@@ -24,38 +31,34 @@ const STATUS_ORDER: ProjectStatus[] = [
   imports: [CommonModule]
 })
 export class KitchenProjectsListComponent implements OnInit {
-
-  // TODO(CODEX): Ten ekran listy projektów trzyma w sobie jednocześnie ładowanie danych, kasowanie, otwieranie projektu, flow filtrów/sortowania i logikę prezentacji statusów. Jeszcze działa, ale zaczyna powielać problem "smart componentu od wszystkiego" znany już z głównego kitchen-page. Przy dalszym rozwoju warto wydzielić przynajmniej data/actions facade oraz uprościć obsługę błędów.
-  private kitchenService = inject(KitchenService);
-  private stateService = inject(KitchenStateService);
-  private router = inject(Router);
+  // TODO(CODEX): This list screen still mixes loading data, delete/clone/open actions,
+  // filter/sort workflow and presentation logic in one smart component. If this route
+  // keeps evolving, extract a small facade for data/actions and simplify error handling.
+  private readonly kitchenService = inject(KitchenService);
+  private readonly projectTransitionGuard = inject(KitchenProjectTransitionGuardService);
+  private readonly stateService = inject(KitchenStateService);
+  private readonly router = inject(Router);
 
   projects: KitchenProjectListResponse[] = [];
   filteredAndSortedProjects: KitchenProjectListResponse[] = [];
   loading = false;
   error: string | null = null;
 
-  // Potwierdzenie usuwania
   deletingProjectId: number | null = null;
-
-  // Klonowanie
   cloningProjectId: number | null = null;
 
-  // Filtry statusów
   activeStatusFilters: Set<ProjectStatus> = new Set();
 
-  // Sortowanie
   sortField: SortField = 'updatedAt';
   sortDirection: 'asc' | 'desc' = 'desc';
 
-  // Dane kroków diagramu flow (bez CANCELLED — osobno na dole)
   readonly flowSteps: Array<{ status: ProjectStatus; num: number; label: string; color: string }> = [
-    { status: 'DRAFT',           num: 1, label: 'Szkic',          color: '#6b7280' },
-    { status: 'OFFER_SENT',      num: 2, label: 'Oferta wysłana', color: '#2563eb' },
-    { status: 'ACCEPTED',        num: 3, label: 'Zaakceptowany',  color: '#16a34a' },
-    { status: 'IN_PRODUCTION',   num: 4, label: 'W produkcji',    color: '#ea580c' },
-    { status: 'IN_INSTALLATION', num: 5, label: 'W montażu',      color: '#7c3aed' },
-    { status: 'COMPLETED',       num: 6, label: 'Zakończony',      color: '#065f46' },
+    { status: 'DRAFT', num: 1, label: 'Szkic', color: '#6b7280' },
+    { status: 'OFFER_SENT', num: 2, label: 'Oferta wyslana', color: '#2563eb' },
+    { status: 'ACCEPTED', num: 3, label: 'Zaakceptowany', color: '#16a34a' },
+    { status: 'IN_PRODUCTION', num: 4, label: 'W produkcji', color: '#ea580c' },
+    { status: 'IN_INSTALLATION', num: 5, label: 'W montazu', color: '#7c3aed' },
+    { status: 'COMPLETED', num: 6, label: 'Zakonczony', color: '#065f46' }
   ];
 
   ngOnInit(): void {
@@ -67,33 +70,37 @@ export class KitchenProjectsListComponent implements OnInit {
     this.error = null;
 
     this.kitchenService.getProjects().subscribe({
-      next: (projects) => {
+      next: projects => {
         this.projects = projects;
         this.updateFilteredList();
         this.loading = false;
       },
-      error: (err) => {
+      error: err => {
         console.error('Error loading projects:', err);
-        this.error = 'Nie udało się wczytać listy projektów';
+        this.error = 'Nie udalo sie wczytac listy projektow';
         this.loading = false;
       }
     });
   }
 
   openProject(projectId: number): void {
-    this.loading = true;
+    this.projectTransitionGuard.confirmUnsavedAndProceed('otwórz inny projekt', {
+      onProceed: () => {
+        this.loading = true;
 
-    this.kitchenService.getProjectById(projectId).subscribe({
-      next: (project) => {
-        this.stateService.loadProject(project);
-        this.router.navigate(['/kitchen'], {
-          queryParams: { projectId: project.id }
+        this.kitchenService.getProjectById(projectId).subscribe({
+          next: project => {
+            this.stateService.loadProject(project);
+            this.router.navigate(['/kitchen'], {
+              queryParams: { projectId: project.id }
+            });
+          },
+          error: err => {
+            console.error('Error loading project:', err);
+            this.error = 'Nie udalo sie wczytac projektu';
+            this.loading = false;
+          }
         });
-      },
-      error: (err) => {
-        console.error('Error loading project:', err);
-        this.error = 'Nie udało się wczytać projektu';
-        this.loading = false;
       }
     });
   }
@@ -109,13 +116,13 @@ export class KitchenProjectsListComponent implements OnInit {
   deleteProject(projectId: number): void {
     this.kitchenService.deleteProject(projectId).subscribe({
       next: () => {
-        this.projects = this.projects.filter(p => p.id !== projectId);
+        this.projects = this.projects.filter(project => project.id !== projectId);
         this.deletingProjectId = null;
         this.updateFilteredList();
       },
-      error: (err) => {
+      error: err => {
         console.error('Error deleting project:', err);
-        this.error = 'Nie udało się usunąć projektu';
+        this.error = 'Nie udalo sie usunac projektu';
         this.deletingProjectId = null;
       }
     });
@@ -125,28 +132,35 @@ export class KitchenProjectsListComponent implements OnInit {
     if (this.cloningProjectId !== null) {
       return;
     }
-    this.cloningProjectId = projectId;
 
-    this.kitchenService.cloneProject(projectId).subscribe({
-      next: (cloned) => {
-        this.cloningProjectId = null;
-        this.stateService.loadProject(cloned);
-        this.router.navigate(['/kitchen'], { queryParams: { projectId: cloned.id } });
-      },
-      error: (err) => {
-        console.error('Error cloning project:', err);
-        this.error = 'Nie udało się sklonować projektu';
-        this.cloningProjectId = null;
+    this.projectTransitionGuard.confirmUnsavedAndProceed('otwórz sklonowany projekt', {
+      onProceed: () => {
+        this.cloningProjectId = projectId;
+
+        this.kitchenService.cloneProject(projectId).subscribe({
+          next: cloned => {
+            this.cloningProjectId = null;
+            this.stateService.loadProject(cloned);
+            this.router.navigate(['/kitchen'], { queryParams: { projectId: cloned.id } });
+          },
+          error: err => {
+            console.error('Error cloning project:', err);
+            this.error = 'Nie udalo sie sklonowac projektu';
+            this.cloningProjectId = null;
+          }
+        });
       }
     });
   }
 
   createNewProject(): void {
-    this.stateService.clearAll();
-    this.router.navigate(['/kitchen']);
+    this.projectTransitionGuard.confirmUnsavedAndProceed('utwórz nowy projekt', {
+      onProceed: () => {
+        this.stateService.startNewProject();
+        this.router.navigate(['/kitchen']);
+      }
+    });
   }
-
-  // ============ FILTRY ============
 
   toggleStatusFilter(status: ProjectStatus): void {
     if (this.activeStatusFilters.has(status)) {
@@ -171,8 +185,6 @@ export class KitchenProjectsListComponent implements OnInit {
     this.updateFilteredList();
   }
 
-  // ============ SORTOWANIE ============
-
   setSortField(field: SortField): void {
     if (this.sortField === field) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -184,28 +196,23 @@ export class KitchenProjectsListComponent implements OnInit {
   }
 
   getSortIcon(field: SortField): string {
-    if (this.sortField !== field) return '';
+    if (this.sortField !== field) {
+      return '';
+    }
     return this.sortDirection === 'asc' ? ' ↑' : ' ↓';
   }
 
-  // ============ DIAGRAM FLOW ============
-
-  /** Liczba projektów w danym statusie (z pełnej listy, nie filtrowanej) */
   countByStatus(status: ProjectStatus): number {
-    return this.projects.filter(p => p.status === status).length;
+    return this.projects.filter(project => project.status === status).length;
   }
-
-  // ============ INTERNAL ============
 
   private updateFilteredList(): void {
     let list = this.projects;
 
-    // Filtrowanie po statusach
     if (this.activeStatusFilters.size > 0) {
-      list = list.filter(p => this.activeStatusFilters.has(p.status));
+      list = list.filter(project => this.activeStatusFilters.has(project.status));
     }
 
-    // Sortowanie
     const dir = this.sortDirection === 'asc' ? 1 : -1;
     list = [...list].sort((a, b) => {
       switch (this.sortField) {
@@ -228,8 +235,6 @@ export class KitchenProjectsListComponent implements OnInit {
   trackById(_index: number, project: KitchenProjectListResponse): number {
     return project.id;
   }
-
-  // ============ FORMATOWANIE ============
 
   getStatusLabel(status: ProjectStatus): string {
     return getLabel(status);

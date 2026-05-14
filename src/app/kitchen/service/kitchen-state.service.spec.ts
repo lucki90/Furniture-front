@@ -166,6 +166,36 @@ describe('KitchenStateService', () => {
     expect(service.cabinets()).toHaveSize(1);
   });
 
+  it('should track persisted dirty state and reset it after clearAll', () => {
+    expect(service.hasUnsavedChanges()).toBeFalse();
+
+    service.addCabinet({
+      kitchenCabinetType: KitchenCabinetType.BASE_WITH_DRAWERS,
+      openingType: 'HANDLE',
+      width: 800,
+      height: 720,
+      depth: 560,
+      positionY: 0,
+      shelfQuantity: 1,
+      drawerQuantity: 3,
+      drawerModel: 'ANTARO'
+    } as CabinetFormData, {
+      boards: [],
+      components: [],
+      jobs: [],
+      summaryCosts: 1000,
+      boardTotalCost: 400,
+      componentTotalCost: 350,
+      jobTotalCost: 250
+    });
+
+    expect(service.hasUnsavedChanges()).toBeTrue();
+
+    service.clearAll();
+
+    expect(service.hasUnsavedChanges()).toBeFalse();
+  });
+
   it('should reset workspace and metadata on clearAll', () => {
     service.setProjectInfo(15, 'Do wyczyszczenia', 2, 'Opis', 'ACCEPTED');
     service.addWall('LEFT', 2500, 2600);
@@ -225,5 +255,112 @@ describe('KitchenStateService', () => {
 
     expect(service.redo()).toBeTrue();
     expect(service.upperFillerHeightMm()).toBe(180);
+  });
+
+  it('should mark loaded project as clean and detect later persisted changes', () => {
+    service.loadProject({
+      id: 21,
+      name: 'Załadowany projekt',
+      status: 'DRAFT',
+      version: 1,
+      totalCost: 0,
+      totalBoardsCost: 0,
+      totalComponentsCost: 0,
+      totalJobsCost: 0,
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      walls: [
+        {
+          id: 1,
+          wallType: 'MAIN',
+          widthMm: 3600,
+          heightMm: 2600,
+          wallCost: 0,
+          cabinetCount: 0,
+          usedWidthMm: 0,
+          remainingWidthMm: 3600,
+          cabinets: []
+        }
+      ]
+    } as KitchenProjectDetailResponse);
+
+    expect(service.hasUnsavedChanges()).toBeFalse();
+
+    service.updateRoomDimensions(5000, 4200, { recordHistory: true });
+    expect(service.hasUnsavedChanges()).toBeTrue();
+
+    expect(service.undo()).toBeTrue();
+    expect(service.hasUnsavedChanges()).toBeFalse();
+  });
+
+  it('should keep loaded-project clearAll as unsaved change until a new baseline is set', () => {
+    service.loadProject({
+      id: 33,
+      name: 'Projekt zapisany',
+      status: 'DRAFT',
+      version: 1,
+      totalCost: 0,
+      totalBoardsCost: 0,
+      totalComponentsCost: 0,
+      totalJobsCost: 0,
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      walls: [
+        {
+          id: 1,
+          wallType: 'MAIN',
+          widthMm: 3600,
+          heightMm: 2600,
+          wallCost: 0,
+          cabinetCount: 0,
+          usedWidthMm: 0,
+          remainingWidthMm: 3600,
+          cabinets: []
+        }
+      ]
+    } as KitchenProjectDetailResponse);
+
+    expect(service.hasUnsavedChanges()).toBeFalse();
+
+    service.clearAll();
+
+    expect(service.hasUnsavedChanges()).toBeTrue();
+
+    service.markProjectAsClean();
+
+    expect(service.hasUnsavedChanges()).toBeFalse();
+  });
+
+  it('should mark startNewProject as clean baseline', () => {
+    service.loadProject({
+      id: 44,
+      name: 'Projekt do wyczyszczenia',
+      status: 'DRAFT',
+      version: 1,
+      totalCost: 0,
+      totalBoardsCost: 0,
+      totalComponentsCost: 0,
+      totalJobsCost: 0,
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      walls: [
+        {
+          id: 1,
+          wallType: 'MAIN',
+          widthMm: 3600,
+          heightMm: 2600,
+          wallCost: 0,
+          cabinetCount: 0,
+          usedWidthMm: 0,
+          remainingWidthMm: 3600,
+          cabinets: []
+        }
+      ]
+    } as KitchenProjectDetailResponse);
+
+    service.startNewProject();
+
+    expect(service.currentProjectId()).toBeNull();
+    expect(service.hasUnsavedChanges()).toBeFalse();
   });
 });

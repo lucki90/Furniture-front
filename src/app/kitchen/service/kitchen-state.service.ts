@@ -86,6 +86,7 @@ export class KitchenStateService {
   readonly countertopSurfaceHeightMm = this.settingsService.countertopSurfaceHeightMm;
   readonly showCountertop = this.settingsService.showCountertop;
   readonly showUpperCabinets = this.settingsService.showUpperCabinets;
+  private _cleanWorkspaceSignature = signal(this.buildPersistedWorkspaceSignature());
 
   readonly selectedWall = computed(() => {
     const wallId = this.selectedWallId();
@@ -175,6 +176,10 @@ export class KitchenStateService {
 
   readonly totalCabinetCount = computed(() => {
     return this.walls().reduce((sum, wall) => sum + wall.cabinets.length, 0);
+  });
+
+  readonly hasUnsavedChanges = computed(() => {
+    return this.buildPersistedWorkspaceSignature() !== this._cleanWorkspaceSignature();
   });
 
   readonly canUndo = this.workspaceStore.canUndo;
@@ -333,6 +338,11 @@ export class KitchenStateService {
     this.settingsService.resetToGlobalDefaults();
   }
 
+  startNewProject(): void {
+    this.clearAll();
+    this.markProjectAsClean();
+  }
+
   loadProject(project: KitchenProjectDetailResponse): void {
     const mappedState = this.projectStateMapper.mapProject(project, {
       fillerWidthMm: this.settingsService.fillerWidthMm()
@@ -345,6 +355,7 @@ export class KitchenStateService {
       project.countertopThicknessMm ?? 38,
       project.upperFillerHeightMm ?? 100
     );
+    this.markProjectAsClean();
   }
 
   buildUpdateProjectRequest(
@@ -401,6 +412,10 @@ export class KitchenStateService {
 
   hasUnsavedProject(): boolean {
     return this.metadataService.currentProjectId() === null && this.totalCabinetCount() > 0;
+  }
+
+  markProjectAsClean(): void {
+    this._cleanWorkspaceSignature.set(this.buildPersistedWorkspaceSignature());
   }
 
   clearSelectedWallCabinets(): void {
@@ -490,6 +505,20 @@ export class KitchenStateService {
       upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
       fillerWidthMm: this.settingsService.fillerWidthMm(),
       materialDefaults: this.settingsService.materialDefaults()
+    });
+  }
+
+  private buildPersistedWorkspaceSignature(): string {
+    // Intentionally tracks only project-persisted workspace data.
+    // We compare saved/loaded project state (walls, project-level dimensions and persisted project settings),
+    // not global user defaults like distanceFromWall/plinthSetback/frontGap that are not stored in the project record.
+    return JSON.stringify({
+      walls: this.buildProjectWalls(),
+      plinthHeightMm: this.settingsService.plinthHeightMm(),
+      countertopThicknessMm: this.settingsService.countertopThicknessMm(),
+      upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
+      roomWidthMm: this.metadataService.currentProjectRoomWidthMm(),
+      roomDepthMm: this.metadataService.currentProjectRoomDepthMm()
     });
   }
 }

@@ -149,6 +149,7 @@
     [open]="isProjectsDrawerOpen"
     [currentProjectId]="currentProjectId()"
     [openingProjectId]="openingProjectFromDrawerId"
+    [isTransitioning]="isSavingProject || openingProjectFromDrawerId !== null"
     (closeRequested)="closeProjectsDrawer()"
     (openProjectRequested)="openProjectFromDrawer($event)"
     (createProjectRequested)="createNewProjectFromDrawer()">

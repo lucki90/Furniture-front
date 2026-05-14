@@ -1,0 +1,35 @@
+.dialog-container {
+  padding: 22px 22px 18px;
+}
+
+.dialog-title {
+  margin: 0 0 12px;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dialog-message,
+.dialog-target {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.dialog-target strong {
+  color: var(--text-primary);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
