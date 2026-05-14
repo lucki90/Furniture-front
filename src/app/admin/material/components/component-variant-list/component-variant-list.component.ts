@@ -53,19 +53,22 @@ export class ComponentVariantListComponent implements OnInit {
   pageSize = signal(10);
   pageIndex = signal(0);
 
-  // Filters
   searchQuery = '';
   activeOnly = false;
 
   constructor(
-    private materialAdminService: MaterialAdminService,
-    private dialog: MatDialog,
-    private toast: ToastService,
-    private confirmDialog: ConfirmDialogService
+    private readonly materialAdminService: MaterialAdminService,
+    private readonly dialog: MatDialog,
+    private readonly toast: ToastService,
+    private readonly confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
     this.loadVariants();
+  }
+
+  get totalVariantsLabel(): string {
+    return this.pluralize(this.totalElements(), 'wariant', 'warianty', 'wariantow');
   }
 
   loadVariants(): void {
@@ -77,13 +80,13 @@ export class ComponentVariantListComponent implements OnInit {
       this.searchQuery || undefined,
       this.activeOnly
     ).subscribe({
-      next: (page) => {
+      next: page => {
         this.variants.set(page.content);
         this.totalElements.set(page.totalElements);
         this.loading.set(false);
       },
       error: () => {
-        this.toast.error('Błąd podczas ładowania wariantów komponentów');
+        this.toast.error('Blad podczas ladowania wariantow komponentow');
         this.loading.set(false);
       }
     });
@@ -120,7 +123,7 @@ export class ComponentVariantListComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(result => {
       if (result) {
-        this.toast.success('Wariant komponentu został dodany');
+        this.toast.success('Wariant komponentu zostal dodany');
         this.loadVariants();
       }
     });
@@ -130,7 +133,7 @@ export class ComponentVariantListComponent implements OnInit {
     const dialogData: VariantDialogData = {
       type: 'component',
       mode: 'edit',
-      variant: variant
+      variant
     };
 
     const dialogRef = this.dialog.open(VariantDialogComponent, {
@@ -142,7 +145,7 @@ export class ComponentVariantListComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(result => {
       if (result) {
-        this.toast.success('Wariant komponentu został zaktualizowany');
+        this.toast.success('Wariant komponentu zostal zaktualizowany');
         this.loadVariants();
       }
     });
@@ -150,7 +153,7 @@ export class ComponentVariantListComponent implements OnInit {
 
   onDelete(variant: ComponentVariantAdminResponse): void {
     this.confirmDialog.confirm({
-      message: `Czy na pewno chcesz usunąć wariant "${variant.modelCode}" komponentu "${variant.componentCode}"?`,
+      message: `Czy na pewno chcesz usunac wariant "${variant.modelCode}" komponentu "${variant.componentCode}"?`,
       confirmText: 'Tak'
     }).pipe(
       filter(Boolean),
@@ -158,12 +161,27 @@ export class ComponentVariantListComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.toast.success('Wariant komponentu został usunięty');
+        this.toast.success('Wariant komponentu zostal usuniety');
         this.loadVariants();
       },
       error: () => {
-        this.toast.error('Błąd podczas usuwania wariantu');
+        this.toast.error('Blad podczas usuwania wariantu');
       }
     });
+  }
+
+  private pluralize(count: number, singular: string, paucal: string, plural: string): string {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    if (count === 1) {
+      return `${count} ${singular}`;
+    }
+
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+      return `${count} ${paucal}`;
+    }
+
+    return `${count} ${plural}`;
   }
 }

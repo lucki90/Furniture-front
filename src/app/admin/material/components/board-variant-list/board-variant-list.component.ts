@@ -9,7 +9,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { ToastService } from '../../../../core/error/toast.service';
@@ -40,7 +39,6 @@ import { DIALOG_WIDTH } from '../../../../shared/constants/dialog.constants';
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
-    MatCheckboxModule,
     MatSelectModule,
     MatDialogModule,
     MatProgressSpinnerModule,
@@ -48,11 +46,10 @@ import { DIALOG_WIDTH } from '../../../../shared/constants/dialog.constants';
     MatChipsModule
   ]
 })
-// TODO R.11: Ten komponent ma ~80% wspólnej logiki z component-variant-list i job-variant-list
-// (paginacja, wyszukiwanie, dialogi CRUD, pattern delete). Wydzielić do
-// BaseVariantListComponent<T> lub użyć composition z useVariantList() serwisu.
+// TODO R.11: Ten komponent ma ~80% wspolnej logiki z component-variant-list i job-variant-list
+// (paginacja, wyszukiwanie, dialogi CRUD, pattern delete). Wydzielic do
+// BaseVariantListComponent<T> lub uzyc composition z useVariantList() serwisu.
 export class BoardVariantListComponent implements OnInit {
-
   displayedColumns: string[] = ['materialCode', 'thicknessMm', 'colorCode', 'varnished', 'currentPrice', 'active', 'actions'];
 
   variants = signal<BoardVariantAdminResponse[]>([]);
@@ -61,7 +58,7 @@ export class BoardVariantListComponent implements OnInit {
   pageIndex = signal(0);
   loading = signal(false);
 
-  // Translation map: translationKey → resolved name
+  // Translation map: translationKey -> resolved name
   translations = signal<Record<string, string>>({});
 
   searchMaterialCode = '';
@@ -70,7 +67,6 @@ export class BoardVariantListComponent implements OnInit {
   private readonly translationService = inject(TranslationService);
   private readonly languageService = inject(LanguageService);
   private readonly confirmDialog = inject(ConfirmDialogService);
-
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
@@ -78,7 +74,6 @@ export class BoardVariantListComponent implements OnInit {
     private readonly dialog: MatDialog,
     private readonly toast: ToastService
   ) {
-    // Reload translations whenever language changes (toObservable emits current value immediately)
     toObservable(this.languageService.lang).pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(lang => this.loadTranslations(lang));
@@ -88,40 +83,40 @@ export class BoardVariantListComponent implements OnInit {
     this.loadVariants();
   }
 
+  get totalVariantsLabel(): string {
+    return this.pluralize(this.totalElements(), 'wariant', 'warianty', 'wariantow');
+  }
+
   private loadTranslations(lang: string): void {
-    this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT'], lang).subscribe(t => {
-      // Spread to always create a NEW object reference — prevents Angular signal
-      // from skipping re-render when the same cached Map is returned (e.g. lang switch back)
-      this.translations.set({ ...t });
+    this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT'], lang).subscribe(translations => {
+      this.translations.set({ ...translations });
     });
   }
 
   /**
-   * Resolve display name: translation → colorName → colorCode.
+   * Resolve display name: translation -> colorName -> colorCode.
    *
-   * TODO: Translacja koloru (zmiana języka) nie działa dla istniejących wariantów z dwóch powodów:
-   *  1. Większość wariantów w DB nie ma ustawionego `translationKey` → spada do colorName/colorCode.
-   *     Rozwiązanie: w dialogu edycji ustawić klucz (np. "BOARD_VARIANT.BIALY_18") i zapisać PL/EN.
-   *  2. Nawet gdy `translationKey` jest ustawiony, musi istnieć wpis w tabeli `translation` dla
-   *     odpowiedniego języka — teraz można to zrobić przez sekcję "Tłumaczenia" w dialogu wariantu.
-   *  3. Kategoria pobierania: `getByCategories(['MATERIAL', 'BOARD_VARIANT'], lang)` — jeśli klucz
-   *     wariantu należy do innej kategorii, nie zostanie zwrócony. Upewnij się, że klucz ma prefix
-   *     pasujący do jednej z pobieranych kategorii (np. "BOARD_VARIANT." lub "MATERIAL.").
+   * TODO: Translacja koloru (zmiana jezyka) nie dziala dla istniejacych wariantow z kilku powodow:
+   * 1. Wiele wariantow w DB nie ma translationKey, wiec komponent spada do colorName/colorCode.
+   * 2. Nawet przy ustawionym translationKey musi istniec wpis w tabeli translation dla danego jezyka.
+   * 3. Kategoria pobierania musi pasowac do prefixu klucza, np. BOARD_VARIANT.* albo MATERIAL.*.
    */
-  getColorDisplay(v: BoardVariantAdminResponse): string {
-    const t = this.translations();
-    if (v.translationKey && t[v.translationKey]) {
-      return t[v.translationKey];
+  getColorDisplay(variant: BoardVariantAdminResponse): string {
+    const translations = this.translations();
+    if (variant.translationKey && translations[variant.translationKey]) {
+      return translations[variant.translationKey];
     }
-    return v.colorName || v.colorCode;
+
+    return variant.colorName || variant.colorCode;
   }
 
-  getMaterialDisplay(v: BoardVariantAdminResponse): string {
-    const t = this.translations();
-    if (v.materialName && t[v.materialName]) {
-      return t[v.materialName];
+  getMaterialDisplay(variant: BoardVariantAdminResponse): string {
+    const translations = this.translations();
+    if (variant.materialName && translations[variant.materialName]) {
+      return translations[variant.materialName];
     }
-    return v.materialCode;
+
+    return variant.materialCode;
   }
 
   loadVariants(): void {
@@ -132,13 +127,13 @@ export class BoardVariantListComponent implements OnInit {
       this.searchMaterialCode || undefined,
       this.activeOnly
     ).subscribe({
-      next: (page) => {
+      next: page => {
         this.variants.set(page.content);
         this.totalElements.set(page.totalElements);
         this.loading.set(false);
       },
-      error: (err) => {
-        this.toast.error('Błąd podczas ładowania wariantów płyt');
+      error: err => {
+        this.toast.error('Blad podczas ladowania wariantow plyt');
         this.loading.set(false);
         console.error('Error loading board variants:', err);
       }
@@ -172,7 +167,7 @@ export class BoardVariantListComponent implements OnInit {
     ).subscribe(result => {
       if (result) {
         this.loadVariants();
-        this.toast.success('Import zakończony pomyślnie');
+        this.toast.success('Import zakonczony pomyslnie');
       }
     });
   }
@@ -188,7 +183,7 @@ export class BoardVariantListComponent implements OnInit {
     ).subscribe(result => {
       if (result) {
         this.loadVariants();
-        this.toast.success('Wariant płyty został dodany');
+        this.toast.success('Wariant plyty zostal dodany');
       }
     });
   }
@@ -204,14 +199,14 @@ export class BoardVariantListComponent implements OnInit {
     ).subscribe(result => {
       if (result) {
         this.loadVariants();
-        this.toast.success('Wariant płyty został zaktualizowany');
+        this.toast.success('Wariant plyty zostal zaktualizowany');
       }
     });
   }
 
   onDelete(variant: BoardVariantAdminResponse): void {
     this.confirmDialog.confirm({
-      message: `Czy na pewno chcesz usunąć wariant "${variant.materialCode} ${variant.thicknessMm}mm ${variant.colorCode}"?`,
+      message: `Czy na pewno chcesz usunac wariant "${variant.materialCode} ${variant.thicknessMm}mm ${variant.colorCode}"?`,
       confirmText: 'Tak'
     }).pipe(
       filter(Boolean),
@@ -220,12 +215,27 @@ export class BoardVariantListComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.loadVariants();
-        this.toast.success('Wariant płyty został usunięty');
+        this.toast.success('Wariant plyty zostal usuniety');
       },
-      error: (err) => {
-        this.toast.error('Błąd podczas usuwania wariantu');
+      error: err => {
+        this.toast.error('Blad podczas usuwania wariantu');
         console.error('Error deleting board variant:', err);
       }
     });
+  }
+
+  private pluralize(count: number, singular: string, paucal: string, plural: string): string {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    if (count === 1) {
+      return `${count} ${singular}`;
+    }
+
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+      return `${count} ${paucal}`;
+    }
+
+    return `${count} ${plural}`;
   }
 }

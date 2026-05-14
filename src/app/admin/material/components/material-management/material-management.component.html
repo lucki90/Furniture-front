@@ -1,39 +1,82 @@
-<div class="material-management-container">
-  <div class="page-header">
-    <h1>Zarządzanie materiałami</h1>
+<div class="admin-page-shell materials-page">
+  <div class="admin-page-header">
+    <div class="admin-page-title-group">
+      <span class="admin-page-title-icon">
+        <mat-icon aria-hidden="true">inventory_2</mat-icon>
+      </span>
+      <div>
+        <h1 class="admin-page-title">Zarzadzanie materialami</h1>
+        <p class="admin-page-subtitle">
+          Utrzymuj materialy bazowe oraz warianty plyt, komponentow i prac w jednym, spojnym panelu administracyjnym.
+        </p>
+      </div>
+    </div>
+
+    <div class="admin-page-summary">
+      <span class="admin-page-summary-chip">
+        <mat-icon aria-hidden="true">category</mat-icon>
+        Materialy
+      </span>
+      <span class="admin-page-summary-chip">
+        <mat-icon aria-hidden="true">layers</mat-icon>
+        Plyty
+      </span>
+      <span class="admin-page-summary-chip">
+        <mat-icon aria-hidden="true">inventory_2</mat-icon>
+        Komponenty
+      </span>
+      <span class="admin-page-summary-chip">
+        <mat-icon aria-hidden="true">build</mat-icon>
+        Prace
+      </span>
+    </div>
   </div>
 
-  <mat-tab-group animationDuration="200ms">
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">category</mat-icon>
-        Materiały
-      </ng-template>
-      <app-material-list></app-material-list>
-    </mat-tab>
+  <section class="admin-surface materials-shell">
+    <div class="materials-shell__intro">
+      <div>
+        <h2 class="materials-shell__title">Panel katalogow i wariantow</h2>
+        <p class="materials-shell__subtitle">
+          Najpierw aktywuj materialy bazowe, potem zarzadzaj ich wariantami i cenami. Kazda zakladka odpowiada za inny etap
+          utrzymania danych, ale caly ekran trzyma wspolny rytm i ten sam model pracy.
+        </p>
+      </div>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">layers</mat-icon>
-        Warianty płyt
-      </ng-template>
-      <app-board-variant-list></app-board-variant-list>
-    </mat-tab>
+      <span class="materials-shell__hint">4 obszary administracyjne</span>
+    </div>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">inventory_2</mat-icon>
-        Warianty komponentów
-      </ng-template>
-      <app-component-variant-list></app-component-variant-list>
-    </mat-tab>
+    <mat-tab-group class="materials-tabs" animationDuration="200ms">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon" aria-hidden="true">category</mat-icon>
+          Materialy
+        </ng-template>
+        <app-material-list></app-material-list>
+      </mat-tab>
 
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="tab-icon">build</mat-icon>
-        Warianty prac
-      </ng-template>
-      <app-job-variant-list></app-job-variant-list>
-    </mat-tab>
-  </mat-tab-group>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon" aria-hidden="true">layers</mat-icon>
+          Warianty plyt
+        </ng-template>
+        <app-board-variant-list></app-board-variant-list>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon" aria-hidden="true">inventory_2</mat-icon>
+          Warianty komponentow
+        </ng-template>
+        <app-component-variant-list></app-component-variant-list>
+      </mat-tab>
+
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="tab-icon" aria-hidden="true">build</mat-icon>
+          Warianty prac
+        </ng-template>
+        <app-job-variant-list></app-job-variant-list>
+      </mat-tab>
+    </mat-tab-group>
+  </section>
 </div>

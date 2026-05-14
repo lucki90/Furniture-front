@@ -1,184 +1,101 @@
-.variant-list-container {
-  padding: var(--spacing-md);
+:host {
+  display: block;
 }
 
-/* Header */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-md);
+.variant-filter-field--search {
+  width: 300px;
 }
 
-.header h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
+.variant-filter-field--status {
+  width: 160px;
 }
 
-.header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-/* Filters */
-.filters {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  padding: 12px 16px;
-  background: var(--bg-hover);
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--border-color);
-}
-
-.search-field {
-  width: 280px;
-}
-
-/* Table container */
-.table-container {
-  position: relative;
-  min-height: 150px;
-  background: var(--bg-card);
-  border-radius: var(--border-radius-sm);
-  overflow: hidden;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-}
-
-.table-container.loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-
-/* Table */
 .variant-table {
   width: 100%;
+  min-width: 920px;
   table-layout: fixed;
 }
 
-/* Column widths — table-layout:fixed means width is EXACT, not advisory.
-   Total: 100+55+130+50+90+80+80 = 585px. Cells clip with ellipsis on overflow. */
-::ng-deep .variant-table .mat-column-materialCode {
-  width: 100px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.variant-table .mat-column-materialCode {
+  width: 180px;
 }
 
-::ng-deep .variant-table .mat-column-thicknessMm {
-  width: 55px;
-  text-align: center;
-}
-
-::ng-deep .variant-table .mat-column-colorCode {
-  width: 130px;
-  overflow: hidden;
-}
-
-::ng-deep .variant-table .mat-column-colorCode .color-cell {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-::ng-deep .variant-table .mat-column-varnished {
-  width: 50px;
-  text-align: center;
-}
-
-::ng-deep .variant-table .mat-column-currentPrice {
+.variant-table .mat-column-thicknessMm {
   width: 90px;
-  white-space: nowrap;
 }
 
-::ng-deep .variant-table .mat-column-active {
-  width: 80px;
+.variant-table .mat-column-colorCode {
+  width: 220px;
 }
 
-::ng-deep .variant-table .mat-column-actions {
-  width: 80px;
-  white-space: nowrap;
+.variant-table .mat-column-varnished {
+  width: 90px;
 }
 
-::ng-deep .variant-table .mat-mdc-header-cell {
-  background: var(--bg-hover);
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: var(--text-secondary);
-  border-bottom: 2px solid var(--border-color);
+.variant-table .mat-column-currentPrice {
+  width: 110px;
 }
 
-::ng-deep .variant-table .mat-mdc-cell {
-  font-size: 14px;
-  color: var(--text-primary);
-  border-bottom-color: var(--border-color);
+.variant-table .mat-column-active {
+  width: 120px;
 }
 
-::ng-deep .variant-table .mat-mdc-row:hover .mat-mdc-cell {
-  background: var(--bg-hover);
+.variant-table .mat-column-actions {
+  width: 92px;
 }
 
-.price-cell {
-  font-weight: 600;
-  color: var(--success-color);
-}
-
-.actions-cell {
-  white-space: nowrap;
-}
-
-
-/* Inactive material warning */
 .material-inactive-icon {
-  font-size: 18px;
   width: 18px;
   height: 18px;
-  color: var(--warning-color);
-  vertical-align: middle;
   margin-right: 4px;
+  vertical-align: middle;
+  font-size: 18px;
+  color: var(--warning-color);
 }
 
-::ng-deep .material-inactive-row .mat-mdc-cell {
-  opacity: 0.6;
+.material-inactive-row {
+  opacity: 0.62;
 }
 
-/* Color swatch in table */
 .color-cell {
   display: flex;
   align-items: center;
   gap: 8px;
+  overflow: hidden;
+}
+
+.color-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .color-swatch {
-  display: inline-block;
   width: 16px;
   height: 16px;
-  border-radius: 3px;
-  border: 1px solid var(--border-color, #ccc);
   flex-shrink: 0;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
 }
 
-
-/* Paginator */
-::ng-deep .mat-mdc-paginator {
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-hover);
+.icon-state-cell {
+  text-align: center;
 }
 
-/* Material form field tweaks in filters */
-::ng-deep .filters .mat-mdc-form-field-subscript-wrapper {
-  display: none;
+.price-cell {
+  font-weight: 700;
+  color: var(--success-color);
+  white-space: nowrap;
 }
 
-::ng-deep .filters .mat-mdc-text-field-wrapper {
-  background: var(--bg-card);
+.actions-cell {
+  white-space: nowrap;
+  text-align: right;
+}
+
+@media (max-width: 960px) {
+  .variant-filter-field--search,
+  .variant-filter-field--status {
+    width: 100%;
+  }
 }

@@ -1,58 +1,36 @@
-.variant-list-container {
-  padding: 16px 0;
+:host {
+  display: block;
 }
 
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 16px;
+.material-toolbar {
+  margin-bottom: 0;
 }
 
-.header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
+.material-toolbar__note {
+  font-size: 12px;
+  color: var(--text-muted);
+  flex: 1 1 420px;
+  max-width: 72ch;
+  line-height: 1.5;
 }
-
-.subtitle {
-  margin: 0;
-  font-size: 13px;
-  color: var(--text-secondary, #666);
-}
-
-.table-container {
-  position: relative;
-  min-height: 100px;
-}
-
-.table-container.loading {
-  opacity: 0.5;
-}
-
 
 .variant-table {
   width: 100%;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm, 8px);
-  overflow: hidden;
+  min-width: 560px;
 }
 
-::ng-deep .variant-table .mat-mdc-header-cell {
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary, #666);
-  background: var(--bg-hover, #fafafa);
-}
-
-::ng-deep .variant-table .mat-mdc-cell {
-  font-size: 13px;
+.status-cell {
+  width: 124px;
 }
 
 .inactive-row {
-  opacity: 0.55;
+  opacity: 0.58;
 }
 
+.variant-table .mat-column-code {
+  width: 220px;
+}
+
+.variant-table .mat-column-translationKey {
+  width: auto;
+}

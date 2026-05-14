@@ -1,39 +1,130 @@
-.material-management-container {
-  padding: var(--spacing-lg);
-  max-width: 1400px;
-  margin: 0 auto;
+:host {
+  display: block;
 }
 
-.page-header {
+.materials-page {
+  padding-bottom: 20px;
+}
+
+.materials-shell {
+  padding: 18px 18px 16px;
+}
+
+.materials-shell__intro {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-lg);
+  gap: 16px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-color) 7%, transparent),
+    rgba(255, 255, 255, 0.98)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74);
 }
 
-.page-header h1 {
+.materials-shell__title {
   margin: 0;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text-primary);
+}
+
+.materials-shell__subtitle {
+  margin: 4px 0 0;
+  max-width: 68ch;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.materials-shell__hint {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-color);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .tab-icon {
   margin-right: 8px;
-  font-size: 20px;
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
 }
 
-::ng-deep .mat-mdc-tab-body-wrapper {
-  padding-top: var(--spacing-md);
+:host ::ng-deep .materials-tabs .mat-mdc-tab-header {
+  margin-bottom: 16px;
+  padding: 5px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), color-mix(in srgb, var(--bg-main) 90%, white));
 }
 
-::ng-deep .mat-mdc-tab-group {
-  --mdc-tab-indicator-active-indicator-color: var(--accent-color);
-  --mat-tab-header-active-label-text-color: var(--accent-color);
-  --mat-tab-header-active-focus-label-text-color: var(--accent-color);
-  --mat-tab-header-active-hover-label-text-color: var(--accent-color);
+:host ::ng-deep .materials-tabs .mat-mdc-tab-label-container {
+  overflow: auto;
 }
 
-::ng-deep .mat-mdc-tab-header {
-  border-bottom: 1px solid var(--border-color);
+:host ::ng-deep .materials-tabs .mat-mdc-tab {
+  min-height: 42px;
+  border-radius: 8px;
+}
+
+:host ::ng-deep .materials-tabs .mat-mdc-tab .mdc-tab__text-label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+:host ::ng-deep .materials-tabs .mat-mdc-tab.mdc-tab--active .mdc-tab__content {
+  border-radius: 8px;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color) 16%, transparent);
+}
+
+:host ::ng-deep .materials-tabs .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+  color: var(--accent-color);
+}
+
+:host ::ng-deep .materials-tabs .mdc-tab-indicator__content--underline {
+  border-color: var(--accent-color) !important;
+  border-top-width: 3px !important;
+}
+
+:host ::ng-deep .materials-tabs .mat-mdc-tab-body-wrapper,
+:host ::ng-deep .materials-tabs .mat-mdc-tab-body-content {
+  overflow: visible;
+}
+
+:host ::ng-deep .materials-tabs .mat-mdc-tab-body-content {
+  padding: 2px 2px 4px;
+}
+
+@media (max-width: 960px) {
+  .materials-shell {
+    padding: 14px;
+  }
+
+  .materials-shell__intro {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 720px) {
+  .materials-shell {
+    padding: 12px;
+  }
 }

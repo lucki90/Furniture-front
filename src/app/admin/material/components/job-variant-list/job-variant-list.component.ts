@@ -19,6 +19,7 @@ import { JobVariantAdminResponse } from '../../model/material-variant.model';
 import { VariantDialogComponent, VariantDialogData } from '../variant-dialog/variant-dialog.component';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 import { DIALOG_WIDTH } from '../../../../shared/constants/dialog.constants';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-job-variant-list',
@@ -35,7 +36,8 @@ import { DIALOG_WIDTH } from '../../../../shared/constants/dialog.constants';
     MatSelectModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatDialogModule
+    MatDialogModule,
+    MatTooltipModule
   ],
   templateUrl: './job-variant-list.component.html',
   styleUrl: './job-variant-list.component.css'
@@ -49,21 +51,24 @@ export class JobVariantListComponent implements OnInit {
   pageSize = signal(10);
   pageIndex = signal(0);
 
-  // Filters
   searchQuery = '';
   activeOnly = false;
 
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    private materialAdminService: MaterialAdminService,
-    private dialog: MatDialog,
-    private toast: ToastService,
-    private confirmDialog: ConfirmDialogService
+    private readonly materialAdminService: MaterialAdminService,
+    private readonly dialog: MatDialog,
+    private readonly toast: ToastService,
+    private readonly confirmDialog: ConfirmDialogService
   ) {}
 
   ngOnInit(): void {
     this.loadVariants();
+  }
+
+  get totalVariantsLabel(): string {
+    return this.pluralize(this.totalElements(), 'wariant', 'warianty', 'wariantow');
   }
 
   loadVariants(): void {
@@ -75,13 +80,13 @@ export class JobVariantListComponent implements OnInit {
       this.searchQuery || undefined,
       this.activeOnly
     ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (page) => {
+      next: page => {
         this.variants.set(page.content);
         this.totalElements.set(page.totalElements);
         this.loading.set(false);
       },
       error: () => {
-        this.toast.error('Błąd podczas ładowania wariantów prac');
+        this.toast.error('Blad podczas ladowania wariantow prac');
         this.loading.set(false);
       }
     });
@@ -118,7 +123,7 @@ export class JobVariantListComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(result => {
       if (result) {
-        this.toast.success('Wariant pracy został dodany');
+        this.toast.success('Wariant pracy zostal dodany');
         this.loadVariants();
       }
     });
@@ -128,7 +133,7 @@ export class JobVariantListComponent implements OnInit {
     const dialogData: VariantDialogData = {
       type: 'job',
       mode: 'edit',
-      variant: variant
+      variant
     };
 
     const dialogRef = this.dialog.open(VariantDialogComponent, {
@@ -140,7 +145,7 @@ export class JobVariantListComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(result => {
       if (result) {
-        this.toast.success('Wariant pracy został zaktualizowany');
+        this.toast.success('Wariant pracy zostal zaktualizowany');
         this.loadVariants();
       }
     });
@@ -148,7 +153,7 @@ export class JobVariantListComponent implements OnInit {
 
   onDelete(variant: JobVariantAdminResponse): void {
     this.confirmDialog.confirm({
-      message: `Czy na pewno chcesz usunąć wariant "${variant.variantCode}" pracy "${variant.jobCode}"?`,
+      message: `Czy na pewno chcesz usunac wariant "${variant.variantCode}" pracy "${variant.jobCode}"?`,
       confirmText: 'Tak'
     }).pipe(
       filter(Boolean),
@@ -156,12 +161,27 @@ export class JobVariantListComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.toast.success('Wariant pracy został usunięty');
+        this.toast.success('Wariant pracy zostal usuniety');
         this.loadVariants();
       },
       error: () => {
-        this.toast.error('Błąd podczas usuwania wariantu');
+        this.toast.error('Blad podczas usuwania wariantu');
       }
     });
+  }
+
+  private pluralize(count: number, singular: string, paucal: string, plural: string): string {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    if (count === 1) {
+      return `${count} ${singular}`;
+    }
+
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+      return `${count} ${paucal}`;
+    }
+
+    return `${count} ${plural}`;
   }
 }

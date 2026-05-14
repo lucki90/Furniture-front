@@ -37,12 +37,32 @@ export class MaterialListComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    private materialAdminService: MaterialAdminService,
-    private toast: ToastService
+    private readonly materialAdminService: MaterialAdminService,
+    private readonly toast: ToastService
   ) {}
 
   ngOnInit(): void {
     this.loadMaterials();
+  }
+
+  get activeMaterialsCount(): number {
+    return this.materials().filter(material => material.active).length;
+  }
+
+  get inactiveMaterialsCount(): number {
+    return this.materials().length - this.activeMaterialsCount;
+  }
+
+  get activeMaterialsLabel(): string {
+    return this.pluralize(this.activeMaterialsCount, 'aktywny', 'aktywne', 'aktywnych');
+  }
+
+  get inactiveMaterialsLabel(): string {
+    return this.pluralize(this.inactiveMaterialsCount, 'nieaktywny', 'nieaktywne', 'nieaktywnych');
+  }
+
+  get materialsCountLabel(): string {
+    return this.pluralize(this.materials().length, 'material', 'materialy', 'materialow');
   }
 
   loadMaterials(): void {
@@ -50,12 +70,12 @@ export class MaterialListComponent implements OnInit {
     this.materialAdminService.getAllMaterials()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (materials) => {
+        next: materials => {
           this.materials.set(materials);
           this.loading.set(false);
         },
         error: () => {
-          this.toast.error('Błąd podczas ładowania materiałów');
+          this.toast.error('Blad podczas ladowania materialow');
           this.loading.set(false);
         }
       });
@@ -65,17 +85,33 @@ export class MaterialListComponent implements OnInit {
     this.materialAdminService.toggleMaterialActive(material.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (updated) => {
-          const list = this.materials().map(m =>
-            m.id === updated.id ? { ...m, active: updated.active } : m
+        next: updated => {
+          const nextMaterials = this.materials().map(item =>
+            item.id === updated.id ? { ...item, active: updated.active } : item
           );
-          this.materials.set(list);
+
+          this.materials.set(nextMaterials);
           const status = updated.active ? 'aktywny' : 'nieaktywny';
-          this.toast.success(`Materiał "${updated.code}" — ${status}`);
+          this.toast.success(`Material "${updated.code}" - ${status}`);
         },
         error: () => {
-          this.toast.error('Błąd podczas zmiany statusu materiału');
+          this.toast.error('Blad podczas zmiany statusu materialu');
         }
       });
+  }
+
+  private pluralize(count: number, singular: string, paucal: string, plural: string): string {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    if (count === 1) {
+      return `${count} ${singular}`;
+    }
+
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+      return `${count} ${paucal}`;
+    }
+
+    return `${count} ${plural}`;
   }
 }

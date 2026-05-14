@@ -1,115 +1,69 @@
-.variant-list-container {
-  padding: var(--spacing-md);
+:host {
+  display: block;
 }
 
-/* Header */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-md);
+.variant-filter-field--search {
+  width: 300px;
 }
 
-.header h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--text-primary);
+.variant-filter-field--status {
+  width: 160px;
 }
 
-.header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-/* Filters */
-.filters {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  padding: 12px 16px;
-  background: var(--bg-hover);
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--border-color);
-}
-
-.search-field {
-  width: 280px;
-}
-
-/* Table container */
-.table-container {
-  position: relative;
-  min-height: 150px;
-  background: var(--bg-card);
-  border-radius: var(--border-radius-sm);
-  overflow: hidden;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-}
-
-.table-container.loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-
-/* Table */
 .variant-table {
   width: 100%;
+  min-width: 980px;
 }
 
-::ng-deep .variant-table .mat-mdc-header-cell {
-  background: var(--bg-hover);
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  color: var(--text-secondary);
-  border-bottom: 2px solid var(--border-color);
+.variant-table .mat-column-componentCode {
+  width: 170px;
 }
 
-::ng-deep .variant-table .mat-mdc-cell {
-  font-size: 14px;
-  color: var(--text-primary);
-  border-bottom-color: var(--border-color);
+.variant-table .mat-column-componentCategory {
+  width: 150px;
 }
 
-::ng-deep .variant-table .mat-mdc-row:hover .mat-mdc-cell {
-  background: var(--bg-hover);
+.variant-table .mat-column-modelCode {
+  width: 170px;
+}
+
+.variant-table .mat-column-additionalInfo {
+  width: auto;
+}
+
+.variant-table .mat-column-currentPrice {
+  width: 118px;
+}
+
+.variant-table .mat-column-active {
+  width: 120px;
+}
+
+.variant-table .mat-column-actions {
+  width: 92px;
 }
 
 .price-cell {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--success-color);
+  white-space: nowrap;
 }
 
 .actions-cell {
   white-space: nowrap;
+  text-align: right;
 }
 
-/* Truncate long additional info text */
 .additional-info-cell {
-  max-width: 250px;
+  max-width: 280px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-
-/* Paginator */
-::ng-deep .mat-mdc-paginator {
-  border-top: 1px solid var(--border-color);
-  background: var(--bg-hover);
-}
-
-/* Material form field tweaks in filters */
-::ng-deep .filters .mat-mdc-form-field-subscript-wrapper {
-  display: none;
-}
-
-::ng-deep .filters .mat-mdc-text-field-wrapper {
-  background: var(--bg-card);
+@media (max-width: 960px) {
+  .variant-filter-field--search,
+  .variant-filter-field--status {
+    width: 100%;
+  }
 }
