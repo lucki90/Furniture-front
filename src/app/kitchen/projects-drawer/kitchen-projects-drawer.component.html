@@ -1,0 +1,156 @@
+<div class="projects-drawer-shell" [class.projects-drawer-shell--open]="open" [attr.aria-hidden]="!open">
+  <button
+    type="button"
+    class="projects-drawer-backdrop"
+    aria-label="Zamknij panel projektow"
+    (click)="requestClose()"></button>
+
+  <aside
+    id="projects-drawer"
+    class="projects-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Panel projektow">
+    <header class="projects-drawer__header">
+      <div class="projects-drawer__heading">
+        <div>
+          <p class="projects-drawer__eyebrow">Workspace</p>
+          <h2>Projekty</h2>
+        </div>
+        <button type="button" class="drawer-close-btn" aria-label="Zamknij" (click)="requestClose()">&times;</button>
+      </div>
+
+      <div class="projects-drawer__toolbar">
+        <button
+          type="button"
+          class="btn btn-primary drawer-new-btn"
+          [disabled]="openingProjectId !== null"
+          (click)="requestCreateProject()">
+          + Nowy projekt
+        </button>
+
+        <label class="drawer-search">
+          <span class="drawer-search__icon" aria-hidden="true">&#8981;</span>
+          <input
+            #searchInput
+            type="search"
+            class="form-control form-control--compact"
+            placeholder="Szukaj projektu..."
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange()">
+        </label>
+      </div>
+
+      <div class="drawer-filters">
+        <button
+          *ngFor="let filter of statusFilters"
+          type="button"
+          class="drawer-filter-chip"
+          [class.drawer-filter-chip--active]="isStatusActive(filter.value)"
+          [attr.aria-pressed]="isStatusActive(filter.value)"
+          (click)="selectStatus(filter.value)">
+          {{ filter.label }}
+        </button>
+      </div>
+    </header>
+
+    <div class="projects-drawer__body">
+      <div *ngIf="loading" class="drawer-state drawer-state--loading">
+        <div class="spinner spinner--sm"></div>
+        <p>Wczytywanie projektow...</p>
+      </div>
+
+      <div *ngIf="!loading && error" class="drawer-state drawer-state--error">
+        <p>{{ error }}</p>
+        <button type="button" class="btn btn-outline" (click)="loadProjects()">Sproboj ponownie</button>
+      </div>
+
+      <div *ngIf="!loading && !error && projects.length === 0" class="drawer-state drawer-state--empty">
+        <p>Nie masz jeszcze zadnego projektu.</p>
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="openingProjectId !== null"
+          (click)="requestCreateProject()">
+          Utworz pierwszy projekt
+        </button>
+      </div>
+
+      <div *ngIf="!loading && !error && projects.length > 0 && visibleProjects.length === 0" class="drawer-state drawer-state--empty">
+        <p>Brak projektow pasujacych do wyszukiwania lub filtra.</p>
+        <button type="button" class="btn btn-outline" (click)="resetFilters()">Resetuj filtry</button>
+      </div>
+
+      <div *ngIf="!loading && !error && visibleProjects.length > 0" class="drawer-projects-list">
+        <article
+          *ngFor="let project of visibleProjects; trackBy: trackByProjectId"
+          class="drawer-project-card"
+          [class.drawer-project-card--current]="isCurrentProject(project.id)">
+          <div class="drawer-project-card__header">
+            <div class="drawer-project-card__title-wrap">
+              <h3>{{ project.name }}</h3>
+              <span class="drawer-project-current" *ngIf="isCurrentProject(project.id)">Aktualny</span>
+            </div>
+
+            <span
+              class="drawer-project-status"
+              [style.background-color]="getStatusColor(project.status) + '18'"
+              [style.color]="getStatusColor(project.status)"
+              [style.border-color]="getStatusColor(project.status) + '40'">
+              {{ getStatusLabel(project.status) }}
+            </span>
+          </div>
+
+          <p class="drawer-project-updated">Zmieniono {{ formatUpdatedAt(project.updatedAt) }}</p>
+
+          <div class="drawer-project-stats">
+            <div class="drawer-project-stat">
+              <span class="drawer-project-stat__value">{{ wallCountLabel(project.wallCount) }}</span>
+            </div>
+            <div class="drawer-project-stat">
+              <span class="drawer-project-stat__value">{{ cabinetCountLabel(project.cabinetCount) }}</span>
+            </div>
+            <div class="drawer-project-stat drawer-project-stat--cost">
+              <span class="drawer-project-stat__value">{{ formatCost(project.totalCost) }}</span>
+            </div>
+          </div>
+
+          <div class="drawer-project-actions">
+            <button
+              type="button"
+              class="btn btn-primary btn-sm drawer-project-actions__open"
+              [disabled]="isCurrentProject(project.id) || openingProjectId !== null"
+              (click)="requestOpenProject(project.id)">
+              {{
+                isCurrentProject(project.id)
+                  ? 'Aktualny'
+                  : (openingProjectId === project.id ? 'Otwieram...' : 'Otworz')
+              }}
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-outline btn-sm"
+              [disabled]="cloningProjectId === project.id || deletingProjectId !== null"
+              (click)="cloneProject(project.id)">
+              {{ cloningProjectId === project.id ? 'Klonuje...' : 'Klonuj' }}
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-outline-danger btn-sm"
+              [disabled]="isCurrentProject(project.id) || deletingProjectId === project.id || cloningProjectId !== null"
+              (click)="confirmDelete(project)">
+              {{ deletingProjectId === project.id ? 'Usuwam...' : 'Usun' }}
+            </button>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <footer class="projects-drawer__footer">
+      <span class="projects-drawer__count">{{ projectsCountLabel }}</span>
+      <button type="button" class="btn btn-outline" (click)="requestClose()">Zamknij</button>
+    </footer>
+  </aside>
+</div>

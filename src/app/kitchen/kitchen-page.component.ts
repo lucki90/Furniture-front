@@ -2,7 +2,7 @@
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { AddWallDialogComponent, AddWallDialogData, AddWallDialogResult } from './add-wall-dialog/add-wall-dialog.component';
 import { SaveProjectDialogComponent, SaveProjectDialogData, SaveProjectDialogResult } from './save-project-dialog/save-project-dialog.component';
@@ -33,8 +33,10 @@ import { KitchenCabinetsSectionComponent } from './cabinets-section/kitchen-cabi
 import { KitchenWorkspaceSectionComponent } from './workspace-section/kitchen-workspace-section.component';
 import { KitchenCostsSectionComponent } from './costs-section/kitchen-costs-section.component';
 import { KitchenPageFooterComponent } from './page-footer/kitchen-page-footer.component';
+import { KitchenProjectsDrawerComponent } from './projects-drawer/kitchen-projects-drawer.component';
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
 import { buildCalculationViewState, buildPricingViewStateFromResult, createEmptyCalculationViewState } from './kitchen-page-view-state';
+import { KitchenService } from './service/kitchen.service';
 
 export function resolveKitchenPageInitialView(
   storedView: string | null,
@@ -77,7 +79,8 @@ const MATERIAL_NAMES_PL: Record<string, string> = {
     KitchenCabinetsSectionComponent,
     KitchenWorkspaceSectionComponent,
     KitchenCostsSectionComponent,
-    KitchenPageFooterComponent
+    KitchenPageFooterComponent,
+    KitchenProjectsDrawerComponent
   ]
 })
 export class KitchenPageComponent {
@@ -89,7 +92,9 @@ export class KitchenPageComponent {
   private projectExportFacade = inject(KitchenProjectExportFacade);
   private projectStatusFacade = inject(KitchenProjectStatusFacade);
   private workspaceActionsFacade = inject(KitchenWorkspaceActionsFacade);
+  private kitchenService = inject(KitchenService);
   private dialog = inject(MatDialog);
+  private router = inject(Router);
   private toast = inject(ToastService);
   private errorHandler = inject(ApiErrorHandler);
   private bomTranslationsService = inject(KitchenBomTranslationsService);
@@ -111,6 +116,8 @@ export class KitchenPageComponent {
     localStorage.getItem('fp_view'),
     this.stateService.totalCabinetCount() > 0
   );
+  isProjectsDrawerOpen = false;
+  openingProjectFromDrawerId: number | null = null;
 
   // Active tab in project details panel
   activeDetailsTab: 'walls' | 'boards' | 'components' | 'jobs' | 'pricing' = 'walls';
@@ -425,10 +432,7 @@ export class KitchenPageComponent {
   clearAll(): void {
     this.workspaceActionsFacade.confirmAndClearAll().subscribe(cleared => {
       if (!cleared) return;
-      this.result = null;
-      this.editingCabinet = null;
-      this.resetProjectResult();
-      this.setView('config');
+      this.clearLocalWorkspaceViewState();
     });
   }
 
@@ -444,6 +448,57 @@ export class KitchenPageComponent {
     if (this.view === view) return;
     this.view = view;
     localStorage.setItem('fp_view', view);
+  }
+
+  toggleProjectsDrawer(): void {
+    this.isProjectsDrawerOpen = !this.isProjectsDrawerOpen;
+  }
+
+  closeProjectsDrawer(): void {
+    this.isProjectsDrawerOpen = false;
+    queueMicrotask(() => {
+      // Keep this selector in sync with `.projects-toggle-btn` in KitchenPageHeaderComponent.
+      const trigger = document.querySelector<HTMLButtonElement>('.projects-toggle-btn');
+      trigger?.focus();
+    });
+  }
+
+  createNewProjectFromDrawer(): void {
+    // TODO(CODEX): Przy follow-upie "niezapisane zmiany" ten flow powinien przejsc przez wspolny dialog:
+    // Zapisz i przelacz / Odrzuc i przelacz / Anuluj.
+    if (this.openingProjectFromDrawerId !== null) {
+      return;
+    }
+    this.stateService.clearAll();
+    this.clearLocalWorkspaceViewState();
+    this.closeProjectsDrawer();
+    this.router.navigate(['/kitchen']);
+  }
+
+  openProjectFromDrawer(projectId: number): void {
+    // TODO(CODEX): Przy follow-upie "niezapisane zmiany" otwieranie projektu z drawera
+    // powinno przejsc przez wspolny dialog zapisu/porzucenia zmian.
+    if (projectId === this.currentProjectId() || this.openingProjectFromDrawerId !== null) {
+      return;
+    }
+
+    this.openingProjectFromDrawerId = projectId;
+    this.kitchenService.getProjectById(projectId).subscribe({
+      next: project => {
+        this.stateService.loadProject(project);
+        this.clearLocalWorkspaceViewState();
+        this.closeProjectsDrawer();
+        this.router.navigate(['/kitchen'], {
+          queryParams: { projectId: project.id }
+        });
+        this.openingProjectFromDrawerId = null;
+      },
+      error: err => {
+        console.error('Error loading project from drawer:', err);
+        this.openingProjectFromDrawerId = null;
+        this.errorHandler.handle(err);
+      }
+    });
   }
 
   clearSelectedWallCabinets(): void {
@@ -560,6 +615,13 @@ export class KitchenPageComponent {
     if (this.view === 'costs') {
       this.setView('config');
     }
+  }
+
+  private clearLocalWorkspaceViewState(): void {
+    this.result = null;
+    this.editingCabinet = null;
+    this.resetProjectResult();
+    this.setView('config');
   }
 
   private canRenderCostsView(): boolean {

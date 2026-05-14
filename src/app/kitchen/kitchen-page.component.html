@@ -18,6 +18,8 @@
     [view]="view"
     [hasCalculationResult]="!!projectResult"
     [isEditingCabinet]="editingCabinetId !== null"
+    [isProjectsDrawerOpen]="isProjectsDrawerOpen"
+    (toggleProjectsDrawer)="toggleProjectsDrawer()"
     (clearAll)="clearAll()"
     (saveProject)="onSaveProject()"
     (calculateProject)="calculateProject()"
@@ -142,4 +144,13 @@
     (clearAll)="clearAll()"
     (downloadExcel)="downloadExcel()">
   </app-kitchen-page-footer>
+
+  <app-kitchen-projects-drawer
+    [open]="isProjectsDrawerOpen"
+    [currentProjectId]="currentProjectId()"
+    [openingProjectId]="openingProjectFromDrawerId"
+    (closeRequested)="closeProjectsDrawer()"
+    (openProjectRequested)="openProjectFromDrawer($event)"
+    (createProjectRequested)="createNewProjectFromDrawer()">
+  </app-kitchen-projects-drawer>
 </div>

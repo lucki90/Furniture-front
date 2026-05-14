@@ -66,10 +66,16 @@
     <div class="actions-divider" aria-hidden="true"></div>
 
     <div class="page-actions-secondary">
-      <a routerLink="/kitchen/projects" class="btn btn-outline">
-        <span class="btn-icon-text">📁</span>
-        Moje projekty
-      </a>
+      <button
+        type="button"
+        class="btn btn-outline projects-toggle-btn"
+        [class.projects-toggle-btn--active]="isProjectsDrawerOpen"
+        [attr.aria-expanded]="isProjectsDrawerOpen"
+        aria-controls="projects-drawer"
+        (click)="toggleProjectsDrawer.emit()">
+        <span class="btn-icon-text" aria-hidden="true">&larr;</span>
+        Projekty
+      </button>
       <button class="btn btn-icon-only" title="Cofnij (Ctrl+Z)" [disabled]="!canUndo" (click)="undoAction.emit()">↩</button>
       <button class="btn btn-icon-only" title="Ponow (Ctrl+Y)" [disabled]="!canRedo" (click)="redoAction.emit()">↪</button>
     </div>

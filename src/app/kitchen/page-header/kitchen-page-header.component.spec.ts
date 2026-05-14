@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import { KitchenPageHeaderComponent } from './kitchen-page-header.component';
 
 describe('KitchenPageHeaderComponent', () => {
@@ -8,8 +7,7 @@ describe('KitchenPageHeaderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [KitchenPageHeaderComponent],
-      providers: [provideRouter([])]
+      imports: [KitchenPageHeaderComponent]
     }).compileComponents();
 
     fixture = TestBed.createComponent(KitchenPageHeaderComponent);
@@ -88,5 +86,16 @@ describe('KitchenPageHeaderComponent', () => {
     clearButton.click();
 
     expect(component.clearAll.emit).toHaveBeenCalled();
+  });
+
+  it('emits projects drawer toggle from header button', () => {
+    spyOn(component.toggleProjectsDrawer, 'emit');
+
+    fixture.detectChanges();
+
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('.projects-toggle-btn');
+    button.click();
+
+    expect(component.toggleProjectsDrawer.emit).toHaveBeenCalled();
   });
 });

@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { RouterModule } from '@angular/router';
 import { ProjectStatus } from '../model/kitchen-project.model';
 
 export interface KitchenPageStatusOption {
@@ -13,7 +12,7 @@ export type KitchenPageView = 'config' | 'costs';
 @Component({
   selector: 'app-kitchen-page-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule],
   templateUrl: './kitchen-page-header.component.html',
   styleUrls: ['./kitchen-page-header.component.css']
 })
@@ -35,10 +34,12 @@ export class KitchenPageHeaderComponent {
   @Input() view: KitchenPageView = 'config';
   @Input() hasCalculationResult = false;
   @Input() isEditingCabinet = false;
+  @Input() isProjectsDrawerOpen = false;
 
   @Output() saveProject = new EventEmitter<void>();
   @Output() calculateProject = new EventEmitter<void>();
   @Output() clearAll = new EventEmitter<void>();
+  @Output() toggleProjectsDrawer = new EventEmitter<void>();
   @Output() statusChange = new EventEmitter<ProjectStatus>();
   @Output() undoAction = new EventEmitter<void>();
   @Output() redoAction = new EventEmitter<void>();
