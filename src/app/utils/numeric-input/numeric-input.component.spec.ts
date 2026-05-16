@@ -31,4 +31,13 @@ describe('NumericInputComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('shows fallback chip value when value is null', () => {
+    component.writeValue(null as unknown as number);
+
+    fixture.detectChanges();
+
+    const chip = fixture.nativeElement.querySelector('.numeric-input-value');
+    expect(chip?.textContent?.trim()).toBe('-');
+  });
 });

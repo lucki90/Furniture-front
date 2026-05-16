@@ -1,5 +1,5 @@
-import {Component, EventEmitter, forwardRef, Input, OnInit, Output} from '@angular/core';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'app-numeric-input',
@@ -17,30 +17,31 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 export class NumericInputComponent implements ControlValueAccessor, OnInit {
   @Input() id: string = '';
   @Input() label: string = '';
-  @Input() min: number = 0;
-  @Input() max: number = 100;
-  @Input() step: number = 1;
+  @Input() min = 0;
+  @Input() max = 100;
+  @Input() step = 1;
   @Input() errorMessage: string = '';
+  @Input() externalErrorMessage: string | null = null;
 
   @Output() valueChange = new EventEmitter<number>();
   _isDisabled = false;
   private _value: number = 0;
 
-  onChange: any = () => {
-  };
-  onTouch: any = () => {
-  };
+  onChange: (value: number) => void = () => undefined;
+  onTouch: () => void = () => undefined;
 
-  ngOnInit() {
+  ngOnInit(): void {
     if (!this.id) {
       this.id = `numeric-input-${Math.random().toString(36).slice(2, 11)}`;
     }
   }
 
   @Input()
-  // TODO(CODEX): Komponent miesza kilka kanałów zmiany stanu naraz (`@Input value`, CVA, `valueChange`, input number i range). To zwiększa ryzyko zapętleń i rozjazdów wartości. Jeśli ma być kontrolką formularzową, lepiej oprzeć go wyłącznie o poprawny ControlValueAccessor i jeden spójny przepływ danych.
+  // TODO(CODEX): Komponent miesza kilka kanałów zmiany stanu naraz (`@Input value`, CVA, `valueChange`,
+  // input number i range). To zwiększa ryzyko zapętleń i rozjazdów wartości. Jeśli ma być kontrolką
+  // formularzową, lepiej oprzeć go wyłącznie o poprawny ControlValueAccessor i jeden spójny przepływ danych.
   set value(val: number) {
-    if (!this._isDisabled) { // Sprawdzamy czy kontrolka nie jest wyłączona
+    if (!this._isDisabled) {
       this._value = val;
       this.onChange(val);
       this.valueChange.emit(val);
@@ -63,12 +64,11 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
     this.onTouch = fn;
   }
 
-
   onInputChange(rawEvent: Event): void {
     const inputElement = rawEvent.target as HTMLInputElement;
     const value = inputElement?.valueAsNumber;
 
-    if (!this._isDisabled && !isNaN(value)) {
+    if (!this._isDisabled && !Number.isNaN(value)) {
       this._value = value;
       this.onChange(value);
       this.onTouch();
@@ -79,15 +79,19 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
     if (this._value === null || this._value === undefined) {
       return false;
     }
+
     return this._value >= this.min && this._value <= this.max;
   }
 
   get hasError(): boolean {
-    return !this.isValid() && !this._isDisabled; // Nie pokazujemy błędu dla wyłączonej kontrolki
+    return !!this.externalErrorMessage || (!this.isValid() && !this._isDisabled);
+  }
+
+  get displayedErrorMessage(): string {
+    return this.externalErrorMessage || this.errorMessage;
   }
 
   setDisabledState(isDisabled: boolean): void {
     this._isDisabled = isDisabled;
   }
-
 }

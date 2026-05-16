@@ -1,16 +1,11 @@
 <div class="numeric-input-container" [id]="id">
-  <!-- Etykieta -->
-  <label *ngIf="label" [for]="id + '-input'" class="numeric-input-label">
-    {{ label }}
-  </label>
-
-  <!-- Tooltip z komunikatem błędu -->
-  <div class="error-tooltip" *ngIf="hasError" [id]="id + '-tooltip'">
-    {{ errorMessage }}
-    <div class="tooltip-arrow"></div>
+  <div class="numeric-input-header">
+    <label *ngIf="label" [for]="id + '-input'" class="numeric-input-label">
+      {{ label }}
+    </label>
+    <span class="numeric-input-value">{{ value !== null && value !== undefined ? value : '-' }}</span>
   </div>
 
-  <!-- Pole tekstowe -->
   <input
     type="number"
     [id]="id + '-input'"
@@ -23,9 +18,9 @@
     [step]="step"
     [appMaxLengthForNumber]="10"
     [maxDecimalPlaces]="2"
+    class="numeric-input-field"
   />
 
-  <!-- Suwak -->
   <div class="range-container">
     <span class="range-label">{{ min }}</span>
     <input
@@ -37,7 +32,12 @@
       [max]="max"
       [step]="step"
       [disabled]="_isDisabled"
+      class="numeric-input-range"
     />
     <span class="range-label">{{ max }}</span>
   </div>
+
+  <p class="numeric-input-error" *ngIf="hasError">
+    {{ displayedErrorMessage }}
+  </p>
 </div>

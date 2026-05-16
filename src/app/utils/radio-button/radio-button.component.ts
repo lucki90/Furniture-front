@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, forwardRef, Input, Output } from '@angular/core';
-import {ControlValueAccessor, NG_VALUE_ACCESSOR,} from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'app-radio-button',
@@ -9,8 +9,8 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR,} from '@angular/forms';
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => RadioButtonComponent),
-      multi: true,
-    },
+      multi: true
+    }
   ],
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -21,27 +21,27 @@ export class RadioButtonComponent implements ControlValueAccessor {
   @Input() title: string = '';
   @Input() visible: boolean = true;
   @Input() disabled: boolean = false;
+  @Input() errorMessage: string = 'To pole wymaga poprawnej wartosci.';
+  @Input() externalErrorMessage: string | null = null;
 
   @Output() selectedValueChange = new EventEmitter<any>();
 
   selectedValue: any = null;
 
-  // ControlValueAccessor callbacks
-  onChange: (value: any) => void = () => {
-  };
-  onTouch: () => void = () => {
-  };
+  onChange: (value: any) => void = () => undefined;
+  onTouch: () => void = () => undefined;
 
-  // Zmiana zaznaczenia
   onSelectionChange(value: any): void {
-    if (this.disabled) return;
+    if (this.disabled) {
+      return;
+    }
+
     this.selectedValue = value;
     this.onChange(value);
     this.onTouch();
     this.selectedValueChange.emit(value);
   }
 
-  // ControlValueAccessor methods
   writeValue(value: any): void {
     this.selectedValue = value;
   }
@@ -60,13 +60,15 @@ export class RadioButtonComponent implements ControlValueAccessor {
 
   isValid(): boolean {
     return !(this.selectedValue === null || this.selectedValue === undefined);
-
   }
 
   get hasError(): boolean {
-    return !this.isValid() && !this.disabled; // Nie pokazujemy błędu dla wyłączonej kontrolki
+    return !!this.externalErrorMessage || (!this.isValid() && !this.disabled);
+  }
+
+  get displayedErrorMessage(): string {
+    return this.externalErrorMessage || this.errorMessage;
   }
 
   protected trackByValue = (_: number, option: { value: any; label: string }) => option.value;
-
 }

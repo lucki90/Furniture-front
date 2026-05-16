@@ -10,7 +10,7 @@
       [(ngModel)]="value"
       (ngModelChange)="onSelectionChange($event)"
       [class.error]="hasError"
-      class="dropdown-select"
+      class="dropdown-select form-control"
     >
       @for (option of options; track option.value) {
         <option [value]="option.value">
@@ -18,5 +18,9 @@
         </option>
       }
     </select>
+
+    @if (hasError) {
+      <p class="dropdown-error">{{ errorMessage }}</p>
+    }
   </div>
 }

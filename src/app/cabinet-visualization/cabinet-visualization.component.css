@@ -1,0 +1,36 @@
+:host {
+  display: block;
+}
+
+.cabinet-visualization {
+  display: block;
+}
+
+.cabinet-visualization__canvas-shell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 248, 251, 0.98)),
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--accent-color) 3%, transparent) 0,
+      color-mix(in srgb, var(--accent-color) 3%, transparent) 1px,
+      transparent 1px,
+      transparent 36px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent-color) 3%, transparent) 0,
+      color-mix(in srgb, var(--accent-color) 3%, transparent) 1px,
+      transparent 1px,
+      transparent 36px
+    );
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}

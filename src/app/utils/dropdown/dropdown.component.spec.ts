@@ -20,4 +20,14 @@ describe('DropdownComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('renders custom error message when invalid', () => {
+    component.errorMessage = 'Wybierz poprawna opcje.';
+    component.writeValue(null);
+
+    fixture.detectChanges();
+
+    const error = fixture.nativeElement.querySelector('.dropdown-error');
+    expect(error?.textContent).toContain('Wybierz poprawna opcje.');
+  });
 });

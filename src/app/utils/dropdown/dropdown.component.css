@@ -1,41 +1,29 @@
-/* Główna grupa dropdown */
 .dropdown-container {
-  margin: 10px 0;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  margin: 0;
 }
 
-/* Styl etykiety */
 .dropdown-label {
-  font-weight: bold;
-  margin-bottom: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
 }
 
-/* Styl listy rozwijanej */
 .dropdown-select {
-  padding: 8px 12px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-  outline: none;
-  cursor: pointer;
+  width: 100%;
 }
 
-/* Gdy dropdown jest zablokowany */
-.dropdown-select:disabled {
-  background-color: #f5f5f5;
-  border-color: #ddd;
-  cursor: not-allowed;
-}
-
-/* Czerwony obrys, gdy wystąpi błąd */
 .dropdown-select.error {
-  border-color: red;
-  box-shadow: 0 0 4px rgba(255, 0, 0, 0.5);
-  background-color: #ffe6e6;
+  border-color: var(--error-color);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+  background: #fff7f7;
 }
 
-.dropdown-select.error option {
-  background-color: white;
+.dropdown-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--error-color);
 }
