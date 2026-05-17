@@ -1,60 +1,160 @@
-<div class="auth-page-shell">
-  <div class="auth-card">
-    <div class="auth-header">
-      <div class="auth-title-group">
-        <span class="auth-title-icon">
-          <mat-icon aria-hidden="true">lock</mat-icon>
-        </span>
-        <div>
-          <h1 class="auth-title">Logowanie</h1>
-          <p class="auth-subtitle">Wejdz do aplikacji i kontynuuj prace nad projektami.</p>
+<div class="auth-page-shell auth-page-shell--showcase">
+  <div class="auth-showcase">
+    <section class="auth-showcase-panel">
+      <div class="auth-showcase-badge">
+        <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+        Workspace dla wyceny mebli i zabudów
+      </div>
+
+      <div class="auth-showcase-copy">
+        <h2 class="auth-showcase-title">Projektuj, wyceniaj i zapisuj zabudowy w jednym miejscu.</h2>
+        <p class="auth-showcase-lead">
+          FurniturePro łączy konfigurator kuchni, szybką wycenę pojedynczej szafki i centralne
+          cenniki materiałów, żeby od szkicu przejść do kosztów bez przeskakiwania między narzędziami.
+        </p>
+      </div>
+
+      <div class="auth-showcase-metrics">
+        <div class="auth-metric-card">
+          <span class="auth-metric-value">3</span>
+          <span class="auth-metric-label">główne tryby pracy</span>
+        </div>
+        <div class="auth-metric-card">
+          <span class="auth-metric-value">1</span>
+          <span class="auth-metric-label">wspólny system cenników</span>
+        </div>
+        <div class="auth-metric-card">
+          <span class="auth-metric-value">0</span>
+          <span class="auth-metric-label">zbędnych przejść między ekranami</span>
         </div>
       </div>
-    </div>
 
-    <form (ngSubmit)="onSubmit()" class="auth-form">
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          [(ngModel)]="email"
-          name="email"
-          class="form-control"
-          placeholder="twoj@email.com"
-          autocomplete="email"
-          [disabled]="isLoading" />
+      <div class="auth-showcase-grid">
+        <div class="auth-feature-card">
+          <span class="auth-feature-icon">
+            <mat-icon aria-hidden="true">kitchen</mat-icon>
+          </span>
+          <div>
+            <h2 class="auth-feature-title">Nowy projekt kuchni</h2>
+            <p class="auth-feature-text">
+              Buduj ściany, rozmieszczaj szafki, licz koszty i zapisuj cały projekt w jednym workflow.
+            </p>
+          </div>
+        </div>
+
+        <div class="auth-feature-card">
+          <span class="auth-feature-icon">
+            <mat-icon aria-hidden="true">inventory_2</mat-icon>
+          </span>
+          <div>
+            <h2 class="auth-feature-title">Pojedyncza szafka</h2>
+            <p class="auth-feature-text">
+              Szybko przelicz wariant indywidualny, prototyp nowego modułu albo pojedynczą realizację.
+            </p>
+          </div>
+        </div>
+
+        <div class="auth-feature-card">
+          <span class="auth-feature-icon">
+            <mat-icon aria-hidden="true">price_change</mat-icon>
+          </span>
+          <div>
+            <h2 class="auth-feature-title">Cenniki i materiały</h2>
+            <p class="auth-feature-text">
+              Trzymaj pod ręką warianty płyt, komponenty i prace, żeby każda wycena była oparta o ten sam zestaw danych.
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label for="password">Haslo</label>
-        <input
-          id="password"
-          type="password"
-          [(ngModel)]="password"
-          name="password"
-          class="form-control"
-          placeholder="Wprowadz haslo"
-          autocomplete="current-password"
-          [disabled]="isLoading" />
+      <div class="auth-showcase-flow">
+        <div class="auth-flow-step">
+          <span class="auth-flow-index">1</span>
+          <div>
+            <strong>Skonfiguruj</strong>
+            <p>Wprowadź wymiary, typy szafek i opcje materiałowe.</p>
+          </div>
+        </div>
+        <div class="auth-flow-step">
+          <span class="auth-flow-index">2</span>
+          <div>
+            <strong>Wylicz</strong>
+            <p>Sprawdź kosztorys, warningi i gotowość projektu.</p>
+          </div>
+        </div>
+        <div class="auth-flow-step">
+          <span class="auth-flow-index">3</span>
+          <div>
+            <strong>Zapisz i wracaj</strong>
+            <p>Kontynuuj pracę nad projektami bez utraty kontekstu.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-card auth-card--login">
+      <div class="auth-header">
+        <div class="auth-title-group">
+          <span class="auth-title-icon">
+            <mat-icon aria-hidden="true">lock</mat-icon>
+          </span>
+          <div>
+            <p class="auth-kicker">Witaj z powrotem</p>
+            <h1 class="auth-title">Logowanie</h1>
+            <p class="auth-subtitle">Wejdź do aplikacji i kontynuuj pracę nad projektami.</p>
+          </div>
+        </div>
       </div>
 
-      <div *ngIf="errorMessage" class="auth-error">
-        <mat-icon aria-hidden="true">warning_amber</mat-icon>
-        <span>{{ errorMessage }}</span>
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            class="form-control"
+            placeholder="twoj@email.com"
+            autocomplete="email"
+            [disabled]="isLoading" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Haslo</label>
+          <input
+            id="password"
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            class="form-control"
+            placeholder="Wprowadz haslo"
+            autocomplete="current-password"
+            [disabled]="isLoading" />
+        </div>
+
+        <div *ngIf="errorMessage" class="auth-error" role="alert">
+          <mat-icon aria-hidden="true">warning_amber</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit" [disabled]="isLoading">
+          <span *ngIf="isLoading" class="spinner-btn"></span>
+          <ng-container *ngIf="!isLoading">
+            <mat-icon class="workflow-action-icon" aria-hidden="true">login</mat-icon>
+          </ng-container>
+          {{ isLoading ? 'Logowanie...' : 'Zaloguj sie' }}
+        </button>
+      </form>
+
+      <div class="auth-side-note">
+        <mat-icon aria-hidden="true">shield_lock</mat-icon>
+        <span>Po zalogowaniu odzyskasz zapisane projekty, ustawienia i ostatni kontekst pracy.</span>
       </div>
 
-      <button type="submit" class="btn btn-primary auth-submit" [disabled]="isLoading">
-        <span *ngIf="isLoading" class="spinner spinner-sm"></span>
-        <ng-container *ngIf="!isLoading">
-          <mat-icon class="workflow-action-icon" aria-hidden="true">login</mat-icon>
-        </ng-container>
-        {{ isLoading ? 'Logowanie...' : 'Zaloguj sie' }}
-      </button>
-    </form>
-
-    <div class="auth-footer">
-      <p>Nie masz konta? <a routerLink="/register">Zarejestruj sie</a></p>
-    </div>
+      <div class="auth-footer">
+        <p>Nie masz konta? <a routerLink="/register">Zarejestruj sie</a></p>
+      </div>
+    </section>
   </div>
 </div>
