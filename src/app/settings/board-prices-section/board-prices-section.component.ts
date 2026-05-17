@@ -2,6 +2,7 @@ import { Component, Input, OnInit, Output, EventEmitter, inject } from '@angular
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
 import { BoardPriceService, BoardPrice, CreateBoardPrice } from '../board-price.service';
 import { MaterialOption } from '../../admin/material/model/material-variant.model';
@@ -25,7 +26,7 @@ import { MaterialOption } from '../../admin/material/model/material-variant.mode
   templateUrl: './board-prices-section.component.html',
   styleUrls: ['./board-prices-section.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, FormFieldComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, FormFieldComponent],
 })
 export class BoardPricesSectionComponent implements OnInit {
 

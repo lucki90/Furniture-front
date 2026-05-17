@@ -13,7 +13,8 @@
     placeholder="0.00" />
   <span class="pte-action-unit">{{ priceUnit }}</span>
   <button class="btn btn-sm btn-primary pte-btn" (click)="submitBulkForSelected()" [disabled]="bulkSaving || bulkPrice <= 0">
-    {{ bulkSaving ? '⟳ Zapisuję...' : 'Ustal cenę zaznaczonym' }}
+    <mat-icon class="pte-inline-icon" [class.pte-inline-icon--spin]="bulkSaving" aria-hidden="true">{{ bulkSaving ? 'autorenew' : 'save' }}</mat-icon>
+    {{ bulkSaving ? 'Zapisuje...' : 'Ustal cene zaznaczonym' }}
   </button>
   <button class="btn btn-sm btn-outline pte-btn pte-btn-cancel" (click)="clearSelection()" [disabled]="bulkSaving">
     Odznacz wszystkie
@@ -21,7 +22,8 @@
 </div>
 
 <div *ngIf="loading" class="settings-inline-status settings-inline-status--loading pte-loading">
-  ⟳ Ładowanie...
+  <mat-icon class="pte-inline-icon pte-inline-icon--spin" aria-hidden="true">autorenew</mat-icon>
+  Ladowanie...
 </div>
 
 <div *ngIf="error && !loading" class="settings-inline-status settings-inline-status--error pte-error">
@@ -89,7 +91,7 @@
 
   <div *ngIf="rows.length > internalPageSize || rows.length > pageSizeOptions[0]" class="pte-pagination settings-pagination">
     <button class="pte-page-btn settings-page-btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
-      ‹
+      <mat-icon class="pte-inline-icon pte-inline-icon--sm" aria-hidden="true">chevron_left</mat-icon>
     </button>
     <button
       *ngFor="let p of pageNumbers"
@@ -99,7 +101,7 @@
       {{ p }}
     </button>
     <button class="pte-page-btn settings-page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
-      ›
+      <mat-icon class="pte-inline-icon pte-inline-icon--sm" aria-hidden="true">chevron_right</mat-icon>
     </button>
     <span *ngIf="rows.length > internalPageSize" class="pte-page-info settings-page-info">
       {{ (currentPage - 1) * internalPageSize + 1 }}–{{ currentPageEnd }} z {{ rows.length }}

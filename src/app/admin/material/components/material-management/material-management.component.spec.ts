@@ -69,11 +69,11 @@ describe('MaterialManagementComponent', () => {
   });
 
   it('renders the page hero with summary chips', () => {
-    const title = fixture.nativeElement.querySelector('.admin-page-title') as HTMLElement;
-    const chips = fixture.nativeElement.querySelectorAll('.admin-page-summary-chip');
+    const title = fixture.nativeElement.querySelector('.app-page-title') as HTMLElement;
+    const chips = fixture.nativeElement.querySelectorAll('.app-page-summary-chip');
 
     expect(title.textContent).toContain('Zarzadzanie materialami');
-    expect(chips.length).toBe(4);
+    expect(chips.length).toBe(5);
   });
 
   it('renders all tab labels', () => {

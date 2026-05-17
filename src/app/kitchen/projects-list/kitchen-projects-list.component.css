@@ -1,17 +1,33 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--topnav-height, 46px));
   min-height: calc(100vh - var(--topnav-height, 46px));
+  overflow: hidden;
   background: var(--bg-main);
 }
 
 .projects-page {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  flex: 1;
+  gap: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
-.projects-hero,
+.projects-page-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  max-width: 1480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 14px;
+}
+
 .projects-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -19,15 +35,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-.projects-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) auto auto;
-  gap: 16px;
-  align-items: center;
-  padding: 18px 20px;
-}
-
-.projects-hero__eyebrow,
 .projects-panel__eyebrow {
   margin: 0 0 4px;
   font-size: 10px;
@@ -37,71 +44,24 @@
   color: var(--text-muted);
 }
 
-.projects-hero h1,
 .projects-panel__header h2 {
   margin: 0;
   color: var(--text-primary);
   letter-spacing: -0.25px;
 }
 
-.projects-hero h1 {
-  font-size: 26px;
-  font-weight: 700;
-}
-
-.projects-hero__subtitle {
-  margin: 8px 0 0;
-  max-width: 720px;
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: var(--text-secondary);
-}
-
-.projects-hero__stats {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.projects-hero__stat {
-  min-width: 124px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--bg-main) 72%, white);
-  border: 1px solid color-mix(in srgb, var(--border-color) 84%, white);
-}
-
-.projects-hero__stat-label {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.projects-hero__stat-value {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.projects-hero__actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  flex-wrap: wrap;
+.projects-header {
+  position: relative;
 }
 
 .projects-layout {
   display: grid;
   grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
-  gap: 16px;
+  gap: 14px;
   align-items: start;
+  min-height: 0;
+  flex: 1;
+  height: 100%;
 }
 
 .projects-panel {
@@ -115,7 +75,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 9px 12px;
   background: var(--primary-color);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -146,8 +106,22 @@
 .projects-panel__body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px;
+  gap: 12px;
+  padding: 14px 14px 12px;
+}
+
+.projects-panel--list {
+  align-self: stretch;
+  min-height: 0;
+}
+
+.projects-panel--list .projects-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 10px;
 }
 
 .projects-panel__hint {
@@ -169,7 +143,7 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 9px 11px;
   border-radius: 12px;
   border: 1px solid transparent;
   background: var(--bg-card);
@@ -238,8 +212,8 @@
 
 .flow-step__connector {
   width: 2px;
-  height: 16px;
-  margin: 2px 0 2px 16px;
+  height: 14px;
+  margin: 1px 0 1px 16px;
   background: color-mix(in srgb, var(--border-color) 84%, white);
   border-radius: 999px;
 }
@@ -379,7 +353,7 @@
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 14px;
+  gap: 12px;
 }
 
 .project-card {
@@ -575,12 +549,18 @@
 }
 
 @media (max-width: 1180px) {
-  .projects-hero {
-    grid-template-columns: 1fr;
+  :host {
+    height: auto;
+    overflow: visible;
   }
 
-  .projects-hero__actions {
-    justify-content: flex-start;
+  .projects-page {
+    overflow: visible;
+  }
+
+  .projects-page-body {
+    overflow: visible;
+    padding: 14px;
   }
 
   .projects-layout {
@@ -590,11 +570,16 @@
 
 @media (max-width: 720px) {
   .projects-page {
+    gap: 0;
+  }
+
+  .projects-page-body {
+    overflow: visible;
     padding: 12px;
   }
 
   .projects-panel__body,
-  .projects-hero {
+  .projects-header {
     padding: 14px;
   }
 

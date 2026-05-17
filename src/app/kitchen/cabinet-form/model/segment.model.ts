@@ -58,11 +58,11 @@ export interface SegmentRequest {
  * Opcje typu segmentu do wyświetlenia w formularzu.
  */
 export const SEGMENT_TYPE_OPTIONS: { value: SegmentType; label: string; icon: string }[] = [
-  { value: SegmentType.DRAWER, label: 'Szuflady', icon: '🗄️' },
-  { value: SegmentType.DOOR, label: 'Drzwi', icon: '🚪' },
-  { value: SegmentType.OPEN_SHELF, label: 'Otwarte półki', icon: '📚' },
-  { value: SegmentType.OVEN, label: 'Piekarnik (wnęka)', icon: '🔥' },
-  { value: SegmentType.MICROWAVE, label: 'Mikrofalówka (wnęka)', icon: '📡' }
+  { value: SegmentType.DRAWER, label: 'Szuflady', icon: 'SZ' },
+  { value: SegmentType.DOOR, label: 'Drzwi', icon: 'DR' },
+  { value: SegmentType.OPEN_SHELF, label: 'Otwarte polki', icon: 'OP' },
+  { value: SegmentType.OVEN, label: 'Piekarnik (wneka)', icon: 'PI' },
+  { value: SegmentType.MICROWAVE, label: 'Mikrofalowka (wneka)', icon: 'MI' }
 ];
 
 /**

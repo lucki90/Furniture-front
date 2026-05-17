@@ -1,47 +1,28 @@
-.price-list-container {
-  padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.filters {
-  display: flex;
-  align-items: center;
+.price-page {
   gap: 16px;
-  margin-bottom: 16px;
-  padding: 14px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-sm);
+}
+
+.price-shell {
+  padding: 18px 20px 20px;
+}
+
+.price-toolbar {
+  align-items: center;
 }
 
 .search-field {
-  width: 300px;
+  width: min(320px, 100%);
+}
+
+.price-active-filter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
 }
 
 .table-container {
   position: relative;
-  min-height: 200px;
+  min-height: 220px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
@@ -50,11 +31,10 @@
 }
 
 .table-container.loading {
-  opacity: 0.6;
+  opacity: 0.65;
   pointer-events: none;
 }
 
-/* Spinner centered over table (overrides global .spinner position) */
 .table-container .spinner {
   position: absolute;
   top: 50%;
@@ -77,7 +57,7 @@
 }
 
 .price-cell {
-  font-weight: 600;
+  font-weight: 700;
   font-family: var(--font-mono, var(--font-sans));
   color: var(--success-color);
 }
@@ -86,6 +66,44 @@
   white-space: nowrap;
 }
 
+.actions-cell button[mat-icon-button] {
+  color: var(--text-secondary);
+}
+
+.actions-cell button[mat-icon-button]:hover:not(:disabled) {
+  color: var(--accent-color);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state mat-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+}
+
 mat-paginator {
   background: transparent;
+}
+
+@media (max-width: 900px) {
+  .price-shell {
+    padding: 16px;
+  }
+
+  .price-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .search-field {
+    width: 100%;
+  }
 }

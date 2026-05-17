@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { KitchenCabinetType } from '../model/kitchen-cabinet-type';
 import { isUpperCabinetType } from '../../model/kitchen-state.model';
 
@@ -21,7 +22,7 @@ interface TypeGroup {
   styleUrls: ['./cabinet-type-picker.component.css'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MatDialogModule]
+  imports: [CommonModule, MatDialogModule, MatIconModule]
 })
 export class CabinetTypePickerComponent {
 

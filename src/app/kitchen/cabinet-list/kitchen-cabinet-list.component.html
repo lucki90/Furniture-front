@@ -1,6 +1,6 @@
 <div class="cabinet-list">
   <div *ngIf="cabinets.length === 0" class="empty-state">
-    Brak dodanych szafek. Użyj formularza po prawej, aby dodać szafkę.
+    Brak dodanych szafek. Uzyj formularza po prawej, aby dodac szafke.
   </div>
 
   <ng-container *ngIf="cabinets.length > 0">
@@ -11,13 +11,14 @@
       </div>
 
       <div class="cabinet-strip" role="list">
-        <div *ngFor="let cabinet of group.cabinets; let i = index; trackBy: trackByCabinetId"
-             class="cabinet-card"
-             role="listitem"
-             [class.editing]="isEditing(cabinet.id)"
-             [style.--card-accent]="cabinetVisualMeta(cabinet).color"
-             [style.--card-accent-bg]="cabinetVisualMeta(cabinet).bg"
-             [title]="(cabinet.type | cabinetTypeName) + ' • ' + cabinet.width + '×' + cabinet.height + '×' + cabinet.depth + ' mm'">
+        <div
+          *ngFor="let cabinet of group.cabinets; let i = index; trackBy: trackByCabinetId"
+          class="cabinet-card"
+          role="listitem"
+          [class.editing]="isEditing(cabinet.id)"
+          [style.--card-accent]="cabinetMetaById[cabinet.id].color"
+          [style.--card-accent-bg]="cabinetMetaById[cabinet.id].bg"
+          [title]="(cabinet.type | cabinetTypeName) + ' | ' + cabinet.width + 'x' + cabinet.height + 'x' + cabinet.depth + ' mm'">
 
           <div class="cabinet-card-header">
             <span class="cabinet-card-num">{{ i + 1 }}</span>
@@ -26,9 +27,9 @@
           </div>
 
           <div class="cabinet-card-meta">
-            <span class="cabinet-card-abbr">{{ cabinetVisualMeta(cabinet).abbr }}</span>
-            <span class="cabinet-card-meta-sep">·</span>
-            <span class="cabinet-card-dims">{{ cabinet.width }}×{{ cabinet.height }}</span>
+            <span class="cabinet-card-abbr">{{ cabinetMetaById[cabinet.id].abbr }}</span>
+            <span class="cabinet-card-meta-sep">|</span>
+            <span class="cabinet-card-dims">{{ cabinet.width }}x{{ cabinet.height }}</span>
           </div>
 
           <div class="cabinet-card-footer">
@@ -36,28 +37,37 @@
               {{ cabinetTotalCost(cabinet) | number:'1.0-0' }} zł
             </span>
             <span class="cabinet-card-price cabinet-card-price--empty" *ngIf="cabinetTotalCost(cabinet) === null">
-              —
+              -
             </span>
 
             <div class="cabinet-card-actions">
-              <button type="button"
-                      class="cabinet-card-btn cabinet-card-btn--edit"
-                      (click)="onEdit(cabinet.id)"
-                      [disabled]="editingCabinetId !== null"
-                      title="Edytuj szafkę"
-                      aria-label="Edytuj szafkę">✏️</button>
-              <button type="button"
-                      class="cabinet-card-btn cabinet-card-btn--clone"
-                      (click)="onClone(cabinet.id)"
-                      [disabled]="editingCabinetId !== null"
-                      title="Kopiuj szafkę"
-                      aria-label="Kopiuj szafkę">⎘</button>
-              <button type="button"
-                      class="cabinet-card-btn cabinet-card-btn--remove"
-                      (click)="onRemove(cabinet.id)"
-                      [disabled]="editingCabinetId !== null"
-                      title="Usuń szafkę"
-                      aria-label="Usuń szafkę">✕</button>
+              <button
+                type="button"
+                class="cabinet-card-btn cabinet-card-btn--edit"
+                (click)="onEdit(cabinet.id)"
+                [disabled]="editingCabinetId !== null"
+                title="Edytuj szafke"
+                aria-label="Edytuj szafke">
+                <mat-icon aria-hidden="true">edit</mat-icon>
+              </button>
+              <button
+                type="button"
+                class="cabinet-card-btn cabinet-card-btn--clone"
+                (click)="onClone(cabinet.id)"
+                [disabled]="editingCabinetId !== null"
+                title="Kopiuj szafke"
+                aria-label="Kopiuj szafke">
+                <mat-icon aria-hidden="true">content_copy</mat-icon>
+              </button>
+              <button
+                type="button"
+                class="cabinet-card-btn cabinet-card-btn--remove"
+                (click)="onRemove(cabinet.id)"
+                [disabled]="editingCabinetId !== null"
+                title="Usun szafke"
+                aria-label="Usun szafke">
+                <mat-icon aria-hidden="true">close</mat-icon>
+              </button>
             </div>
           </div>
         </div>

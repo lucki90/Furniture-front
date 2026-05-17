@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject }
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatIconModule } from '@angular/material/icon';
 import { DictionaryService } from '../../../service/dictionary.service';
 import { SectionHeaderComponent } from '../../shared/section-header.component';
 
@@ -14,7 +15,7 @@ import { SectionHeaderComponent } from '../../shared/section-header.component';
   selector: 'app-cooktop-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, SectionHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, SectionHeaderComponent],
   templateUrl: './cooktop-form.component.html',
   styleUrls: ['./cooktop-form.component.css']
 })

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject }
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatIconModule } from '@angular/material/icon';
 import { merge } from 'rxjs';
 import { UpperCascadeCabinetPreparer } from '../../types/upper-cascade/upper-cascade-cabinet-preparer';
 import { UpperCascadeCabinetValidator } from '../../types/upper-cascade/upper-cascade-cabinet-validator';
@@ -18,7 +19,7 @@ import { SectionHeaderComponent } from '../../shared/section-header.component';
   selector: 'app-cascade-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent, SectionHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, MatIconModule, FormFieldComponent, SectionHeaderComponent],
   templateUrl: './cascade-form.component.html',
   styleUrls: ['./cascade-form.component.css']
 })

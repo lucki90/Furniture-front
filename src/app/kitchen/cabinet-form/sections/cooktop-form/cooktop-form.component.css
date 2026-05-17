@@ -1,1 +1,15 @@
 @import '../../shared/section-base.css';
+
+.form-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.form-hint-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}

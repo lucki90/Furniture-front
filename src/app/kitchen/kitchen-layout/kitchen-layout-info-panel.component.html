@@ -1,18 +1,18 @@
 <div class="warnings-panel" *ngIf="isWorkspaceGapViolation || !fitsOnWall || cooktopGapWarning">
   <div class="warning-item" *ngIf="isWorkspaceGapViolation">
-    <span class="warning-icon">⚠</span>
-    Przestrzeń robocza zbyt mała: <strong>{{ gapMm }} mm</strong>
-    (wymagane min. 450 mm). Zmniejsz wysokość szafek wiszących lub podnieś ich pozycję.
+    <mat-icon class="warning-icon" aria-hidden="true">warning_amber</mat-icon>
+    Przestrzen robocza zbyt mala: <strong>{{ gapMm }} mm</strong>
+    (wymagane min. 450 mm). Zmniejsz wysokosc szafek wiszacych lub podnies ich pozycje.
   </div>
   <div class="warning-item warning-item--danger" *ngIf="cooktopGapWarning as warning">
-    <span class="warning-icon">🔥</span>
-    <strong>Norma bezpieczeństwa:</strong> {{ warning.message }}.
-    Podnieś szafki wiszące lub zmniejsz ich wysokość.
+    <mat-icon class="warning-icon" aria-hidden="true">local_fire_department</mat-icon>
+    <strong>Norma bezpieczenstwa:</strong> {{ warning.message }}.
+    Podnies szafki wiszace lub zmniejsz ich wysokosc.
   </div>
   <div class="warning-item" *ngIf="!fitsOnWall">
-    <span class="warning-icon">⚠</span>
-    Szafki nie mieszczą się na ścianie ({{ wallLength }} mm).
-    Sprawdź szerokości w strefie dolnej i górnej.
+    <mat-icon class="warning-icon" aria-hidden="true">warning_amber</mat-icon>
+    Szafki nie mieszcza sie na scianie ({{ wallLength }} mm).
+    Sprawdz szerokosci w strefie dolnej i gornej.
   </div>
 </div>
 
@@ -21,24 +21,24 @@
     <span class="legend-box cabinet-bottom-legend"></span> Dolna
   </span>
   <span class="legend-item">
-    <span class="legend-box cabinet-hanging-legend"></span> Górna
+    <span class="legend-box cabinet-hanging-legend"></span> Gorna
   </span>
   <span class="legend-item">
-    <span class="legend-box cabinet-full-legend"></span> Słupek
+    <span class="legend-box cabinet-full-legend"></span> Slupek
   </span>
   <span class="legend-item">
-    <span class="legend-box cabinet-corner-legend"></span> Narożna
+    <span class="legend-box cabinet-corner-legend"></span> Narozna
   </span>
   <span class="legend-item">
     <span class="legend-box counter-legend"></span> Blat
   </span>
   <span class="legend-item">
-    <span class="legend-box plinth-legend"></span> Cokół
+    <span class="legend-box plinth-legend"></span> Cokol
   </span>
   <span class="legend-item">
     <span class="legend-box filler-legend"></span> Blenda
   </span>
   <span class="legend-item legend-indicator">
-    <span class="legend-box indicator-legend"></span> h/d = różnica wys./głęb.
+    <span class="legend-box indicator-legend"></span> h/d = roznica wys./gleb.
   </span>
 </div>

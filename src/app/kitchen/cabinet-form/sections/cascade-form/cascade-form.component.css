@@ -46,7 +46,10 @@
 }
 
 .cascade-segment-icon {
+  width: 14px;
+  height: 14px;
   font-size: 14px;
+  line-height: 1;
   flex-shrink: 0;
 }
 
@@ -66,4 +69,18 @@
 .cascade-segment-body {
   padding: 10px 12px;
   background: var(--bg-card);
+}
+
+.segments-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.segments-error-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
 }

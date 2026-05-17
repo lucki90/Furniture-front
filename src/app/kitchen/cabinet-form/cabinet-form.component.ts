@@ -1,6 +1,7 @@
 ﻿import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed, effect, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ApiErrorHandler } from '../../core/error/api-error-handler.service';
 import { DictionaryService } from '../service/dictionary.service';
@@ -45,7 +46,7 @@ import {
   imports: [CommonModule, ReactiveFormsModule,
     CooktopFormComponent, HoodFormComponent, SinkFormComponent, OvenFormComponent,
     FridgeFormComponent, CascadeFormComponent, CornerFormComponent, EnclosureFormComponent,
-    FormFieldComponent, CabinetSegmentsSectionComponent]
+    FormFieldComponent, CabinetSegmentsSectionComponent, MatIconModule]
 })
 export class CabinetFormComponent implements OnChanges {
   protected readonly cargoVariantOptions = CARGO_VARIANT_OPTIONS;

@@ -2,6 +2,34 @@
   justify-content: flex-start;
 }
 
+.settings-inline-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.settings-inline-icon--sm {
+  width: 12px;
+  height: 12px;
+  font-size: 12px;
+}
+
+.settings-inline-icon--spin {
+  animation: settings-inline-spin 0.9s linear infinite;
+}
+
+@keyframes settings-inline-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .board-price-import-label {
   cursor: pointer;
   margin: 0;
@@ -138,9 +166,13 @@
 }
 
 .material-warn-icon {
-  font-size: 12px;
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 1;
   vertical-align: middle;
   margin-right: 2px;
+  color: var(--warning-color);
 }
 
 .btn-set-price {

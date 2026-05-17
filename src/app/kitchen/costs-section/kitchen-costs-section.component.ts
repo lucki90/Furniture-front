@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { AggregatedBoard, AggregatedComponent, AggregatedJob } from '../service/project-details-aggregator.service';
 import { CabinetSummary, MultiWallCalculateResponse, WallCalculationSummary } from '../model/kitchen-project.model';
 import { PricingBreakdown } from '../service/project-pricing.service';
@@ -10,7 +11,7 @@ type DetailsTab = 'walls' | 'boards' | 'components' | 'jobs' | 'pricing';
 @Component({
   selector: 'app-kitchen-costs-section',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule],
   templateUrl: './kitchen-costs-section.component.html',
   styleUrls: ['./kitchen-costs-section.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

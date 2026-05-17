@@ -28,8 +28,8 @@ describe('KitchenPageFooterComponent', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('12345 zł');
     expect(text).toContain('Szafek');
-    expect(text).toContain('Ścian');
-    expect(text).toContain('Łącznie');
+    expect(text).toContain('Scian');
+    expect(text).toContain('Lacznie');
   });
 
   it('emits footer actions in aux + workflow order', () => {
@@ -47,7 +47,7 @@ describe('KitchenPageFooterComponent', () => {
     fixture.detectChanges();
 
     const buttons = fixture.nativeElement.querySelectorAll('.footer-actions button');
-    // Kolejność: Excel (warunkowy po lewej) / Wyczyść / Wylicz / Zapisz
+    // Kolejnosc: Excel (warunkowy po lewej) / Wyczysc / Wylicz / Zapisz
     (buttons[0] as HTMLButtonElement).click();
     (buttons[1] as HTMLButtonElement).click();
     (buttons[2] as HTMLButtonElement).click();

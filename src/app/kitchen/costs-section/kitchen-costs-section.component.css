@@ -72,6 +72,9 @@
 }
 
 .pre-calc-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   font-weight: 600;
 }
@@ -115,6 +118,23 @@
   flex-wrap: wrap;
 }
 
+.pre-calc-status-icon,
+.pre-calc-action-icon,
+.warn-banner-icon,
+.summary-strip-status-icon,
+.pricing-action-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.pre-calc-action-icon,
+.pricing-action-icon {
+  margin-right: 2px;
+}
+
 /* ===== Results layout — fills host; banner + strip fixed, grid takes the rest ===== */
 .results-layout {
   display: flex;
@@ -155,6 +175,9 @@
 }
 
 .summary-strip-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 11px;

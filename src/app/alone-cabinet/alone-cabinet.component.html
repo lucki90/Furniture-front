@@ -5,16 +5,16 @@
   </section>
 
   <ng-container *ngIf="!translationLoading">
-    <section class="workspace-surface alone-cabinet-workflow-bar">
-      <div class="alone-cabinet-workflow-bar__title">
-        <mat-icon class="alone-cabinet-workflow-bar__icon" aria-hidden="true">inventory_2</mat-icon>
+    <header class="alone-cabinet-workflow-bar app-page-header">
+      <div class="alone-cabinet-workflow-bar__title app-page-title-group">
+        <mat-icon class="alone-cabinet-workflow-bar__icon app-page-title-icon" aria-hidden="true">inventory_2</mat-icon>
         <div>
-          <h1 class="alone-cabinet-page-title">Pojedyncza szafka</h1>
-          <p>Skonfiguruj pojedyncza szafke do szybkiej wyceny, wariantu indywidualnego albo prototypu nowego modulu.</p>
+          <h1 class="alone-cabinet-page-title app-page-title">Pojedyncza szafka</h1>
+          <p class="app-page-subtitle">Skonfiguruj pojedyncza szafke do szybkiej wyceny, wariantu indywidualnego albo prototypu nowego modulu.</p>
         </div>
       </div>
 
-      <div class="alone-cabinet-workflow-bar__actions">
+      <div class="alone-cabinet-workflow-bar__actions app-page-header-actions">
         <div class="view-toggle" role="tablist" aria-label="Tryb widoku pojedynczej szafki">
           <button
             type="button"
@@ -39,27 +39,30 @@
           </button>
         </div>
 
-        <span class="workspace-meta-chip workspace-meta-chip--accent">{{ currentRequestDimensionsLabel }}</span>
+        <div class="app-page-summary">
+          <span class="workspace-meta-chip workspace-meta-chip--accent">{{ currentRequestDimensionsLabel }}</span>
+        </div>
       </div>
-    </section>
+    </header>
 
-    <div *ngIf="errorMessage" class="settings-inline-status settings-inline-status--error alone-cabinet-error">
-      {{ errorMessage }}
-    </div>
-
-    <div *ngIf="validationSummaryEntries.length > 0" class="validation-summary alone-cabinet-validation-summary">
-      <mat-icon class="validation-summary-icon" aria-hidden="true">warning_amber</mat-icon>
-      <div>
-        <strong>Popraw dane przed przejsciem dalej:</strong>
-        <ul class="validation-error-list">
-          <li *ngFor="let err of validationSummaryEntries; trackBy: trackByIndex">{{ err }}</li>
-        </ul>
-        <small *ngIf="validationErrorId" class="alone-cabinet-validation-summary__id">ID bledu: {{ validationErrorId }}</small>
+    <div class="alone-cabinet-page-body">
+      <div *ngIf="errorMessage" class="settings-inline-status settings-inline-status--error alone-cabinet-error">
+        {{ errorMessage }}
       </div>
-    </div>
 
-    <ng-container *ngIf="view === 'config'">
-    <div class="alone-cabinet-workspace">
+      <div *ngIf="validationSummaryEntries.length > 0" class="validation-summary alone-cabinet-validation-summary">
+        <mat-icon class="validation-summary-icon" aria-hidden="true">warning_amber</mat-icon>
+        <div>
+          <strong>Popraw dane przed przejsciem dalej:</strong>
+          <ul class="validation-error-list">
+            <li *ngFor="let err of validationSummaryEntries; trackBy: trackByIndex">{{ err }}</li>
+          </ul>
+          <small *ngIf="validationErrorId" class="alone-cabinet-validation-summary__id">ID bledu: {{ validationErrorId }}</small>
+        </div>
+      </div>
+
+      <ng-container *ngIf="view === 'config'">
+      <div class="alone-cabinet-workspace">
       <section class="workspace-surface alone-cabinet-form-panel">
         <div class="alone-cabinet-panel-header">
           <div>
@@ -505,7 +508,7 @@
     </div>
     </ng-container>
 
-    <ng-container *ngIf="view === 'costs'">
+      <ng-container *ngIf="view === 'costs'">
     <section *ngIf="response; else emptyCostsView" class="alone-cabinet-results">
       <div class="workspace-section-header">
         <div>
@@ -714,7 +717,8 @@
         </button>
       </section>
     </ng-template>
-    </ng-container>
+      </ng-container>
+    </div>
 
     <footer class="page-footer alone-cabinet-footer">
       <div class="footer-stats">

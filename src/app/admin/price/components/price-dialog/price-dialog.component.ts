@@ -40,6 +40,10 @@ export interface PriceDialogData {
   ]
 })
 export class PriceDialogComponent implements OnInit {
+  // TODO(CODEX): Ten dialog nadal korzysta z legacy Material form stack i lokalnego flow bledow.
+  // Wizualnie jest juz czytelniejszy, ale przy kolejnym passie warto spiac go z nowszym shared
+  // language formularzy/toolbars tak, aby ekran admin price nie odstawal od kitchen/settings
+  // nie tylko shell'em, ale tez detalem samych dialogow.
 
   form!: FormGroup;
   saving = false;
@@ -160,7 +164,7 @@ export class PriceDialogComponent implements OnInit {
   }
 
   get title(): string {
-    return this.isEditMode ? 'Edytuj cenę' : 'Dodaj nową cenę';
+    return this.isEditMode ? 'Edytuj cene' : 'Dodaj nowa cene';
   }
 
   protected trackByIndex = (index: number) => index;

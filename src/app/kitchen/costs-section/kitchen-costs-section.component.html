@@ -7,7 +7,8 @@
         <span class="pre-calc-card-label">{{ selectedWallLabel }}</span>
         <span class="pre-calc-card-stat">{{ selectedWallCabinetCount }} szafek · {{ totalWidth }} mm</span>
         <span class="pre-calc-card-status" [class.ok]="fitsOnWall" [class.err]="!fitsOnWall">
-          {{ fitsOnWall ? '✓ Mieści się' : '✗ Nie mieści się!' }}
+          <mat-icon class="pre-calc-status-icon" aria-hidden="true">{{ fitsOnWall ? 'check_circle' : 'error' }}</mat-icon>
+          {{ fitsOnWall ? 'Miesci sie' : 'Nie miesci sie!' }}
           <small>({{ remainingWidth }} mm wolne)</small>
         </span>
         <span class="pre-calc-card-value">{{ selectedWallTotalCost.toFixed(0) }} zł</span>
@@ -24,11 +25,13 @@
         <button class="btn btn-primary" type="button"
           (click)="calculateProject.emit()"
           [disabled]="editingCabinetId !== null || isCalculatingProject">
-          {{ isCalculatingProject ? '⏳ Obliczam…' : '🧮 Wylicz cały projekt' }}
+          <mat-icon class="pre-calc-action-icon" aria-hidden="true">{{ isCalculatingProject ? 'autorenew' : 'calculate' }}</mat-icon>
+          {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz caly projekt' }}
         </button>
         <button class="btn btn-secondary" type="button"
           (click)="clearAll.emit()" [disabled]="editingCabinetId !== null">
-          🗑️ Wyczyść wszystko
+          <mat-icon class="pre-calc-action-icon" aria-hidden="true">delete</mat-icon>
+          Wyczysc wszystko
         </button>
       </div>
     </div>
@@ -39,7 +42,7 @@
 
     <!-- Warning banner -->
     <div class="warn-banner" *ngIf="pricingWarnings.length > 0">
-      <span>⚠️</span>
+      <mat-icon class="warn-banner-icon" aria-hidden="true">warning_amber</mat-icon>
       <div>
         <strong>Uwagi i ostrzeżenia</strong>
         <span class="warn-entries"> — {{ pricingWarnings.join(', ') }}</span>
@@ -51,7 +54,8 @@
       <div class="summary-strip-status"
            [class.summary-strip-status--ok]="projectResult.allFit"
            [class.summary-strip-status--warn]="!projectResult.allFit">
-        {{ projectResult.allFit ? '✓ Wszystko mieści się' : '⚠️ Nie mieści się!' }}
+        <mat-icon class="summary-strip-status-icon" aria-hidden="true">{{ projectResult.allFit ? 'check_circle' : 'warning_amber' }}</mat-icon>
+        {{ projectResult.allFit ? 'Wszystko miesci sie' : 'Nie miesci sie!' }}
       </div>
       <div class="summary-strip-meta">
         <span>{{ projectResult.wallCount }} ścian</span>
@@ -238,7 +242,7 @@
                 <span class="wall-name">{{ wall.wallType }}</span>
                 <span class="wall-dims">{{ wall.widthMm }} × {{ wall.heightMm }} mm</span>
                 <span class="wall-status-badge" [class.ok]="wall.fits" [class.err]="!wall.fits">
-                  {{ wall.fits ? '✓' : '✗' }}
+                  <mat-icon class="summary-strip-status-icon" aria-hidden="true">{{ wall.fits ? 'check_circle' : 'cancel' }}</mat-icon>
                 </span>
                 <span class="wall-cost">{{ wall.wallTotalCost.toFixed(0) }} zł</span>
               </div>
@@ -362,10 +366,12 @@
                 </div>
                 <div class="pricing-actions">
                   <button class="btn btn-primary btn-sm" type="button" (click)="savePricing.emit()" [disabled]="isPricingSaving">
-                    {{ isPricingSaving ? 'Zapisuję…' : '💾 Zapisz wycenę' }}
+                    <mat-icon class="pricing-action-icon" aria-hidden="true">{{ isPricingSaving ? 'autorenew' : 'save' }}</mat-icon>
+                    {{ isPricingSaving ? 'Zapisuje...' : 'Zapisz wycene' }}
                   </button>
                   <button class="btn btn-secondary btn-sm" type="button" (click)="downloadOfferPdf.emit()" [disabled]="isPdfDownloading">
-                    {{ isPdfDownloading ? '⏳ Generuję PDF…' : '📄 Pobierz ofertę PDF' }}
+                    <mat-icon class="pricing-action-icon" aria-hidden="true">{{ isPdfDownloading ? 'autorenew' : 'description' }}</mat-icon>
+                    {{ isPdfDownloading ? 'Generuje PDF...' : 'Pobierz oferte PDF' }}
                   </button>
                 </div>
               </div>

@@ -2,6 +2,7 @@ import { Component, AfterViewInit, DestroyRef, OnInit, ViewChild, inject } from 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { MatIconModule } from '@angular/material/icon';
 import { SettingsService } from './settings.service';
 import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
 import { SettingsOptions, UserSettings } from './settings.model';
@@ -23,7 +24,7 @@ import { CompanyInfoSectionComponent } from './company-info-section/company-info
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, FormFieldComponent, PriceEditTableComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, FormFieldComponent, PriceEditTableComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent],
 })
 export class SettingsComponent implements OnInit, AfterViewInit {
 

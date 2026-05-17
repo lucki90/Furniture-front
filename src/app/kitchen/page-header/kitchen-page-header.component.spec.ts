@@ -32,6 +32,7 @@ describe('KitchenPageHeaderComponent', () => {
 
   it('emits status change and resets select value', () => {
     spyOn(component.statusChange, 'emit');
+    component.projectId = 42;
     component.allowedTransitions = [{ value: 'SENT' as any, label: 'Wyslany' }];
     component.hasProjectId = true;
 

@@ -9,7 +9,8 @@
         <option *ngFor="let o of dictionaryService.data().cooktopTypes; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
       </select>
       <span class="form-hint" *ngIf="isGasCooktop">
-        ⚠️ Wymagana wentylacja wg PN-83/B-03430 — brak tylnej ścianki HDF w BOM
+        <mat-icon class="form-hint-icon" aria-hidden="true">warning_amber</mat-icon>
+        Wymagana wentylacja wg PN-83/B-03430 - brak tylnej scianki HDF w BOM
       </span>
     </div>
   </div>

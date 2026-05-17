@@ -1,22 +1,29 @@
-<div class="register-container">
-  <div class="register-card">
-    <div class="register-header">
-      <h1>Furniture App</h1>
-      <p>Utwórz nowe konto</p>
+<div class="auth-page-shell">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-title-group">
+        <span class="auth-title-icon">
+          <mat-icon aria-hidden="true">person_add</mat-icon>
+        </span>
+        <div>
+          <h1 class="auth-title">Rejestracja</h1>
+          <p class="auth-subtitle">Utworz konto, aby zapisywac projekty i korzystac z narzedzi aplikacji.</p>
+        </div>
+      </div>
     </div>
 
-    <form (ngSubmit)="onSubmit()" class="register-form">
+    <form (ngSubmit)="onSubmit()" class="auth-form">
       <div class="form-row">
         <div class="form-group">
-          <label for="firstName">Imię</label>
+          <label for="firstName">Imie</label>
           <input
             id="firstName"
             type="text"
             [(ngModel)]="firstName"
             name="firstName"
+            class="form-control"
             placeholder="Jan"
-            [disabled]="isLoading"
-          />
+            [disabled]="isLoading" />
         </div>
 
         <div class="form-group">
@@ -26,9 +33,9 @@
             type="text"
             [(ngModel)]="lastName"
             name="lastName"
+            class="form-control"
             placeholder="Kowalski"
-            [disabled]="isLoading"
-          />
+            [disabled]="isLoading" />
         </div>
       </div>
 
@@ -39,52 +46,57 @@
           type="email"
           [(ngModel)]="email"
           name="email"
+          class="form-control"
           placeholder="twoj@email.com"
           autocomplete="email"
           required
-          [disabled]="isLoading"
-        />
+          [disabled]="isLoading" />
       </div>
 
       <div class="form-group">
-        <label for="password">Hasło * <span class="hint">(min. 8 znaków)</span></label>
+        <label for="password">Haslo * <span class="hint">(min. 8 znakow)</span></label>
         <input
           id="password"
           type="password"
           [(ngModel)]="password"
           name="password"
-          placeholder="Wprowadź hasło"
+          class="form-control"
+          placeholder="Wprowadz haslo"
           autocomplete="new-password"
           required
-          [disabled]="isLoading"
-        />
+          [disabled]="isLoading" />
       </div>
 
       <div class="form-group">
-        <label for="confirmPassword">Powtórz hasło *</label>
+        <label for="confirmPassword">Powtorz haslo *</label>
         <input
           id="confirmPassword"
           type="password"
           [(ngModel)]="confirmPassword"
           name="confirmPassword"
-          placeholder="Powtórz hasło"
+          class="form-control"
+          placeholder="Powtorz haslo"
           autocomplete="new-password"
           required
-          [disabled]="isLoading"
-        />
+          [disabled]="isLoading" />
       </div>
 
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
+      <div *ngIf="errorMessage" class="auth-error">
+        <mat-icon aria-hidden="true">warning_amber</mat-icon>
+        <span>{{ errorMessage }}</span>
       </div>
 
-      <button type="submit" class="register-btn" [disabled]="isLoading">
-        {{ isLoading ? 'Rejestracja...' : 'Zarejestruj się' }}
+      <button type="submit" class="btn btn-primary auth-submit" [disabled]="isLoading">
+        <span *ngIf="isLoading" class="spinner spinner-sm"></span>
+        <ng-container *ngIf="!isLoading">
+          <mat-icon class="workflow-action-icon" aria-hidden="true">person_add</mat-icon>
+        </ng-container>
+        {{ isLoading ? 'Rejestracja...' : 'Zarejestruj sie' }}
       </button>
     </form>
 
-    <div class="register-footer">
-      <p>Masz już konto? <a routerLink="/login">Zaloguj się</a></p>
+    <div class="auth-footer">
+      <p>Masz juz konto? <a routerLink="/login">Zaloguj sie</a></p>
     </div>
   </div>
 </div>

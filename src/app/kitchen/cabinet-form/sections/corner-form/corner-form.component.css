@@ -23,4 +23,5 @@
   background: var(--bg-hover, #f8fafc);
   border-radius: 8px;
   border: 1px solid var(--border-color, #e2e8f0);
+  color: var(--text-secondary);
 }

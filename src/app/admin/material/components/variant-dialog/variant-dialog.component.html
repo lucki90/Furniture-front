@@ -8,34 +8,33 @@
   } @else {
     <form [formGroup]="form" class="variant-form">
 
-      <!-- Board Variant Fields -->
       @if (data.type === 'board') {
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Materiał</mat-label>
+          <mat-label>Material</mat-label>
           <mat-select formControlName="materialId">
             @for (material of materials(); track material.id) {
               <mat-option [value]="material.id">
-                {{ material.code }} ({{ material.translationKey || 'brak tłumaczenia' }})
+                {{ material.code }} ({{ material.translationKey || 'brak tlumaczenia' }})
               </mat-option>
             }
           </mat-select>
           @if (form.get('materialId')?.hasError('required')) {
-            <mat-error>Materiał jest wymagany</mat-error>
+            <mat-error>Material jest wymagany</mat-error>
           }
         </mat-form-field>
 
         <div class="form-row">
           <mat-form-field appearance="outline">
-            <mat-label>Grubość (mm)</mat-label>
+            <mat-label>Grubosc (mm)</mat-label>
             <input matInput type="number" formControlName="thicknessMm">
             @if (form.get('thicknessMm')?.hasError('required')) {
-              <mat-error>Grubość jest wymagana</mat-error>
+              <mat-error>Grubosc jest wymagana</mat-error>
             }
             @if (form.get('thicknessMm')?.hasError('min')) {
-              <mat-error>Grubość min. 2 mm</mat-error>
+              <mat-error>Grubosc min. 2 mm</mat-error>
             }
             @if (form.get('thicknessMm')?.hasError('max')) {
-              <mat-error>Grubość max. 50 mm</mat-error>
+              <mat-error>Grubosc max. 50 mm</mat-error>
             }
           </mat-form-field>
 
@@ -58,53 +57,64 @@
             <mat-label>Kolor HEX (opcjonalnie)</mat-label>
             <input matInput formControlName="colorHex" maxlength="7" placeholder="#FFFFFF">
           </mat-form-field>
-          <input type="color" class="color-picker-native"
-                 [value]="form.get('colorHex')?.value || '#ffffff'"
-                 (input)="onColorPickerChange($event)"
-                 title="Wybierz kolor z palety">
+          <input
+            type="color"
+            class="color-picker-native"
+            [value]="form.get('colorHex')?.value || '#ffffff'"
+            (input)="onColorPickerChange($event)"
+            title="Wybierz kolor z palety">
         </div>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Cena (PLN/m²)</mat-label>
+          <mat-label>Cena (PLN/m2)</mat-label>
           <input matInput type="number" step="0.01" formControlName="currentPrice">
           @if (form.get('currentPrice')?.hasError('required')) {
             <mat-error>Cena jest wymagana</mat-error>
           }
           @if (form.get('currentPrice')?.hasError('min')) {
-            <mat-error>Cena musi być większa od 0</mat-error>
+            <mat-error>Cena musi byc wieksza od 0</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Klucz tłumaczenia (opcjonalnie)</mat-label>
-          <input matInput formControlName="translationKey" maxlength="255"
-                 placeholder="np. BOARD_VARIANT.BIALY_18">
-          <mat-hint>np. BOARD_VARIANT.BIALY — użyj klucza kategorii + nazwy</mat-hint>
+          <mat-label>Klucz tlumaczenia (opcjonalnie)</mat-label>
+          <input
+            matInput
+            formControlName="translationKey"
+            maxlength="255"
+            placeholder="np. BOARD_VARIANT.BIALY_18">
+          <mat-hint>np. BOARD_VARIANT.BIALY - uzyj klucza kategorii + nazwy</mat-hint>
         </mat-form-field>
 
         @if (form.get('translationKey')?.value?.length >= 3) {
           <div class="translation-edit-section">
             <div class="translation-edit-header">
               @if (translationLoading()) {
-                <span class="translation-status">⏳ Ładowanie...</span>
+                <span class="translation-status">Ladowanie...</span>
               } @else if (translationKeyExists() === true) {
-                <span class="translation-status exists">✏️ Istniejące tłumaczenie — edytujesz</span>
+                <span class="translation-status exists">Istniejace tlumaczenie - edytujesz</span>
               } @else {
-                <span class="translation-status new">🆕 Nowy klucz — zostanie dodany przy zapisie</span>
+                <span class="translation-status new">Nowy klucz - zostanie dodany przy zapisie</span>
               }
             </div>
             <div class="form-row">
               <mat-form-field appearance="outline">
-                <mat-label>🇵🇱 Wartość PL</mat-label>
-                <input matInput [value]="translationPl()"
-                       (input)="translationPl.set($any($event.target).value)"
-                       maxlength="500" placeholder="np. Biały">
+                <mat-label>Wartosc PL</mat-label>
+                <input
+                  matInput
+                  [value]="translationPl()"
+                  (input)="translationPl.set($any($event.target).value)"
+                  maxlength="500"
+                  placeholder="np. Bialy">
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>🇬🇧 Wartość EN</mat-label>
-                <input matInput [value]="translationEn()"
-                       (input)="translationEn.set($any($event.target).value)"
-                       maxlength="500" placeholder="np. White">
+                <mat-label>Wartosc EN</mat-label>
+                <input
+                  matInput
+                  [value]="translationEn()"
+                  (input)="translationEn.set($any($event.target).value)"
+                  maxlength="500"
+                  placeholder="np. White">
               </mat-form-field>
             </div>
           </div>
@@ -118,7 +128,6 @@
         </div>
       }
 
-      <!-- Component Variant Fields -->
       @if (data.type === 'component') {
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Komponent</mat-label>
@@ -150,7 +159,7 @@
             <mat-error>Cena jest wymagana</mat-error>
           }
           @if (form.get('currentPrice')?.hasError('min')) {
-            <mat-error>Cena musi być większa od 0</mat-error>
+            <mat-error>Cena musi byc wieksza od 0</mat-error>
           }
         </mat-form-field>
 
@@ -161,35 +170,42 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Klucz tłumaczenia (opcjonalnie)</mat-label>
-          <input matInput formControlName="translationKey" maxlength="255"
-                 placeholder="np. COMPONENT.BLUM_HINGE_110">
-          <mat-hint>np. COMPONENT.KOD — użyj klucza kategorii + nazwy</mat-hint>
+          <mat-label>Klucz tlumaczenia (opcjonalnie)</mat-label>
+          <input
+            matInput
+            formControlName="translationKey"
+            maxlength="255"
+            placeholder="np. COMPONENT.BLUM_HINGE_110">
+          <mat-hint>np. COMPONENT.KOD - uzyj klucza kategorii + nazwy</mat-hint>
         </mat-form-field>
 
         @if (form.get('translationKey')?.value?.length >= 3) {
           <div class="translation-edit-section">
             <div class="translation-edit-header">
               @if (translationLoading()) {
-                <span class="translation-status">⏳ Ładowanie...</span>
+                <span class="translation-status">Ladowanie...</span>
               } @else if (translationKeyExists() === true) {
-                <span class="translation-status exists">✏️ Istniejące tłumaczenie — edytujesz</span>
+                <span class="translation-status exists">Istniejace tlumaczenie - edytujesz</span>
               } @else {
-                <span class="translation-status new">🆕 Nowy klucz — zostanie dodany przy zapisie</span>
+                <span class="translation-status new">Nowy klucz - zostanie dodany przy zapisie</span>
               }
             </div>
             <div class="form-row">
               <mat-form-field appearance="outline">
-                <mat-label>🇵🇱 Wartość PL</mat-label>
-                <input matInput [value]="translationPl()"
-                       (input)="translationPl.set($any($event.target).value)"
-                       maxlength="500">
+                <mat-label>Wartosc PL</mat-label>
+                <input
+                  matInput
+                  [value]="translationPl()"
+                  (input)="translationPl.set($any($event.target).value)"
+                  maxlength="500">
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>🇬🇧 Wartość EN</mat-label>
-                <input matInput [value]="translationEn()"
-                       (input)="translationEn.set($any($event.target).value)"
-                       maxlength="500">
+                <mat-label>Wartosc EN</mat-label>
+                <input
+                  matInput
+                  [value]="translationEn()"
+                  (input)="translationEn.set($any($event.target).value)"
+                  maxlength="500">
               </mat-form-field>
             </div>
           </div>
@@ -202,7 +218,6 @@
         }
       }
 
-      <!-- Job Variant Fields (only price editable) -->
       @if (data.type === 'job') {
         @if (jobVariant) {
           <div class="job-info">
@@ -219,11 +234,10 @@
             <mat-error>Cena jest wymagana</mat-error>
           }
           @if (form.get('currentPrice')?.hasError('min')) {
-            <mat-error>Cena musi być większa od 0</mat-error>
+            <mat-error>Cena musi byc wieksza od 0</mat-error>
           }
         </mat-form-field>
       }
-
     </form>
 
     @if (errorMessage()) {

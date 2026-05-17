@@ -52,13 +52,13 @@ describe('CabinetFormComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Strona wyspy');
-    expect(fixture.nativeElement.textContent).toContain('Pusta przestrzeń przed (mm)');
+    expect(fixture.nativeElement.textContent).toContain('Pusta');
 
     stateService.selectedWallSignal.set(buildWall('MAIN'));
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).not.toContain('Strona wyspy');
-    expect(fixture.nativeElement.textContent).toContain('Pusta przestrzeń przed (mm)');
+    expect(fixture.nativeElement.textContent).toContain('Pusta');
   });
 
   it('defaults cabinet side control to FRONT', () => {

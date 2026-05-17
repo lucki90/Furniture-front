@@ -1,3 +1,31 @@
+.pte-inline-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.pte-inline-icon--sm {
+  width: 12px;
+  height: 12px;
+  font-size: 12px;
+}
+
+.pte-inline-icon--spin {
+  animation: pte-inline-spin 0.9s linear infinite;
+}
+
+@keyframes pte-inline-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .pte-action-input {
   width: 90px;
 }

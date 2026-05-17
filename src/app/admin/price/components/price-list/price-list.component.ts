@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
@@ -10,12 +10,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { ToastService } from '../../../../core/error/toast.service';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 
+import { ToastService } from '../../../../core/error/toast.service';
 import { PriceAdminService } from '../../service/price-admin.service';
 import { PriceEntryAdminResponse, ScrapingResultResponse } from '../../model/price-entry.model';
 import { PriceDialogComponent } from '../price-dialog/price-dialog.component';
@@ -45,10 +45,8 @@ import { DIALOG_WIDTH } from '../../../../shared/constants/dialog.constants';
   ]
 })
 export class PriceListComponent implements OnInit {
-
   displayedColumns: string[] = ['id', 'name', 'unit', 'currentPrice', 'sourceUrl', 'isActive', 'actions'];
 
-  // Signals dla stanu
   prices = signal<PriceEntryAdminResponse[]>([]);
   totalElements = signal(0);
   pageSize = signal(20);
@@ -56,15 +54,21 @@ export class PriceListComponent implements OnInit {
   loading = signal(false);
   scrapingInProgress = signal(false);
 
-  // Filtry
   searchName = '';
   activeOnly = false;
 
-  private readonly priceService: PriceAdminService = inject(PriceAdminService);
-  private readonly dialog: MatDialog = inject(MatDialog);
-  private readonly toast: ToastService = inject(ToastService);
-  private readonly confirmDialog: ConfirmDialogService = inject(ConfirmDialogService);
-  private readonly destroyRef: DestroyRef = inject(DestroyRef);
+  activeVisibleCount = computed(() => this.prices().filter(price => price.isActive).length);
+  inactiveVisibleCount = computed(() => this.prices().filter(price => !price.isActive).length);
+
+  private readonly priceService = inject(PriceAdminService);
+  private readonly dialog = inject(MatDialog);
+  private readonly toast = inject(ToastService);
+  private readonly confirmDialog = inject(ConfirmDialogService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  // TODO(CODEX): Ekran cennika admina nadal korzysta z legacy mat-table + lokalnego flow filtrow
+  // i paginacji, zamiast ze wspolnych prymitywow tabel/toolbars z materials/settings. Jesli ten
+  // obszar bedzie dalej rozwijany, warto wydzielic wspolny shell CRUD dla ekranow administracyjnych.
 
   ngOnInit(): void {
     this.loadPrices();
@@ -84,7 +88,7 @@ export class PriceListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.toast.error('Błąd podczas ładowania cen');
+        this.toast.error('Blad podczas ladowania cen');
         this.loading.set(false);
         console.error('Error loading prices:', err);
       }
@@ -114,35 +118,31 @@ export class PriceListComponent implements OnInit {
       data: { mode: 'create' }
     });
 
-    dialogRef.afterClosed().pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
       if (result) {
         this.loadPrices();
-        this.toast.success('Cena została dodana');
+        this.toast.success('Cena zostala dodana');
       }
     });
   }
 
   openEditDialog(price: PriceEntryAdminResponse): void {
     const dialogRef = this.dialog.open(PriceDialogComponent, {
-      width: '600px',
+      width: DIALOG_WIDTH.WIDE,
       data: { mode: 'edit', price }
     });
 
-    dialogRef.afterClosed().pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
       if (result) {
         this.loadPrices();
-        this.toast.success('Cena została zaktualizowana');
+        this.toast.success('Cena zostala zaktualizowana');
       }
     });
   }
 
   onDelete(price: PriceEntryAdminResponse): void {
     this.confirmDialog.confirm({
-      message: `Czy na pewno chcesz usunąć cenę "${price.name || price.id}"?`,
+      message: `Czy na pewno chcesz usunac cene "${price.name || price.id}"?`,
       confirmText: 'Tak'
     }).pipe(
       filter(Boolean),
@@ -151,10 +151,10 @@ export class PriceListComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.loadPrices();
-        this.toast.success('Cena została usunięta');
+        this.toast.success('Cena zostala usunieta');
       },
       error: (err) => {
-        this.toast.error('Błąd podczas usuwania ceny');
+        this.toast.error('Blad podczas usuwania ceny');
         console.error('Error deleting price:', err);
       }
     });
@@ -175,7 +175,7 @@ export class PriceListComponent implements OnInit {
       },
       error: (err) => {
         this.scrapingInProgress.set(false);
-        this.toast.error('Błąd podczas scrapowania');
+        this.toast.error('Blad podczas scrapowania');
         console.error('Error scraping price:', err);
       }
     });
@@ -183,7 +183,7 @@ export class PriceListComponent implements OnInit {
 
   onScrapeAll(): void {
     this.confirmDialog.confirm({
-      message: 'Czy na pewno chcesz uruchomić scraping dla wszystkich cen? To może potrwać kilka minut.',
+      message: 'Czy na pewno chcesz uruchomic scraping dla wszystkich cen? To moze potrwac kilka minut.',
       confirmText: 'Tak'
     }).pipe(
       filter(Boolean),
@@ -195,12 +195,12 @@ export class PriceListComponent implements OnInit {
     ).subscribe({
       next: (result) => {
         this.scrapingInProgress.set(false);
-        this.toast.success(`Scraping zakończony: ${result.successfulScrapes}/${result.totalPriceEntries} sukces, ${result.failedScrapes} błędów`);
+        this.toast.success(`Scraping zakonczony: ${result.successfulScrapes}/${result.totalPriceEntries} sukces, ${result.failedScrapes} bledow`);
         this.loadPrices();
       },
       error: (err) => {
         this.scrapingInProgress.set(false);
-        this.toast.error('Błąd podczas scrapowania');
+        this.toast.error('Blad podczas scrapowania');
         console.error('Error scraping all prices:', err);
       }
     });
@@ -211,9 +211,7 @@ export class PriceListComponent implements OnInit {
       width: DIALOG_WIDTH.STANDARD
     });
 
-    dialogRef.afterClosed().pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(result => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
       if (result) {
         this.loadPrices();
       }
@@ -223,10 +221,8 @@ export class PriceListComponent implements OnInit {
   private handleScrapingResult(result: ScrapingResultResponse): void {
     if (result.success) {
       const diff = result.priceDifference;
-      const diffText = diff !== null
-        ? (diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2))
-        : '';
-      this.toast.success(`Scraping udany: ${result.previousPrice?.toFixed(2)} → ${result.newPrice?.toFixed(2)} PLN ${diffText}`);
+      const diffText = diff !== null ? (diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)) : '';
+      this.toast.success(`Scraping udany: ${result.previousPrice?.toFixed(2)} -> ${result.newPrice?.toFixed(2)} PLN ${diffText}`);
     } else {
       this.toast.error(`Scraping nieudany: ${result.errorMessage}`);
     }
@@ -238,7 +234,7 @@ export class PriceListComponent implements OnInit {
       const urlObj = new URL(url);
       return urlObj.hostname;
     } catch {
-      return url.substring(0, 30) + '...';
+      return `${url.substring(0, 30)}...`;
     }
   }
 }

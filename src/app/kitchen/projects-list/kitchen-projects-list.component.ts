@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 import {
   KitchenProjectListResponse,
@@ -35,7 +36,7 @@ const CANCELLED_FLOW_STEP = {
   templateUrl: './kitchen-projects-list.component.html',
   styleUrls: ['./kitchen-projects-list.component.css'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, MatIconModule]
 })
 export class KitchenProjectsListComponent implements OnInit {
   // TODO(CODEX): This list screen still mixes loading data, delete/clone/open actions,

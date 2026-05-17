@@ -1,136 +1,171 @@
-<div class="price-list-container">
-  <header class="header">
-    <h1>Zarządzanie cenami</h1>
-    <div class="header-actions">
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        Dodaj cenę
-      </button>
-      <button mat-raised-button (click)="openImportDialog()">
-        <mat-icon>upload_file</mat-icon>
-        Import CSV/Excel
-      </button>
-      <button mat-raised-button color="accent"
-              (click)="onScrapeAll()"
-              [disabled]="scrapingInProgress()">
-        <mat-icon>sync</mat-icon>
-        Aktualizuj wszystkie ceny
-      </button>
+<div class="admin-page-shell price-page">
+  <div class="admin-page-header">
+    <div class="admin-page-title-group">
+      <span class="admin-page-title-icon">
+        <mat-icon aria-hidden="true">sell</mat-icon>
+      </span>
+      <div>
+        <h1 class="admin-page-title">Zarzadzanie cenami</h1>
+        <p class="admin-page-subtitle">
+          Centralny cennik pozycji specjalnych, importow i automatycznych aktualizacji.
+        </p>
+      </div>
     </div>
-  </header>
 
-  <div class="filters">
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-label>Szukaj po nazwie</mat-label>
-      <input matInput [(ngModel)]="searchName" (keyup.enter)="onSearch()">
-      <button mat-icon-button matSuffix *ngIf="searchName" (click)="onClearSearch()">
-        <mat-icon>clear</mat-icon>
-      </button>
-    </mat-form-field>
-
-    <mat-checkbox [(ngModel)]="activeOnly" (change)="onSearch()">
-      Tylko aktywne
-    </mat-checkbox>
-
-    <button mat-icon-button (click)="onSearch()" matTooltip="Szukaj">
-      <mat-icon>search</mat-icon>
-    </button>
-  </div>
-
-  <div class="table-container" [class.loading]="loading()">
-    <mat-spinner *ngIf="loading()" diameter="50" class="spinner"></mat-spinner>
-
-    <table mat-table [dataSource]="prices()" class="price-table">
-
-      <!-- ID Column -->
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef>ID</th>
-        <td mat-cell *matCellDef="let price">{{ price.id }}</td>
-      </ng-container>
-
-      <!-- Name Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>Nazwa</th>
-        <td mat-cell *matCellDef="let price">
-          <span [matTooltip]="price.description || ''">
-            {{ price.name || '-' }}
-          </span>
-        </td>
-      </ng-container>
-
-      <!-- Unit Column -->
-      <ng-container matColumnDef="unit">
-        <th mat-header-cell *matHeaderCellDef>Jednostka</th>
-        <td mat-cell *matCellDef="let price">{{ price.unit }}</td>
-      </ng-container>
-
-      <!-- Price Column -->
-      <ng-container matColumnDef="currentPrice">
-        <th mat-header-cell *matHeaderCellDef>Cena</th>
-        <td mat-cell *matCellDef="let price" class="price-cell">
-          {{ price.currentPrice | number:'1.2-2' }} {{ price.currency }}
-        </td>
-      </ng-container>
-
-      <!-- Source URL Column -->
-      <ng-container matColumnDef="sourceUrl">
-        <th mat-header-cell *matHeaderCellDef>Źródło</th>
-        <td mat-cell *matCellDef="let price">
-          <a *ngIf="price.sourceUrl" [href]="price.sourceUrl" target="_blank"
-             [matTooltip]="price.sourceUrl">
-            {{ formatUrl(price.sourceUrl) }}
-          </a>
-          <span *ngIf="!price.sourceUrl">-</span>
-        </td>
-      </ng-container>
-
-      <!-- Active Column -->
-      <ng-container matColumnDef="isActive">
-        <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let price">
-          <mat-chip-listbox>
-            <mat-chip [class.active]="price.isActive" [class.inactive]="!price.isActive">
-              {{ price.isActive ? 'Aktywna' : 'Nieaktywna' }}
-            </mat-chip>
-          </mat-chip-listbox>
-        </td>
-      </ng-container>
-
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Akcje</th>
-        <td mat-cell *matCellDef="let price" class="actions-cell">
-          <button mat-icon-button (click)="openEditDialog(price)" matTooltip="Edytuj">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button
-                  (click)="onScrapeSingle(price)"
-                  [disabled]="!price.sourceUrl || scrapingInProgress()"
-                  matTooltip="Pobierz cenę ze strony">
-            <mat-icon>refresh</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" (click)="onDelete(price)" matTooltip="Usuń">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-    </table>
-
-    <div *ngIf="prices().length === 0 && !loading()" class="empty-state">
-      <mat-icon>inbox</mat-icon>
-      <p>Brak cen do wyświetlenia</p>
+    <div class="admin-page-summary">
+      <span class="admin-page-summary-chip">
+        <mat-icon aria-hidden="true">list_alt</mat-icon>
+        {{ totalElements() }} pozycji
+      </span>
+      <span class="admin-page-summary-chip">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        {{ activeVisibleCount() }} aktywnych
+      </span>
+      <span class="admin-page-summary-chip">
+        <mat-icon aria-hidden="true">pause_circle</mat-icon>
+        {{ inactiveVisibleCount() }} nieaktywnych
+      </span>
+      <span class="admin-page-summary-chip">
+        <mat-icon aria-hidden="true">layers</mat-icon>
+        Strona {{ pageIndex() + 1 }}
+      </span>
     </div>
   </div>
 
-  <mat-paginator
-    [length]="totalElements()"
-    [pageSize]="pageSize()"
-    [pageIndex]="pageIndex()"
-    [pageSizeOptions]="[10, 20, 50, 100]"
-    (page)="onPageChange($event)"
-    showFirstLastButtons>
-  </mat-paginator>
+  <section class="admin-surface price-shell">
+    <div class="admin-section">
+      <div class="admin-section-header">
+        <div>
+          <h2 class="admin-section-title">Cennik pozycji</h2>
+          <p class="admin-section-subtitle">
+            Filtruj, importuj i aktualizuj pozycje. Ten ekran zostal wizualnie zblizony do `/kitchen`
+            i `admin/materials`, ale logika tabeli nadal pozostaje legacy.
+          </p>
+        </div>
+        <div class="admin-section-actions">
+          <button class="btn btn-primary" type="button" (click)="openCreateDialog()">
+            <mat-icon class="workflow-action-icon" aria-hidden="true">add</mat-icon>
+            Dodaj cene
+          </button>
+          <button class="btn btn-outline" type="button" (click)="openImportDialog()">
+            <mat-icon class="workflow-action-icon" aria-hidden="true">upload_file</mat-icon>
+            Import CSV/Excel
+          </button>
+          <button class="btn btn-secondary" type="button" (click)="onScrapeAll()" [disabled]="scrapingInProgress()">
+            <mat-icon class="workflow-action-icon" aria-hidden="true">{{ scrapingInProgress() ? 'autorenew' : 'sync' }}</mat-icon>
+            {{ scrapingInProgress() ? 'Aktualizuje...' : 'Aktualizuj wszystkie ceny' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-toolbar settings-toolbar--filters price-toolbar">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Szukaj po nazwie</mat-label>
+          <input matInput [(ngModel)]="searchName" (keyup.enter)="onSearch()">
+          <button mat-icon-button matSuffix *ngIf="searchName" type="button" (click)="onClearSearch()">
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <label class="price-active-filter">
+          <mat-checkbox [(ngModel)]="activeOnly" (change)="onSearch()">Tylko aktywne</mat-checkbox>
+        </label>
+
+        <button class="btn btn-sm btn-outline" type="button" (click)="onSearch()">
+          <mat-icon class="workflow-action-icon" aria-hidden="true">search</mat-icon>
+          Szukaj
+        </button>
+      </div>
+
+      <div class="table-container" [class.loading]="loading()">
+        <mat-spinner *ngIf="loading()" diameter="50" class="spinner"></mat-spinner>
+
+        <table mat-table [dataSource]="prices()" class="price-table">
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let price">{{ price.id }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Nazwa</th>
+            <td mat-cell *matCellDef="let price">
+              <span [matTooltip]="price.description || ''">
+                {{ price.name || '-' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="unit">
+            <th mat-header-cell *matHeaderCellDef>Jednostka</th>
+            <td mat-cell *matCellDef="let price">{{ price.unit }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="currentPrice">
+            <th mat-header-cell *matHeaderCellDef>Cena</th>
+            <td mat-cell *matCellDef="let price" class="price-cell">
+              {{ price.currentPrice | number:'1.2-2' }} {{ price.currency }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="sourceUrl">
+            <th mat-header-cell *matHeaderCellDef>Zrodlo</th>
+            <td mat-cell *matCellDef="let price">
+              <a *ngIf="price.sourceUrl" [href]="price.sourceUrl" target="_blank" [matTooltip]="price.sourceUrl">
+                {{ formatUrl(price.sourceUrl) }}
+              </a>
+              <span *ngIf="!price.sourceUrl">-</span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="isActive">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let price">
+              <mat-chip-listbox>
+                <mat-chip [class.active]="price.isActive" [class.inactive]="!price.isActive">
+                  {{ price.isActive ? 'Aktywna' : 'Nieaktywna' }}
+                </mat-chip>
+              </mat-chip-listbox>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Akcje</th>
+            <td mat-cell *matCellDef="let price" class="actions-cell">
+              <button mat-icon-button type="button" (click)="openEditDialog(price)" matTooltip="Edytuj">
+                <mat-icon aria-hidden="true">edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                (click)="onScrapeSingle(price)"
+                [disabled]="!price.sourceUrl || scrapingInProgress()"
+                matTooltip="Pobierz cene ze strony">
+                <mat-icon aria-hidden="true">refresh</mat-icon>
+              </button>
+              <button mat-icon-button type="button" color="warn" (click)="onDelete(price)" matTooltip="Usun">
+                <mat-icon aria-hidden="true">delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <div *ngIf="prices().length === 0 && !loading()" class="empty-state">
+          <mat-icon aria-hidden="true">inbox</mat-icon>
+          <p>Brak cen do wyswietlenia</p>
+        </div>
+      </div>
+
+      <mat-paginator
+        [length]="totalElements()"
+        [pageSize]="pageSize()"
+        [pageIndex]="pageIndex()"
+        [pageSizeOptions]="[10, 20, 50, 100]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  </section>
 </div>

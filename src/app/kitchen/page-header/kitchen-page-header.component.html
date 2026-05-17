@@ -1,40 +1,46 @@
-<header class="page-header">
-  <div class="page-title">
-    <span class="page-title-icon" aria-hidden="true">🍳</span>
-    <h1 class="project-name">{{ projectDisplayName }}</h1>
+<header class="page-header app-page-header">
+  <div class="page-title app-page-title-group">
+    <mat-icon class="page-title-icon app-page-title-icon" aria-hidden="true">kitchen</mat-icon>
 
-    <span class="page-title-meta" *ngIf="projectId; else newProjectMeta">
-      <span class="meta-item">#{{ projectId }}</span>
-      <span class="meta-sep" aria-hidden="true">·</span>
-      <span class="meta-item">v{{ projectVersion }}</span>
-    </span>
-    <ng-template #newProjectMeta>
-      <span class="page-title-meta page-title-meta--hint">{{ projectSubtitle }}</span>
-    </ng-template>
+    <div class="page-title-copy">
+      <h1 class="project-name app-page-title">{{ projectDisplayName }}</h1>
 
-    <span
-      class="status-badge-inline"
-      *ngIf="hasProjectId"
-      [style.background-color]="projectStatusColor + '18'"
-      [style.color]="projectStatusColor"
-      [style.border-color]="projectStatusColor + '40'">
-      {{ projectStatusLabel }}
-    </span>
+      <div class="page-title-subline" *ngIf="projectId; else newProjectMeta">
+        <span class="page-title-meta">
+          <span class="meta-item">#{{ projectId }}</span>
+          <span class="meta-sep" aria-hidden="true">|</span>
+          <span class="meta-item">v{{ projectVersion }}</span>
+        </span>
 
-    <select
-      *ngIf="hasProjectId && allowedTransitions.length > 0"
-      class="status-select"
-      [disabled]="isChangingStatus"
-      (change)="onStatusSelect($event)"
-      [style.border-color]="projectStatusColor + '60'">
-      <option value="" disabled selected>{{ isChangingStatus ? 'Zmieniam...' : 'Zmien status...' }}</option>
-      <option *ngFor="let status of allowedTransitions" [value]="status.value">
-        {{ status.label }}
-      </option>
-    </select>
+        <span
+          class="status-badge-inline"
+          *ngIf="hasProjectId"
+          [style.background-color]="projectStatusColor + '18'"
+          [style.color]="projectStatusColor"
+          [style.border-color]="projectStatusColor + '40'">
+          {{ projectStatusLabel }}
+        </span>
+
+        <select
+          *ngIf="hasProjectId && allowedTransitions.length > 0"
+          class="status-select"
+          [disabled]="isChangingStatus"
+          (change)="onStatusSelect($event)"
+          [style.border-color]="projectStatusColor + '60'">
+          <option value="" disabled selected>{{ isChangingStatus ? 'Zmieniam...' : 'Zmien status...' }}</option>
+          <option *ngFor="let status of allowedTransitions; trackBy: trackByStatus" [value]="status.value">
+            {{ status.label }}
+          </option>
+        </select>
+      </div>
+
+      <ng-template #newProjectMeta>
+        <p class="page-title-subtitle app-page-subtitle">{{ projectSubtitle }}</p>
+      </ng-template>
+    </div>
   </div>
 
-  <div class="page-actions">
+  <div class="page-actions app-page-header-actions">
     <div class="view-toggle" role="tablist" aria-label="Tryb widoku">
       <button
         type="button"
@@ -45,7 +51,7 @@
         [disabled]="isEditingCabinet"
         [title]="isEditingCabinet ? 'Zakoncz edycje szafki, aby zmienic widok' : ''"
         (click)="setView('config')">
-        <span class="view-toggle-icon">🛠️</span>
+        <mat-icon class="view-toggle-icon" aria-hidden="true">tune</mat-icon>
         Konfigurator
       </button>
       <button
@@ -57,7 +63,7 @@
         [disabled]="totalCabinetCount === 0 || isEditingCabinet"
         [title]="isEditingCabinet ? 'Zakoncz edycje szafki, aby przejsc do kosztow' : (totalCabinetCount === 0 ? 'Dodaj szafki, aby zobaczyc koszty' : '')"
         (click)="setView('costs')">
-        <span class="view-toggle-icon">💰</span>
+        <mat-icon class="view-toggle-icon" aria-hidden="true">receipt_long</mat-icon>
         Koszty
         <span class="view-toggle-dot" *ngIf="hasCalculationResult && view !== 'costs'" aria-label="Wyniki kalkulacji"></span>
       </button>
@@ -73,11 +79,27 @@
         [attr.aria-expanded]="isProjectsDrawerOpen"
         aria-controls="projects-drawer"
         (click)="toggleProjectsDrawer.emit()">
-        <span class="btn-icon-text" aria-hidden="true">&larr;</span>
+        <mat-icon class="btn-icon-text" aria-hidden="true">chevron_left</mat-icon>
         Projekty
       </button>
-      <button class="btn btn-icon-only" title="Cofnij (Ctrl+Z)" [disabled]="!canUndo" (click)="undoAction.emit()">↩</button>
-      <button class="btn btn-icon-only" title="Ponow (Ctrl+Y)" [disabled]="!canRedo" (click)="redoAction.emit()">↪</button>
+      <button
+        class="btn btn-icon-only"
+        type="button"
+        title="Cofnij (Ctrl+Z)"
+        aria-label="Cofnij"
+        [disabled]="!canUndo"
+        (click)="undoAction.emit()">
+        <mat-icon aria-hidden="true">undo</mat-icon>
+      </button>
+      <button
+        class="btn btn-icon-only"
+        type="button"
+        title="Ponow (Ctrl+Y)"
+        aria-label="Ponow"
+        [disabled]="!canRedo"
+        (click)="redoAction.emit()">
+        <mat-icon aria-hidden="true">redo</mat-icon>
+      </button>
     </div>
 
     <div class="page-actions-aux"></div>
@@ -89,15 +111,15 @@
         (click)="clearAll.emit()"
         [disabled]="totalCabinetCount === 0 || isEditingCabinet"
         title="Wyczysc projekt">
-        <span class="workflow-action-icon">🗑️</span>
-        Wyczyść
+        <mat-icon class="workflow-action-icon" aria-hidden="true">delete</mat-icon>
+        Wyczysc
       </button>
       <button
         class="btn workflow-action-btn workflow-action-btn--calculate"
         type="button"
         (click)="calculateProject.emit()"
         [disabled]="totalCabinetCount === 0 || isCalculatingProject || isEditingCabinet">
-        <span class="workflow-action-icon">🧮</span>
+        <mat-icon class="workflow-action-icon" aria-hidden="true">functions</mat-icon>
         {{ isCalculatingProject ? 'Wyliczam...' : 'Wylicz' }}
       </button>
       <button
@@ -105,8 +127,8 @@
         type="button"
         (click)="saveProject.emit()"
         [disabled]="totalCabinetCount === 0 || isSavingProject || isEditingCabinet">
-        <span class="workflow-action-icon">💾</span>
-        {{ isSavingProject ? 'Zapisuję...' : 'Zapisz' }}
+        <mat-icon class="workflow-action-icon" aria-hidden="true">save</mat-icon>
+        {{ isSavingProject ? 'Zapisuje...' : 'Zapisz' }}
       </button>
     </div>
   </div>

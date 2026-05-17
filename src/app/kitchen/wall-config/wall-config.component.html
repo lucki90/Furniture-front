@@ -4,7 +4,10 @@
     <div class="config-header">
       <label class="toggle-label">
         <input type="checkbox" [(ngModel)]="countertopEnabled">
-        <span class="toggle-text">🍳 Blat</span>
+        <span class="toggle-text">
+          <mat-icon class="toggle-text-icon" aria-hidden="true">countertops</mat-icon>
+          Blat
+        </span>
       </label>
     </div>
     <div class="config-fields" *ngIf="countertopEnabled">
@@ -39,7 +42,8 @@
                min="200" max="1200" step="10"
                title="Domyślna głębokość blatu to 600mm. Powinna być ≥ głębokości szafek.">
         <span *ngIf="countertopDepthWarning()" class="warning-hint">
-          ⚠️ Mniej niż głębokość szafek ({{ maxBottomCabinetDepth() }}mm)
+          <mat-icon class="warning-hint-icon" aria-hidden="true">warning_amber</mat-icon>
+          Mniej niz glebokosc szafek ({{ maxBottomCabinetDepth() }}mm)
         </span>
       </div>
       <!-- Naddatek boczny -->
@@ -78,7 +82,10 @@
     <div class="config-header">
       <label class="toggle-label">
         <input type="checkbox" [(ngModel)]="plinthEnabled">
-        <span class="toggle-text">🦶 Cokół</span>
+        <span class="toggle-text">
+          <mat-icon class="toggle-text-icon" aria-hidden="true">view_agenda</mat-icon>
+          Cokol
+        </span>
       </label>
       <span class="config-info" *ngIf="plinthEnabled">({{ plinthHeight() }}mm)</span>
     </div>

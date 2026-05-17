@@ -1,17 +1,17 @@
 <div class="cascade-section" [formGroup]="form">
   <app-cabinet-section-header title="Segmenty kaskadowe"></app-cabinet-section-header>
   <div class="cascade-info">
-    ℹ Szafka kaskadowa składa się z 2 segmentów o różnych głębokościach.
-    Całkowita wysokość: <strong>{{ cascadeTotalHeight }} mm</strong>
-    | Głębokość do kalkulacji: <strong>{{ form.get('cascadeUpperDepth')?.value }} mm</strong>
-    (głębszy górny segment)
+    <strong>Info:</strong> Szafka kaskadowa sklada sie z 2 segmentow o roznych glebokosciach.
+    Calkowita wysokosc: <strong>{{ cascadeTotalHeight }} mm</strong>
+    | Glebokosc do kalkulacji: <strong>{{ form.get('cascadeUpperDepth')?.value }} mm</strong>
+    (glebszy gorny segment)
   </div>
 
   <!-- Segment dolny (płytszy, bliżej blatu) -->
   <div class="cascade-segment-card">
     <div class="cascade-segment-header lower-header">
-      <span class="cascade-segment-icon">⬇</span>
-      <span class="cascade-segment-title">Segment dolny — płytszy</span>
+      <mat-icon class="cascade-segment-icon" aria-hidden="true">south</mat-icon>
+      <span class="cascade-segment-title">Segment dolny - plytszy</span>
       <span class="cascade-segment-badge">bliżej blatu roboczego</span>
     </div>
     <div class="cascade-segment-body">
@@ -50,9 +50,9 @@
   <!-- Segment górny (głębszy, bliżej sufitu) -->
   <div class="cascade-segment-card">
     <div class="cascade-segment-header upper-header">
-      <span class="cascade-segment-icon">⬆</span>
-      <span class="cascade-segment-title">Segment górny — głębszy</span>
-      <span class="cascade-segment-badge">bliżej sufitu · decyduje o głębokości kalkulacji</span>
+      <mat-icon class="cascade-segment-icon" aria-hidden="true">north</mat-icon>
+      <span class="cascade-segment-title">Segment gorny - glebszy</span>
+      <span class="cascade-segment-badge">blizej sufitu | decyduje o glebokosci kalkulacji</span>
     </div>
     <div class="cascade-segment-body">
       <div class="form-row">
@@ -80,6 +80,7 @@
 
   <!-- Błąd głębokości -->
   <div *ngIf="cascadeDepthError" class="segments-error">
-    ⚠ {{ cascadeDepthError }}
+    <mat-icon class="segments-error-icon" aria-hidden="true">warning_amber</mat-icon>
+    {{ cascadeDepthError }}
   </div>
 </div>

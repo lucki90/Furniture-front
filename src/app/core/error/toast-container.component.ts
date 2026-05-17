@@ -1,43 +1,26 @@
-import { Component, computed } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { ToastService } from './toast.service';
-import { ToastData, ToastType } from './api-error.model';
 
-/**
- * Komponent kontenera toastów.
- *
- * Wyświetla powiadomienia toast w prawym górnym rogu ekranu.
- * Wspiera różne typy: error, warning, success, info.
- */
 @Component({
   selector: 'app-toast-container',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   template: `
     <div class="toast-container">
       @for (toast of toasts(); track toast.id) {
-        <div
-          class="toast"
-          [class]="'toast--' + toast.type"
-        >
-          <!-- Ikona -->
-          <div class="toast__icon">
-            @switch (toast.type) {
-              @case ('error') { <span>❌</span> }
-              @case ('warning') { <span>⚠️</span> }
-              @case ('success') { <span>✅</span> }
-              @case ('info') { <span>ℹ️</span> }
-            }
+        <div class="toast" [class]="'toast toast--' + toast.type">
+          <div class="toast__icon" [class]="'toast__icon toast__icon--' + toast.type">
+            <mat-icon aria-hidden="true">{{ iconFor(toast.type) }}</mat-icon>
           </div>
 
-          <!-- Treść -->
           <div class="toast__content">
             @if (toast.title) {
               <div class="toast__title">{{ toast.title }}</div>
             }
             <div class="toast__message">{{ toast.message }}</div>
 
-            <!-- Lista szczegółów (dla wielu błędów) -->
             @if (toast.details && toast.details.length > 0) {
               <ul class="toast__details">
                 @for (detail of toast.details; track detail) {
@@ -46,22 +29,19 @@ import { ToastData, ToastType } from './api-error.model';
               </ul>
             }
 
-            <!-- ID błędu (dla supportu) -->
             @if (toast.errorId) {
-              <div class="toast__error-id">
-                ID: {{ toast.errorId }}
-              </div>
+              <div class="toast__error-id">ID: {{ toast.errorId }}</div>
             }
           </div>
 
-          <!-- Przycisk zamknięcia -->
           @if (toast.dismissible) {
             <button
+              type="button"
               class="toast__close"
               (click)="dismiss(toast.id)"
               title="Zamknij"
-            >
-              ×
+              aria-label="Zamknij">
+              <mat-icon aria-hidden="true">close</mat-icon>
             </button>
           }
         </div>
@@ -107,36 +87,47 @@ import { ToastData, ToastType } from './api-error.model';
       }
     }
 
-    /* Typy toastów */
     .toast--error {
-      border-left: 4px solid #ef4444;
-      background: linear-gradient(135deg, #fef2f2 0%, white 100%);
+      border-left: 4px solid var(--error-color);
+      background: linear-gradient(135deg, var(--error-bg) 0%, white 100%);
     }
 
     .toast--warning {
-      border-left: 4px solid #f59e0b;
-      background: linear-gradient(135deg, #fffbeb 0%, white 100%);
+      border-left: 4px solid var(--warning-color);
+      background: linear-gradient(135deg, var(--warning-bg) 0%, white 100%);
     }
 
     .toast--success {
-      border-left: 4px solid #10b981;
-      background: linear-gradient(135deg, #ecfdf5 0%, white 100%);
+      border-left: 4px solid var(--success-color);
+      background: linear-gradient(135deg, var(--success-bg) 0%, white 100%);
     }
 
     .toast--info {
-      border-left: 4px solid #3b82f6;
-      background: linear-gradient(135deg, #eff6ff 0%, white 100%);
+      border-left: 4px solid var(--accent-color);
+      background: linear-gradient(135deg, var(--info-bg) 0%, white 100%);
     }
 
-    /* Ikona */
     .toast__icon {
       flex-shrink: 0;
-      font-size: 18px;
-      line-height: 1;
-      padding-top: 2px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      padding-top: 1px;
     }
 
-    /* Treść */
+    .toast__icon mat-icon {
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
+    }
+
+    .toast__icon--error { color: var(--error-color); }
+    .toast__icon--warning { color: var(--warning-color); }
+    .toast__icon--success { color: var(--success-color); }
+    .toast__icon--info { color: var(--accent-color); }
+
     .toast__content {
       flex: 1;
       min-width: 0;
@@ -156,7 +147,6 @@ import { ToastData, ToastType } from './api-error.model';
       word-wrap: break-word;
     }
 
-    /* Lista szczegółów */
     .toast__details {
       margin: 8px 0 0 0;
       padding-left: 16px;
@@ -174,7 +164,6 @@ import { ToastData, ToastType } from './api-error.model';
       margin-bottom: 0;
     }
 
-    /* ID błędu */
     .toast__error-id {
       margin-top: 8px;
       font-size: 11px;
@@ -183,22 +172,27 @@ import { ToastData, ToastType } from './api-error.model';
       user-select: all;
     }
 
-    /* Przycisk zamknięcia */
     .toast__close {
       flex-shrink: 0;
       width: 24px;
       height: 24px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       background: none;
       border: none;
-      font-size: 18px;
       color: #9ca3af;
       cursor: pointer;
       border-radius: 4px;
       transition: all 0.15s ease;
       margin: -4px -4px -4px 4px;
+      padding: 0;
+    }
+
+    .toast__close mat-icon {
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
     }
 
     .toast__close:hover {
@@ -206,7 +200,6 @@ import { ToastData, ToastType } from './api-error.model';
       color: #6b7280;
     }
 
-    /* Responsywność */
     @media (max-width: 480px) {
       .toast-container {
         left: 8px;
@@ -223,5 +216,18 @@ export class ToastContainerComponent {
 
   dismiss(id: string): void {
     this.toastService.dismiss(id);
+  }
+
+  iconFor(type: string): string {
+    switch (type) {
+      case 'error':
+        return 'error';
+      case 'warning':
+        return 'warning_amber';
+      case 'success':
+        return 'check_circle';
+      default:
+        return 'info';
+    }
   }
 }

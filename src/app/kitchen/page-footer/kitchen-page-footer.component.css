@@ -118,8 +118,24 @@
 }
 
 .btn-footer-icon {
+  width: 11px;
+  height: 11px;
   font-size: 11px;
   line-height: 1;
+}
+
+.btn-footer-icon--spinning {
+  animation: kitchen-footer-spin 0.9s linear infinite;
+}
+
+@keyframes kitchen-footer-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 760px) {

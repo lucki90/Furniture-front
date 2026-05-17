@@ -3,17 +3,23 @@
   <!-- Sticky header -->
   <div class="settings-header">
     <div class="settings-title-group">
-      <span class="settings-title-icon">⚙️</span>
+      <mat-icon class="settings-title-icon" aria-hidden="true">settings</mat-icon>
       <div>
         <h1 class="settings-title">Ustawienia</h1>
         <p class="settings-subtitle">Globalne domyślne wartości dla nowych projektów</p>
       </div>
     </div>
     <div class="settings-header-actions">
-      <div *ngIf="savedSuccess" class="save-success">✓ Zapisano</div>
-      <button class="btn btn-primary" (click)="saveSettings()" [disabled]="saving || loading">
+      <div *ngIf="savedSuccess" class="save-success">
+        <mat-icon aria-hidden="true">check_circle</mat-icon>
+        Zapisano
+      </div>
+      <button class="btn btn-primary" type="button" (click)="saveSettings()" [disabled]="saving || loading">
         <span *ngIf="saving" class="spinner spinner-sm"></span>
-        {{ saving ? 'Zapisuję…' : '💾 Zapisz ustawienia' }}
+        <ng-container *ngIf="!saving">
+          <mat-icon class="settings-action-icon" aria-hidden="true">save</mat-icon>
+        </ng-container>
+        {{ saving ? 'Zapisuje...' : 'Zapisz ustawienia' }}
       </button>
     </div>
   </div>
@@ -26,9 +32,9 @@
 
   <!-- Error state -->
   <div *ngIf="error && !loading" class="state-error">
-    <span class="error-icon">⚠️</span>
+    <mat-icon class="error-icon" aria-hidden="true">warning_amber</mat-icon>
     {{ error }}
-    <button class="btn-retry" (click)="loadSettings()">Spróbuj ponownie</button>
+    <button class="btn-retry" type="button" (click)="loadSettings()">Spróbuj ponownie</button>
   </div>
 
   <!-- Settings body -->
@@ -36,21 +42,24 @@
 
     <!-- Sidebar navigation -->
     <nav class="settings-nav">
-      <div class="nav-title">📋 Spis treści</div>
+      <div class="nav-title">
+        <mat-icon class="nav-title-icon" aria-hidden="true">list_alt</mat-icon>
+        Spis treści
+      </div>
       <p class="nav-group-label">Projekt</p>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-kitchen')">🏠 Kuchnia</button>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-enclosures')">📦 Obudowy</button>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-technical')">📐 Wymiary tech.</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-kitchen')"><mat-icon class="nav-item-icon" aria-hidden="true">home</mat-icon><span>Kuchnia</span></button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-enclosures')"><mat-icon class="nav-item-icon" aria-hidden="true">inventory_2</mat-icon><span>Obudowy</span></button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-technical')"><mat-icon class="nav-item-icon" aria-hidden="true">straighten</mat-icon><span>Wymiary tech.</span></button>
       <p class="nav-group-label">Materiały</p>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-waste')">♻️ Odpad i słoje</button>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-materials')">🎨 Materiały</button>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-margins')">💰 Marże i rabaty</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-waste')"><mat-icon class="nav-item-icon" aria-hidden="true">recycling</mat-icon><span>Odpad i słoje</span></button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-materials')"><mat-icon class="nav-item-icon" aria-hidden="true">palette</mat-icon><span>Materiały</span></button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-margins')"><mat-icon class="nav-item-icon" aria-hidden="true">payments</mat-icon><span>Marże i rabaty</span></button>
       <p class="nav-group-label">Cenniki</p>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-board-prices')">💵 Cennik płyt</button>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-comp-prices')">🔧 Komponenty</button>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-job-prices')">🛠️ Prace</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-board-prices')"><mat-icon class="nav-item-icon" aria-hidden="true">table_chart</mat-icon><span>Cennik płyt</span></button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-comp-prices')"><mat-icon class="nav-item-icon" aria-hidden="true">build</mat-icon><span>Komponenty</span></button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-job-prices')"><mat-icon class="nav-item-icon" aria-hidden="true">construction</mat-icon><span>Prace</span></button>
       <p class="nav-group-label">Firma</p>
-      <button class="nav-item" type="button" (click)="scrollTo('sec-company')">🏢 Dane firmy</button>
+      <button class="nav-item" type="button" (click)="scrollTo('sec-company')"><mat-icon class="nav-item-icon" aria-hidden="true">apartment</mat-icon><span>Dane firmy</span></button>
     </nav>
 
     <!-- Main content -->
@@ -59,7 +68,7 @@
       <!-- SEKCJA 1: Kuchnia — domyślne -->
       <section id="sec-kitchen" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-kitchen')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-kitchen')" (click)="toggleSection('sec-kitchen')">
-          <span class="panel-header-icon">🏠</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">home</mat-icon>
           <span class="panel-header-title">Kuchnia — domyślne</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
         </button>
@@ -89,7 +98,7 @@
       <!-- SEKCJA 2: Obudowy szafek -->
       <section id="sec-enclosures" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-enclosures')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-enclosures')" (click)="toggleSection('sec-enclosures')">
-          <span class="panel-header-icon">📦</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">inventory_2</mat-icon>
           <span class="panel-header-title">Obudowy szafek — domyślne</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
         </button>
@@ -125,7 +134,7 @@
       <!-- SEKCJA 3: Wymiary techniczne szafek -->
       <section id="sec-technical" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-technical')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-technical')" (click)="toggleSection('sec-technical')">
-          <span class="panel-header-icon">📐</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">straighten</mat-icon>
           <span class="panel-header-title">Wymiary techniczne szafek</span>
           <span class="panel-header-desc">Zaawansowane — zmień tylko jeśli wiesz co robisz</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
@@ -201,7 +210,7 @@
       <!-- SEKCJA 4: Kalkulacja odpadu i kierunek słoi -->
       <section id="sec-waste" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-waste')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-waste')" (click)="toggleSection('sec-waste')">
-          <span class="panel-header-icon">♻️</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">recycling</mat-icon>
           <span class="panel-header-title">Kalkulacja odpadu i kierunek słoi</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
         </button>
@@ -245,7 +254,7 @@
       <!-- SEKCJA 5: Domyślne materiały i kolory płyt -->
       <section id="sec-materials" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-materials')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-materials')" (click)="toggleSection('sec-materials')">
-          <span class="panel-header-icon">🎨</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">palette</mat-icon>
           <span class="panel-header-title">Domyślne materiały i kolory płyt</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
         </button>
@@ -376,7 +385,7 @@
       <!-- SEKCJA 6: Marże i rabaty -->
       <section id="sec-margins" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-margins')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-margins')" (click)="toggleSection('sec-margins')">
-          <span class="panel-header-icon">💰</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">payments</mat-icon>
           <span class="panel-header-title">Marże i rabaty</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
         </button>
@@ -408,7 +417,7 @@
       <!-- SEKCJA 7: Cennik płyt -->
       <section id="sec-board-prices" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-board-prices')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-board-prices')" (click)="toggleSection('sec-board-prices')">
-          <span class="panel-header-icon">💵</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">table_chart</mat-icon>
           <span class="panel-header-title">Cennik płyt</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
         </button>
@@ -425,7 +434,7 @@
       <!-- SEKCJA 8: Cennik komponentów -->
       <section id="sec-comp-prices" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-comp-prices')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-comp-prices')" (click)="toggleSection('sec-comp-prices')">
-          <span class="panel-header-icon">🔧</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">build</mat-icon>
           <span class="panel-header-title">Cennik komponentów</span>
           <span class="panel-header-desc">Zawiasy, szuflady, nóżki, wieszaki</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
@@ -477,7 +486,7 @@
             <ng-template #rowCells let-cp>
               <td><span class="category-chip">{{ cp.category }}</span></td>
               <td>
-                <span *ngIf="!cp.componentActive" class="row-warn-icon" title="Komponent nieaktywny">⚠️</span>
+                <mat-icon *ngIf="!cp.componentActive" class="row-warn-icon" aria-hidden="true" title="Komponent nieaktywny">warning_amber</mat-icon>
                 {{ cp.componentCode }}
               </td>
               <td>
@@ -486,8 +495,8 @@
               </td>
               <td>{{ cp.unit || '—' }}</td>
               <td>
-                <span *ngIf="cp.componentActive && cp.variantActive" class="status-ok">✓</span>
-                <span *ngIf="!cp.componentActive || !cp.variantActive" class="status-err">✗</span>
+                <mat-icon *ngIf="cp.componentActive && cp.variantActive" class="row-warn-icon status-ok" aria-hidden="true">check_circle</mat-icon>
+                <mat-icon *ngIf="!cp.componentActive || !cp.variantActive" class="row-warn-icon status-err" aria-hidden="true">cancel</mat-icon>
               </td>
             </ng-template>
 
@@ -498,7 +507,7 @@
       <!-- SEKCJA 9: Cennik prac -->
       <section id="sec-job-prices" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-job-prices')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-job-prices')" (click)="toggleSection('sec-job-prices')">
-          <span class="panel-header-icon">🛠️</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">construction</mat-icon>
           <span class="panel-header-title">Cennik prac</span>
           <span class="panel-header-desc">Cięcie, oklejanie, wiercenie, frezowanie</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
@@ -550,7 +559,7 @@
             <ng-template #rowCells let-jp>
               <td><span class="category-chip">{{ jp.jobCategory }}</span></td>
               <td>
-                <span *ngIf="!jp.jobActive" class="row-warn-icon" title="Praca nieaktywna">⚠️</span>
+                <mat-icon *ngIf="!jp.jobActive" class="row-warn-icon" aria-hidden="true" title="Praca nieaktywna">warning_amber</mat-icon>
                 {{ jp.jobCode }}
               </td>
               <td>{{ jp.variantCode }}</td>
@@ -565,7 +574,7 @@
       <!-- SEKCJA 10: Dane firmy -->
       <section id="sec-company" class="panel-card" [class.is-collapsed]="isSectionCollapsed('sec-company')">
         <button type="button" class="panel-header" [attr.aria-expanded]="!isSectionCollapsed('sec-company')" (click)="toggleSection('sec-company')">
-          <span class="panel-header-icon">🏢</span>
+          <mat-icon class="panel-header-icon" aria-hidden="true">apartment</mat-icon>
           <span class="panel-header-title">Dane firmy</span>
           <span class="panel-header-toggle-indicator" aria-hidden="true">▾</span>
         </button>

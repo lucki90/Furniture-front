@@ -1,11 +1,18 @@
-<div class="login-container">
-  <div class="login-card">
-    <div class="login-header">
-      <h1>Furniture App</h1>
-      <p>Zaloguj się do aplikacji</p>
+<div class="auth-page-shell">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-title-group">
+        <span class="auth-title-icon">
+          <mat-icon aria-hidden="true">lock</mat-icon>
+        </span>
+        <div>
+          <h1 class="auth-title">Logowanie</h1>
+          <p class="auth-subtitle">Wejdz do aplikacji i kontynuuj prace nad projektami.</p>
+        </div>
+      </div>
     </div>
 
-    <form (ngSubmit)="onSubmit()" class="login-form">
+    <form (ngSubmit)="onSubmit()" class="auth-form">
       <div class="form-group">
         <label for="email">Email</label>
         <input
@@ -13,36 +20,41 @@
           type="email"
           [(ngModel)]="email"
           name="email"
+          class="form-control"
           placeholder="twoj@email.com"
           autocomplete="email"
-          [disabled]="isLoading"
-        />
+          [disabled]="isLoading" />
       </div>
 
       <div class="form-group">
-        <label for="password">Hasło</label>
+        <label for="password">Haslo</label>
         <input
           id="password"
           type="password"
           [(ngModel)]="password"
           name="password"
-          placeholder="Wprowadź hasło"
+          class="form-control"
+          placeholder="Wprowadz haslo"
           autocomplete="current-password"
-          [disabled]="isLoading"
-        />
+          [disabled]="isLoading" />
       </div>
 
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
+      <div *ngIf="errorMessage" class="auth-error">
+        <mat-icon aria-hidden="true">warning_amber</mat-icon>
+        <span>{{ errorMessage }}</span>
       </div>
 
-      <button type="submit" class="login-btn" [disabled]="isLoading">
-        {{ isLoading ? 'Logowanie...' : 'Zaloguj się' }}
+      <button type="submit" class="btn btn-primary auth-submit" [disabled]="isLoading">
+        <span *ngIf="isLoading" class="spinner spinner-sm"></span>
+        <ng-container *ngIf="!isLoading">
+          <mat-icon class="workflow-action-icon" aria-hidden="true">login</mat-icon>
+        </ng-container>
+        {{ isLoading ? 'Logowanie...' : 'Zaloguj sie' }}
       </button>
     </form>
 
-    <div class="login-footer">
-      <p>Nie masz konta? <a routerLink="/register">Zarejestruj się</a></p>
+    <div class="auth-footer">
+      <p>Nie masz konta? <a routerLink="/register">Zarejestruj sie</a></p>
     </div>
   </div>
 </div>

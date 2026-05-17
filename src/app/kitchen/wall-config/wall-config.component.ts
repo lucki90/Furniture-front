@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { CountertopConfig, PlinthConfig, isUpperCabinetType } from '../model/kitchen-state.model';
 import {
@@ -52,7 +53,7 @@ const MAX_PLINTH_HEIGHT_MM = 170;
   styleUrls: ['./wall-config.component.css'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule],
 })
 export class WallConfigComponent {
 

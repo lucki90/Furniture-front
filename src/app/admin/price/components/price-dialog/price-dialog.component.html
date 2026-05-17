@@ -4,16 +4,19 @@
   <form [formGroup]="form" class="price-form">
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Nazwa</mat-label>
-      <input matInput formControlName="name" placeholder="np. Płyta HDF 3mm">
+      <input matInput formControlName="name" placeholder="np. Plyta HDF 3 mm">
       <mat-error *ngIf="form.get('name')?.hasError('maxlength')">
-        Maksymalnie 255 znaków
+        Maksymalnie 255 znakow
       </mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Opis</mat-label>
-      <textarea matInput formControlName="description" rows="2"
-                placeholder="Opcjonalny opis pozycji cenowej"></textarea>
+      <textarea
+        matInput
+        formControlName="description"
+        rows="2"
+        placeholder="Opcjonalny opis pozycji cenowej"></textarea>
     </mat-form-field>
 
     <div class="form-row">
@@ -41,7 +44,7 @@
           Cena jest wymagana
         </mat-error>
         <mat-error *ngIf="form.get('currentPrice')?.hasError('min')">
-          Cena musi być >= 0
+          Cena musi byc >= 0
         </mat-error>
       </mat-form-field>
     </div>
@@ -49,17 +52,15 @@
     <h3 class="section-title">Konfiguracja scrapingu (opcjonalne)</h3>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>URL źródła ceny</mat-label>
-      <input matInput formControlName="sourceUrl"
-             placeholder="https://example.com/product">
-      <mat-hint>Strona, z której będzie pobierana cena</mat-hint>
+      <mat-label>URL zrodla ceny</mat-label>
+      <input matInput formControlName="sourceUrl" placeholder="https://example.com/product">
+      <mat-hint>Strona, z ktorej bedzie pobierana cena</mat-hint>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Selektor CSS</mat-label>
-      <input matInput formControlName="urlSelector"
-             placeholder=".price-value, #product-price">
-      <mat-hint>Selektor elementu z ceną na stronie</mat-hint>
+      <input matInput formControlName="urlSelector" placeholder=".price-value, #product-price">
+      <mat-hint>Selektor elementu z cena na stronie</mat-hint>
     </mat-form-field>
 
     <mat-checkbox *ngIf="isEditMode" formControlName="isActive" class="active-checkbox">
@@ -69,11 +70,14 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()" [disabled]="saving">Anuluj</button>
-  <button mat-raised-button color="primary"
-          (click)="onSubmit()"
-          [disabled]="saving || form.invalid">
+  <button mat-button type="button" (click)="onCancel()" [disabled]="saving">Anuluj</button>
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    (click)="onSubmit()"
+    [disabled]="saving || form.invalid">
     <mat-spinner *ngIf="saving" diameter="20" class="button-spinner"></mat-spinner>
-    {{ saving ? 'Zapisywanie...' : (isEditMode ? 'Zapisz zmiany' : 'Dodaj cenę') }}
+    {{ saving ? 'Zapisywanie...' : (isEditMode ? 'Zapisz zmiany' : 'Dodaj cene') }}
   </button>
 </mat-dialog-actions>

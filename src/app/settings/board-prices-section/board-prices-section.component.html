@@ -2,10 +2,17 @@
 
   <div class="board-price-actions settings-toolbar settings-toolbar--actions">
     <button class="btn btn-sm btn-outline" (click)="downloadCsvTemplate()" title="Pobierz szablon CSV">
-      ⬇ Szablon CSV
+      <mat-icon class="settings-inline-icon" aria-hidden="true">download</mat-icon>
+      Szablon CSV
     </button>
     <label class="btn btn-sm btn-outline board-price-import-label" title="Importuj CSV">
-      {{ csvImporting ? '⟳ Importuję...' : '📥 Importuj CSV' }}
+      <ng-container *ngIf="csvImporting; else importIcon">
+        <mat-icon class="settings-inline-icon settings-inline-icon--spin" aria-hidden="true">autorenew</mat-icon>
+      </ng-container>
+      <ng-template #importIcon>
+        <mat-icon class="settings-inline-icon" aria-hidden="true">upload_file</mat-icon>
+      </ng-template>
+      {{ csvImporting ? 'Importuje...' : 'Importuj CSV' }}
       <input
         type="file"
         accept=".csv"
@@ -14,7 +21,8 @@
         [disabled]="csvImporting" />
     </label>
     <button class="btn btn-sm btn-primary" (click)="toggleAddBoardForm()">
-      {{ showAddBoardForm ? '✕ Anuluj' : '+ Dodaj cenę' }}
+      <mat-icon class="settings-inline-icon" aria-hidden="true">{{ showAddBoardForm ? 'close' : 'add' }}</mat-icon>
+      {{ showAddBoardForm ? 'Anuluj' : 'Dodaj cene' }}
     </button>
   </div>
 
@@ -150,7 +158,7 @@
       class="btn btn-sm btn-outline board-filter-clear"
       (click)="clearFilters()"
       title="Wyczyść filtry">
-      ✕
+      <mat-icon class="settings-inline-icon settings-inline-icon--sm" aria-hidden="true">close</mat-icon>
     </button>
 
     <span *ngIf="hasActiveFilters" class="settings-toolbar-count">
@@ -172,13 +180,21 @@
       class="btn btn-sm btn-primary board-action-btn"
       (click)="submitBulkForSelected()"
       [disabled]="bulkSaving || bulkPrice <= 0">
-      {{ bulkSaving ? '⟳ Zapisuję...' : 'Ustal cenę zaznaczonym' }}
+      <mat-icon
+        class="settings-inline-icon"
+        [class.settings-inline-icon--spin]="bulkSaving"
+        aria-hidden="true">{{ bulkSaving ? 'autorenew' : 'save' }}</mat-icon>
+      {{ bulkSaving ? 'Zapisuje...' : 'Ustal cene zaznaczonym' }}
     </button>
     <button
       class="btn btn-sm btn-danger board-action-btn"
       (click)="deactivateSelected()"
       [disabled]="deactivatingSelected || bulkSaving">
-      {{ deactivatingSelected ? '⟳ Usuwam...' : '🗑 Usuń zaznaczone' }}
+      <mat-icon
+        class="settings-inline-icon"
+        [class.settings-inline-icon--spin]="deactivatingSelected"
+        aria-hidden="true">{{ deactivatingSelected ? 'autorenew' : 'delete' }}</mat-icon>
+      {{ deactivatingSelected ? 'Usuwam...' : 'Usun zaznaczone' }}
     </button>
     <button
       class="btn btn-sm btn-outline board-action-btn"
@@ -225,7 +241,7 @@
                   class="settings-color-swatch"
                   [style.background-color]="bp.colorHex"
                   [title]="bp.colorHex"></span>
-                <span *ngIf="!bp.colorHex" class="settings-color-swatch-placeholder">—</span>
+                <span *ngIf="!bp.colorHex" class="settings-color-swatch-placeholder">-</span>
                 <span>{{ bp.colorName || bp.colorCode }}</span>
               </div>
             </ng-container>
@@ -254,7 +270,7 @@
           </td>
 
           <td>
-            <span *ngIf="!bp.materialActive" class="material-warn-icon" title="Materiał nieaktywny">⚠️</span>
+            <mat-icon *ngIf="!bp.materialActive" class="material-warn-icon" aria-hidden="true" title="Material nieaktywny">warning_amber</mat-icon>
             {{ getMaterialDisplay(bp) }}
           </td>
 
@@ -263,13 +279,14 @@
 
           <td *ngIf="editingBoardId !== bp.id">
             <ng-container *ngIf="bp.pricePerM2 != null">{{ bp.pricePerM2.toFixed(2) }} zł</ng-container>
-            <button
-              *ngIf="bp.pricePerM2 === null"
-              class="btn-set-price"
-              (click)="startEditBoard(bp)"
-              title="Kliknij aby ustawić cenę">
-              Ustaw cenę →
-            </button>
+              <button
+                *ngIf="bp.pricePerM2 === null"
+                class="btn-set-price"
+                (click)="startEditBoard(bp)"
+                title="Kliknij aby ustawic cene">
+              Ustaw cene
+              <mat-icon class="settings-inline-icon settings-inline-icon--sm" aria-hidden="true">chevron_right</mat-icon>
+              </button>
           </td>
           <td *ngIf="editingBoardId === bp.id">
             <input
@@ -302,7 +319,10 @@
                 (click)="deleteBoard(bp.id)"
                 [disabled]="deletingBoardId === bp.id || deactivatingSelected || bulkSaving"
                 [title]="bp.source === 'GLOBAL' ? 'Ukryj systemową płytę (w Twoim kontekście)' : 'Dezaktywuj tę płytę'">
-                {{ deletingBoardId === bp.id ? '...' : '🗑' }}
+                <mat-icon
+                  class="settings-inline-icon"
+                  [class.settings-inline-icon--spin]="deletingBoardId === bp.id"
+                  aria-hidden="true">{{ deletingBoardId === bp.id ? 'autorenew' : 'delete' }}</mat-icon>
               </button>
             </ng-container>
 
@@ -324,7 +344,7 @@
         class="board-page-btn settings-page-btn"
         [disabled]="boardCurrentPage === 1"
         (click)="goToBoardPage(boardCurrentPage - 1)">
-        ‹
+        <mat-icon class="settings-inline-icon settings-inline-icon--sm" aria-hidden="true">chevron_left</mat-icon>
       </button>
       <button
         *ngFor="let p of boardPageNumbers; trackBy: trackByIndex"
@@ -337,7 +357,7 @@
         class="board-page-btn settings-page-btn"
         [disabled]="boardCurrentPage === boardTotalPages"
         (click)="goToBoardPage(boardCurrentPage + 1)">
-        ›
+        <mat-icon class="settings-inline-icon settings-inline-icon--sm" aria-hidden="true">chevron_right</mat-icon>
       </button>
       <span class="board-page-info settings-page-info">
         {{ (boardCurrentPage - 1) * boardPageSize + 1 }}–{{ boardCurrentPageEnd }} z {{ filteredBoardPrices.length }}

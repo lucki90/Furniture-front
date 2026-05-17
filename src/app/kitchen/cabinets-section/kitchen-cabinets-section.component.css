@@ -43,7 +43,11 @@
 }
 
 .summary-icon {
+  width: 14px;
+  height: 14px;
   font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .summary-text {
@@ -69,6 +73,13 @@
   border-radius: 50%;
   font-size: 11px;
   font-weight: 700;
+}
+
+.fit-indicator-icon {
+  width: 11px;
+  height: 11px;
+  font-size: 11px;
+  line-height: 1;
 }
 
 .fit-indicator.success {
@@ -110,12 +121,23 @@
 }
 
 .list-header h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin: 0;
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   color: var(--text-secondary);
+}
+
+.list-header-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 .count-badge {
@@ -177,6 +199,8 @@
 }
 
 .empty-icon {
+  width: 28px;
+  height: 28px;
   font-size: 28px;
   margin-bottom: 6px;
 }

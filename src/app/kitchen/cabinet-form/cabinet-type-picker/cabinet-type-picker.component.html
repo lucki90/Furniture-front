@@ -1,7 +1,9 @@
 <div class="picker-dialog">
   <div class="picker-header">
     <span class="picker-title">Wybierz typ szafki</span>
-    <button class="picker-close" (click)="close()" title="Zamknij">✕</button>
+    <button class="picker-close" type="button" (click)="close()" title="Zamknij" aria-label="Zamknij">
+      <mat-icon aria-hidden="true">close</mat-icon>
+    </button>
   </div>
 
   <div class="picker-body">

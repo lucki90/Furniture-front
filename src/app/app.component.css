@@ -42,7 +42,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.topnav-logo mat-icon {
+  width: 14px;
+  height: 14px;
   font-size: 14px;
+  color: #fff;
 }
 
 .topnav-title {
@@ -90,8 +96,11 @@
 }
 
 .topnav-link-icon {
-  font-size: 13.5px;
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 /* Right side */
@@ -100,10 +109,15 @@
   display: flex;
   align-items: center;
   gap: 7px;
+  --topnav-control-height: 32px;
 }
 
 .topnav-lang {
-  padding: 4px 7px;
+  height: var(--topnav-control-height);
+  min-height: var(--topnav-control-height);
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
   border-radius: var(--border-radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.07);
@@ -131,10 +145,13 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 2px 9px 2px 4px;
+  min-height: var(--topnav-control-height);
+  height: var(--topnav-control-height);
+  padding: 0 9px 0 4px;
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
 }
 
 .topnav-avatar {
@@ -177,7 +194,12 @@
 
 /* Logout button */
 .topnav-logout {
-  padding: 5px 10px;
+  height: var(--topnav-control-height);
+  min-height: var(--topnav-control-height);
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--border-radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.06);

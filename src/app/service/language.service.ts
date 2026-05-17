@@ -18,8 +18,8 @@ export class LanguageService {
 
   /** Dostępne języki do wyświetlenia w przełączniku */
   readonly supportedLanguages: { code: AppLanguage; label: string }[] = [
-    { code: 'pl', label: '🇵🇱 Polski' },
-    { code: 'en', label: '🇬🇧 English' },
+    { code: 'pl', label: 'PL Polski' },
+    { code: 'en', label: 'EN English' },
   ];
 
   setLanguage(lang: AppLanguage): void {

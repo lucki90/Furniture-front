@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { ProjectStatus } from '../model/kitchen-project.model';
 
 export interface KitchenPageStatusOption {
@@ -12,7 +13,7 @@ export type KitchenPageView = 'config' | 'costs';
 @Component({
   selector: 'app-kitchen-page-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   templateUrl: './kitchen-page-header.component.html',
   styleUrls: ['./kitchen-page-header.component.css']
 })
@@ -44,6 +45,8 @@ export class KitchenPageHeaderComponent {
   @Output() undoAction = new EventEmitter<void>();
   @Output() redoAction = new EventEmitter<void>();
   @Output() viewChange = new EventEmitter<KitchenPageView>();
+
+  protected trackByStatus = (_: number, status: KitchenPageStatusOption) => status.value;
 
   setView(view: KitchenPageView): void {
     if (this.isEditingCabinet) return;

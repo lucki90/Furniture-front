@@ -56,9 +56,12 @@
 }
 
 .settings-title-icon {
+  width: 20px;
+  height: 20px;
   font-size: 20px;
   line-height: 1;
   flex-shrink: 0;
+  color: var(--accent-color);
 }
 
 .settings-title {
@@ -171,6 +174,14 @@
   gap: 5px;
 }
 
+.nav-title-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .nav-group-label {
   margin: 8px 6px 2px;
   font-size: 9.5px;
@@ -184,7 +195,9 @@
 .nav-group-label:first-child { margin-top: 2px; }
 
 .nav-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
   text-align: left;
   padding: 5px 9px;
@@ -199,6 +212,15 @@
   transition: background 0.12s, color 0.12s;
   white-space: nowrap;
   line-height: 1.4;
+}
+
+.nav-item-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+  color: var(--accent-color);
 }
 
 .nav-item:hover {
@@ -254,6 +276,8 @@
 }
 
 .panel-header-icon {
+  width: 14px;
+  height: 14px;
   font-size: 14px;
   line-height: 1;
   flex-shrink: 0;
@@ -392,9 +416,12 @@
 /* ── Row inline status / warning helpers ───────────────────── */
 
 .row-warn-icon {
+  width: 12px;
+  height: 12px;
   font-size: 12px;
   vertical-align: middle;
   margin-right: 2px;
+  color: var(--warning-color);
 }
 
 .row-extra-info {
@@ -416,6 +443,16 @@
   align-items: center;
   gap: 4px;
   animation: fadeIn 0.2s ease;
+}
+
+.save-success mat-icon,
+.error-icon,
+.settings-action-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
 }
 
 @keyframes fadeIn {

@@ -1,43 +1,41 @@
 <div class="app-shell" *ngIf="authService.isLoggedIn(); else authPages">
-  <!-- TOP NAV -->
   <nav class="topnav">
-    <!-- Logo -->
     <a class="topnav-brand" routerLink="/kitchen/projects">
-      <span class="topnav-logo">🪑</span>
+      <span class="topnav-logo">
+        <mat-icon aria-hidden="true">chair</mat-icon>
+      </span>
       <span class="topnav-title">FurniturePro</span>
     </a>
 
-    <!-- Nav Links -->
     <div class="topnav-links">
       <a class="topnav-link" routerLink="/alone-cabinet" routerLinkActive="active" title="Pojedyncza szafka">
-        <span class="topnav-link-icon">📦</span>
+        <mat-icon class="topnav-link-icon" aria-hidden="true">inventory_2</mat-icon>
         <span class="topnav-link-text">Pojedyncza szafka</span>
       </a>
       <a class="topnav-link" routerLink="/kitchen/projects" routerLinkActive="active" title="Projekty">
-        <span class="topnav-link-icon">📁</span>
+        <mat-icon class="topnav-link-icon" aria-hidden="true">folder</mat-icon>
         <span class="topnav-link-text">Projekty</span>
       </a>
       <a class="topnav-link" routerLink="/kitchen" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" title="Nowy projekt">
-        <span class="topnav-link-icon">🍳</span>
+        <mat-icon class="topnav-link-icon" aria-hidden="true">kitchen</mat-icon>
         <span class="topnav-link-text">Nowy projekt</span>
       </a>
-      <a class="topnav-link" *ngIf="authService.isAdmin()" routerLink="/admin/materials" routerLinkActive="active" title="Zarządzanie materiałami">
-        <span class="topnav-link-icon">🪵</span>
-        <span class="topnav-link-text">Materiały</span>
+      <a class="topnav-link" *ngIf="authService.isAdmin()" routerLink="/admin/materials" routerLinkActive="active" title="Zarzadzanie materialami">
+        <mat-icon class="topnav-link-icon" aria-hidden="true">inventory</mat-icon>
+        <span class="topnav-link-text">Materialy</span>
       </a>
       <a class="topnav-link" routerLink="/settings" routerLinkActive="active" title="Ustawienia">
-        <span class="topnav-link-icon">⚙️</span>
+        <mat-icon class="topnav-link-icon" aria-hidden="true">settings</mat-icon>
         <span class="topnav-link-text">Ustawienia</span>
       </a>
     </div>
 
-    <!-- Right side: language + user -->
     <div class="topnav-right">
       <select
         class="topnav-lang"
         [value]="languageService.lang()"
         (change)="onLanguageChange($event)"
-        title="Język / Language">
+        title="Jezyk / Language">
         <option *ngFor="let l of languageService.supportedLanguages; trackBy: trackByCode" [value]="l.code">{{ l.label }}</option>
       </select>
 
@@ -49,22 +47,19 @@
         </div>
       </div>
 
-      <button class="topnav-logout" (click)="authService.logout()" title="Wyloguj się">
+      <button class="topnav-logout" type="button" (click)="authService.logout()" title="Wyloguj sie">
         Wyloguj
       </button>
     </div>
   </nav>
 
-  <!-- MAIN CONTENT -->
   <main class="app-main">
     <router-outlet></router-outlet>
   </main>
 
-  <!-- Toast Notifications -->
   <app-toast-container></app-toast-container>
 </div>
 
-<!-- Auth pages (login/register) — no topnav -->
 <ng-template #authPages>
   <router-outlet></router-outlet>
   <app-toast-container></app-toast-container>

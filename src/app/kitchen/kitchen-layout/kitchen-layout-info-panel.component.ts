@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
 export interface KitchenLayoutCooktopGapWarning {
   message: string;
@@ -10,7 +11,7 @@ export interface KitchenLayoutCooktopGapWarning {
 @Component({
   selector: 'app-kitchen-layout-info-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatIconModule],
   templateUrl: './kitchen-layout-info-panel.component.html',
   styleUrls: ['./kitchen-layout.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { KitchenCabinet, getCabinetZone, isFreestandingAppliance } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { CabinetTypeNamePipe } from '../cabinet-form/pipes/cabinet-type-name.pipe';
@@ -17,9 +18,10 @@ interface CabinetVisualMeta {
   styleUrls: ['./kitchen-cabinet-list.component.css'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CabinetTypeNamePipe]
+  imports: [CommonModule, MatIconModule, CabinetTypeNamePipe]
 })
 export class KitchenCabinetListComponent implements OnChanges {
+  private static readonly DEFAULT_VISUAL_META: CabinetVisualMeta = { color: '#388e3c', bg: '#e8f5e9', abbr: 'DÓŁ' };
 
   @Input() cabinets: KitchenCabinet[] = [];
   @Input() editingCabinetId: string | null = null;
@@ -31,12 +33,14 @@ export class KitchenCabinetListComponent implements OnChanges {
 
   protected trackByCabinetId = (_: number, cabinet: KitchenCabinet) => cabinet.id;
   protected trackBySide = (_: number, group: { side: CabinetSide }) => group.side;
+  protected cabinetMetaById: Record<string, CabinetVisualMeta> = {};
 
   /** Przeliczany tylko gdy zmienią się @Input() — bezpieczne z OnPush. */
   protected groupedCabinets: Array<{ side: CabinetSide; cabinets: KitchenCabinet[] }> = [];
 
   ngOnChanges(): void {
     this.groupedCabinets = this.computeGroupedCabinets();
+    this.cabinetMetaById = this.buildCabinetMetaById();
   }
 
   private computeGroupedCabinets(): Array<{ side: CabinetSide; cabinets: KitchenCabinet[] }> {
@@ -85,7 +89,14 @@ export class KitchenCabinetListComponent implements OnChanges {
       case 'TOP':    return { color: '#1565c0', bg: '#e3f2fd', abbr: 'GÓR' };
       case 'FULL':   return { color: '#7b1fa2', bg: '#f3e5f5', abbr: 'SŁU' };
       case 'BOTTOM':
-      default:       return { color: '#388e3c', bg: '#e8f5e9', abbr: 'DÓŁ' };
+      default:       return KitchenCabinetListComponent.DEFAULT_VISUAL_META;
     }
+  }
+
+  private buildCabinetMetaById(): Record<string, CabinetVisualMeta> {
+    return this.cabinets.reduce<Record<string, CabinetVisualMeta>>((acc, cabinet) => {
+      acc[cabinet.id] = this.cabinetVisualMeta(cabinet);
+      return acc;
+    }, {});
   }
 }

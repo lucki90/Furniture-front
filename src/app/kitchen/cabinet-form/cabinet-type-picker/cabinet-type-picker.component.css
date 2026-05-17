@@ -40,6 +40,12 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
+.picker-close mat-icon {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
 .picker-body {
   overflow-y: auto;
   padding: 16px 18px;

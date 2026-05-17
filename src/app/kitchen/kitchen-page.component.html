@@ -29,6 +29,8 @@
     (viewChange)="setView($event)">
   </app-kitchen-page-header>
 
+  <div class="kitchen-page-body">
+
   <!-- ============ TRYB: KONFIGURATOR (workspace + lista szafek) ============ -->
   <ng-container *ngIf="view === 'config'">
   <!-- ============ SEKCJA 1: WIZUALIZACJA + FORMULARZ ============ -->
@@ -127,6 +129,7 @@
     (downloadOfferPdf)="downloadOfferPdf()">
   </app-kitchen-costs-section>
   </ng-container>
+  </div>
 
   <!-- ============ STICKY FOOTER - ZAWSZE WIDOCZNY ============ -->
   <app-kitchen-page-footer

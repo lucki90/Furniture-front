@@ -1,107 +1,103 @@
 <section class="projects-page">
-  <header class="projects-hero">
-    <div class="projects-hero__copy">
-      <p class="projects-hero__eyebrow">Workspace</p>
-      <h1>Projekty</h1>
-      <p class="projects-hero__subtitle">
-        Zarzadzaj zapisanymi projektami, wracaj do wycen i szybko otwieraj kuchnie do dalszej edycji.
-      </p>
-    </div>
-
-    <div class="projects-hero__stats">
-      <div class="projects-hero__stat">
-        <span class="projects-hero__stat-label">Wszystkie</span>
-        <strong class="projects-hero__stat-value">{{ allProjectsCountLabel }}</strong>
-      </div>
-      <div class="projects-hero__stat">
-        <span class="projects-hero__stat-label">Na liscie</span>
-        <strong class="projects-hero__stat-value">{{ visibleProjectsCountLabel }}</strong>
-      </div>
-      <div class="projects-hero__stat" *ngIf="hasActiveFilters">
-        <span class="projects-hero__stat-label">Filtry</span>
-        <strong class="projects-hero__stat-value">{{ activeStatusesCountLabel }}</strong>
+  <header class="app-page-header projects-header">
+    <div class="app-page-title-group">
+      <span class="app-page-title-icon">
+        <mat-icon aria-hidden="true">folder_open</mat-icon>
+      </span>
+      <div>
+        <h1 class="app-page-title">Projekty</h1>
+        <p class="app-page-subtitle">
+          Zarzadzaj zapisanymi projektami, wracaj do wycen i szybko otwieraj kuchnie do dalszej edycji.
+        </p>
       </div>
     </div>
 
-    <div class="projects-hero__actions">
+    <div class="app-page-header-actions">
+      <div class="app-page-summary">
+        <span class="app-page-summary-chip">Wszystkie: {{ allProjectsCountLabel }}</span>
+        <span class="app-page-summary-chip">Na liscie: {{ visibleProjectsCountLabel }}</span>
+        <span class="app-page-summary-chip" *ngIf="hasActiveFilters">Filtry: {{ activeStatusesCountLabel }}</span>
+      </div>
+
       <button type="button" class="btn btn-outline" (click)="loadProjects()">Odswiez</button>
-      <button type="button" class="btn btn-primary" (click)="createNewProject()">+ Nowy projekt</button>
+      <button type="button" class="btn btn-primary" (click)="createNewProject()">Nowy projekt</button>
     </div>
   </header>
 
-  <div class="projects-layout">
-    <aside class="projects-panel">
-      <header class="projects-panel__header">
-        <div>
-          <p class="projects-panel__eyebrow">Filtry</p>
-          <h2>Cykl zycia projektu</h2>
-        </div>
-        <span class="projects-panel__meta">{{ hasActiveFilters ? activeStatusesCountLabel : '7 etapow' }}</span>
-      </header>
+  <div class="projects-page-body">
+    <div class="projects-layout">
+      <aside class="projects-panel projects-panel--flow">
+        <header class="projects-panel__header">
+          <div>
+            <p class="projects-panel__eyebrow">Filtry</p>
+            <h2>Cykl zycia projektu</h2>
+          </div>
+          <span class="projects-panel__meta">{{ hasActiveFilters ? activeStatusesCountLabel : '7 etapow' }}</span>
+        </header>
 
-      <div class="projects-panel__body">
-        <p class="projects-panel__hint">
-          Kliknij etap, aby zawezic liste projektow. Mozesz zaznaczyc kilka etapow jednoczesnie.
-        </p>
+        <div class="projects-panel__body">
+          <p class="projects-panel__hint">
+            Kliknij etap, aby zawezic liste projektow. Mozesz zaznaczyc kilka etapow jednoczesnie.
+          </p>
 
-        <div class="flow-stack">
-          <ng-container *ngFor="let step of flowSteps; trackBy: trackByFlowStepStatus; let last = last">
+          <div class="flow-stack">
+            <ng-container *ngFor="let step of flowSteps; trackBy: trackByFlowStepStatus; let last = last">
+              <button
+                type="button"
+                class="flow-step"
+                [class.flow-step--selected]="isFilterActive(step.status)"
+                [attr.aria-pressed]="isFilterActive(step.status)"
+                [style.background-color]="step.color + (isFilterActive(step.status) ? '22' : '10')"
+                [style.color]="step.color"
+                [style.border-color]="isFilterActive(step.status) ? step.color : (step.color + '2c')"
+                (click)="toggleStatusFilter(step.status)"
+                [title]="'Filtruj: ' + step.label">
+                <span class="flow-step__index">{{ step.num }}</span>
+                <span class="flow-step__content">
+                  <span class="flow-step__label">{{ step.label }}</span>
+                  <span class="flow-step__caption">{{ projectCountLabel(countByStatus(step.status)) }}</span>
+                </span>
+                <span class="flow-step__count">{{ countByStatus(step.status) }}</span>
+              </button>
+              <span *ngIf="!last" class="flow-step__connector" aria-hidden="true"></span>
+            </ng-container>
+
             <button
               type="button"
-              class="flow-step"
-              [class.flow-step--selected]="isFilterActive(step.status)"
-              [attr.aria-pressed]="isFilterActive(step.status)"
-              [style.background-color]="step.color + (isFilterActive(step.status) ? '22' : '10')"
-              [style.color]="step.color"
-              [style.border-color]="isFilterActive(step.status) ? step.color : (step.color + '2c')"
-              (click)="toggleStatusFilter(step.status)"
-              [title]="'Filtruj: ' + step.label">
-              <span class="flow-step__index">{{ step.num }}</span>
+              class="flow-step flow-step--cancelled"
+              [class.flow-step--selected]="isFilterActive('CANCELLED')"
+              [attr.aria-pressed]="isFilterActive('CANCELLED')"
+              [style.background-color]="isFilterActive('CANCELLED') ? cancelledFlowStepStyles.activeBackground : cancelledFlowStepStyles.idleBackground"
+              [style.border-color]="isFilterActive('CANCELLED') ? cancelledFlowStepStyles.color : cancelledFlowStepStyles.idleBorder"
+              (click)="toggleStatusFilter('CANCELLED')"
+              title="Filtruj: Anulowany">
+              <span class="flow-step__index">X</span>
               <span class="flow-step__content">
-                <span class="flow-step__label">{{ step.label }}</span>
-                <span class="flow-step__caption">{{ projectCountLabel(countByStatus(step.status)) }}</span>
+                <span class="flow-step__label">Anulowany</span>
+                <span class="flow-step__caption">{{ projectCountLabel(countByStatus('CANCELLED')) }}</span>
               </span>
-              <span class="flow-step__count">{{ countByStatus(step.status) }}</span>
+              <span class="flow-step__count">{{ countByStatus('CANCELLED') }}</span>
             </button>
-            <span *ngIf="!last" class="flow-step__connector" aria-hidden="true"></span>
-          </ng-container>
+          </div>
 
-          <button
-            type="button"
-            class="flow-step flow-step--cancelled"
-            [class.flow-step--selected]="isFilterActive('CANCELLED')"
-            [attr.aria-pressed]="isFilterActive('CANCELLED')"
-            [style.background-color]="isFilterActive('CANCELLED') ? cancelledFlowStepStyles.activeBackground : cancelledFlowStepStyles.idleBackground"
-            [style.border-color]="isFilterActive('CANCELLED') ? cancelledFlowStepStyles.color : cancelledFlowStepStyles.idleBorder"
-            (click)="toggleStatusFilter('CANCELLED')"
-            title="Filtruj: Anulowany">
-            <span class="flow-step__index">X</span>
-            <span class="flow-step__content">
-              <span class="flow-step__label">Anulowany</span>
-              <span class="flow-step__caption">{{ projectCountLabel(countByStatus('CANCELLED')) }}</span>
-            </span>
-            <span class="flow-step__count">{{ countByStatus('CANCELLED') }}</span>
-          </button>
+          <div class="flow-notes">
+            <span class="flow-note">Oferta wyslana -> Szkic</span>
+            <span class="flow-note">W produkcji -> Zakonczony</span>
+            <span class="flow-note">Anulowany -> Szkic</span>
+          </div>
         </div>
+      </aside>
 
-        <div class="flow-notes">
-          <span class="flow-note">Oferta wyslana -> Szkic</span>
-          <span class="flow-note">W produkcji -> Zakonczony</span>
-          <span class="flow-note">Anulowany -> Szkic</span>
-        </div>
-      </div>
-    </aside>
+      <section class="projects-panel projects-panel--list">
+        <header class="projects-panel__header">
+          <div>
+            <p class="projects-panel__eyebrow">Lista</p>
+            <h2>Moje projekty</h2>
+          </div>
+          <span class="projects-panel__meta">{{ visibleProjectsCountLabel }}</span>
+        </header>
 
-    <section class="projects-panel">
-      <header class="projects-panel__header">
-        <div>
-          <p class="projects-panel__eyebrow">Lista</p>
-          <h2>Moje projekty</h2>
-        </div>
-        <span class="projects-panel__meta">{{ visibleProjectsCountLabel }}</span>
-      </header>
-
-      <div class="projects-panel__body">
+        <div class="projects-panel__body">
         <div *ngIf="projects.length > 0" class="settings-toolbar settings-toolbar--filters projects-toolbar">
           <div class="projects-toolbar__summary">
             <span class="settings-toolbar-label">Widok</span>
@@ -252,7 +248,8 @@
             </div>
           </article>
         </div>
-      </div>
-    </section>
+        </div>
+      </section>
+    </div>
   </div>
 </section>

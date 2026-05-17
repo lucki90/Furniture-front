@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule, NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 export interface PriceSaveEvent {
   id: number;
@@ -60,7 +61,7 @@ export interface BulkSaveEvent {
   templateUrl: './price-edit-table.component.html',
   styleUrls: ['./price-edit-table.component.css'],
   standalone: true,
-  imports: [CommonModule, NgTemplateOutlet, FormsModule],
+  imports: [CommonModule, NgTemplateOutlet, FormsModule, MatIconModule],
 })
 export class PriceEditTableComponent implements OnChanges {
 

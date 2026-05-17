@@ -26,6 +26,10 @@ import { PriceImportResultResponse } from '../../model/price-entry.model';
   ]
 })
 export class PriceImportDialogComponent {
+  // TODO(CODEX): Import cen ma juz czystszy wording i shell dialogu, ale sam flow nadal jest
+  // mocno lokalny: walidacja rozszerzen, progress i komunikaty bledow zyja tylko tutaj.
+  // Przy dalszym porzadkowaniu admin/price warto ujednolicic to z globalnym feedbackiem / upload
+  // patterns, zeby ten ekran nie odstawal zachowaniem od nowszych modulow.
 
   selectedFile: File | null = null;
   importing = false;
@@ -44,12 +48,11 @@ export class PriceImportDialogComponent {
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
 
-      // Walidacja typu pliku
       const validExtensions = ['.csv', '.xlsx', '.xls'];
       const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
 
       if (!validExtensions.includes(extension)) {
-        this.error = 'Nieobsługiwany format pliku. Dozwolone: CSV, XLSX, XLS';
+        this.error = 'Nieobslugiwany format pliku. Dozwolone: CSV, XLSX, XLS';
         this.selectedFile = null;
         return;
       }
@@ -75,7 +78,7 @@ export class PriceImportDialogComponent {
       const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
 
       if (!validExtensions.includes(extension)) {
-        this.error = 'Nieobsługiwany format pliku. Dozwolone: CSV, XLSX, XLS';
+        this.error = 'Nieobslugiwany format pliku. Dozwolone: CSV, XLSX, XLS';
         this.selectedFile = null;
         return;
       }
@@ -99,7 +102,7 @@ export class PriceImportDialogComponent {
       },
       error: (err) => {
         this.importing = false;
-        this.error = err.error?.message || 'Błąd podczas importu pliku';
+        this.error = err.error?.message || 'Blad podczas importu pliku';
         console.error('Import error:', err);
       }
     });
@@ -107,6 +110,12 @@ export class PriceImportDialogComponent {
 
   onClose(): void {
     this.dialogRef.close(this.importResult !== null && this.importResult.successfulImports > 0);
+  }
+
+  clearSelectedFile(fileInput: HTMLInputElement): void {
+    this.selectedFile = null;
+    fileInput.value = '';
+    this.error = null;
   }
 
   formatFileSize(bytes: number): string {
@@ -117,8 +126,8 @@ export class PriceImportDialogComponent {
 
   get hasErrors(): boolean {
     return this.importResult !== null &&
-           this.importResult.errors !== null &&
-           this.importResult.errors.length > 0;
+      this.importResult.errors !== null &&
+      this.importResult.errors.length > 0;
   }
 
   get successRate(): number {
