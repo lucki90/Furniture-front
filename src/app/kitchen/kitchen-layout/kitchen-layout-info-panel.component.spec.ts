@@ -51,7 +51,7 @@ describe('KitchenLayoutInfoPanelComponent', () => {
 
     expect(labels).toContain('Dolna');
     expect(labels).toContain('Blat');
-    expect(labels).toContain('h/d = różnica wys./głęb.');
+    expect(labels).toContain('h/d = roznica wys./gleb.');
     expect(fixture.nativeElement.querySelector('.fit-bar')).toBeNull();
   });
 });
