@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, effect, inject, computed, Input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Output, effect, inject, computed, Input, signal } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { getCabinetZone } from '../model/kitchen-state.model';
@@ -685,6 +685,22 @@ export class KitchenLayoutComponent {
   readonly gapDimensionLine = computed(() => {
     return this.layoutMetrics().gapDimensionLine;
   });
+
+  /**
+   * Skrót Delete — usuwa zaznaczoną szafkę z widoku frontu.
+   * Ignorowany gdy focus jest w polu tekstowym / select.
+   */
+  @HostListener('document:keydown.delete', ['$event'])
+  onDeleteKey(event: KeyboardEvent): void {
+    const tag = (event.target as HTMLElement)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+    const selectedId = this.selectedFrontCabinetId();
+    if (!selectedId) return;
+
+    event.preventDefault();
+    this.onContextRemoveCabinet(selectedId);
+  }
 
   /** Używane dla elementów SVG bez unikalnego ID (fronty, uchwyty, nóżki, markery spoin) */
   protected onFrontCabinetSelected(cabinetId: string): void {

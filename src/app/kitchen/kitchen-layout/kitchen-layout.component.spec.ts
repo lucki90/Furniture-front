@@ -66,6 +66,51 @@ describe('KitchenLayoutComponent', () => {
     expect(root.textContent).toContain('Razem sciana');
   });
 
+  describe('Delete shortcut', () => {
+    function dispatchDelete(target: EventTarget = document.body): void {
+      const event = new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'target', { value: target });
+      document.dispatchEvent(event);
+    }
+
+    it('emits removeCabinet and clears selection when a cabinet is selected', () => {
+      const removed: string[] = [];
+      component.removeCabinet.subscribe((id: string) => removed.push(id));
+
+      // zaznacz szafkę
+      (component as any).selectedFrontCabinetId.set('base-1');
+
+      dispatchDelete();
+
+      expect(removed).toEqual(['base-1']);
+      expect(component.selectedFrontCabinetId()).toBeNull();
+    });
+
+    it('does nothing when no cabinet is selected', () => {
+      const removed: string[] = [];
+      component.removeCabinet.subscribe((id: string) => removed.push(id));
+
+      (component as any).selectedFrontCabinetId.set(null);
+      dispatchDelete();
+
+      expect(removed).toEqual([]);
+    });
+
+    it('does nothing when focus is inside an INPUT', () => {
+      const removed: string[] = [];
+      component.removeCabinet.subscribe((id: string) => removed.push(id));
+
+      (component as any).selectedFrontCabinetId.set('base-1');
+
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      dispatchDelete(input);
+      document.body.removeChild(input);
+
+      expect(removed).toEqual([]);
+    });
+  });
+
 });
 
 class KitchenStateServiceStub {

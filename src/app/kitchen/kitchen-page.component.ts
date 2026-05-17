@@ -224,8 +224,9 @@ export class KitchenPageComponent {
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
     if (!event.ctrlKey && !event.metaKey) return;
-    if ((event.target as HTMLElement)?.tagName === 'INPUT' ||
-        (event.target as HTMLElement)?.tagName === 'TEXTAREA') return;
+    const tag = (event.target as HTMLElement)?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
     if (event.key === 'z' || event.key === 'Z') {
       if (event.shiftKey) {
         event.preventDefault();
@@ -237,6 +238,11 @@ export class KitchenPageComponent {
     } else if (event.key === 'y' || event.key === 'Y') {
       event.preventDefault();
       this.redo();
+    } else if (event.key === 's' || event.key === 'S') {
+      event.preventDefault();
+      if (!this.isSavingProject) {
+        this.onSaveProject();
+      }
     }
   }
 
