@@ -1,0 +1,69 @@
+# =============================================================
+# .dockerignore — wycina śmieci hosta z kontekstu builda Dockera
+# Krytyczne dla frontendu: node_modules to setki MB i NIE może
+# zostać przeniesione z hosta do kontenera (architektura/binarki).
+# =============================================================
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+.npm/
+.yarn/
+
+# Angular build artifacts
+dist/
+.angular/
+.sass-cache/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+.project
+.classpath
+.settings/
+*.sublime-workspace
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Logi
+*.log
+testem.log
+libpeerconnection.log
+
+# Pliki tymczasowe
+.DS_Store
+Thumbs.db
+*.swp
+*.bak
+
+# Inne build outputy
+/tmp/
+/out-tsc/
+/bazel-out/
+/connect.lock
+/typings/
+
+# Dokumentacja (nie potrzebna w obrazie produkcyjnym)
+README.md
+CHANGELOG.md
+docs/
+
+# Dockerfile sam w sobie (już użyty)
+Dockerfile
+.dockerignore
