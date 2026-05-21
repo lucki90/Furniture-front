@@ -14,6 +14,7 @@
 /* ─── TopNav ──────────────────────────────────────────────────────────────── */
 .topnav {
   height: 46px;
+  --topnav-control-height: 32px;
   background: var(--primary-color);
   display: flex;
   align-items: center;
@@ -28,35 +29,30 @@
 .topnav-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
   margin-right: 20px;
   text-decoration: none;
   cursor: pointer;
 }
 
 .topnav-logo {
-  width: 26px;
-  height: 26px;
-  background: var(--accent-color);
-  border-radius: 6px;
+  width: 128px;
+  height: var(--topnav-control-height);
+  padding: 0;
+  background: #fbf6f2;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.topnav-logo mat-icon {
-  width: 14px;
-  height: 14px;
-  font-size: 14px;
-  color: #fff;
-}
-
-.topnav-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: -0.3px;
-  white-space: nowrap;
+.topnav-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 /* Nav links */
@@ -109,7 +105,6 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  --topnav-control-height: 32px;
 }
 
 .topnav-lang {
@@ -233,10 +228,10 @@
   .topnav {
     padding: 0 10px;
   }
-  .topnav-title {
-    display: none;
-  }
   .topnav-brand {
     margin-right: 12px;
+  }
+  .topnav-logo {
+    width: 112px;
   }
 }

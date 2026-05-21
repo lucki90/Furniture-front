@@ -13,7 +13,7 @@ import { AuthService } from './core/auth/auth.service';
   standalone: false
 })
 export class AppComponent implements OnInit {
-  title = 'furniture-front';
+  title = 'Furnitio';
   sidebarCollapsed = false;
 
   constructor(

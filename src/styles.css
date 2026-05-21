@@ -3,7 +3,7 @@
    ============================================ */
 
 :root {
-  /* Kolory główne — paleta FurniturePro (Claude Design 2026-05) */
+  /* Kolory główne — paleta Furnitio (Claude Design 2026-05) */
   --primary-color: #1a2838;          /* Ciemny granat (navbar) */
   --primary-light: #2a3c52;
   --primary-dark: #0f1825;
@@ -1460,6 +1460,31 @@ mat-sidenav-content {
   gap: 22px;
 }
 
+.auth-card-brand {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 2px 0 0;
+}
+
+.auth-brand-logo {
+  width: min(100%, 164px);
+  height: auto;
+  display: block;
+}
+
+.auth-card--login .auth-card-brand {
+  padding-top: 0;
+}
+
+.auth-card--login .auth-brand-logo {
+  width: min(100%, 138px);
+}
+
+.auth-card-brand--compact .auth-brand-logo {
+  width: min(100%, 88px);
+}
+
 .auth-showcase-badge {
   width: fit-content;
   display: inline-flex;
@@ -1638,6 +1663,10 @@ mat-sidenav-content {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.auth-card--login {
+  min-height: max(calc(100vh - var(--topnav-height, 46px) - 40px), 820px);
 }
 
 .auth-header {
