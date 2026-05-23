@@ -70,6 +70,10 @@ export interface CabinetFormVisibility {
   cargoWidthSelect: boolean;
   pantryPassageFrontType: boolean;
 
+  // BASE_WITH_DRAWERS — drawer layout selector (Równe / 1 niska + N wysokich / Custom)
+  drawerLayoutType: boolean;
+  drawerCustomHeights: boolean;
+
   // Upper one/two door options
   liftUp: boolean;
   extendedFront: boolean;

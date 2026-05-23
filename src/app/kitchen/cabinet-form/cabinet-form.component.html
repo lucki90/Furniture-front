@@ -199,6 +199,32 @@
           <option *ngFor="let opt of drawerModels(); trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
+      <!-- BASE_WITH_DRAWERS — wybor ukladu frontow szuflad -->
+      <div class="form-group" *ngIf="visibility.drawerLayoutType">
+        <label class="form-label">Uklad szuflad</label>
+        <select class="form-control" formControlName="drawerLayoutType">
+          <option value="EQUAL">Rowne wysokosci</option>
+          <option value="MIXED_LOW_TOP">1 niska + N wysokich (wg ksiazki)</option>
+          <option value="CUSTOM">Wlasne wysokosci</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- BASE_WITH_DRAWERS — CUSTOM: pola wysokosci frontow per szuflada -->
+    <div class="form-row" *ngIf="visibility.drawerCustomHeights">
+      <div class="form-group" style="flex-direction: column; align-items: stretch;">
+        <label class="form-label">Wysokosci frontow per szuflada (mm)</label>
+        <ng-container formArrayName="drawerCustomHeightsMm">
+          <div *ngFor="let _ of drawerCustomHeightsArray.controls; let i = index; trackBy: trackByIndex"
+               style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+            <span style="min-width: 90px;">Szuflada {{ i + 1 }}:</span>
+            <input type="number" class="form-control" [formControlName]="i" placeholder="np. 141">
+          </div>
+        </ng-container>
+        <span class="form-error" *ngIf="customHeightsTotalWarning">
+          {{ customHeightsTotalWarning }}
+        </span>
+      </div>
     </div>
 
   </ng-container>

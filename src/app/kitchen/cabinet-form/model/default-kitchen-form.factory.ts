@@ -15,6 +15,9 @@ export class DefaultKitchenFormFactory {
       shelfQuantity: null,
       drawerQuantity: null,
       drawerModel: null,
+      // BASE_WITH_DRAWERS — układ frontów szuflad (książka Wasiak v.2.3 str. 40, 43, 166)
+      drawerLayoutType: ['EQUAL'],
+      drawerCustomHeightsMm: fb.array<number | null>([]),
       cargoVariant: ['MECHANISM'],
       cargoBrand: ['BLUM'],
       pantryPassageFrontType: ['TWO_DOORS'],

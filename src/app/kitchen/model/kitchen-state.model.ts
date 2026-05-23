@@ -170,10 +170,16 @@ export interface KCabinetCargo extends KitchenCabinetBase {
   drawerModel?: string;
 }
 
+/** Układ frontów szuflad dla BASE_WITH_DRAWERS (książka Wasiak v.2.3 str. 40, 43, 166). */
+export type DrawerLayoutType = 'EQUAL' | 'MIXED_LOW_TOP' | 'CUSTOM';
+
 export interface KCabinetWithDrawers extends KitchenCabinetBase {
   type: KitchenCabinetType.BASE_WITH_DRAWERS;
   drawerQuantity: number;
   drawerModel: string;
+  drawerLayoutType?: DrawerLayoutType;            // domyślnie EQUAL
+  /** Wysokości frontów per szuflada (mm) — tylko dla `drawerLayoutType=CUSTOM`. */
+  drawerCustomHeightsMm?: number[];
 }
 
 export interface KCabinetSink extends KitchenCabinetBase {
@@ -423,6 +429,10 @@ export interface CabinetFormData {
   shelfQuantity: number;
   drawerQuantity?: number;
   drawerModel?: string | null;
+  /** Układ frontów szuflad (BASE_WITH_DRAWERS): EQUAL | MIXED_LOW_TOP | CUSTOM. Domyślnie EQUAL. */
+  drawerLayoutType?: DrawerLayoutType;
+  /** Wysokości frontów per szuflada (mm) — tylko dla `drawerLayoutType=CUSTOM`. */
+  drawerCustomHeightsMm?: number[];
   cargoVariant?: CargoVariant;
   cargoBrand?: CargoBrand;
   segments?: SegmentFormData[];  // dla TALL_CABINET

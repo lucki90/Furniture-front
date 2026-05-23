@@ -330,6 +330,24 @@ export class CabinetFormComponent implements OnChanges {
         this.onTypeChange(nextType);
       });
 
+    // BASE_WITH_DRAWERS — synchronizacja FormArray wysokosci z drawerQuantity i drawerLayoutType
+    this.form.get('drawerLayoutType')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(layout => {
+        if (this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_WITH_DRAWERS) {
+          this.visibility = { ...this.visibility, drawerCustomHeights: layout === 'CUSTOM' };
+          this.syncDrawerCustomHeightsArray();
+        }
+      });
+    this.form.get('drawerQuantity')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_WITH_DRAWERS
+            && this.form.get('drawerLayoutType')?.value === 'CUSTOM') {
+          this.syncDrawerCustomHeightsArray();
+        }
+      });
+
     this.form.get('cargoVariant')!
       .valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -521,5 +539,43 @@ export class CabinetFormComponent implements OnChanges {
 
   protected trackByValue = (_: number, item: { value: string }) => item.value;
   protected trackByIndex = (index: number) => index;
+
+  /** FormArray z wysokosciami frontow per szuflada (CUSTOM layout). */
+  get drawerCustomHeightsArray(): FormArray {
+    return this.form.get('drawerCustomHeightsMm') as FormArray;
+  }
+
+  /**
+   * Synchronizuje rozmiar FormArray `drawerCustomHeightsMm` z aktualnym `drawerQuantity`.
+   * Wywolywane przy zmianie `drawerLayoutType` (na CUSTOM) lub `drawerQuantity`.
+   */
+  private syncDrawerCustomHeightsArray(): void {
+    const qty = Number(this.form.get('drawerQuantity')?.value) || 3;
+    const arr = this.drawerCustomHeightsArray;
+    while (arr.length < qty) arr.push(this.fb.control<number | null>(null));
+    while (arr.length > qty) arr.removeAt(arr.length - 1);
+  }
+
+  /**
+   * Ostrzezenie pod polami CUSTOM heights: gdy suma + szczeliny != wysokosc korpusu.
+   * Wzor (zalozenie defaults: spaceWreathFront=3, horizSpace=3):
+   *   suma_external = H - 2*3 - (qty-1)*3
+   */
+  get customHeightsTotalWarning(): string | null {
+    if (this.form.get('drawerLayoutType')?.value !== 'CUSTOM') return null;
+    const qty = Number(this.form.get('drawerQuantity')?.value) || 0;
+    const h = Number(this.form.get('height')?.value) || 0;
+    if (qty < 1 || h <= 0) return null;
+    const heights: number[] = (this.drawerCustomHeightsArray.value as Array<number | null>)
+      .map(v => Number(v) || 0);
+    if (heights.length !== qty || heights.some(v => v <= 0)) {
+      return `Wpisz ${qty} wysokosci (> 0) dla wszystkich szuflad.`;
+    }
+    const expectedSum = h - 2 * 3 - (qty - 1) * 3;
+    const actualSum = heights.reduce((a, b) => a + b, 0);
+    const diff = expectedSum - actualSum;
+    if (Math.abs(diff) <= 1) return null;
+    return `Suma wysokosci (${actualSum}mm) + szczeliny powinna dac wysokosc korpusu ${h}mm. Pozostalo do rozdysponowania: ${diff}mm.`;
+  }
 }
 

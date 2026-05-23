@@ -27,6 +27,11 @@ export class BaseWithDrawersCabinetPreparer implements KitchenCabinetPreparer {
     v.bottomWreathOnFloor = true;
     v.blockUpperAbove = true;
 
+    // Pokaż selektor układu szuflad (EQUAL / MIXED_LOW_TOP / CUSTOM)
+    v.drawerLayoutType = true;
+    const currentLayout = form.get('drawerLayoutType')?.value ?? 'EQUAL';
+    v.drawerCustomHeights = currentLayout === 'CUSTOM';
+
     // wartości domyślne dla szafki z szufladami
     form.patchValue({
       width: 450,
@@ -34,12 +39,14 @@ export class BaseWithDrawersCabinetPreparer implements KitchenCabinetPreparer {
       depth: 500,
       shelfQuantity: 0,
       drawerQuantity: 3,
-      drawerModel: 'ANTARO_TANDEMBOX'
+      drawerModel: 'ANTARO_TANDEMBOX',
+      drawerLayoutType: currentLayout
     });
 
     // możliwość edycji
     setControlEnabled(form.get('drawerQuantity'), v.drawerQuantity);
     setControlEnabled(form.get('shelfQuantity'), v.shelfQuantity);
     setControlEnabled(form.get('drawerModel'), v.drawerModel);
+    setControlEnabled(form.get('drawerLayoutType'), v.drawerLayoutType);
   }
 }

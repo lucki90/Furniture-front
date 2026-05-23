@@ -26,13 +26,24 @@ export class BaseWithDrawersRequestMapper extends AbstractCabinetRequestMapper {
       cabinetType: 'STANDARD',
       openingType: form.openingType ?? 'HANDLE',
 
+      drawerLayoutType: form.drawerLayoutType ?? 'EQUAL',
       drawerRequest: {
         drawerQuantity: form.drawerQuantity ?? 3,
         drawerModel: form.drawerModel ?? 'ANTARO_TANDEMBOX',
         drawerBaseHdf: false,
-        drawerFrontDetails: null // równe wysokości szuflad
+        // CUSTOM: wysokości od użytkownika → DrawerFrontDetail[]; EQUAL/MIXED_LOW_TOP → null (strategy sama liczy)
+        drawerFrontDetails: this.buildDrawerFrontDetails(form)
       },
       materialRequest: this.buildMaterialRequest(materialDefaults)
     };
+  }
+
+  private buildDrawerFrontDetails(form: any): Array<{ height: number }> | null {
+    if (form.drawerLayoutType !== 'CUSTOM') return null;
+    const heights: Array<number | undefined> = form.drawerCustomHeightsMm ?? [];
+    if (!Array.isArray(heights) || heights.length === 0) return null;
+    return heights
+      .filter((h): h is number => typeof h === 'number' && h > 0)
+      .map(h => ({ height: h }));
   }
 }

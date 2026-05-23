@@ -47,8 +47,9 @@ export const KitchenCabinetConstraints = {
     SHELF_MAX: 0
   },
   BASE_WITH_DRAWERS: {
+    // Książka Wasiak v.2.3 str. 43: sugerowane 300–1200mm dla szafki z szufladami
     WIDTH_MIN: 300,
-    WIDTH_MAX: 600,
+    WIDTH_MAX: 1200,
     HEIGHT_MIN: 680,
     HEIGHT_MAX: 760,
     DEPTH_MIN: 500,
