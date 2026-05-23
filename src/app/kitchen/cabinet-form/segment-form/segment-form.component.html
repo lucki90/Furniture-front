@@ -34,6 +34,23 @@
       </div>
     </ng-container>
 
+    <!-- Typ wneki piekarnika (tylko OVEN) -->
+    <ng-container *ngIf="isOvenSegment">
+      <div class="form-group">
+        <label class="form-label">Typ wneki piekarnika</label>
+        <select class="form-control" formControlName="ovenHeightType">
+          <option *ngFor="let opt of ovenHeightTypeOptions; trackBy: trackByValue" [value]="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
+      </div>
+      <!-- Komunikat ostrzegawczy: szerokosc slupka odbiega od standardowych szerokosci piekarnikow -->
+      <div class="form-hint" *ngIf="ovenCabinetWidthWarning"
+           style="margin-top: 4px; color: #b85c00; font-size: 0.85em;">
+        <strong>Uwaga:</strong> {{ ovenCabinetWidthWarning }}
+      </div>
+    </ng-container>
+
     <!-- Opcje dla szuflad (DRAWER) -->
     <ng-container *ngIf="showDrawerOptions">
       <div class="form-group">

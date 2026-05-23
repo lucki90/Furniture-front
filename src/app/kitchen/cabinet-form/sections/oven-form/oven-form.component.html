@@ -1,6 +1,12 @@
 <div class="sink-section" [formGroup]="form">
   <app-cabinet-section-header title="Konfiguracja szafki na piekarnik"></app-cabinet-section-header>
 
+  <!-- Komunikat ostrzegawczy: szerokosc szafki nie pasuje do standardowych piekarnikow (600/700mm) -->
+  <div class="form-hint" *ngIf="ovenCabinetWidthWarning"
+       style="margin: 4px 0 12px; padding: 8px 12px; background: #fff4e0; border-left: 3px solid #b85c00; color: #6a3700; font-size: 0.9em;">
+    <strong>Uwaga:</strong> {{ ovenCabinetWidthWarning }}
+  </div>
+
   <!-- Typ wysokości piekarnika + sekcja dolna -->
   <div class="form-row">
     <div class="form-group flex-2">
@@ -8,7 +14,7 @@
       <select class="form-control" formControlName="ovenHeightType">
         <option *ngFor="let o of dictionaryService.data().ovenHeightTypes; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
       </select>
-      <span class="form-hint">Standardowy AGD: 595 mm; kompaktowy: 455 mm</span>
+      <span class="form-hint">Standardowy AGD: 600 mm; kompaktowy: 455 mm</span>
     </div>
     <div class="form-group flex-2">
       <label class="form-label">Sekcja dolna</label>

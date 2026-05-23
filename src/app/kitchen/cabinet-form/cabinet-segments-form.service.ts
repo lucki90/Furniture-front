@@ -15,7 +15,9 @@ export class CabinetSegmentsFormService {
       drawerQuantity: [null],
       drawerModel: [null],
       shelfQuantity: [0],
-      frontType: ['ONE_DOOR']
+      frontType: ['ONE_DOOR'],
+      // Dla OVEN: typ wnęki piekarnika (STANDARD/COMPACT). null gdy segment nie jest OVEN.
+      ovenHeightType: [null]
     });
   }
 
@@ -50,7 +52,8 @@ export class CabinetSegmentsFormService {
       drawerQuantity: [segment.drawerQuantity ?? null],
       drawerModel: [segment.drawerModel ?? null],
       shelfQuantity: [segment.shelfQuantity ?? null],
-      frontType: [segment.frontType ?? null]
+      frontType: [segment.frontType ?? null],
+      ovenHeightType: [segment.ovenHeightType ?? null]
     });
   }
 

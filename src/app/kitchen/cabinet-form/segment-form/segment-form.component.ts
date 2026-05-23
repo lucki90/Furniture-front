@@ -6,7 +6,9 @@ import {
   SegmentType,
   SEGMENT_TYPE_OPTIONS,
   DOOR_FRONT_TYPE_OPTIONS,
-  SegmentFrontType
+  SegmentFrontType,
+  OVEN_SLOT_HEIGHT_MM,
+  OvenSegmentHeightType
 } from '../model/segment.model';
 import { KitchenCabinetConstraints } from '../model/kitchen-cabinet-constants';
 import { FormFieldComponent } from '../../../shared/form-field/form-field.component';
@@ -80,6 +82,31 @@ export class SegmentFormComponent implements OnInit {
     return this.isOvenSegment || this.isMicrowaveSegment;
   }
 
+  /** Opcje typu wnęki piekarnika (dla OVEN). */
+  readonly ovenHeightTypeOptions: { value: OvenSegmentHeightType; label: string; slotMm: number }[] = [
+    { value: 'STANDARD', label: 'Standardowy (wneka 600mm)', slotMm: OVEN_SLOT_HEIGHT_MM.STANDARD },
+    { value: 'COMPACT', label: 'Kompaktowy (wneka 455mm)', slotMm: OVEN_SLOT_HEIGHT_MM.COMPACT }
+  ];
+
+  /**
+   * Komunikat ostrzegawczy dot. szerokosci szafki slupkowej dla segmentu OVEN.
+   * Bazuje na wartosci kontrolki 'width' z PARENT formularza (przekazywanej przez @Input).
+   * Zwraca null gdy szerokosc jest standardowa (600/700mm) lub gdy segment nie jest OVEN.
+   */
+  @Input() cabinetWidthMm: number | null = null;
+
+  readonly suggestedOvenCabinetWidthsMm: readonly number[] = [600, 700];
+
+  get ovenCabinetWidthWarning(): string | null {
+    if (!this.isOvenSegment) return null;
+    const w = this.cabinetWidthMm;
+    if (w == null) return null;
+    if (this.suggestedOvenCabinetWidthsMm.includes(w)) return null;
+    return `Szerokosc slupka ${w}mm odbiega od standardowych szerokosci piekarnikow `
+      + `(${this.suggestedOvenCabinetWidthsMm.join('mm lub ')}mm). `
+      + `Sprawdz wymiar piekarnika ktory ma sie zmiescic w slupku.`;
+  }
+
   get showShelfQuantity(): boolean {
     return this.isDoorSegment || this.isOpenShelfSegment;
   }
@@ -125,13 +152,25 @@ export class SegmentFormComponent implements OnInit {
         break;
 
       case SegmentType.OVEN:
-      case SegmentType.MICROWAVE:
-        // Wnęka AGD — bez szuflad, bez półek, bez frontu
+        // Wnęka piekarnika — bez szuflad, bez półek, bez frontu
         this.segmentForm.patchValue({
           drawerQuantity: null,
           drawerModel: null,
           shelfQuantity: 0,
-          frontType: 'OPEN'
+          frontType: 'OPEN',
+          // Domyślny typ wnęki — STANDARD (jeśli nie ustawiony)
+          ovenHeightType: this.segmentForm.get('ovenHeightType')?.value ?? 'STANDARD'
+        });
+        break;
+
+      case SegmentType.MICROWAVE:
+        // Wnęka mikrofalówki — bez szuflad, bez półek, bez frontu, bez typu wnęki
+        this.segmentForm.patchValue({
+          drawerQuantity: null,
+          drawerModel: null,
+          shelfQuantity: 0,
+          frontType: 'OPEN',
+          ovenHeightType: null
         });
         break;
     }

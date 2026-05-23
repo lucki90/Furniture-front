@@ -23,6 +23,20 @@ export enum SegmentFrontType {
 }
 
 /**
+ * Typ wnęki piekarnika dla segmentu OVEN (analogicznie do BASE_OVEN).
+ * STANDARD = 600mm wnęka (typowy piekarnik), COMPACT = 455mm (kompaktowy).
+ */
+export type OvenSegmentHeightType = 'STANDARD' | 'COMPACT';
+
+/**
+ * Wnęka piekarnika w mm dla danego typu.
+ */
+export const OVEN_SLOT_HEIGHT_MM: Record<OvenSegmentHeightType, number> = {
+  STANDARD: 600,
+  COMPACT: 455
+};
+
+/**
  * Dane segmentu w formularzu.
  */
 export interface SegmentFormData {
@@ -35,6 +49,8 @@ export interface SegmentFormData {
   // Dla DOOR i OPEN_SHELF
   shelfQuantity?: number;
   frontType?: SegmentFrontType;
+  // Dla OVEN: typ wnęki piekarnika — gdy ustawiony, walidator wymusza minimalną wysokość segmentu
+  ovenHeightType?: OvenSegmentHeightType | null;
 }
 
 /**
@@ -52,6 +68,7 @@ export interface SegmentRequest {
   } | null;
   shelfQuantity?: number | null;
   frontType?: string | null;
+  ovenHeightType?: OvenSegmentHeightType | null;
 }
 
 /**
@@ -120,8 +137,15 @@ export function mapSegmentToRequest(segment: SegmentFormData): SegmentRequest {
       break;
 
     case SegmentType.OVEN:
+      // Wnęka piekarnika — bez frontu, bez półek; propaguj ovenHeightType (STANDARD/COMPACT/null)
+      request.frontType = 'OPEN';
+      request.shelfQuantity = 0;
+      request.drawerRequest = null;
+      request.ovenHeightType = segment.ovenHeightType ?? null;
+      break;
+
     case SegmentType.MICROWAVE:
-      // Wnęki AGD — bez frontu, bez półek (sprzęt zajmuje całą wnękę)
+      // Wnęka mikrofalówki — bez frontu, bez półek, bez ovenHeightType
       request.frontType = 'OPEN';
       request.shelfQuantity = 0;
       request.drawerRequest = null;

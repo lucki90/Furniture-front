@@ -49,6 +49,7 @@
       [segmentForm]="selectedSegmentForm"
       [segmentIndex]="selectedSegmentIndex"
       [segmentTypeOptions]="activeSegmentTypeOptions"
+      [cabinetWidthMm]="form.get('width')?.value ?? null"
       (remove)="removeSelectedSegment.emit()">
     </app-segment-form>
     <div class="segment-popup-footer">

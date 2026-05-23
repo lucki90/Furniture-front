@@ -26,7 +26,8 @@ describe('CabinetSegmentsFormService', () => {
       drawerQuantity: null,
       drawerModel: null,
       shelfQuantity: 0,
-      frontType: 'ONE_DOOR'
+      frontType: 'ONE_DOOR',
+      ovenHeightType: null
     });
   });
 

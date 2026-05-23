@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DictionaryService } from '../../../service/dictionary.service';
 import { SectionHeaderComponent } from '../../shared/section-header.component';
+import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
 
 /**
  * Sekcja konfiguracji szafki na wbudowany piekarnik (BASE_OVEN).
@@ -50,6 +51,22 @@ export class OvenFormComponent implements OnInit {
   /** Czy blenda dekoracyjna nad piekarnikiem jest włączona. */
   get isOvenApronEnabled(): boolean {
     return this.form.get('ovenApronEnabled')?.value === true;
+  }
+
+  /** Sugerowane szerokości szafki na piekarnik wg kitchen-cabinet-constants (BASE_OVEN.SUGGESTED_WIDTHS_MM). */
+  readonly suggestedOvenWidthsMm: readonly number[] = KitchenCabinetConstraints.BASE_OVEN.SUGGESTED_WIDTHS_MM;
+
+  /**
+   * Komunikat ostrzegawczy gdy szerokość szafki na piekarnik odbiega od standardowych 600/700mm.
+   * Zwraca null gdy szerokość pasuje (lub gdy pole jest puste).
+   */
+  get ovenCabinetWidthWarning(): string | null {
+    const w = Number(this.form.get('width')?.value);
+    if (!w || isNaN(w)) return null;
+    if (this.suggestedOvenWidthsMm.includes(w)) return null;
+    return `Szerokosc szafki ${w}mm odbiega od standardowych szerokosci piekarnikow `
+      + `(${this.suggestedOvenWidthsMm.join('mm lub ')}mm). `
+      + `Sprawdz wymiar piekarnika ktory ma sie zmiescic w szafce.`;
   }
 
   private onOvenLowerSectionTypeChange(sectionType: string): void {

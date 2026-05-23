@@ -178,8 +178,15 @@ export const KitchenCabinetConstraints = {
     HOOD_SCREEN_MAX: 200
   },
   BASE_OVEN: {
-    WIDTH_MIN: 500,
-    WIDTH_MAX: 900,
+    // Realne wymiary piekarników wbudowanych: standardowe 600mm, szersze 700mm.
+    // Książka Wasiak v.2.3 str. 44: sugerowana szerokość 600mm (stała); zakres 590–710 obejmuje obie klasy.
+    WIDTH_MIN: 590,
+    WIDTH_MAX: 710,
+    /**
+     * Sugerowane szerokości szafki na piekarnik dopasowane do typowych wymiarów piekarników wbudowanych.
+     * Używane do wyświetlania ostrzeżenia w UI gdy użytkownik wpisuje wartość spoza tej listy.
+     */
+    SUGGESTED_WIDTHS_MM: [600, 700] as readonly number[],
     HEIGHT_MIN: 600,
     HEIGHT_MAX: 950,
     DEPTH_MIN: 550,
