@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
 import { getFormError } from '../../../../shared/form-error.util';
 import { DictionaryService } from '../../../service/dictionary.service';
 import { SectionHeaderComponent } from '../../shared/section-header.component';
+import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
 
 /**
  * Sekcja konfiguracji szafki zlewowej (BASE_SINK).
@@ -72,6 +73,32 @@ export class SinkFormComponent implements OnInit {
     this.showSinkDrawerModel = isDrawer;
     const ctrl = this.form.get('sinkDrawerModel');
     if (ctrl) isDrawer ? ctrl.enable() : ctrl.disable();
+
+    // Re-apply width validators — zakres szerokości zależy od front-type (książka str. 41)
+    this.refreshWidthValidators(frontType);
+  }
+
+  /**
+   * Aktualizuje Validators pola `width` zgodnie z wybranym sinkFrontType.
+   * Zakresy z `KitchenCabinetConstraints.BASE_SINK` (książka Wasiak v.2.3 str. 41).
+   */
+  private refreshWidthValidators(sinkFrontType: string | null | undefined): void {
+    const c = KitchenCabinetConstraints.BASE_SINK;
+    let min: number;
+    let max: number;
+    switch (sinkFrontType) {
+      case 'ONE_DOOR':
+        min = c.WIDTH_ONE_DOOR_MIN; max = c.WIDTH_ONE_DOOR_MAX; break;
+      case 'TWO_DOORS':
+        min = c.WIDTH_TWO_DOORS_MIN; max = c.WIDTH_TWO_DOORS_MAX; break;
+      case 'DRAWER':
+        min = c.WIDTH_DRAWER_MIN; max = c.WIDTH_DRAWER_MAX; break;
+      default:
+        min = c.WIDTH_MIN; max = c.WIDTH_MAX;
+    }
+    const widthCtrl = this.form.get('width');
+    widthCtrl?.setValidators([Validators.required, Validators.min(min), Validators.max(max)]);
+    widthCtrl?.updateValueAndValidity();
   }
 
   private onSinkApronEnabledChange(enabled: boolean): void {

@@ -5,7 +5,8 @@
 // TODO(CODEX): Te constraints wyglądają jak twarda wiedza produktowa i reguły oferty, a nie tylko walidacja UI. Front może je dublować dla wygody formularza, ale źródło prawdy powinno być po stronie backendu albo w konfigurowalnym kontrakcie API. Inaczej bardzo łatwo o sytuację, w której frontend pozwala albo blokuje inne wymiary niż te, które backend realnie kalkuluje.
 export const KitchenCabinetConstraints = {
   BASE_ONE_DOOR: {
-    WIDTH_MIN: 200,
+    // Książka Wasiak v.2.3 str. 40: sugerowane 300–600mm dla szafki 1-frontowej
+    WIDTH_MIN: 300,
     WIDTH_MAX: 600,
     HEIGHT_MIN: 680,
     HEIGHT_MAX: 760,
@@ -15,8 +16,9 @@ export const KitchenCabinetConstraints = {
     SHELF_MAX: 4
   },
   BASE_TWO_DOOR: {
-    WIDTH_MIN: 400,
-    WIDTH_MAX: 900,
+    // Książka Wasiak v.2.3 str. 40: sugerowane 600–1200mm dla szafki 2-frontowej
+    WIDTH_MIN: 600,
+    WIDTH_MAX: 1200,
     HEIGHT_MIN: 680,
     HEIGHT_MAX: 760,
     DEPTH_MIN: 500,
@@ -65,12 +67,23 @@ export const KitchenCabinetConstraints = {
     DRAWER_MAX: 3
   },
   BASE_SINK: {
-    WIDTH_MIN: 400,
-    WIDTH_MAX: 1200,
-    HEIGHT_MIN: 600,
-    HEIGHT_MAX: 900,
-    DEPTH_MIN: 400,
-    DEPTH_MAX: 700,
+    // Książka Wasiak v.2.3 str. 41: H ~720mm (korpus), G 510mm; szerokość per front-type:
+    //   ONE_DOOR  450–600mm
+    //   TWO_DOORS 600–1000mm
+    //   DRAWER    450–900mm (limit szuflady Blum Antaro pod zlewem)
+    WIDTH_ONE_DOOR_MIN: 450,
+    WIDTH_ONE_DOOR_MAX: 600,
+    WIDTH_TWO_DOORS_MIN: 600,
+    WIDTH_TWO_DOORS_MAX: 1000,
+    WIDTH_DRAWER_MIN: 450,
+    WIDTH_DRAWER_MAX: 900,
+    // Fallback gdy sinkFrontType nieznany — najszerszy union (450–1000)
+    WIDTH_MIN: 450,
+    WIDTH_MAX: 1000,
+    HEIGHT_MIN: 680,
+    HEIGHT_MAX: 760,
+    DEPTH_MIN: 500,
+    DEPTH_MAX: 620,
     APRON_MIN: 80,
     APRON_MAX: 200
   },

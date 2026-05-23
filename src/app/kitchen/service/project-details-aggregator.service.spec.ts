@@ -196,6 +196,115 @@ describe('ProjectDetailsAggregatorService', () => {
     ]);
   });
 
+  it('should add BASE_SINK-specific remarks to FRONT (hinge 150mm) and TOP_WREATH (3mm setback)', () => {
+    // Książka Wasiak v.2.3 str. 41:
+    // - Górny zawias szafki pod zlew: 150mm od góry (zamiast standardowych ~100mm) — żeby ominąć pasek przedni
+    // - Pasek przedni cofnięty 3mm względem boków — żeby śruby uchwytu nie kolidowały
+    const response = {
+      walls: [
+        {
+          cabinets: [
+            {
+              kitchenCabinetType: 'BASE_SINK',
+              jobs: [
+                { category: 'MILLING', type: 'HINGE_MILLING', quantity: 2, totalPrice: 10, priceEntry: { price: 5 } }
+              ],
+              boards: [
+                {
+                  boardName: 'FRONT_NAME',
+                  boardThickness: 18,
+                  sideX: 713,
+                  sideY: 596,
+                  quantity: 1,
+                  totalPrice: 100,
+                  veneerX: 0,
+                  veneerY: 0,
+                  priceEntry: { price: 100 }
+                },
+                {
+                  boardName: 'TOP_WREATH_NAME',
+                  boardThickness: 18,
+                  sideX: 100,
+                  sideY: 564,
+                  quantity: 2,
+                  totalPrice: 40,
+                  veneerX: 0,
+                  veneerY: 2,
+                  priceEntry: { price: 100 }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      totalWasteCost: 0,
+      globalWasteComponents: []
+    } as unknown as MultiWallCalculateResponse;
+
+    const result = service.aggregate(response, [] as WallWithCabinets[]);
+
+    const frontBoard = result.boards.find(board => board.material === 'FRONT_NAME');
+    const topWreathBoard = result.boards.find(board => board.material === 'TOP_WREATH_NAME');
+
+    expect(frontBoard?.remarks).toContain('puszki');
+    expect(frontBoard?.remarks).toContain('Szafka pod zlew: górna puszka zawiasu 150mm od góry');
+    expect(topWreathBoard?.remarks).toContain('Pasek przedni cofnięty 3mm względem boków (szafka pod zlew)');
+  });
+
+  it('should NOT add sink-specific remarks to non-BASE_SINK cabinets', () => {
+    const response = {
+      walls: [
+        {
+          cabinets: [
+            {
+              kitchenCabinetType: 'BASE_ONE_DOOR',
+              jobs: [
+                { category: 'MILLING', type: 'HINGE_MILLING', quantity: 2, totalPrice: 10, priceEntry: { price: 5 } }
+              ],
+              boards: [
+                {
+                  boardName: 'FRONT_NAME',
+                  boardThickness: 18,
+                  sideX: 713,
+                  sideY: 596,
+                  quantity: 1,
+                  totalPrice: 100,
+                  veneerX: 0,
+                  veneerY: 0,
+                  priceEntry: { price: 100 }
+                },
+                {
+                  boardName: 'TOP_WREATH_NAME',
+                  boardThickness: 18,
+                  sideX: 100,
+                  sideY: 564,
+                  quantity: 2,
+                  totalPrice: 40,
+                  veneerX: 0,
+                  veneerY: 2,
+                  priceEntry: { price: 100 }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      totalWasteCost: 0,
+      globalWasteComponents: []
+    } as unknown as MultiWallCalculateResponse;
+
+    const result = service.aggregate(response, [] as WallWithCabinets[]);
+
+    const frontBoard = result.boards.find(board => board.material === 'FRONT_NAME');
+    const topWreathBoard = result.boards.find(board => board.material === 'TOP_WREATH_NAME');
+
+    // Standard hinge remark IS present
+    expect(frontBoard?.remarks).toContain('puszki');
+    // Sink-specific remarks NOT present
+    expect(frontBoard?.remarks ?? '').not.toContain('Szafka pod zlew');
+    expect(topWreathBoard?.remarks ?? '').not.toContain('cofnięty 3mm');
+  });
+
   it('should aggregate corner countertops and their components', () => {
     const response = {
       walls: [],

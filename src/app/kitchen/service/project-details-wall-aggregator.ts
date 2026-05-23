@@ -55,8 +55,9 @@ export class ProjectDetailsWallAggregator {
       const cabinetJobs = cabinet.jobs ?? [];
       const hingeMilling = cabinetJobs.find((job: Job) => job.type === 'HINGE_MILLING');
       const grooveForHdf = cabinetJobs.find((job: Job) => job.type === 'GROOVE_FOR_HDF');
+      const isSinkCabinet = cabinet.kitchenCabinetType === 'BASE_SINK';
 
-      this.aggregateCabinetBoards(cabinet, cabinetRef, hingeMilling, grooveForHdf, state);
+      this.aggregateCabinetBoards(cabinet, cabinetRef, hingeMilling, grooveForHdf, isSinkCabinet, state);
       this.aggregateStandardComponents(cabinet.components, state.maps);
       this.aggregateJobs(cabinet.jobs, state.maps);
     }
@@ -67,12 +68,13 @@ export class ProjectDetailsWallAggregator {
     cabinetRef: string,
     hingeMilling: Job | undefined,
     grooveForHdf: Job | undefined,
+    isSinkCabinet: boolean,
     state: AggregationState
   ): void {
     if (!cabinet.boards) return;
 
     for (const board of cabinet.boards) {
-      const remarks = this.buildBoardRemarks(board.boardName, board.sideY, hingeMilling, grooveForHdf);
+      const remarks = this.buildBoardRemarks(board.boardName, board.sideY, hingeMilling, grooveForHdf, isSinkCabinet);
 
       this.accumulator.addBoard(state.maps.boards, {
         material: board.boardName,
@@ -98,18 +100,36 @@ export class ProjectDetailsWallAggregator {
     boardName: string,
     boardSideY: number,
     hingeMilling: Job | undefined,
-    grooveForHdf: Job | undefined
+    grooveForHdf: Job | undefined,
+    isSinkCabinet: boolean
   ): string {
+    const parts: string[] = [];
+
     if (boardName === 'FRONT_NAME' && hingeMilling) {
       const hingeCount = Math.round(hingeMilling.quantity);
-      return `${hingeCount} ${hingeCount === 1 ? 'puszka' : hingeCount < 5 ? 'puszki' : 'puszek'} na długość ${boardSideY}mm`;
+      const hingeWord = hingeCount === 1 ? 'puszka' : hingeCount < 5 ? 'puszki' : 'puszek';
+      parts.push(`${hingeCount} ${hingeWord} na długość ${boardSideY}mm`);
     }
 
     if (boardName === 'SIDE_NAME' && grooveForHdf) {
-      return `Frezowanie nutu pod HDF na boku ${boardSideY}mm`;
+      parts.push(`Frezowanie nutu pod HDF na boku ${boardSideY}mm`);
     }
 
-    return '';
+    // Auto-uwagi specyficzne dla szafki pod zlewozmywak (BASE_SINK) — str. 41 książki Wasiak v.2.3
+    if (isSinkCabinet) {
+      if (boardName === 'FRONT_NAME') {
+        // Górny zawias szafki pod zlew: 150mm od góry zamiast standardowych ~100mm,
+        // żeby uniknąć kolizji z paskiem przednim pionowym
+        parts.push('Szafka pod zlew: górna puszka zawiasu 150mm od góry (dolna 100mm od dołu)');
+      }
+      if (boardName === 'TOP_WREATH_NAME') {
+        // Pasek przedni szafki pod zlew musi być cofnięty 3mm względem boków,
+        // żeby śruby uchwytu nie kolidowały
+        parts.push('Pasek przedni cofnięty 3mm względem boków (szafka pod zlew)');
+      }
+    }
+
+    return parts.join('; ');
   }
 
   private aggregateStandardComponents(components: ComponentLike[] | undefined, maps: AggregationMaps): void {
