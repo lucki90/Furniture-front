@@ -64,13 +64,21 @@ export class KitchenCabinetStateFactory {
             ? (formData.drawerModel ?? 'ANTARO_TANDEMBOX')
             : undefined
         };
-      case KitchenCabinetType.BASE_WITH_DRAWERS:
+      case KitchenCabinetType.BASE_WITH_DRAWERS: {
+        const layout = formData.drawerLayoutType ?? 'EQUAL';
+        const customHeights = layout === 'CUSTOM'
+          ? (formData.drawerCustomHeightsMm ?? [])
+              .filter((v): v is number => typeof v === 'number' && v > 0)
+          : undefined;
         return {
           ...base,
           type: KitchenCabinetType.BASE_WITH_DRAWERS,
           drawerQuantity: formData.drawerQuantity ?? 3,
-          drawerModel: formData.drawerModel ?? 'ANTARO_TANDEMBOX'
+          drawerModel: formData.drawerModel ?? 'ANTARO_TANDEMBOX',
+          drawerLayoutType: layout,
+          drawerCustomHeightsMm: customHeights
         };
+      }
       case KitchenCabinetType.BASE_SINK:
         return {
           ...base,

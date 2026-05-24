@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { KitchenCabinet, cabinetHasSegments } from '../model/kitchen-state.model';
+import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { CabinetSegmentsFormService } from './cabinet-segments-form.service';
 
 @Injectable({ providedIn: 'root' })
@@ -18,6 +19,21 @@ export class CabinetFormEditingService {
     if (cabinetHasSegments(cabinet) && cabinet.segments?.length) {
       this.segmentsFormService.replaceSegments(this.fb, form.get('segments') as any, cabinet.segments);
     }
+
+    // BASE_WITH_DRAWERS — odtworz FormArray drawerCustomHeightsMm dla edytowanej szafki (gdy CUSTOM)
+    if (cabinet.type === KitchenCabinetType.BASE_WITH_DRAWERS) {
+      const heights = (cabinet as { drawerCustomHeightsMm?: number[] }).drawerCustomHeightsMm;
+      this.replaceDrawerCustomHeights(form, heights ?? []);
+    }
+  }
+
+  private replaceDrawerCustomHeights(form: FormGroup, heights: number[]): void {
+    const arr = form.get('drawerCustomHeightsMm') as FormArray | null;
+    if (!arr) return;
+    arr.clear({ emitEvent: false });
+    for (const h of heights) {
+      arr.push(this.fb.control<number | null>(h), { emitEvent: false });
+    }
   }
 
   private buildEditPatch(cabinet: KitchenCabinet, includeType: boolean): Record<string, unknown> {
@@ -34,6 +50,7 @@ export class CabinetFormEditingService {
       shelfQuantity: c.shelfQuantity,
       drawerQuantity: c.drawerQuantity,
       drawerModel: c.drawerModel,
+      drawerLayoutType: c.drawerLayoutType ?? 'EQUAL',
       cargoVariant: c.cargoVariant ?? 'MECHANISM',
       cargoBrand: c.cargoBrand ?? 'BLUM',
       pantryPassageFrontType: c.pantryPassageFrontType ?? 'TWO_DOORS',
