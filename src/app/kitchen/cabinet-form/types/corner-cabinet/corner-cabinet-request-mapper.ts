@@ -1,6 +1,7 @@
 import { MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
 import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 import {
+  CornerHandleType,
   CornerMechanismType,
   CornerOpeningType,
   isBlindType
@@ -25,10 +26,12 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
     const isUpper = form.isUpperCorner ?? false;
     const openingType = (form.cornerOpeningType ?? CornerOpeningType.TWO_DOORS) as CornerOpeningType;
 
-    // Front type zależy od openingType (tylko dla dolnej — górna zawsze TWO_DOORS)
-    const frontType = (!isUpper && openingType === CornerOpeningType.BIFOLD)
+    // Front type depends on openingType.
+    const frontType = openingType === CornerOpeningType.BIFOLD
       ? 'CORNER_BIFOLD'
-      : 'TWO_DOORS';
+      : openingType === CornerOpeningType.BLIND
+        ? 'ONE_DOOR'
+        : 'TWO_DOORS';
 
     const cornerRequest = {
       widthA: form.cornerWidthA,
@@ -38,7 +41,9 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
         ? (form.cornerShelfQuantity ?? 2)
         : null,
       upperCabinet: isUpper,
-      cornerOpeningType: !isUpper ? openingType : CornerOpeningType.TWO_DOORS
+      cornerOpeningType: openingType,
+      // Iter.5b [A2 C]: UI dropdown exists now, but null still means backend default SPLIT_RECTANGLES.
+      wreathConstructionType: form.wreathConstructionType ?? null
     };
 
     return {
@@ -78,6 +83,7 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
   // ==================== TYPE B (BLIND/RECTANGULAR) ====================
 
   private mapTypeB(form: any, mechanism: CornerMechanismType, materialDefaults: MaterialDefaults): any {
+    const blindPanelSplitEnabled = form.blindPanelSplitEnabled ?? form.blindPanelVisibleWidthMm != null;
     const cornerRequest = {
       widthA: form.cornerWidthA,
       widthB: null,  // Type B nie ma widthB
@@ -86,7 +92,13 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
         ? (form.cornerShelfQuantity ?? 0)
         : null,
       upperCabinet: false,  // Type B zawsze dolna
-      frontUchylnyWidthMm: form.cornerFrontUchylnyWidthMm ?? 500
+      frontUchylnyWidthMm: form.cornerFrontUchylnyWidthMm ?? 500,
+      cornerHandleType: (form.cornerHandleType ?? CornerHandleType.SCREWED) as CornerHandleType,
+      // Iteracja 2 [B1] — split FS1 (mat. frontu, widoczna) + FS2 (mat. korpusu, ukryta).
+      // Wysyłamy do backendu tylko gdy split włączony przez użytkownika; null = brak splitu (backward compat).
+      blindPanelVisibleWidthMm: blindPanelSplitEnabled
+        ? (form.blindPanelVisibleWidthMm ?? 150)
+        : null
     };
 
     return {

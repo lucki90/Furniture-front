@@ -120,6 +120,28 @@ describe('CabinetFormEditingService', () => {
 
     expect(form.get('drawerLayoutType')?.value).toBe('EQUAL');
   });
+
+  it('should infer blind-panel split from persisted visible width when legacy corner cabinet has no explicit flag', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+
+    service.patchFormForEditing(form, {
+      id: 'corner-legacy',
+      type: KitchenCabinetType.CORNER_CABINET,
+      openingType: 'HANDLE' as any,
+      width: 1000,
+      height: 720,
+      depth: 510,
+      positionY: 0,
+      shelfQuantity: 0,
+      cornerWidthA: 1000,
+      cornerMechanism: 'BLIND_CORNER',
+      cornerFrontUchylnyWidthMm: 500,
+      blindPanelVisibleWidthMm: 180
+    } as unknown as KitchenCabinet);
+
+    expect(form.get('blindPanelSplitEnabled')?.value).toBeTrue();
+    expect(form.get('blindPanelVisibleWidthMm')?.value).toBe(180);
+  });
 });
 
 function createCascadeCabinet(): KitchenCabinet {

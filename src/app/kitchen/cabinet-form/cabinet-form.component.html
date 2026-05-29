@@ -117,6 +117,14 @@
       </app-form-field>
     </div>
 
+    <!-- Wymiary CORNER_CABINET (cornerWidthA + cornerWidthB + height + depth) -->
+    <!-- Iteracja 3 UX (2026-05-24): wymiary narożnika przeniesione z corner-form (Opcje) tutaj (Podstawowe) -->
+    <app-corner-dimensions *ngIf="visibility.cornerWidthA" [form]="form"></app-corner-dimensions>
+
+    <!-- Konfiguracja narożnika (mechanizm + układ drzwi + front uchylny + blendy) -->
+    <!-- Iteracja 3 poprawka 2026-05-24: cała sekcja Konfiguracja narożnika przeniesiona z Opcje do Podstawowe -->
+    <app-corner-form *ngIf="visibility.cornerWidthA" [form]="form"></app-corner-form>
+
     <!-- Pantry passage â€” wariant drzwi -->
     <div class="form-row" *ngIf="visibility.pantryPassageFrontType">
       <div class="form-group flex-2">
@@ -314,8 +322,9 @@
   <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: OPCJE â•â•â•â•â•â•â•â•â•â•â• -->
   <ng-container *ngIf="activeTab === 'options'">
 
-    <!-- Sekcja szafki naroznej (CORNER_CABINET) -->
-    <app-corner-form *ngIf="visibility.cornerWidthA" [form]="form"></app-corner-form>
+    <!-- Podgląd SVG szafki narożnej (jedyna treść CORNER w Opcje) -->
+    <!-- Iteracja 3 poprawka 2026-05-24: SVG preview w Opcje, konfiguracja przeniesiona do Podstawowe -->
+    <app-corner-preview *ngIf="visibility.cornerWidthA" [form]="form"></app-corner-preview>
 
     <!-- Sekcja kaskadowych segmentow (UPPER_CASCADE) -->
     <app-cascade-form *ngIf="visibility.cascadeSegments" [form]="form"></app-cascade-form>

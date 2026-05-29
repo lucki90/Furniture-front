@@ -254,6 +254,10 @@ export interface KCabinetCorner extends KitchenCabinetBase {
   isUpperCorner: boolean;
   cornerOpeningType?: string;          // TWO_DOORS | BIFOLD (Type A dolna)
   cornerFrontUchylnyWidthMm?: number;  // szerokość frontu uchylnego (Type B)
+  cornerHandleType?: string;           // SCREWED | MILLED | PUSH_TO_OPEN (Type B — wpływa na blendę narożnikową)
+  blindPanelSplitEnabled?: boolean;    // Iteracja 2 [B1]: czy split FS1+FS2 włączony
+  blindPanelVisibleWidthMm?: number;   // Iteracja 2 [B1]: FS1 — szerokość widocznej części frontu ślepego
+  wreathConstructionType?: string;     // Iter.4 [A2 C]: SPLIT_RECTANGLES | L_SHAPE_CNC (Type A — konstrukcja wieńca/półek)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -454,6 +458,10 @@ export interface CabinetFormData {
   isUpperCorner?: boolean;
   cornerOpeningType?: string;
   cornerFrontUchylnyWidthMm?: number;
+  cornerHandleType?: string;
+  blindPanelSplitEnabled?: boolean;
+  blindPanelVisibleWidthMm?: number;
+  wreathConstructionType?: string;
 
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;

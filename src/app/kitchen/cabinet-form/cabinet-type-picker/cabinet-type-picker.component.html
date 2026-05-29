@@ -12,7 +12,7 @@
       <div class="type-grid">
         <button *ngFor="let card of group.types; trackBy: trackByType"
                 class="type-card"
-                (click)="select(card.type)"
+                (click)="select(card)"
                 [title]="card.label">
 
           <!-- SVG thumbnails -->

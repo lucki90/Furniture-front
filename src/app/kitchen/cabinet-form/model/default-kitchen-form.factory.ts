@@ -31,6 +31,13 @@ export class DefaultKitchenFormFactory {
       isUpperCorner: [false],
       cornerOpeningType: ['TWO_DOORS'],
       cornerFrontUchylnyWidthMm: [500],
+      cornerHandleType: ['SCREWED'],
+      // Iter.5b [A2 C]: UI dropdown w corner-form, default SPLIT_RECTANGLES (taniej, kompat. wsteczna).
+      wreathConstructionType: ['SPLIT_RECTANGLES' as string | null],
+      // Iteracja 2 [B1]: split frontu ślepego (FS1+FS2). Default null = wyłączony (cały panel z mat. frontu).
+      blindPanelSplitEnabled: [false],
+      blindPanelVisibleWidthMm: [150], // FS1 z książki str. 169
+
 
       // Upper positioning
       positioningMode: ['RELATIVE_TO_CEILING'],

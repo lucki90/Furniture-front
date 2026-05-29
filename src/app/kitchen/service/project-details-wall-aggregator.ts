@@ -1,6 +1,6 @@
 import { CornerCountertopResponse } from '../model/kitchen-project.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
-import { Job } from '../cabinet-form/model/kitchen-cabinet-form.model';
+import { Board, Job } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import {
   AggregatedComponent,
   AggregatedJob,
@@ -74,7 +74,7 @@ export class ProjectDetailsWallAggregator {
     if (!cabinet.boards) return;
 
     for (const board of cabinet.boards) {
-      const remarks = this.buildBoardRemarks(board.boardName, board.sideY, hingeMilling, grooveForHdf, isSinkCabinet);
+      const remarks = this.buildBoardRemarks(board, hingeMilling, grooveForHdf, isSinkCabinet);
 
       this.accumulator.addBoard(state.maps.boards, {
         material: board.boardName,
@@ -97,13 +97,14 @@ export class ProjectDetailsWallAggregator {
   }
 
   private buildBoardRemarks(
-    boardName: string,
-    boardSideY: number,
+    board: Board,
     hingeMilling: Job | undefined,
     grooveForHdf: Job | undefined,
     isSinkCabinet: boolean
   ): string {
     const parts: string[] = [];
+    const boardName = board.boardName;
+    const boardSideY = board.sideY;
 
     if (boardName === 'FRONT_NAME' && hingeMilling) {
       const hingeCount = Math.round(hingeMilling.quantity);
@@ -129,7 +130,21 @@ export class ProjectDetailsWallAggregator {
       }
     }
 
+    // Iter.5b [A2 C] — auto-uwaga dla L-shape (wieniec/półka z CNC) książka Wasiak v.2.3 str. 173
+    if (this.isLShapeBoard(boardName) && board.lShapeCutoutLengthAMm && board.lShapeCutoutLengthBMm) {
+      parts.push(
+        `L-shape: wycięcie CNC w rogu ${board.lShapeCutoutLengthAMm}×${board.lShapeCutoutLengthBMm} mm`
+      );
+    }
+
     return parts.join('; ');
+  }
+
+  /** Iter.5b: czy płyta jest L-shape (wieniec/półka narożna z CNC). */
+  private isLShapeBoard(boardName: string): boolean {
+    return boardName === 'WREATH_L_SHAPE'
+        || boardName === 'TOP_WREATH_L_SHAPE'
+        || boardName === 'SHELF_L_SHAPE';
   }
 
   private aggregateStandardComponents(components: ComponentLike[] | undefined, maps: AggregationMaps): void {

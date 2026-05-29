@@ -19,10 +19,12 @@ import { OvenFormComponent } from './sections/oven-form/oven-form.component';
 import { FridgeFormComponent } from './sections/fridge-form/fridge-form.component';
 import { CascadeFormComponent } from './sections/cascade-form/cascade-form.component';
 import { CornerFormComponent } from './sections/corner-form/corner-form.component';
+import { CornerDimensionsComponent } from './sections/corner-dimensions/corner-dimensions.component';
+import { CornerPreviewComponent } from './sections/corner-preview/corner-preview.component';
 import { EnclosureFormComponent } from './sections/enclosure-form/enclosure-form.component';
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
 import { getFormError } from '../../shared/form-error.util';
-import { CabinetTypePickerComponent } from './cabinet-type-picker/cabinet-type-picker.component';
+import { CabinetTypePickerComponent, CabinetTypePickerResult } from './cabinet-type-picker/cabinet-type-picker.component';
 import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visibility';
 import { CabinetSegmentsFormService } from './cabinet-segments-form.service';
 import { CabinetFormEditingService } from './cabinet-form-editing.service';
@@ -45,7 +47,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule,
     CooktopFormComponent, HoodFormComponent, SinkFormComponent, OvenFormComponent,
-    FridgeFormComponent, CascadeFormComponent, CornerFormComponent, EnclosureFormComponent,
+    FridgeFormComponent, CascadeFormComponent, CornerFormComponent, CornerDimensionsComponent, CornerPreviewComponent, EnclosureFormComponent,
     FormFieldComponent, CabinetSegmentsSectionComponent, MatIconModule]
 })
 export class CabinetFormComponent implements OnChanges {
@@ -195,10 +197,17 @@ export class CabinetFormComponent implements OnChanges {
       panelClass: 'cabinet-picker-dialog',
       data: { isIslandWall: this.isIslandWall }
     });
-    ref.afterClosed().subscribe((type: KitchenCabinetType | null) => {
-      if (type) {
-        this.form.get('kitchenCabinetType')?.setValue(type);
+    ref.afterClosed().subscribe((result: CabinetTypePickerResult | null) => {
+      if (!result) return;
+
+      // Iteracja 3 poprawka 2026-05-24: dla CORNER_CABINET picker zwraca również `isUpperCorner`
+      // (dolna/górna jako 2 osobne entry-points). Ustaw silently PRZED zmianą typu — preparer
+      // wewnątrz typeLifecycle odczyta isUpperCorner z formularza i ustawi odpowiednie domyślne wymiary/constraints.
+      if (result.type === KitchenCabinetType.CORNER_CABINET && result.isUpperCorner !== undefined) {
+        this.form.get('isUpperCorner')?.setValue(result.isUpperCorner, { emitEvent: false });
       }
+
+      this.form.get('kitchenCabinetType')?.setValue(result.type);
     });
   }
 

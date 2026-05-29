@@ -1,0 +1,50 @@
+@import '../../shared/section-base.css';
+
+/* ============================================
+   CORNER_CABINET — wymiary + podgląd w zakładce "Podstawowe"
+   ============================================ */
+
+.corner-dimensions {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Wiersz "Sugerowana szerokość" pod inputami */
+.suggested-row {
+  margin-top: -2px;
+  margin-bottom: 4px;
+}
+
+/* Link "Wartość sugerowana" — kompaktowy, z tooltipem */
+.suggested-link {
+  display: inline-block;
+  padding: 4px 8px;
+  background: #f0f7ff;
+  border: 1px solid #b3d4fc;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #1565c0;
+  text-decoration: none;
+  cursor: help;
+  transition: all 0.15s ease;
+}
+
+.suggested-link:hover {
+  background: #e3f2fd;
+  border-color: #64b5f6;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.suggested-link strong {
+  color: #0d47a1;
+}
+
+.suggested-apply {
+  color: #888;
+  font-style: italic;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/* Podgląd SVG przeniesiony do osobnego komponentu corner-preview (zakładka "Opcje", Iteracja 3 poprawka 2026-05-24) */

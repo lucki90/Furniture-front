@@ -144,6 +144,74 @@ describe('ProjectDetailsAggregatorService', () => {
     expect(result.wasteCost).toBe(22);
   });
 
+  // Iter.5b [A2 C] (2026-05-28) — auto-uwaga dla L-shape wieńców/półek narożnika
+  it('should add L-shape cutout remarks for WREATH_L_SHAPE / SHELF_L_SHAPE boards', () => {
+    const response = {
+      walls: [
+        {
+          cabinets: [
+            {
+              kitchenCabinetType: 'CORNER_CABINET',
+              boards: [
+                {
+                  boardName: 'WREATH_L_SHAPE',
+                  boardNameLabel: 'Wieniec L-shape (CNC)',
+                  boardThickness: 18,
+                  sideX: 842,
+                  sideY: 712,
+                  quantity: 1,
+                  totalPrice: 50,
+                  color: 'WHITE',
+                  veneerX: 0, veneerY: 1, veneerColor: 'WHITE',
+                  priceEntry: { price: 50 },
+                  lShapeCutoutLengthAMm: 350,
+                  lShapeCutoutLengthBMm: 202
+                },
+                {
+                  boardName: 'SHELF_L_SHAPE',
+                  boardNameLabel: 'Półka L-shape (CNC)',
+                  boardThickness: 18,
+                  sideX: 842,
+                  sideY: 712,
+                  quantity: 1,
+                  totalPrice: 50,
+                  color: 'WHITE',
+                  veneerX: 0, veneerY: 1, veneerColor: 'WHITE',
+                  priceEntry: { price: 50 },
+                  lShapeCutoutLengthAMm: 350,
+                  lShapeCutoutLengthBMm: 202
+                },
+                {
+                  // Prostokątna płyta (WREATH_NAME — SPLIT_RECTANGLES) — bez lShape, bez auto-uwagi L-shape
+                  boardName: 'WREATH_NAME',
+                  boardNameLabel: 'Wieniec',
+                  boardThickness: 18,
+                  sideX: 506, sideY: 600,
+                  quantity: 1,
+                  totalPrice: 30,
+                  color: 'WHITE',
+                  veneerX: 0, veneerY: 1, veneerColor: 'WHITE',
+                  priceEntry: { price: 30 }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    } as unknown as MultiWallCalculateResponse;
+
+    const result = service.aggregate(response, [] as unknown as WallWithCabinets[], {});
+
+    const wreathL = result.boards.find(b => b.material === 'WREATH_L_SHAPE');
+    const shelfL = result.boards.find(b => b.material === 'SHELF_L_SHAPE');
+    const wreathRect = result.boards.find(b => b.material === 'WREATH_NAME');
+
+    expect(wreathL?.remarks).toContain('L-shape: wycięcie CNC w rogu 350×202 mm');
+    expect(shelfL?.remarks).toContain('L-shape: wycięcie CNC w rogu 350×202 mm');
+    // Prostokątny wieniec NIE dostaje uwagi L-shape
+    expect(wreathRect?.remarks ?? '').not.toContain('L-shape');
+  });
+
   it('should merge duplicate components and jobs across walls', () => {
     const response = {
       walls: [

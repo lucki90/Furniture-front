@@ -93,6 +93,62 @@ describe('CabinetFormComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Mechanizm cargo');
   });
 
+  /**
+   * Codex review fix 2026-05-28 (P2 testy FE):
+   * Testy `openTypePicker()` — handler odpowiedzi pickera dla CORNER_CABINET z preset isUpperCorner.
+   * Pokrywa logikę z `cabinet-form.component.ts` linia 193.
+   */
+  describe('openTypePicker — preset CORNER (Iter.3 fix)', () => {
+    it('CORNER + isUpperCorner=false → ustawia oba pola (isUpperCorner silently przed type)', () => {
+      const dialog = TestBed.inject(MatDialog);
+      spyOn(dialog, 'open').and.returnValue({
+        afterClosed: () => of({ type: KitchenCabinetType.CORNER_CABINET, isUpperCorner: false })
+      } as any);
+
+      component.openTypePicker();
+
+      expect(component.form.get('isUpperCorner')?.value).toBe(false);
+      expect(component.form.get('kitchenCabinetType')?.value).toBe(KitchenCabinetType.CORNER_CABINET);
+    });
+
+    it('CORNER + isUpperCorner=true → propaguje true do isUpperCorner przed type change', () => {
+      const dialog = TestBed.inject(MatDialog);
+      spyOn(dialog, 'open').and.returnValue({
+        afterClosed: () => of({ type: KitchenCabinetType.CORNER_CABINET, isUpperCorner: true })
+      } as any);
+
+      component.openTypePicker();
+
+      expect(component.form.get('isUpperCorner')?.value).toBe(true);
+      expect(component.form.get('kitchenCabinetType')?.value).toBe(KitchenCabinetType.CORNER_CABINET);
+    });
+
+    it('BASE_ONE_DOOR (bez isUpperCorner w result) → nie zmienia isUpperCorner', () => {
+      component.form.get('isUpperCorner')?.setValue(false);
+      const dialog = TestBed.inject(MatDialog);
+      spyOn(dialog, 'open').and.returnValue({
+        afterClosed: () => of({ type: KitchenCabinetType.BASE_ONE_DOOR })
+      } as any);
+
+      component.openTypePicker();
+
+      expect(component.form.get('kitchenCabinetType')?.value).toBe(KitchenCabinetType.BASE_ONE_DOOR);
+      expect(component.form.get('isUpperCorner')?.value).toBe(false); // bez zmian
+    });
+
+    it('null (anulowanie pickera) → nie zmienia żadnego pola', () => {
+      const initialType = component.form.get('kitchenCabinetType')?.value;
+      const dialog = TestBed.inject(MatDialog);
+      spyOn(dialog, 'open').and.returnValue({
+        afterClosed: () => of(null)
+      } as any);
+
+      component.openTypePicker();
+
+      expect(component.form.get('kitchenCabinetType')?.value).toBe(initialType);
+    });
+  });
+
   it('hides opening type and keeps shelves for BASE_OPEN', () => {
     component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_OPEN);
     fixture.detectChanges();

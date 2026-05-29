@@ -75,6 +75,9 @@ export interface Board {
   priceEntry: PriceEntry;
   totalPrice: number;
   remarks: string;
+  /** Iter.4/5b [A2 opcja C]: wymiary wycięcia CNC dla L-shape — null dla prostokątnych. */
+  lShapeCutoutLengthAMm?: number | null;
+  lShapeCutoutLengthBMm?: number | null;
 }
 
 export interface Component {

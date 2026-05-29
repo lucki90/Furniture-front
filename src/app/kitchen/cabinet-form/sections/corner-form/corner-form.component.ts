@@ -10,6 +10,12 @@ import {
   BASE_CORNER_CONSTRAINTS,
   UPPER_CORNER_CONSTRAINTS,
   BLIND_CORNER_CONSTRAINTS,
+  CornerHandleType,
+  CORNER_HANDLE_FILLER_WIDTH_MM,
+  CORNER_HANDLE_TYPE_LABELS,
+  CornerWreathConstructionType,
+  CORNER_WREATH_CONSTRUCTION_LABELS,
+  CORNER_WREATH_CONSTRUCTION_TOOLTIPS,
   mechanismRequiresShelves,
   isBlindType
 } from '../../model/corner-cabinet.model';
@@ -41,18 +47,44 @@ export class CornerFormComponent implements OnInit {
   /** Constraints zależne od typu narożnika (base/upper/blind). */
   cornerConstraints = BASE_CORNER_CONSTRAINTS;
 
-  /** Widoczność pola wyboru montaż dolna/górna. */
-  showIsUpperCorner = true;
+  // Iteracja 3 poprawka 2026-05-24: `showIsUpperCorner` usunięty — pole "Typ montażu" usunięte z formularza,
+  // dolna/górna wybierana w pickerze typu szafki (entry-points "Narożna" w sekcji dolnych vs wiszących).
+
   /** Widoczność szerokości B. */
   showCornerWidthB = true;
   /** Widoczność typu otwarcia. */
   showCornerOpeningType = true;
+  showWreathConstruction = true;
   /** Widoczność szerokości frontu uchylnego (Type B). */
   showCornerFrontUchylnyWidth = false;
   /** Widoczność pola liczby półek. */
   showCornerShelfQuantity = false;
 
   readonly cornerMechanismLabels = CORNER_MECHANISM_LABELS;
+
+  /** Opcje dropdown "Typ uchwytu" (Type B) — używane przez UI helper auto-doboru widthA. */
+  readonly cornerHandleTypes = Object.values(CornerHandleType).map(value => ({
+    value,
+    label: CORNER_HANDLE_TYPE_LABELS[value]
+  }));
+
+  /** Iter.5b [A2 C]: opcje dropdown "Konstrukcja wieńca/półek" (Type A only). */
+  readonly wreathConstructionOptions = Object.values(CornerWreathConstructionType).map(value => ({
+    value,
+    label: CORNER_WREATH_CONSTRUCTION_LABELS[value]
+  }));
+
+  /** Tooltip dla aktualnie wybranej konstrukcji wieńca/półek. */
+  get currentWreathConstructionTooltip(): string {
+    const value = (this.form.get('wreathConstructionType')?.value
+      ?? CornerWreathConstructionType.SPLIT_RECTANGLES) as CornerWreathConstructionType;
+    return CORNER_WREATH_CONSTRUCTION_TOOLTIPS[value];
+  }
+
+  get currentBlindPanelVisibleWidthMin(): number {
+    const handleType = (this.form.get('cornerHandleType')?.value ?? CornerHandleType.SCREWED) as CornerHandleType;
+    return CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
+  }
 
   private destroyRef = inject(DestroyRef);
 
@@ -69,16 +101,15 @@ export class CornerFormComponent implements OnInit {
     this.form.get('cornerMechanism')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(mechanism => this.onCornerMechanismChange(mechanism));
-  }
 
-  /** Aktualnie wybrany mechanizm narożnika. */
-  get currentCornerMechanism(): CornerMechanismType {
-    return this.form.get('cornerMechanism')?.value ?? CornerMechanismType.FIXED_SHELVES;
-  }
+    // Split FS1/FS2 zmienia wymagania walidacyjne dla blindPanelVisibleWidthMm.
+    this.form.get('blindPanelSplitEnabled')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.revalidate());
 
-  /** Etykieta aktualnego mechanizmu. */
-  get currentCornerMechanismLabel(): string {
-    return this.cornerMechanismLabels[this.currentCornerMechanism] ?? '';
+    this.form.get('cornerHandleType')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.revalidate());
   }
 
   /** Czy aktualny mechanizm to Type B (Blind/Rectangular). */
@@ -86,6 +117,13 @@ export class CornerFormComponent implements OnInit {
     const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
     return mechanism ? isBlindType(mechanism) : false;
   }
+
+  // getters `currentCornerMechanism` / `currentCornerMechanismLabel` przeniesione do
+  // corner-dimensions (razem z SVG preview, Iteracja 3 fix 2026-05-24).
+
+  // Iteracja 3 (2026-05-24): logika "Wartość sugerowana" + depth readonly została przeniesiona
+  // do osobnego sub-komponentu `corner-dimensions` (zakładka "Podstawowe"). Tutaj zostają tylko
+  // ustawienia konstrukcyjne (mechanizm, typ otwarcia, blendy, split FS1+FS2, półki, podgląd).
 
   /**
    * Inicjalizuje stan komponentu na podstawie aktualnych wartości formularza.
@@ -154,8 +192,9 @@ export class CornerFormComponent implements OnInit {
     }
 
     // Aktualizuj widoczność pól (Type A only)
-    this.showCornerWidthB = !isUpper;
-    this.showCornerOpeningType = !isUpper;
+    this.showCornerWidthB = true;
+    this.showCornerOpeningType = true;
+    this.showWreathConstruction = true;
     this.showCornerFrontUchylnyWidth = false;
 
     this.revalidate();
@@ -171,7 +210,15 @@ export class CornerFormComponent implements OnInit {
 
     if (typeB) {
       this.cornerConstraints = BLIND_CORNER_CONSTRAINTS;
-      this.availableCornerMechanisms = []; // nie zmienia się przy Type B
+      // BUG FIX (2026-05-24): wcześniej tutaj było `[]`, co powodowało że dropdown
+      // mechanizmów był pusty i użytkownik nie mógł zmienić mechanizmu po wybraniu Le Mans/Magic/Blind.
+      // Lista MUSI zawierać pełen zbiór mechanizmów dostępnych dla dolnej szafki, niezależnie od aktualnego wyboru.
+      this.availableCornerMechanisms = BASE_CORNER_MECHANISMS.map(m => ({
+        value: m,
+        label: CORNER_MECHANISM_LABELS[m]
+      }));
+      // Type B: depth zawsze 510mm (preparer wymusza po stronie backendu — patchujemy też FE dla spójności)
+      this.form.patchValue({ depth: BLIND_CORNER_CONSTRAINTS.depth }, { emitEvent: false });
     } else if (isUpper) {
       this.cornerConstraints = UPPER_CORNER_CONSTRAINTS;
       this.availableCornerMechanisms = UPPER_CORNER_MECHANISMS.map(m => ({
@@ -187,11 +234,18 @@ export class CornerFormComponent implements OnInit {
     }
 
     // Widoczność pól specyficznych dla Type A / Type B
-    this.showCornerWidthB = !typeB && !isUpper;
-    this.showIsUpperCorner = !typeB;
-    this.showCornerOpeningType = !typeB && !isUpper;
+    this.showCornerWidthB = !typeB;
+    // showIsUpperCorner usunięty — pole "Typ montażu" wyborem w pickerze (Iter.3 poprawka)
+    this.showCornerOpeningType = !typeB;
+    this.showWreathConstruction = !typeB;
     this.showCornerFrontUchylnyWidth = typeB;
     this.showCornerShelfQuantity = mechanismRequiresShelves(mechanism);
+
+    // B4 (2026-05-29): wreathConstructionType is Type A only — clear for Type B to avoid
+    // stale value in persistenceJson when user switches from Type A to Type B.
+    if (typeB) {
+      this.form.patchValue({ wreathConstructionType: null }, { emitEvent: false });
+    }
 
     this.revalidate();
   }

@@ -1,6 +1,7 @@
 import { ProjectWallCabinetsBuilder } from './project-wall-cabinets.builder';
 import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.builder';
 import { KitchenGeometryService } from './kitchen-geometry.service';
+import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { KitchenCabinet, WallWithCabinets } from '../model/kitchen-state.model';
 import { WallBuildSettings } from './project-request-builder.models';
@@ -64,6 +65,25 @@ describe('ProjectWallCabinetsBuilder', () => {
 
   const buildRequests = (cabinets: KitchenCabinet[], wallHeightMm = 2600) =>
     builder.buildCabinets(buildWall(cabinets, wallHeightMm), settings);
+
+  it('preserves blind-panel visible width for legacy corner cabinets when the explicit split flag is missing', () => {
+    const corner = makeCabinet({
+      id: 'corner-legacy',
+      type: KitchenCabinetType.CORNER_CABINET,
+      width: 1000,
+      height: 720,
+      depth: 510,
+      cornerWidthA: 1000,
+      cornerMechanism: CornerMechanismType.BLIND_CORNER,
+      cornerFrontUchylnyWidthMm: 500,
+      blindPanelVisibleWidthMm: 180
+    });
+
+    const requests = buildRequests([corner]);
+    const cornerReq = requests.find(r => r.cabinetId === 'corner-legacy')?.cornerRequest;
+
+    expect(cornerReq?.blindPanelVisibleWidthMm).toBe(180);
+  });
 
   // ── calculatePositionY — RELATIVE_TO_CEILING ──────────────────────────────
 

@@ -38,6 +38,9 @@ export class CabinetFormEditingService {
 
   private buildEditPatch(cabinet: KitchenCabinet, includeType: boolean): Record<string, unknown> {
     const c = cabinet as any;
+    const blindPanelVisibleWidthMm = c.blindPanelVisibleWidthMm ?? 150;
+    const hasPersistedBlindPanelVisibleWidth = c.blindPanelVisibleWidthMm !== null && c.blindPanelVisibleWidthMm !== undefined;
+    const blindPanelSplitEnabled = c.blindPanelSplitEnabled ?? hasPersistedBlindPanelVisibleWidth;
 
     return {
       ...(includeType ? { kitchenCabinetType: cabinet.type } : {}),
@@ -98,6 +101,11 @@ export class CabinetFormEditingService {
       isUpperCorner: c.isUpperCorner,
       cornerOpeningType: c.cornerOpeningType ?? 'TWO_DOORS',
       cornerFrontUchylnyWidthMm: c.cornerFrontUchylnyWidthMm ?? 500,
+      cornerHandleType: c.cornerHandleType ?? 'SCREWED',
+      // Iter.5b [A2 C] — null lub undefined ⇒ SPLIT_RECTANGLES (default w UI dropdown)
+      wreathConstructionType: c.wreathConstructionType ?? 'SPLIT_RECTANGLES',
+      blindPanelSplitEnabled,
+      blindPanelVisibleWidthMm,
       isLiftUp: c.isLiftUp ?? false,
       isFrontExtended: c.isFrontExtended ?? false,
       drainerFrontType: c.drainerFrontType ?? 'OPEN'

@@ -1,16 +1,14 @@
 <div class="corner-section" [formGroup]="form">
   <app-cabinet-section-header title="Konfiguracja narożnika"></app-cabinet-section-header>
 
-  <!-- Typ montażu: dolna/górna (tylko dla Type A — ukryte dla Type B) -->
+  <!-- ═════════════════ SEKCJA 1: KONSTRUKCJA ═════════════════ -->
+  <h4 class="section-title">Konstrukcja</h4>
+
+  <!-- Iteracja 3 poprawka 2026-05-24: pole "Typ montażu" (isUpperCorner) usunięte z formularza —
+       dolna/górna jest wybierana w pickerze typu szafki ("Narożna" w sekcji dolnych vs wiszących).
+       To upraszcza UX (mniej duplikujących się pól) i jest spójne z innymi typami szafek. -->
   <div class="form-row">
-    <div class="form-group flex-2" *ngIf="showIsUpperCorner">
-      <label class="form-label">Typ montażu</label>
-      <select class="form-control" formControlName="isUpperCorner">
-        <option [ngValue]="false">Dolna (z blatem)</option>
-        <option [ngValue]="true">Górna (wisząca)</option>
-      </select>
-    </div>
-    <div class="form-group flex-2">
+    <div class="form-group">
       <label class="form-label">System organizacji</label>
       <select class="form-control" formControlName="cornerMechanism">
         <option *ngFor="let m of availableCornerMechanisms; trackBy: trackByValue" [value]="m.value">{{ m.label }}</option>
@@ -18,99 +16,96 @@
     </div>
   </div>
 
-  <!-- Typ otwarcia (Type A: dwie drzwi, harmonijka lub ślepy narożnik) -->
+  <!-- Układ drzwi narożnika (Type A) — full-width row -->
+  <!-- Etykieta "Układ drzwi narożnika" (NIE "Typ otwarcia") — żeby nie kolidowała z polem `openingType`
+       w zakładce Podstawowe, które oznacza MECHANIZM otwierania (HANDLE / TIP_ON / PUSH_TO_OPEN). -->
   <div class="form-row" *ngIf="showCornerOpeningType">
-    <div class="form-group flex-2">
-      <label class="form-label">Typ otwarcia</label>
+    <div class="form-group">
+      <label class="form-label">Układ drzwi narożnika</label>
       <select class="form-control" formControlName="cornerOpeningType">
         <option value="TWO_DOORS">2 drzwi (jedna na każde ramię)</option>
         <option value="BIFOLD">Harmonijka (bifold — para skrzydeł na jednym ramieniu)</option>
         <option value="BLIND">Ślepy (jedno ramię bez frontu — zasłonięte ścianą lub szafką)</option>
       </select>
+      <span class="form-hint">Sposób mechaniczny otwierania (uchwyt, push-to-open) wybierasz w zakładce "Podstawowe" → "Typ otwarcia".</span>
     </div>
   </div>
 
-  <!-- Szerokość frontu uchylnego (tylko Type B: Blind/Magic Corner/Le Mans) -->
-  <div class="form-row" *ngIf="showCornerFrontUchylnyWidth">
-    <app-form-field class="form-group flex-2" label="Szerokość frontu uchylnego" unit="mm"
-        hint="400–600 mm (domyślnie 500 mm)"
-        [errorMessage]="getFieldError('cornerFrontUchylnyWidthMm')">
-      <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm" min="400" max="600" step="50">
-    </app-form-field>
-    <div class="form-group flex-2">
-      <span class="form-hint" style="display:block; margin-top: 28px;">
-        Info: front uchylny zaslania przestrzen narozna i umozliwia dostep do mechanizmu.
-      </span>
-    </div>
-  </div>
+  <!-- Iter.5a [A6] (2026-05-28): warning USUNIĘTY — formuła F1/F2 jest teraz poprawna przez nową
+       strategię CornerTwoDoorsFrontCalcStrategy używającą cornerFrontWidthArmA/B per ramię.
+       Wzór z książki Wasiak v.2.3 str. 171-173: F = widthArm - depth - frontT - 4. -->
 
-  <!-- Wymiary narożnika -->
-  <div class="form-row">
-    <app-form-field class="form-group" label="Szerokość A" unit="mm" hint="Ściana główna"
-        [errorMessage]="getFieldError('cornerWidthA')">
-      <input type="number" class="form-control" formControlName="cornerWidthA"
-             [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
-             [step]="cornerConstraints.widthStep">
-    </app-form-field>
-    <app-form-field class="form-group" *ngIf="showCornerWidthB" label="Szerokość B" unit="mm" hint="Ściana boczna"
-        [errorMessage]="getFieldError('cornerWidthB')">
-      <input type="number" class="form-control" formControlName="cornerWidthB"
-             [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
-             [step]="cornerConstraints.widthStep">
-    </app-form-field>
-    <app-form-field class="form-group" label="Wysokość" unit="mm" [errorMessage]="getFieldError('height')">
-      <input type="number" class="form-control" formControlName="height">
-    </app-form-field>
-    <app-form-field class="form-group" label="Głębokość" unit="mm" [errorMessage]="getFieldError('depth')">
-      <input type="number" class="form-control" formControlName="depth">
-    </app-form-field>
-  </div>
-
-  <!-- Liczba półek (tylko dla FIXED_SHELVES) -->
-  <div class="form-row" *ngIf="showCornerShelfQuantity">
+  <!-- Iter.5b [A2 C] (2026-05-28): Konstrukcja wieńca/półek dla L-shape (Type A only) -->
+  <div class="form-row" *ngIf="showWreathConstruction">
     <div class="form-group">
-      <label class="form-label">Liczba półek</label>
+      <label class="form-label">
+        Konstrukcja wieńca/półek
+        <a class="help-icon" href="javascript:void(0)"
+           [attr.title]="currentWreathConstructionTooltip">❓</a>
+      </label>
+      <select class="form-control" formControlName="wreathConstructionType">
+        <option *ngFor="let opt of wreathConstructionOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+      <span class="form-hint">Wybór wpływa na liczbę i kształt płyt w BOM. Domyślnie: 2 prostokąty (taniej).</span>
+    </div>
+  </div>
+
+  <!-- Liczba półek (tylko dla FIXED_SHELVES / BLIND_CORNER) -->
+  <div class="form-row" *ngIf="showCornerShelfQuantity">
+    <app-form-field class="form-group" label="Liczba półek"
+        [errorMessage]="getFieldError('cornerShelfQuantity')">
       <input type="number" class="form-control" formControlName="cornerShelfQuantity"
              [min]="cornerConstraints.shelfMin" [max]="cornerConstraints.shelfMax">
-      <span class="form-error" *ngIf="form.get('cornerShelfQuantity')?.touched && form.get('cornerShelfQuantity')?.errors">
-        <ng-container *ngIf="form.get('cornerShelfQuantity')?.errors?.['min']">Min: {{ cornerConstraints.shelfMin }}</ng-container>
-        <ng-container *ngIf="form.get('cornerShelfQuantity')?.errors?.['max']">Max: {{ cornerConstraints.shelfMax }}</ng-container>
-      </span>
-    </div>
+    </app-form-field>
   </div>
 
-  <!-- Wizualizacja kształtu: L (Type A) lub prostokąt z frontem uchylnym (Type B) -->
-  <div class="corner-preview">
-    <svg viewBox="0 0 200 200" class="corner-svg">
-      <!-- Type A: Kształt L -->
-      <ng-container *ngIf="!isCornerTypeB">
-        <polygon
-          [attr.points]="'10,10 ' + (10 + 80) + ',10 ' + (10 + 80) + ',' + (10 + 40) + ' ' + (10 + 40) + ',' + (10 + 40) + ' ' + (10 + 40) + ',' + (10 + 80) + ' 10,' + (10 + 80)"
-          fill="#e8d4a8" stroke="#8B4513" stroke-width="2"/>
-        <!-- Etykiety wymiarów -->
-        <text x="50" y="8" font-size="10" text-anchor="middle">A: {{ form.get('cornerWidthA')?.value }}mm</text>
-        <text x="5" y="55" font-size="10" text-anchor="middle" transform="rotate(-90, 5, 55)">B: {{ form.get('cornerWidthB')?.value }}mm</text>
-      </ng-container>
-      <!-- Type B: Prostokąt z frontem uchylnym -->
-      <ng-container *ngIf="isCornerTypeB">
-        <rect x="10" y="10" width="100" height="80" fill="#d4e8d4" stroke="#2e7d32" stroke-width="2"/>
-        <!-- Front uchylny (wyróżniony kolorem) -->
-        <rect x="10" y="10" [attr.width]="(form.get('cornerFrontUchylnyWidthMm')?.value || 500) / 12" height="80"
-              fill="#a5d6a7" stroke="#2e7d32" stroke-width="2"/>
-        <text x="60" y="8" font-size="10" text-anchor="middle">A: {{ form.get('cornerWidthA')?.value }}mm</text>
-        <text x="8" y="55" font-size="9" text-anchor="middle" transform="rotate(-90, 8, 55)">front: {{ form.get('cornerFrontUchylnyWidthMm')?.value }}mm</text>
-        <text x="60" y="55" font-size="8" text-anchor="middle" fill="#555">Ślepy narożnik</text>
-      </ng-container>
-      <!-- Ikona mechanizmu -->
-      <text x="100" y="140" font-size="18" font-weight="700" text-anchor="middle" fill="currentColor">
-        {{ currentCornerMechanism === 'MAGIC_CORNER' ? 'MC' :
-           currentCornerMechanism === 'CAROUSEL_270' ? 'C270' :
-           currentCornerMechanism === 'CAROUSEL_360' ? 'C360' :
-           currentCornerMechanism === 'LE_MANS' ? 'LM' :
-           currentCornerMechanism === 'FIXED_SHELVES' ? 'FS' :
-           currentCornerMechanism === 'BLIND_CORNER' ? 'BC' : 'BOX' }}
-      </text>
-      <text x="100" y="160" font-size="10" text-anchor="middle">{{ currentCornerMechanismLabel }}</text>
-    </svg>
-  </div>
+  <!-- ═════════════════ SEKCJA 2: FRONT UCHYLNY (Type B only) ═════════════════ -->
+  <ng-container *ngIf="showCornerFrontUchylnyWidth">
+    <h4 class="section-title section-title-spaced">Front uchylny i blendy</h4>
+
+    <div class="form-row">
+      <app-form-field class="form-group" label="Szerokość frontu uchylnego (Y)" unit="mm"
+          hint="400–600 mm (domyślnie 500 mm)"
+          [errorMessage]="getFieldError('cornerFrontUchylnyWidthMm')">
+        <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm" min="400" max="600" step="1">
+      </app-form-field>
+
+      <div class="form-group">
+        <label class="form-label">Typ uchwytu</label>
+        <select class="form-control" formControlName="cornerHandleType">
+          <option *ngFor="let h of cornerHandleTypes; trackBy: trackByValue" [value]="h.value">{{ h.label }}</option>
+        </select>
+        <span class="form-hint">Wpływa na szerokość blendy narożnikowej (X)</span>
+      </div>
+    </div>
+
+    <p class="info-text">
+      ℹ Front uchylny zasłania przestrzeń narożną i umożliwia dostęp do mechanizmu wewnątrz szafki.
+    </p>
+  </ng-container>
+
+  <!-- ═════════════════ SEKCJA 3: OPTYMALIZACJA KOSZTU (Type B only, opcjonalne) ═════════════════ -->
+  <ng-container *ngIf="showCornerFrontUchylnyWidth">
+    <h4 class="section-title section-title-spaced">Optymalizacja kosztu frontu ślepego</h4>
+
+    <div class="form-row">
+      <label class="form-check">
+        <input type="checkbox" formControlName="blindPanelSplitEnabled">
+        <span>Podziel front ślepy na FS1 + FS2 (oszczędność drogiego materiału)</span>
+        <a class="help-icon" href="javascript:void(0)"
+           [attr.title]="'Książka Wasiak v.2.3 str. 169:&#10;&#10;Front ślepy (FS) ma ~580mm, z czego widoczne jest tylko ~50mm jako blenda — reszta chowa się za sąsiednią szafką w narożniku.&#10;&#10;Podział na 2 elementy oszczędza ~75% drogiego materiału frontu (MDF lakier / RAL / fornir):&#10;  • FS1 — widoczna część (np. 150mm) z materiału frontu&#10;  • FS2 — ukryta część (reszta) z materiału korpusu (płyta laminowana)&#10;&#10;Włącz dla lakierowanych / drogich frontów. Pomiń dla okleinowanych (taka sama cena).'">
+          ❓
+        </a>
+      </label>
+    </div>
+
+    <div class="form-row" *ngIf="form.get('blindPanelSplitEnabled')?.value">
+      <app-form-field class="form-group" label="Szerokość widocznej części (FS1)" unit="mm"
+          hint="Domyślnie 150 mm (z czego ~50 mm widoczne jako blenda)"
+          [errorMessage]="getFieldError('blindPanelVisibleWidthMm')">
+        <input type="number" class="form-control" formControlName="blindPanelVisibleWidthMm"
+               [attr.min]="currentBlindPanelVisibleWidthMin" max="600" step="1">
+      </app-form-field>
+    </div>
+  </ng-container>
 </div>

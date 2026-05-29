@@ -226,6 +226,9 @@ export interface CornerCabinetRequest {
   cornerOpeningType?: string;       // Type A base: TWO_DOORS | BIFOLD
   frontUchylnyWidthMm?: number;     // Type B: szerokość frontu uchylnego 400-600mm
   magicCornerFrontOnHinges?: boolean; // MAGIC_CORNER: front na zawiasach (opcjonalne)
+  cornerHandleType?: string;        // Type B: SCREWED | MILLED | PUSH_TO_OPEN — wpływa na blendę narożnikową
+  blindPanelVisibleWidthMm?: number | null; // Iteracja 2 [B1]: FS1 — szerokość widocznej części frontu ślepego
+  wreathConstructionType?: string | null;   // Iter.4 [A2 C]: Type A — SPLIT_RECTANGLES (default) | L_SHAPE_CNC
 }
 
 export interface DrawerRequest {
@@ -489,6 +492,10 @@ export interface CabinetPlacementResponse {
   isUpperCorner?: boolean;
   cornerOpeningType?: string;
   cornerFrontUchylnyWidthMm?: number;
+  cornerHandleType?: string;
+  blindPanelSplitEnabled?: boolean;
+  blindPanelVisibleWidthMm?: number;
+  wreathConstructionType?: string;     // Iter.4 [A2 C]: Type A — SPLIT_RECTANGLES | L_SHAPE_CNC
 
   // Additional configuration - tall cabinet and fridge segments
   segments?: SegmentRequest[];

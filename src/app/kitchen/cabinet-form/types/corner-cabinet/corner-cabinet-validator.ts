@@ -5,6 +5,8 @@ import {
   BASE_CORNER_CONSTRAINTS,
   UPPER_CORNER_CONSTRAINTS,
   BLIND_CORNER_CONSTRAINTS,
+  CORNER_HANDLE_FILLER_WIDTH_MM,
+  CornerHandleType,
   isAllowedForUpperCabinet,
   isBlindType
 } from "../../model/corner-cabinet.model";
@@ -39,6 +41,7 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     form.get('cornerMechanism')?.updateValueAndValidity(noEmit);
     form.get('cornerShelfQuantity')?.updateValueAndValidity(noEmit);
     form.get('cornerFrontUchylnyWidthMm')?.updateValueAndValidity(noEmit);
+    form.get('blindPanelVisibleWidthMm')?.updateValueAndValidity(noEmit);
 
     form.updateValueAndValidity(noEmit);
   }
@@ -94,6 +97,7 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
 
     // frontUchylnyWidthMm — nie wymagane dla Type A
     form.get('cornerFrontUchylnyWidthMm')?.clearValidators();
+    form.get('blindPanelVisibleWidthMm')?.clearValidators();
   }
 
   // ==================== TYPE B (BLIND/RECTANGULAR) ====================
@@ -141,6 +145,19 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
       Validators.min(constraints.frontUchylnyMin),
       Validators.max(constraints.frontUchylnyMax)
     ]);
+
+    const handleType = (form.get('cornerHandleType')?.value ?? CornerHandleType.SCREWED) as CornerHandleType;
+    const minVisibleWidth = CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
+
+    if (form.get('blindPanelSplitEnabled')?.value) {
+      form.get('blindPanelVisibleWidthMm')?.setValidators([
+        Validators.required,
+        Validators.min(minVisibleWidth),
+        Validators.max(600)
+      ]);
+    } else {
+      form.get('blindPanelVisibleWidthMm')?.clearValidators();
+    }
   }
 
   // ==================== HELPER METHODS ====================
@@ -218,6 +235,15 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
       if (!frontUchylny || frontUchylny < BLIND_CORNER_CONSTRAINTS.frontUchylnyMin
           || frontUchylny > BLIND_CORNER_CONSTRAINTS.frontUchylnyMax) {
         errors.push(`Szerokość frontu uchylnego musi być między ${BLIND_CORNER_CONSTRAINTS.frontUchylnyMin} a ${BLIND_CORNER_CONSTRAINTS.frontUchylnyMax}mm`);
+      }
+
+      if (form.get('blindPanelSplitEnabled')?.value) {
+        const blindPanelVisibleWidth = form.get('blindPanelVisibleWidthMm')?.value;
+        const handleType = (form.get('cornerHandleType')?.value ?? CornerHandleType.SCREWED) as CornerHandleType;
+        const minVisibleWidth = CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
+        if (blindPanelVisibleWidth == null || blindPanelVisibleWidth < minVisibleWidth || blindPanelVisibleWidth > 600) {
+          errors.push(`Szerokość widocznej części frontu ślepego musi być między ${minVisibleWidth} a 600mm`);
+        }
       }
     }
 

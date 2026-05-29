@@ -148,7 +148,11 @@ export class KitchenCabinetStateFactory {
           cornerShelfQuantity: formData.cornerShelfQuantity,
           isUpperCorner: formData.isUpperCorner ?? false,
           cornerOpeningType: formData.cornerOpeningType,
-          cornerFrontUchylnyWidthMm: formData.cornerFrontUchylnyWidthMm
+          cornerFrontUchylnyWidthMm: formData.cornerFrontUchylnyWidthMm,
+          cornerHandleType: formData.cornerHandleType,
+          blindPanelSplitEnabled: formData.blindPanelSplitEnabled,
+          blindPanelVisibleWidthMm: formData.blindPanelVisibleWidthMm,
+          wreathConstructionType: formData.wreathConstructionType
         };
       case KitchenCabinetType.UPPER_ONE_DOOR:
         return {
@@ -318,7 +322,9 @@ export class KitchenCabinetStateFactory {
           blockUpperAbove: true,
           pantryPassageFrontType: (cabResp.pantryPassageFrontType as 'ONE_DOOR' | 'TWO_DOORS') ?? 'TWO_DOORS'
         };
-      case KitchenCabinetType.CORNER_CABINET:
+      case KitchenCabinetType.CORNER_CABINET: {
+        const hasPersistedBlindPanelVisibleWidth = cabResp.blindPanelVisibleWidthMm !== null
+          && cabResp.blindPanelVisibleWidthMm !== undefined;
         return {
           ...baseFromResp,
           width: cabResp.cornerWidthA ?? effectiveWidth,
@@ -329,8 +335,13 @@ export class KitchenCabinetStateFactory {
           cornerShelfQuantity: cabResp.cornerShelfQuantity,
           isUpperCorner: cabResp.isUpperCorner ?? false,
           cornerOpeningType: cabResp.cornerOpeningType,
-          cornerFrontUchylnyWidthMm: cabResp.cornerFrontUchylnyWidthMm
+          cornerFrontUchylnyWidthMm: cabResp.cornerFrontUchylnyWidthMm,
+          cornerHandleType: cabResp.cornerHandleType,
+          blindPanelSplitEnabled: cabResp.blindPanelSplitEnabled ?? hasPersistedBlindPanelVisibleWidth,
+          blindPanelVisibleWidthMm: cabResp.blindPanelVisibleWidthMm,
+          wreathConstructionType: cabResp.wreathConstructionType
         };
+      }
       case KitchenCabinetType.UPPER_ONE_DOOR:
         return {
           ...baseFromResp,

@@ -1,0 +1,42 @@
+/* ============================================
+   CORNER_PREVIEW — podgląd SVG (zakładka "Opcje", Iteracja 3 poprawka 2026-05-24)
+   ============================================ */
+
+.corner-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-hover, #f8fafc);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.preview-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.corner-svg {
+  width: 240px;
+  height: 200px;
+  color: var(--text-secondary);
+  background: var(--bg-card, #fff);
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.preview-note {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  font-style: italic;
+  text-align: center;
+  margin: 0;
+  max-width: 320px;
+  line-height: 1.4;
+}

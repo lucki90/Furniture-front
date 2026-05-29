@@ -244,6 +244,8 @@ export class ProjectWallCabinetsBuilder {
       return undefined;
     }
 
+    const blindPanelSplitEnabled = cab.blindPanelSplitEnabled ?? cab.blindPanelVisibleWidthMm != null;
+
     return {
       widthA: cab.cornerWidthA,
       widthB: cab.cornerWidthB ?? null,
@@ -251,7 +253,12 @@ export class ProjectWallCabinetsBuilder {
       shelfQuantity: cab.cornerShelfQuantity,
       upperCabinet: cab.isUpperCorner ?? false,
       cornerOpeningType: cab.cornerOpeningType,
-      frontUchylnyWidthMm: cab.cornerFrontUchylnyWidthMm
+      frontUchylnyWidthMm: cab.cornerFrontUchylnyWidthMm,
+      cornerHandleType: cab.cornerHandleType,
+      // Iteracja 2 [B1] — wyślij FS1 tylko gdy split włączony
+      blindPanelVisibleWidthMm: blindPanelSplitEnabled ? (cab.blindPanelVisibleWidthMm ?? 150) : null,
+      // Iter.4 [A2 C] — BE only, propagacja gdyby pole było ustawione (UI dropdown w Iter.5)
+      wreathConstructionType: cab.wreathConstructionType ?? null
     };
   }
 

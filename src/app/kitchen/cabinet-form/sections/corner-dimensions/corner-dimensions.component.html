@@ -1,0 +1,47 @@
+<!-- Wymiary szafki narożnej — w zakładce "Podstawowe" (Iteracja 3 + poprawka 2026-05-24) -->
+<div class="corner-dimensions" [formGroup]="form">
+
+  <!-- Wiersz 1: Szerokości (A — Type A i B; B tylko Type A) -->
+  <div class="form-row">
+    <app-form-field class="form-group" label="Szerokość A" unit="mm"
+        [hint]="showWidthB ? 'Ściana główna' : 'Główny wymiar szafki ślepej'"
+        [errorMessage]="getFieldError('cornerWidthA')">
+      <input type="number" class="form-control" formControlName="cornerWidthA"
+             [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
+             [step]="cornerConstraints.widthStep">
+    </app-form-field>
+
+    <app-form-field class="form-group" *ngIf="showWidthB" label="Szerokość B" unit="mm" hint="Ściana boczna"
+        [errorMessage]="getFieldError('cornerWidthB')">
+      <input type="number" class="form-control" formControlName="cornerWidthB"
+             [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
+             [step]="cornerConstraints.widthStep">
+    </app-form-field>
+  </div>
+
+  <!-- Wiersz 2: Wysokość + Głębokość -->
+  <div class="form-row">
+    <app-form-field class="form-group" label="Wysokość" unit="mm"
+        [hint]="isUpperCorner ? '600–900 mm (wisząca)' : '680–760 mm (dolna)'"
+        [errorMessage]="getFieldError('height')">
+      <input type="number" class="form-control" formControlName="height">
+    </app-form-field>
+
+    <app-form-field class="form-group" label="Głębokość" unit="mm"
+        [hint]="depthHint"
+        [errorMessage]="getFieldError('depth')">
+      <input type="number" class="form-control" formControlName="depth"
+             [readonly]="isDepthReadonly" [attr.aria-readonly]="isDepthReadonly">
+    </app-form-field>
+  </div>
+
+  <!-- Sugerowana szerokość (Type B) — link pod wymiarami z tooltipem -->
+  <div class="form-row suggested-row" *ngIf="suggestedBlindCornerWidth as suggested">
+    <a class="suggested-link" href="javascript:void(0)"
+       (click)="applySuggestedWidth()"
+       [attr.title]="suggested.tooltipText">
+      💡 Sugerowana szerokość A: <strong>{{ suggested.value }} mm</strong>
+      <span class="suggested-apply">(kliknij, aby zastosować)</span>
+    </a>
+  </div>
+</div>

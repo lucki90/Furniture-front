@@ -44,7 +44,6 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
     this.applyDefaultValues(form, mechanism);
 
     // Wyłącz pola nieużywane
-    setControlEnabled(form.get('width'), false);
     setControlEnabled(form.get('drawerQuantity'), false);
     setControlEnabled(form.get('shelfQuantity'), false);
     setControlEnabled(form.get('drawerModel'), false);
@@ -63,10 +62,14 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
   ): void {
     const typeB = isBlindType(mechanism);
 
-    // Type B: brak widthB, brak isUpperCorner, brak cornerOpeningType; ma frontUchylnyWidth
+    // Type B: brak widthB; Type A zachowuje cornerOpeningType dla dolnych i gornych naroznikow
     v.cornerWidthB = !typeB;
-    v.isUpperCorner = !typeB;
-    v.cornerOpeningType = !typeB;  // BIFOLD dozwolony zarówno dla dolnych jak i górnych
+    // Iteracja 3 poprawka 2026-05-24: isUpperCorner ZAWSZE ukryty — dolna/górna wybierana w pickerze
+    // typu szafki (entry-points "Narożna" w sekcji dolnych vs wiszących), nie w formularzu.
+    // Wartość pola `isUpperCorner` w FormGroup nadal jest używana przez logikę (constraints, request mapper),
+    // ale UI nie pokazuje selectu.
+    v.isUpperCorner = false;
+    v.cornerOpeningType = !typeB;
     v.cornerFrontUchylnyWidth = typeB;
 
     // Półki: FIXED_SHELVES (Type A) lub BLIND_CORNER (Type B)

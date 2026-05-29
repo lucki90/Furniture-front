@@ -9,11 +9,26 @@ interface TypeCard {
   type: KitchenCabinetType;
   label: string;
   svgTemplate: string;
+  /**
+   * Opcjonalny preset dla CORNER_CABINET — jeśli podany, picker zwraca
+   * `{type, isUpperCorner}` i formularz auto-ustawia `isUpperCorner` przed prepare.
+   * Pozwala uniknąć dodatkowego dropdown "Typ montażu" w formularzu — wybór jest tutaj.
+   */
+  presetIsUpperCorner?: boolean;
 }
 
 interface TypeGroup {
   title: string;
   types: TypeCard[];
+}
+
+/**
+ * Wynik zwracany przez picker. Dla CORNER_CABINET zawiera dodatkowo `isUpperCorner`
+ * (z preset zdefiniowanego na karcie). Dla innych typów `isUpperCorner` jest pominięte.
+ */
+export interface CabinetTypePickerResult {
+  type: KitchenCabinetType;
+  isUpperCorner?: boolean;
 }
 
 @Component({
@@ -48,6 +63,9 @@ export class CabinetTypePickerComponent {
         { type: KitchenCabinetType.BASE_OVEN_FREESTANDING,    label: 'Piekarnik wol.',      svgTemplate: 'base-oven-free' },
         { type: KitchenCabinetType.BASE_FRIDGE,                label: 'Lodówka (zabudowa)', svgTemplate: 'base-fridge' },
         { type: KitchenCabinetType.BASE_FRIDGE_FREESTANDING,  label: 'Lodówka wol.',        svgTemplate: 'base-fridge-free' },
+        // Iteracja 3 poprawka 2026-05-24: narożna dolna jako entry-point w sekcji dolnych
+        // (preset isUpperCorner=false), zamiast osobnego dropdownu "Typ montażu" w formularzu.
+        { type: KitchenCabinetType.CORNER_CABINET,             label: 'Narożna',             svgTemplate: 'corner', presetIsUpperCorner: false },
       ]
     },
     {
@@ -59,6 +77,9 @@ export class CabinetTypePickerComponent {
         { type: KitchenCabinetType.UPPER_CASCADE,    label: 'Kaskadowa',     svgTemplate: 'upper-cascade' },
         { type: KitchenCabinetType.UPPER_HOOD,       label: 'Na okap',       svgTemplate: 'upper-hood' },
         { type: KitchenCabinetType.UPPER_DRAINER,    label: 'Ociekacz',      svgTemplate: 'upper-drainer' },
+        // Iteracja 3 poprawka 2026-05-24: narożna górna jako entry-point w sekcji wiszących
+        // (preset isUpperCorner=true). Ten sam typ szafki (CORNER_CABINET) co dolna, tylko inny preset.
+        { type: KitchenCabinetType.CORNER_CABINET,   label: 'Narożna',       svgTemplate: 'corner', presetIsUpperCorner: true },
       ]
     },
     {
@@ -66,7 +87,7 @@ export class CabinetTypePickerComponent {
       types: [
         { type: KitchenCabinetType.TALL_CABINET,   label: 'Słupek',   svgTemplate: 'tall' },
         { type: KitchenCabinetType.PANTRY_PASSAGE, label: 'Przejście do spiżarni', svgTemplate: 'passage' },
-        { type: KitchenCabinetType.CORNER_CABINET, label: 'Narożna',  svgTemplate: 'corner' },
+        // CORNER_CABINET przeniesiony do sekcji dolnych/wiszących (Iteracja 3 poprawka 2026-05-24)
       ]
     }
   ];
@@ -79,19 +100,32 @@ export class CabinetTypePickerComponent {
     return this.allGroups
       .map(group => ({
         ...group,
-        types: group.types.filter(card => this.isAllowedOnIsland(card.type))
+        types: group.types.filter(card => this.isAllowedOnIsland(card))
       }))
       .filter(group => group.types.length > 0);
   }
 
-  private isAllowedOnIsland(type: KitchenCabinetType): boolean {
-    return !isUpperCabinetType(type)
-      && type !== KitchenCabinetType.TALL_CABINET
-      && type !== KitchenCabinetType.PANTRY_PASSAGE;
+  /**
+   * Filtr typów dla wyspy. Usuwa szafki wiszące, słupki, przejście do spiżarni
+   * oraz wariant CORNER górnej (preset isUpperCorner=true) — bo wyspa nie wspiera szafek wiszących.
+   * Codex review fix 2026-05-28: dodano filtr po `presetIsUpperCorner` żeby nie pokazywać "Narożnej górnej"
+   * w sekcji wiszących na wyspie (poprzednio sam `isUpperCabinetType(CORNER_CABINET)` zwracał false,
+   * więc CORNER górna ślizgała się przez filtr).
+   */
+  private isAllowedOnIsland(card: TypeCard): boolean {
+    if (card.presetIsUpperCorner === true) {
+      return false;  // CORNER górna — wariant wiszący, nie dla wyspy
+    }
+    return !isUpperCabinetType(card.type)
+      && card.type !== KitchenCabinetType.TALL_CABINET
+      && card.type !== KitchenCabinetType.PANTRY_PASSAGE;
   }
 
-  select(type: KitchenCabinetType): void {
-    this.dialogRef.close(type);
+  select(card: TypeCard): void {
+    const result: CabinetTypePickerResult = card.presetIsUpperCorner !== undefined
+      ? { type: card.type, isUpperCorner: card.presetIsUpperCorner }
+      : { type: card.type };
+    this.dialogRef.close(result);
   }
 
   close(): void {
@@ -99,5 +133,10 @@ export class CabinetTypePickerComponent {
   }
 
   protected trackByIndex = (index: number) => index;
-  protected trackByType = (_: number, card: TypeCard) => card.type;
+  /**
+   * trackBy używa kompozytu type+presetIsUpperCorner, bo CORNER_CABINET występuje 2× w pickerze
+   * (raz dla dolnej, raz dla górnej). Sam `type` nie wystarczy do unikalności w `*ngFor`.
+   */
+  protected trackByType = (_: number, card: TypeCard) =>
+    `${card.type}::${card.presetIsUpperCorner ?? ''}`;
 }
