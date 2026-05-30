@@ -242,7 +242,7 @@ describe('ProjectRequestBuilderService', () => {
         depth: 900,
         cornerWidthA: 950,
         cornerWidthB: 870,
-        cornerMechanism: 'LE_MANS',
+        cornerMechanism: 'LE_MANS_I',
         cornerShelfQuantity: 2,
         isUpperCorner: false,
         cornerOpeningType: 'BIFOLD'
@@ -289,7 +289,7 @@ describe('ProjectRequestBuilderService', () => {
         cornerRequest: jasmine.objectContaining({
           widthA: 950,
           widthB: 870,
-          mechanism: 'LE_MANS',
+          mechanism: 'LE_MANS_I',
           cornerOpeningType: 'BIFOLD'
         })
       }));

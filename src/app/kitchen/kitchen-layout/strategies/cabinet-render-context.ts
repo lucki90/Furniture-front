@@ -60,6 +60,23 @@ export interface CabinetRenderContext {
     heightMm?: number;
     upperSections?: SegmentFormData[];
   };
+  /**
+   * Konfiguracja szafki narożnej (Faza 11.4) — steruje widokiem frontu w elewacji.
+   * Type A (L-shape): TWO_DOORS / BIFOLD. Type B (blind): front uchylny + ślepy panel.
+   * Dotyczy zarówno dolnej, jak i górnej (UPPER_CORNER jako wariant `isUpperCorner`) szafki narożnej.
+   */
+  cornerConfig?: {
+    /** true = Type B (ślepy narożnik / Magic Corner / Le Mans). */
+    blind: boolean;
+    /** Type A: 'TWO_DOORS' | 'BIFOLD'. */
+    openingType?: string;
+    /** Szerokość szafki (widthA) w mm — baza do proporcji frontu uchylnego. */
+    widthAMm?: number;
+    /** Type B: szerokość frontu uchylnego (otwieranego) w mm. */
+    frontUchylnyWidthMm?: number;
+    /** Type B: strona aktywnego frontu — 'LEFT' | 'RIGHT' | null. */
+    handedness?: string | null;
+  };
 }
 
 /**

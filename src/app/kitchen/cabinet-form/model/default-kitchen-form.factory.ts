@@ -37,6 +37,11 @@ export class DefaultKitchenFormFactory {
       // Iteracja 2 [B1]: split frontu ślepego (FS1+FS2). Default null = wyłączony (cały panel z mat. frontu).
       blindPanelSplitEnabled: [false],
       blindPanelVisibleWidthMm: [150], // FS1 z książki str. 169
+      // Iter.6 (Faza 1): parametry systemowe Le Mans / Magic Corner (Type B). Null = niesprecyzowane.
+      cornerHandedness: [null as string | null],
+      cornerOpeningAngleDeg: [null as number | null],
+      cornerFrontThicknessMm: [null as number | null],
+      cornerSystemLine: [null as string | null],
 
 
       // Upper positioning

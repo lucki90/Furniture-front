@@ -18,10 +18,10 @@
   margin: 0 0 12px 0;
 }
 
-/* Wiersz pól */
+/* Wiersz pól — gap spójny z cabinet-form.component.css (10px) */
 .form-row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 8px;
 }

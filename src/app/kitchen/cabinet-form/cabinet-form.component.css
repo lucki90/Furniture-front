@@ -193,9 +193,9 @@
 .form-label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-secondary, #64748b);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   margin: 0;
 }
 
@@ -648,6 +648,24 @@
 
 .validation-error-list li {
   margin-bottom: 2px;
+}
+
+/* Hint o powodzie blokady przycisku (gdy podsumowanie bledow jest puste) */
+.add-disabled-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--error-bg);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: var(--border-radius-sm);
+  font-size: 12px;
+  color: var(--error-color);
+}
+
+/* Wrapper utrzymujacy tooltip (title) nad disabled <button> — przyciski disabled nie odbieraja hover */
+.btn-tooltip-wrapper {
+  display: inline-flex;
 }
 
 @media (max-width: 768px) {

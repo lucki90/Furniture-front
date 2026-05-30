@@ -56,8 +56,9 @@ export class ProjectDetailsWallAggregator {
       const hingeMilling = cabinetJobs.find((job: Job) => job.type === 'HINGE_MILLING');
       const grooveForHdf = cabinetJobs.find((job: Job) => job.type === 'GROOVE_FOR_HDF');
       const isSinkCabinet = cabinet.kitchenCabinetType === 'BASE_SINK';
+      const cornerMechanism = (cabinet as { cornerMechanism?: string }).cornerMechanism ?? null;
 
-      this.aggregateCabinetBoards(cabinet, cabinetRef, hingeMilling, grooveForHdf, isSinkCabinet, state);
+      this.aggregateCabinetBoards(cabinet, cabinetRef, hingeMilling, grooveForHdf, isSinkCabinet, cornerMechanism, state);
       this.aggregateStandardComponents(cabinet.components, state.maps);
       this.aggregateJobs(cabinet.jobs, state.maps);
     }
@@ -69,12 +70,13 @@ export class ProjectDetailsWallAggregator {
     hingeMilling: Job | undefined,
     grooveForHdf: Job | undefined,
     isSinkCabinet: boolean,
+    cornerMechanism: string | null,
     state: AggregationState
   ): void {
     if (!cabinet.boards) return;
 
     for (const board of cabinet.boards) {
-      const remarks = this.buildBoardRemarks(board, hingeMilling, grooveForHdf, isSinkCabinet);
+      const remarks = this.buildBoardRemarks(board, hingeMilling, grooveForHdf, isSinkCabinet, cornerMechanism);
 
       this.accumulator.addBoard(state.maps.boards, {
         material: board.boardName,
@@ -100,7 +102,8 @@ export class ProjectDetailsWallAggregator {
     board: Board,
     hingeMilling: Job | undefined,
     grooveForHdf: Job | undefined,
-    isSinkCabinet: boolean
+    isSinkCabinet: boolean,
+    cornerMechanism: string | null = null
   ): string {
     const parts: string[] = [];
     const boardName = board.boardName;
@@ -137,7 +140,31 @@ export class ProjectDetailsWallAggregator {
       );
     }
 
+    // Iter.6 (Faza 1) — auto-uwaga dla mechanizmów narożnych (Le Mans / Magic Corner), doc §13.
+    // Dołączana do frontu uchylnego (CORNER_BLIND_FRONT/FRONT_NAME), gdzie najbardziej przydatna dla montera.
+    if (cornerMechanism && (boardName === 'FRONT_NAME' || boardName === 'CORNER_BLIND_FRONT')) {
+      const note = this.cornerMechanismRemark(cornerMechanism);
+      if (note) {
+        parts.push(note);
+      }
+    }
+
     return parts.join('; ');
+  }
+
+  /** Iter.6 (Faza 1): nota producenta dla mechanizmu narożnego (doc §13). Null gdy brak ograniczeń. */
+  private cornerMechanismRemark(cornerMechanism: string): string | null {
+    switch (cornerMechanism) {
+      case 'LE_MANS_I':
+      case 'LE_MANS_II':
+        return 'Le Mans: front 16-19 mm, min. 85 deg otwarcia';
+      case 'MAGIC_CORNER_COMFORT':
+        return 'Magic Corner Comfort: maks. 90 deg otwarcia, kosz przedni 10 kg, tylny 8 kg';
+      case 'MAGIC_CORNER_STANDARD':
+        return 'Magic Corner Standard: maks. 75 deg otwarcia, kosz przedni 7 kg, tylny 9 kg';
+      default:
+        return null;
+    }
   }
 
   /** Iter.5b: czy płyta jest L-shape (wieniec/półka narożna z CNC). */

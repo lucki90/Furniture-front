@@ -258,6 +258,11 @@ export interface KCabinetCorner extends KitchenCabinetBase {
   blindPanelSplitEnabled?: boolean;    // Iteracja 2 [B1]: czy split FS1+FS2 włączony
   blindPanelVisibleWidthMm?: number;   // Iteracja 2 [B1]: FS1 — szerokość widocznej części frontu ślepego
   wreathConstructionType?: string;     // Iter.4 [A2 C]: SPLIT_RECTANGLES | L_SHAPE_CNC (Type A — konstrukcja wieńca/półek)
+  // Faza 1 — parametry systemu Magic Corner / Le Mans (Type B; null dla pozostałych mechanizmów)
+  cornerHandedness?: string | null;        // LEFT | RIGHT | null
+  cornerOpeningAngleDeg?: number | null;
+  cornerFrontThicknessMm?: number | null;
+  cornerSystemLine?: string | null;        // LINE_400 | LINE_450 | LINE_500 | LINE_550 | LINE_600
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -462,6 +467,11 @@ export interface CabinetFormData {
   blindPanelSplitEnabled?: boolean;
   blindPanelVisibleWidthMm?: number;
   wreathConstructionType?: string;
+  // Faza 1 — parametry systemu Magic Corner / Le Mans (Type B)
+  cornerHandedness?: string | null;
+  cornerOpeningAngleDeg?: number | null;
+  cornerFrontThicknessMm?: number | null;
+  cornerSystemLine?: string | null;
 
   // Pozycjonowanie szafek wiszących
   positioningMode?: PositioningMode;

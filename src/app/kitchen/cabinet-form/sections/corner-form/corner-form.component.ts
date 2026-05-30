@@ -16,8 +16,18 @@ import {
   CornerWreathConstructionType,
   CORNER_WREATH_CONSTRUCTION_LABELS,
   CORNER_WREATH_CONSTRUCTION_TOOLTIPS,
+  CornerHandedness,
+  CORNER_HANDEDNESS_LABELS,
+  CornerSystemLine,
+  CORNER_SYSTEM_LINE_LABELS,
+  effectiveFrontMinWidthMm,
   mechanismRequiresShelves,
-  isBlindType
+  isBlindType,
+  isMagicCorner,
+  isLeMans,
+  CornerSystemParamDefaults,
+  defaultCornerSystemParams,
+  isCornerOpeningAngleValid
 } from '../../model/corner-cabinet.model';
 import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
 import { KitchenCabinetTypeConfig } from '../../type-config/kitchen-cabinet-type-config';
@@ -74,6 +84,75 @@ export class CornerFormComponent implements OnInit {
     label: CORNER_WREATH_CONSTRUCTION_LABELS[value]
   }));
 
+  /** Iter.6 (Faza 1): opcje dropdown "Strona aktywnego frontu" (Le Mans / Magic Corner). */
+  readonly cornerHandednessOptions = Object.values(CornerHandedness).map(value => ({
+    value,
+    label: CORNER_HANDEDNESS_LABELS[value]
+  }));
+
+  /** Pełna lista linii systemowych (źródło dla filtrowanej listy per mechanizm). */
+  private readonly allCornerSystemLineOptions = Object.values(CornerSystemLine).map(value => ({
+    value,
+    label: CORNER_SYSTEM_LINE_LABELS[value]
+  }));
+
+  /**
+   * Iter.6 (Faza 1): opcje dropdown "Linia systemu" (Le Mans / Magic Corner).
+   * Mutowalna — rebudowana w {@link onCornerMechanismChange}; Magic Corner Comfort
+   * nie obsługuje LINE_400 (siatka producenta od 450), więc ta opcja jest odfiltrowana.
+   */
+  cornerSystemLineOptions = [...this.allCornerSystemLineOptions];
+
+  /** Widoczność sekcji parametrów systemowych (Magic Corner / Le Mans). */
+  showSystemParams = false;
+
+  /**
+   * Iter.6 (Faza 1): true gdy mechanizm to jednostronny system z parametrami
+   * (Magic Corner Comfort/Standard albo Le Mans I/II). Steruje widocznością sekcji systemowej.
+   */
+  get isSystemMechanism(): boolean {
+    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
+    return mechanism ? (isMagicCorner(mechanism) || isLeMans(mechanism)) : false;
+  }
+
+  /**
+   * Soft warning (FE-only, NIE blokuje) dla Magic Corner Standard z linią LINE_600:
+   * producent wymaga korpusu ≥ 730 mm dla frontu 600 mm (książka/ref. §12).
+   * Decyzja usera (Q4): ostrzeżenie + TODO, bez twardej blokady backendu.
+   */
+  get magicStandard730Warning(): string | null {
+    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
+    if (mechanism !== CornerMechanismType.MAGIC_CORNER_STANDARD) {
+      return null;
+    }
+    const line = this.form.get('cornerSystemLine')?.value as CornerSystemLine | null;
+    const widthA = this.form.get('cornerWidthA')?.value as number | null;
+    // TODO(corner-phase-2): doprecyzować min. korpus dla każdej linii Magic Standard wg karty producenta.
+    if (line === CornerSystemLine.LINE_600 && widthA != null && widthA < 730) {
+      return 'Magic Corner Standard z frontem linii 600 zwykle wymaga korpusu ≥ 730 mm. '
+        + 'Zweryfikuj kartę producenta przed zamówieniem.';
+    }
+    return null;
+  }
+
+  /** Informacyjna nota o ograniczeniach producenta dla aktualnego systemu (BOM §13). */
+  get systemConstraintNote(): string | null {
+    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
+    if (!mechanism) {
+      return null;
+    }
+    if (isLeMans(mechanism)) {
+      return 'Le Mans: front 16–19 mm, min. 85° otwarcia.';
+    }
+    if (mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT) {
+      return 'Magic Corner Comfort: maks. 90° otwarcia, kosz przedni 10 kg, tylny 8 kg, front ≥ 446 mm (nie linia 400).';
+    }
+    if (mechanism === CornerMechanismType.MAGIC_CORNER_STANDARD) {
+      return 'Magic Corner Standard: maks. 75° otwarcia, kosz przedni 7 kg, tylny 9 kg, front ≥ 396 mm.';
+    }
+    return null;
+  }
+
   /** Tooltip dla aktualnie wybranej konstrukcji wieńca/półek. */
   get currentWreathConstructionTooltip(): string {
     const value = (this.form.get('wreathConstructionType')?.value
@@ -84,6 +163,24 @@ export class CornerFormComponent implements OnInit {
   get currentBlindPanelVisibleWidthMin(): number {
     const handleType = (this.form.get('cornerHandleType')?.value ?? CornerHandleType.SCREWED) as CornerHandleType;
     return CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
+  }
+
+  /**
+   * Minimalna szerokość frontu uchylnego (Y) dla aktualnego systemu/linii — mirror backendu.
+   * Magic Corner: Y-min wybranej linii (lub domyślnej systemu); pozostałe Type B: 400 mm.
+   */
+  get currentFrontUchylnyMin(): number {
+    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
+    if (!mechanism) {
+      return BLIND_CORNER_CONSTRAINTS.frontUchylnyMin;
+    }
+    const systemLine = this.form.get('cornerSystemLine')?.value as CornerSystemLine | null;
+    return effectiveFrontMinWidthMm(mechanism, systemLine);
+  }
+
+  /** Dynamiczna podpowiedź zakresu frontu uchylnego (zależna od systemu/linii). */
+  get frontUchylnyHint(): string {
+    return `${this.currentFrontUchylnyMin}–${BLIND_CORNER_CONSTRAINTS.frontUchylnyMax} mm (domyślnie 500 mm)`;
   }
 
   private destroyRef = inject(DestroyRef);
@@ -108,6 +205,11 @@ export class CornerFormComponent implements OnInit {
       .subscribe(() => this.revalidate());
 
     this.form.get('cornerHandleType')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.revalidate());
+
+    // Zmiana linii systemu przesuwa min. szerokość frontu uchylnego (Magic Corner) → rewaliduj.
+    this.form.get('cornerSystemLine')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.revalidate());
   }
@@ -241,13 +343,76 @@ export class CornerFormComponent implements OnInit {
     this.showCornerFrontUchylnyWidth = typeB;
     this.showCornerShelfQuantity = mechanismRequiresShelves(mechanism);
 
+    // Iter.6 (Faza 1): sekcja parametrów systemowych tylko dla Magic Corner / Le Mans.
+    const systemMechanism = mechanism ? (isMagicCorner(mechanism) || isLeMans(mechanism)) : false;
+    this.showSystemParams = systemMechanism;
+
+    // CR-fix: Magic Corner Comfort nie obsługuje linii 400 (siatka producenta od 450).
+    // Odfiltruj LINE_400 z dropdownu i wyczyść nieaktualną wartość, jeśli była wybrana.
+    const comfort = mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT;
+    this.cornerSystemLineOptions = comfort
+      ? this.allCornerSystemLineOptions.filter(opt => opt.value !== CornerSystemLine.LINE_400)
+      : [...this.allCornerSystemLineOptions];
+    if (comfort && this.form.get('cornerSystemLine')?.value === CornerSystemLine.LINE_400) {
+      this.form.patchValue({ cornerSystemLine: null }, { emitEvent: false });
+    }
+
     // B4 (2026-05-29): wreathConstructionType is Type A only — clear for Type B to avoid
     // stale value in persistenceJson when user switches from Type A to Type B.
     if (typeB) {
       this.form.patchValue({ wreathConstructionType: null }, { emitEvent: false });
     }
 
+    // Wyczyść parametry systemowe gdy mechanizm ich nie używa (np. BLIND_CORNER lub Type A).
+    // W przeciwnym razie wstaw domyślne wartości zgodne z zakresami walidacji wybranego systemu.
+    if (!systemMechanism) {
+      this.form.patchValue({
+        cornerHandedness: null,
+        cornerOpeningAngleDeg: null,
+        cornerFrontThicknessMm: null,
+        cornerSystemLine: null
+      }, { emitEvent: false });
+    } else {
+      const defaults = defaultCornerSystemParams(mechanism);
+      if (defaults) {
+        this.applySystemParamDefaults(mechanism, defaults);
+      }
+    }
+
     this.revalidate();
+  }
+
+  /**
+   * Wstawia domyślne parametry systemowe (linia / kąt / grubość frontu) dla Magic Corner / Le Mans,
+   * ale TYLKO dla pól pustych lub niespełniających zakresów nowego systemu. Dzięki temu:
+   *  - przy dodawaniu szafki użytkownik dostaje od razu poprawny zestaw wartości,
+   *  - w trybie edycji zapisane (i wciąż poprawne) wartości nie są nadpisywane,
+   *  - przy zmianie systemu (np. Comfort → Standard) kąt poza zakresem (90 → maks. 75) jest korygowany.
+   */
+  private applySystemParamDefaults(mechanism: CornerMechanismType, d: CornerSystemParamDefaults): void {
+    const patch: Record<string, unknown> = {};
+
+    const currentLine = this.form.get('cornerSystemLine')?.value;
+    if (d.systemLine != null && currentLine == null) {
+      patch['cornerSystemLine'] = d.systemLine;
+    }
+
+    const currentAngle = this.form.get('cornerOpeningAngleDeg')?.value;
+    if (currentAngle == null || !isCornerOpeningAngleValid(mechanism, Number(currentAngle))) {
+      patch['cornerOpeningAngleDeg'] = d.openingAngleDeg;
+    }
+
+    const currentThickness = this.form.get('cornerFrontThicknessMm')?.value;
+    const thickness = Number(currentThickness);
+    const leMansThicknessInvalid = isLeMans(mechanism)
+      && currentThickness != null && (thickness < 16 || thickness > 19);
+    if (currentThickness == null || leMansThicknessInvalid) {
+      patch['cornerFrontThicknessMm'] = d.frontThicknessMm;
+    }
+
+    if (Object.keys(patch).length > 0) {
+      this.form.patchValue(patch, { emitEvent: false });
+    }
   }
 
   private revalidate(): void {

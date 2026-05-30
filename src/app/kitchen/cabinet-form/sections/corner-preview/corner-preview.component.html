@@ -21,10 +21,12 @@
       <text x="60" y="55" font-size="8" text-anchor="middle" fill="#555">Ślepy narożnik</text>
     </ng-container>
     <text x="100" y="140" font-size="18" font-weight="700" text-anchor="middle" fill="currentColor">
-      {{ currentCornerMechanism === 'MAGIC_CORNER' ? 'MC' :
+      {{ currentCornerMechanism === 'MAGIC_CORNER_COMFORT' ? 'MCc' :
+         currentCornerMechanism === 'MAGIC_CORNER_STANDARD' ? 'MCs' :
          currentCornerMechanism === 'CAROUSEL_270' ? 'C270' :
          currentCornerMechanism === 'CAROUSEL_360' ? 'C360' :
-         currentCornerMechanism === 'LE_MANS' ? 'LM' :
+         currentCornerMechanism === 'LE_MANS_I' ? 'LM I' :
+         currentCornerMechanism === 'LE_MANS_II' ? 'LM II' :
          currentCornerMechanism === 'FIXED_SHELVES' ? 'FS' :
          currentCornerMechanism === 'BLIND_CORNER' ? 'BC' : 'BOX' }}
     </text>

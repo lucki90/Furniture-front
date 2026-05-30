@@ -2,6 +2,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
 import { CabinetFormValidationErrorsService } from './cabinet-form-validation-errors.service';
 import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visibility';
+import { CornerCabinetValidator } from './types/corner-cabinet/corner-cabinet-validator';
+import { CornerMechanismType } from './model/corner-cabinet.model';
 
 describe('CabinetFormValidationErrorsService', () => {
   let service: CabinetFormValidationErrorsService;
@@ -72,5 +74,63 @@ describe('CabinetFormValidationErrorsService', () => {
     form.get('depth')?.setErrors({ max: { max: 600 } });
 
     expect(service.getValidationErrors(form, visibility, null)).toEqual([]);
+  });
+
+  describe('corner cabinet Type B', () => {
+    const cornerValidator = new CornerCabinetValidator();
+
+    function cornerVisibility(): CabinetFormVisibility {
+      return {
+        width: false,
+        cornerWidthA: true,
+        cornerMechanism: true,
+        segments: false,
+        lowerFrontHeightMm: false
+      } as unknown as CabinetFormVisibility;
+    }
+
+    it('surfaces the front uchylny error for an invalid Type B corner', () => {
+      form.patchValue({
+        kitchenCabinetType: 'CORNER_CABINET',
+        cornerMechanism: CornerMechanismType.BLIND_CORNER,
+        cornerWidthA: 1000,
+        cornerShelfQuantity: 1,
+        height: 720,
+        depth: 510,
+        cornerFrontUchylnyWidthMm: 100
+      });
+      cornerValidator.validate(form);
+
+      const errors = service.getValidationErrors(form, cornerVisibility(), null);
+
+      expect(errors.some(e => e.startsWith('Szerokosc frontu uchylnego'))).toBeTrue();
+    });
+
+    it('surfaces a required mechanism error when mechanism is missing', () => {
+      form.get('cornerMechanism')?.setValue(null);
+      form.get('cornerMechanism')?.setValidators([Validators.required]);
+      form.get('cornerMechanism')?.updateValueAndValidity();
+
+      const errors = service.getValidationErrors(form, cornerVisibility(), null);
+
+      expect(errors).toContain('Wybierz system organizacji wewnetrznej');
+    });
+
+    it('returns no corner errors for a fully valid Type B corner', () => {
+      form.patchValue({
+        kitchenCabinetType: 'CORNER_CABINET',
+        cornerMechanism: CornerMechanismType.BLIND_CORNER,
+        cornerWidthA: 1000,
+        cornerShelfQuantity: 1,
+        height: 720,
+        depth: 510,
+        cornerFrontUchylnyWidthMm: 500
+      });
+      cornerValidator.validate(form);
+
+      const errors = service.getValidationErrors(form, cornerVisibility(), null);
+
+      expect(errors).toEqual([]);
+    });
   });
 });

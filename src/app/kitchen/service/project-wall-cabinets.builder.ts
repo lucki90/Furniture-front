@@ -15,6 +15,7 @@ import {
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { mapSegmentToRequest, SegmentFormData } from '../cabinet-form/model/segment.model';
 import { EnclosureType } from '../cabinet-form/model/enclosure.model';
+import { CornerMechanismType, isMagicCorner, isLeMans } from '../cabinet-form/model/corner-cabinet.model';
 import { WallBuildSettings } from './project-request-builder.models';
 import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.builder';
 import { KitchenGeometryService } from './kitchen-geometry.service';
@@ -245,6 +246,10 @@ export class ProjectWallCabinetsBuilder {
     }
 
     const blindPanelSplitEnabled = cab.blindPanelSplitEnabled ?? cab.blindPanelVisibleWidthMm != null;
+    // Faza 1 — parametry systemowe (handedness/angle/thickness/line) tylko dla jednostronnych
+    // systemów Type B (Magic Corner, Le Mans); dla pozostałych mechanizmów zostają null.
+    const isSystemMechanism = isMagicCorner(cab.cornerMechanism as CornerMechanismType)
+      || isLeMans(cab.cornerMechanism as CornerMechanismType);
 
     return {
       widthA: cab.cornerWidthA,
@@ -258,7 +263,12 @@ export class ProjectWallCabinetsBuilder {
       // Iteracja 2 [B1] — wyślij FS1 tylko gdy split włączony
       blindPanelVisibleWidthMm: blindPanelSplitEnabled ? (cab.blindPanelVisibleWidthMm ?? 150) : null,
       // Iter.4 [A2 C] — BE only, propagacja gdyby pole było ustawione (UI dropdown w Iter.5)
-      wreathConstructionType: cab.wreathConstructionType ?? null
+      wreathConstructionType: cab.wreathConstructionType ?? null,
+      // Faza 1 — systemowe parametry Le Mans / Magic Corner (Type B)
+      handedness: isSystemMechanism ? (cab.cornerHandedness ?? null) : null,
+      openingAngleDeg: isSystemMechanism ? (cab.cornerOpeningAngleDeg ?? null) : null,
+      frontThicknessMm: isSystemMechanism ? (cab.cornerFrontThicknessMm ?? null) : null,
+      systemLine: isSystemMechanism ? (cab.cornerSystemLine ?? null) : null
     };
   }
 

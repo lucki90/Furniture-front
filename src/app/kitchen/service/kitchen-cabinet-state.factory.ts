@@ -152,7 +152,12 @@ export class KitchenCabinetStateFactory {
           cornerHandleType: formData.cornerHandleType,
           blindPanelSplitEnabled: formData.blindPanelSplitEnabled,
           blindPanelVisibleWidthMm: formData.blindPanelVisibleWidthMm,
-          wreathConstructionType: formData.wreathConstructionType
+          wreathConstructionType: formData.wreathConstructionType,
+          // Faza 1 — parametry systemu Magic Corner / Le Mans (Type B)
+          cornerHandedness: formData.cornerHandedness,
+          cornerOpeningAngleDeg: formData.cornerOpeningAngleDeg,
+          cornerFrontThicknessMm: formData.cornerFrontThicknessMm,
+          cornerSystemLine: formData.cornerSystemLine
         };
       case KitchenCabinetType.UPPER_ONE_DOOR:
         return {
@@ -339,7 +344,12 @@ export class KitchenCabinetStateFactory {
           cornerHandleType: cabResp.cornerHandleType,
           blindPanelSplitEnabled: cabResp.blindPanelSplitEnabled ?? hasPersistedBlindPanelVisibleWidth,
           blindPanelVisibleWidthMm: cabResp.blindPanelVisibleWidthMm,
-          wreathConstructionType: cabResp.wreathConstructionType
+          wreathConstructionType: cabResp.wreathConstructionType,
+          // Faza 1 — parametry systemu Magic Corner / Le Mans (Type B)
+          cornerHandedness: cabResp.cornerHandedness,
+          cornerOpeningAngleDeg: cabResp.cornerOpeningAngleDeg,
+          cornerFrontThicknessMm: cabResp.cornerFrontThicknessMm,
+          cornerSystemLine: cabResp.cornerSystemLine
         };
       }
       case KitchenCabinetType.UPPER_ONE_DOOR:

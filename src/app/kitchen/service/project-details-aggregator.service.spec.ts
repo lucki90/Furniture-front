@@ -212,6 +212,60 @@ describe('ProjectDetailsAggregatorService', () => {
     expect(wreathRect?.remarks ?? '').not.toContain('L-shape');
   });
 
+  // Iter.6 (Faza 1) — auto-uwaga producenta dla mechanizmów narożnych (Le Mans / Magic Corner), doc §13
+  it('should add manufacturer remarks for Le Mans / Magic Corner active front', () => {
+    const response = {
+      walls: [
+        {
+          cabinets: [
+            {
+              kitchenCabinetType: 'CORNER_CABINET',
+              cornerMechanism: 'LE_MANS_I',
+              boards: [
+                {
+                  boardName: 'FRONT_NAME',
+                  boardNameLabel: 'Front',
+                  boardThickness: 18,
+                  sideX: 500, sideY: 700,
+                  quantity: 1,
+                  totalPrice: 80,
+                  color: 'WHITE',
+                  veneerX: 2, veneerY: 2, veneerColor: 'WHITE',
+                  priceEntry: { price: 80 }
+                }
+              ]
+            },
+            {
+              kitchenCabinetType: 'CORNER_CABINET',
+              cornerMechanism: 'MAGIC_CORNER_STANDARD',
+              boards: [
+                {
+                  boardName: 'FRONT_NAME',
+                  boardNameLabel: 'Front',
+                  boardThickness: 18,
+                  sideX: 450, sideY: 700,
+                  quantity: 1,
+                  totalPrice: 80,
+                  color: 'BLACK',
+                  veneerX: 2, veneerY: 2, veneerColor: 'BLACK',
+                  priceEntry: { price: 80 }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    } as unknown as MultiWallCalculateResponse;
+
+    const result = service.aggregate(response, [] as unknown as WallWithCabinets[], {});
+
+    const leMansFront = result.boards.find(b => b.color === 'WHITE');
+    const magicFront = result.boards.find(b => b.color === 'BLACK');
+
+    expect(leMansFront?.remarks).toContain('Le Mans: front 16-19 mm, min. 85 deg otwarcia');
+    expect(magicFront?.remarks).toContain('Magic Corner Standard: maks. 75 deg otwarcia');
+  });
+
   it('should merge duplicate components and jobs across walls', () => {
     const response = {
       walls: [

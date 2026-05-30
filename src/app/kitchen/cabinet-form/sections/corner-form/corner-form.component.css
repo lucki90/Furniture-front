@@ -10,6 +10,12 @@
   border-top: 1px solid var(--border-color, #e2e8f0);
 }
 
+/* Pojedyncze pole w wierszu (System organizacji, Układ drzwi, Liczba półek, Konstrukcja wieńca,
+   FS1) nie rozciąga się na całą szerokość — spójna siatka z wierszami dwupolowymi. */
+.form-row > .form-group:only-child {
+  max-width: calc(50% - 5px);
+}
+
 /* Drugi i kolejne nagłówki sekcji wewnątrz corner-form — dodatkowy margin-top
    dla wizualnej separacji bez ciężkiego bordera. */
 .section-title-spaced {
@@ -65,6 +71,8 @@
   gap: 6px;
   cursor: pointer;
   user-select: none;
+  font-size: 13px;
+  color: var(--text-primary, #1e293b);
 }
 
 .help-icon {

@@ -2,14 +2,26 @@ import { FormGroup, Validators } from "@angular/forms";
 import { KitchenCabinetValidator } from "../../type-config/validator/kitchen-cabinet-validator";
 import {
   CornerMechanismType,
+  CornerSystemLine,
   BASE_CORNER_CONSTRAINTS,
   UPPER_CORNER_CONSTRAINTS,
   BLIND_CORNER_CONSTRAINTS,
   CORNER_HANDLE_FILLER_WIDTH_MM,
   CornerHandleType,
+  effectiveFrontMinWidthMm,
   isAllowedForUpperCabinet,
-  isBlindType
+  isBlindType,
+  isLeMans
 } from "../../model/corner-cabinet.model";
+
+/**
+ * Per-system Type B angle limits (manufacturer reference §12) — mirror of the backend
+ * {@code CornerCabinetKitchenCabinetValidator}. Angle is validated only when provided
+ * (Angular Validators.min/max treat null/empty as valid), matching the backend `angle != null` guard.
+ */
+const LE_MANS_MIN_ANGLE_DEG = 85;
+const MAGIC_COMFORT_MAX_ANGLE_DEG = 90;
+const MAGIC_STANDARD_MAX_ANGLE_DEG = 75;
 
 /**
  * Validator dla szafki narożnej (CORNER_CABINET).
@@ -23,6 +35,13 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
   validate(form: FormGroup): void {
     const mechanism = form.get('cornerMechanism')?.value as CornerMechanismType;
 
+    // Szafka narożna NIE używa kanonicznego pola `width` (ma własne cornerWidthA/B).
+    // Pole `width` pozostaje ukryte (visibility.width=false), ale jest enabled, więc
+    // gdyby zachowało walidatory poprzedniego typu (np. BASE_ONE_DOOR max=600), a preparer
+    // narożnika patchuje width=900/1000, to `width` byłoby invalid → form.invalid →
+    // przycisk "Dodaj szafkę" zablokowany bez widocznego powodu. Czyścimy te walidatory.
+    form.get('width')?.clearValidators();
+
     if (mechanism && isBlindType(mechanism)) {
       this.validateTypeB(form, mechanism);
     } else {
@@ -34,6 +53,7 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     //   cornerMechanism.updateValueAndValidity() emitowałoby valueChanges
     //   → onCornerMechanismChange() → validate() → ... → StackOverflow
     const noEmit = { emitEvent: false };
+    form.get('width')?.updateValueAndValidity(noEmit);
     form.get('cornerWidthA')?.updateValueAndValidity(noEmit);
     form.get('cornerWidthB')?.updateValueAndValidity(noEmit);
     form.get('height')?.updateValueAndValidity(noEmit);
@@ -42,6 +62,8 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     form.get('cornerShelfQuantity')?.updateValueAndValidity(noEmit);
     form.get('cornerFrontUchylnyWidthMm')?.updateValueAndValidity(noEmit);
     form.get('blindPanelVisibleWidthMm')?.updateValueAndValidity(noEmit);
+    form.get('cornerOpeningAngleDeg')?.updateValueAndValidity(noEmit);
+    form.get('cornerSystemLine')?.updateValueAndValidity(noEmit);
 
     form.updateValueAndValidity(noEmit);
   }
@@ -98,6 +120,8 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     // frontUchylnyWidthMm — nie wymagane dla Type A
     form.get('cornerFrontUchylnyWidthMm')?.clearValidators();
     form.get('blindPanelVisibleWidthMm')?.clearValidators();
+    // Kąt otwarcia — parametr systemowy Type B; w Type A bez ograniczeń.
+    form.get('cornerOpeningAngleDeg')?.clearValidators();
   }
 
   // ==================== TYPE B (BLIND/RECTANGULAR) ====================
@@ -139,12 +163,20 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
       form.get('cornerShelfQuantity')?.clearValidators();
     }
 
-    // frontUchylnyWidthMm — wymagane dla Type B (400-600mm)
+    // frontUchylnyWidthMm — wymagane dla Type B. Minimalna szerokość zależy od systemu/linii:
+    // Magic Corner używa Y-min wybranej linii (lub domyślnej systemu), pozostałe Type B = 400mm.
+    // Mirror backendowego effectiveFrontMinWidth (CR-fix Faza 1: FE blokował poprawne fronty Magic Corner).
+    const systemLine = form.get('cornerSystemLine')?.value as CornerSystemLine | null;
+    const frontUchylnyMin = effectiveFrontMinWidthMm(mechanism, systemLine);
     form.get('cornerFrontUchylnyWidthMm')?.setValidators([
       Validators.required,
-      Validators.min(constraints.frontUchylnyMin),
+      Validators.min(frontUchylnyMin),
       Validators.max(constraints.frontUchylnyMax)
     ]);
+
+    // Parametry systemu (Magic Corner / Le Mans) — twarde limity kąta otwarcia (manufacturer reference §12).
+    // Mirror backendu: walidacja tylko gdy kąt podany (Validators.min/max traktują null jako poprawne).
+    this.applyOpeningAngleValidators(form, mechanism);
 
     const handleType = (form.get('cornerHandleType')?.value ?? CornerHandleType.SCREWED) as CornerHandleType;
     const minVisibleWidth = CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
@@ -157,6 +189,26 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
       ]);
     } else {
       form.get('blindPanelVisibleWidthMm')?.clearValidators();
+    }
+  }
+
+  /**
+   * Ustawia twarde limity kąta otwarcia dla parametrów systemu Type B (Magic Corner / Le Mans),
+   * mirror backendowego {@code validateTypeBSystem}. Walidacja odpala się tylko gdy kąt jest podany.
+   */
+  private applyOpeningAngleValidators(form: FormGroup, mechanism: CornerMechanismType): void {
+    const angleControl = form.get('cornerOpeningAngleDeg');
+    if (!angleControl) {
+      return;
+    }
+    if (isLeMans(mechanism)) {
+      angleControl.setValidators([Validators.min(LE_MANS_MIN_ANGLE_DEG)]);
+    } else if (mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT) {
+      angleControl.setValidators([Validators.max(MAGIC_COMFORT_MAX_ANGLE_DEG)]);
+    } else if (mechanism === CornerMechanismType.MAGIC_CORNER_STANDARD) {
+      angleControl.setValidators([Validators.max(MAGIC_STANDARD_MAX_ANGLE_DEG)]);
+    } else {
+      angleControl.clearValidators();
     }
   }
 
@@ -231,10 +283,29 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     }
 
     if (typeB) {
+      const systemLine = form.get('cornerSystemLine')?.value as CornerSystemLine | null;
+      const frontUchylnyMin = effectiveFrontMinWidthMm(mechanism, systemLine);
       const frontUchylny = form.get('cornerFrontUchylnyWidthMm')?.value;
-      if (!frontUchylny || frontUchylny < BLIND_CORNER_CONSTRAINTS.frontUchylnyMin
+      if (!frontUchylny || frontUchylny < frontUchylnyMin
           || frontUchylny > BLIND_CORNER_CONSTRAINTS.frontUchylnyMax) {
-        errors.push(`Szerokość frontu uchylnego musi być między ${BLIND_CORNER_CONSTRAINTS.frontUchylnyMin} a ${BLIND_CORNER_CONSTRAINTS.frontUchylnyMax}mm`);
+        errors.push(`Szerokość frontu uchylnego musi być między ${frontUchylnyMin} a ${BLIND_CORNER_CONSTRAINTS.frontUchylnyMax}mm`);
+      }
+
+      // Parametry systemu (Magic Corner / Le Mans) — mirror backendu validateTypeBSystem.
+      const angle = form.get('cornerOpeningAngleDeg')?.value as number | null;
+      if (angle != null) {
+        if (isLeMans(mechanism) && angle < LE_MANS_MIN_ANGLE_DEG) {
+          errors.push(`Le Mans wymaga kąta otwarcia ≥ ${LE_MANS_MIN_ANGLE_DEG}° (podano ${angle}°)`);
+        } else if (mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT && angle > MAGIC_COMFORT_MAX_ANGLE_DEG) {
+          errors.push(`Magic Corner Comfort dopuszcza maks. ${MAGIC_COMFORT_MAX_ANGLE_DEG}° otwarcia (podano ${angle}°)`);
+        } else if (mechanism === CornerMechanismType.MAGIC_CORNER_STANDARD && angle > MAGIC_STANDARD_MAX_ANGLE_DEG) {
+          errors.push(`Magic Corner Standard dopuszcza maks. ${MAGIC_STANDARD_MAX_ANGLE_DEG}° otwarcia (podano ${angle}°)`);
+        }
+      }
+
+      // Magic Corner Comfort nie obsługuje linii 400 (siatka od 450) — mirror backendu.
+      if (mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT && systemLine === CornerSystemLine.LINE_400) {
+        errors.push('Magic Corner Comfort nie obsługuje linii 400 — wybierz linię 450 lub wyższą.');
       }
 
       if (form.get('blindPanelSplitEnabled')?.value) {

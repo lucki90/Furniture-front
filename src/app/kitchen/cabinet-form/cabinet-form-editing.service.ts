@@ -104,6 +104,11 @@ export class CabinetFormEditingService {
       cornerHandleType: c.cornerHandleType ?? 'SCREWED',
       // Iter.5b [A2 C] — null lub undefined ⇒ SPLIT_RECTANGLES (default w UI dropdown)
       wreathConstructionType: c.wreathConstructionType ?? 'SPLIT_RECTANGLES',
+      // Faza 1 — parametry systemu Magic Corner / Le Mans (Type B)
+      cornerHandedness: c.cornerHandedness,
+      cornerOpeningAngleDeg: c.cornerOpeningAngleDeg,
+      cornerFrontThicknessMm: c.cornerFrontThicknessMm,
+      cornerSystemLine: c.cornerSystemLine,
       blindPanelSplitEnabled,
       blindPanelVisibleWidthMm,
       isLiftUp: c.isLiftUp ?? false,

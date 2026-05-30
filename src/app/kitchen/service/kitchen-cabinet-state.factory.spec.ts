@@ -154,7 +154,7 @@ describe('KitchenCabinetStateFactory', () => {
       boxColorCode: 'WHITE',
       cornerWidthA: 950,
       cornerWidthB: 870,
-      cornerMechanism: 'LE_MANS',
+      cornerMechanism: 'LE_MANS_I',
       cornerShelfQuantity: 2,
       isUpperCorner: false,
       cornerOpeningType: 'BIFOLD',
@@ -194,7 +194,7 @@ describe('KitchenCabinetStateFactory', () => {
       width: 950,
       cornerWidthA: 950,
       cornerWidthB: 870,
-      cornerMechanism: 'LE_MANS'
+      cornerMechanism: 'LE_MANS_I'
     }));
     expect(cascadeCabinet).toEqual(jasmine.objectContaining({
       id: 'cascade-1',

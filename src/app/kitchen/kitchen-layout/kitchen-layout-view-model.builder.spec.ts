@@ -186,4 +186,118 @@ describe('kitchen-layout-view-model.builder', () => {
     expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(2);
     expect(position.fronts.some(front => front.type === 'PLINTH_BREAK_LINE')).toBeTrue();
   });
+
+  function buildCorner(cornerOverrides: Partial<KitchenCabinet>) {
+    return buildVisualCabinetPositions({
+      cabinetPositions: [createPosition({ cabinetId: 'corner-1', width: 900, height: 720 })],
+      cabinets: [
+        createCabinet({
+          id: 'corner-1',
+          type: KitchenCabinetType.CORNER_CABINET,
+          width: 900,
+          height: 720,
+          depth: 560,
+          ...cornerOverrides
+        } as Partial<KitchenCabinet>)
+      ],
+      scale: 0.1,
+      wallWidth: 200,
+      wallDisplayHeight: 180,
+      scaleVert: 0.1,
+      feetHeightMm: 100,
+      fillerWidthMm: 50,
+      standardBottomHeight: 720,
+      standardTopHeight: 720,
+      standardBottomDepth: 560,
+      standardTopDepth: 320,
+      frontGap: 1
+    })[0];
+  }
+
+  it('should render Type A two-door corner as two doors meeting in the center', () => {
+    const position = buildCorner({
+      cornerWidthA: 900,
+      cornerWidthB: 600,
+      cornerMechanism: 'FIXED_SHELVES',
+      cornerOpeningType: 'TWO_DOORS',
+      isUpperCorner: false
+    } as Partial<KitchenCabinet>);
+
+    expect(position.isCorner).toBeTrue();
+    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(2);
+    expect(position.fronts.some(front => front.type === 'VERT_DIVIDER')).toBeFalse();
+    expect(position.handles).toHaveSize(2);
+  });
+
+  it('should render Type A bifold corner as two folding panels with a fold divider', () => {
+    const position = buildCorner({
+      cornerWidthA: 900,
+      cornerWidthB: 600,
+      cornerMechanism: 'FIXED_SHELVES',
+      cornerOpeningType: 'BIFOLD',
+      isUpperCorner: false
+    } as Partial<KitchenCabinet>);
+
+    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(2);
+    expect(position.fronts.filter(front => front.type === 'VERT_DIVIDER')).toHaveSize(1);
+    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')
+      .every(front => front.hingesSide === 'LEFT')).toBeTrue();
+    expect(position.handles).toHaveSize(1);
+  });
+
+  it('should render Type B blind corner as active front + fixed blind panel with a single handle', () => {
+    const position = buildCorner({
+      cornerWidthA: 1000,
+      cornerMechanism: 'BLIND_CORNER',
+      cornerFrontUchylnyWidthMm: 500,
+      isUpperCorner: false
+    } as Partial<KitchenCabinet>);
+
+    const doors = position.fronts.filter(front => front.type === 'DOOR_SINGLE');
+    expect(doors).toHaveSize(2);
+    expect(position.fronts.filter(front => front.type === 'VERT_DIVIDER')).toHaveSize(1);
+    // Exactly one openable front carries a handle; the blind panel has none.
+    expect(position.handles).toHaveSize(1);
+    // Active front (with hinges) ≈ 500/1000 of usable width; blind panel takes the rest.
+    const active = doors.find(front => front.hingesSide !== undefined);
+    const blind = doors.find(front => front.hingesSide === undefined);
+    expect(active).toBeDefined();
+    expect(blind).toBeDefined();
+    expect(active!.width).toBeCloseTo(blind!.width, 0);
+  });
+
+  it('should render upper corner (isUpperCorner variant) in the TOP zone with two doors', () => {
+    const position = buildVisualCabinetPositions({
+      cabinetPositions: [createPosition({ cabinetId: 'corner-up', x: 0, y: 1500, width: 700, height: 720 })],
+      cabinets: [
+        createCabinet({
+          id: 'corner-up',
+          type: KitchenCabinetType.CORNER_CABINET,
+          width: 700,
+          height: 720,
+          depth: 320,
+          cornerWidthA: 700,
+          cornerWidthB: 700,
+          cornerMechanism: 'FIXED_SHELVES',
+          cornerOpeningType: 'TWO_DOORS',
+          isUpperCorner: true
+        } as Partial<KitchenCabinet>)
+      ],
+      scale: 0.1,
+      wallWidth: 200,
+      wallDisplayHeight: 180,
+      scaleVert: 0.1,
+      feetHeightMm: 100,
+      fillerWidthMm: 50,
+      standardBottomHeight: 720,
+      standardTopHeight: 720,
+      standardBottomDepth: 560,
+      standardTopDepth: 320,
+      frontGap: 1
+    })[0];
+
+    expect(position.zone).toBe('TOP');
+    expect(position.feetHeight).toBe(0);
+    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(2);
+  });
 });

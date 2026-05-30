@@ -1,9 +1,13 @@
 import { MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
 import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 import {
+  CornerHandedness,
   CornerHandleType,
   CornerMechanismType,
   CornerOpeningType,
+  CornerSystemLine,
+  isLeMans,
+  isMagicCorner,
   isBlindType
 } from "../../model/corner-cabinet.model";
 
@@ -84,6 +88,9 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
 
   private mapTypeB(form: any, mechanism: CornerMechanismType, materialDefaults: MaterialDefaults): any {
     const blindPanelSplitEnabled = form.blindPanelSplitEnabled ?? form.blindPanelVisibleWidthMm != null;
+    // Iter.6 (Faza 1): pola systemowe (handedness/angle/thickness/line) mają znaczenie tylko dla
+    // jednostronnych systemów Type B (Magic Corner, Le Mans); dla BLIND_CORNER zostają null.
+    const isSystemMechanism = isMagicCorner(mechanism) || isLeMans(mechanism);
     const cornerRequest = {
       widthA: form.cornerWidthA,
       widthB: null,  // Type B nie ma widthB
@@ -98,7 +105,12 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
       // Wysyłamy do backendu tylko gdy split włączony przez użytkownika; null = brak splitu (backward compat).
       blindPanelVisibleWidthMm: blindPanelSplitEnabled
         ? (form.blindPanelVisibleWidthMm ?? 150)
-        : null
+        : null,
+      // Iter.6 (Faza 1) — systemowe parametry Le Mans / Magic Corner.
+      handedness: isSystemMechanism ? ((form.cornerHandedness ?? null) as CornerHandedness | null) : null,
+      openingAngleDeg: isSystemMechanism ? (form.cornerOpeningAngleDeg ?? null) : null,
+      frontThicknessMm: isSystemMechanism ? (form.cornerFrontThicknessMm ?? null) : null,
+      systemLine: isSystemMechanism ? ((form.cornerSystemLine ?? null) as CornerSystemLine | null) : null
     };
 
     return {

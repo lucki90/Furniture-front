@@ -65,9 +65,10 @@
 
     <div class="form-row">
       <app-form-field class="form-group" label="Szerokość frontu uchylnego (Y)" unit="mm"
-          hint="400–600 mm (domyślnie 500 mm)"
+          [hint]="frontUchylnyHint"
           [errorMessage]="getFieldError('cornerFrontUchylnyWidthMm')">
-        <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm" min="400" max="600" step="1">
+        <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm"
+               [attr.min]="currentFrontUchylnyMin" max="600" step="1">
       </app-form-field>
 
       <div class="form-group">
@@ -82,6 +83,46 @@
     <p class="info-text">
       ℹ Front uchylny zasłania przestrzeń narożną i umożliwia dostęp do mechanizmu wewnątrz szafki.
     </p>
+  </ng-container>
+
+  <!-- ═════════════════ SEKCJA 2b: PARAMETRY SYSTEMU (Magic Corner / Le Mans) ═════════════════ -->
+  <ng-container *ngIf="showSystemParams">
+    <h4 class="section-title section-title-spaced">Parametry systemu (Magic Corner / Le Mans)</h4>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Strona aktywnego frontu</label>
+        <select class="form-control" formControlName="cornerHandedness">
+          <option [ngValue]="null">— niesprecyzowane —</option>
+          <option *ngFor="let h of cornerHandednessOptions; trackBy: trackByValue" [value]="h.value">{{ h.label }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Linia systemu</label>
+        <select class="form-control" formControlName="cornerSystemLine">
+          <option [ngValue]="null">— niesprecyzowane —</option>
+          <option *ngFor="let l of cornerSystemLineOptions; trackBy: trackByValue" [value]="l.value">{{ l.label }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <app-form-field class="form-group" label="Kąt otwarcia" unit="°"
+          hint="Le Mans ≥ 85°, Magic Corner ≤ 90° (Comfort) / ≤ 75° (Standard)"
+          [errorMessage]="getFieldError('cornerOpeningAngleDeg')">
+        <input type="number" class="form-control" formControlName="cornerOpeningAngleDeg" min="0" max="180" step="1">
+      </app-form-field>
+
+      <app-form-field class="form-group" label="Grubość frontu" unit="mm"
+          hint="Le Mans wymaga 16–19 mm. Wiążąca jest grubość frontu z materiałów (BOM) — to pole służy tylko gdy materiał nie jest ustawiony.">
+        <input type="number" class="form-control" formControlName="cornerFrontThicknessMm" min="10" max="25" step="1">
+      </app-form-field>
+    </div>
+
+    <p class="info-text" *ngIf="systemConstraintNote">ℹ {{ systemConstraintNote }}</p>
+
+    <p class="warning-text" *ngIf="magicStandard730Warning">⚠ {{ magicStandard730Warning }}</p>
   </ng-container>
 
   <!-- ═════════════════ SEKCJA 3: OPTYMALIZACJA KOSZTU (Type B only, opcjonalne) ═════════════════ -->

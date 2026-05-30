@@ -1,18 +1,65 @@
 /**
  * Types of internal organization mechanisms for corner cabinets.
  * Type A (L-shaped): FIXED_SHELVES, CAROUSEL_270, CAROUSEL_360
- * Type B (Rectangular/Blind): BLIND_CORNER, MAGIC_CORNER, LE_MANS
+ * Type B (Rectangular/Blind): BLIND_CORNER, MAGIC_CORNER_COMFORT, MAGIC_CORNER_STANDARD, LE_MANS_I, LE_MANS_II
  * Note: NONE is kept for backward compatibility but not shown in dropdown (same as FIXED_SHELVES with 0 shelves).
+ *
+ * Iter.6 (2026-05-29): rozdzielono MAGIC_CORNER → COMFORT/STANDARD i LE_MANS → I/II (taksonomia producenta).
  */
 export enum CornerMechanismType {
-  MAGIC_CORNER = 'MAGIC_CORNER',
+  MAGIC_CORNER_COMFORT = 'MAGIC_CORNER_COMFORT',
+  MAGIC_CORNER_STANDARD = 'MAGIC_CORNER_STANDARD',
   CAROUSEL_270 = 'CAROUSEL_270',
   CAROUSEL_360 = 'CAROUSEL_360',
-  LE_MANS = 'LE_MANS',
+  LE_MANS_I = 'LE_MANS_I',
+  LE_MANS_II = 'LE_MANS_II',
   FIXED_SHELVES = 'FIXED_SHELVES',
   NONE = 'NONE',
   BLIND_CORNER = 'BLIND_CORNER'
 }
+
+/**
+ * Handedness (chirality) of the active front / mechanism for one-sided Type B systems
+ * (Le Mans, Magic Corner). Null = "not specified / symmetric". Synchronizowany z backendowym CornerHandednessEnum.
+ */
+export enum CornerHandedness {
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT'
+}
+
+export const CORNER_HANDEDNESS_LABELS: Record<CornerHandedness, string> = {
+  [CornerHandedness.LEFT]: 'Lewa',
+  [CornerHandedness.RIGHT]: 'Prawa'
+};
+
+/**
+ * Manufacturer "line" (front-width family / Y-min) dla Type B systemów (Magic Corner, Le Mans).
+ * Synchronizowany z backendowym CornerSystemLineEnum. Wartość = minimalna szerokość frontu (Y-min) w mm.
+ */
+export enum CornerSystemLine {
+  LINE_400 = 'LINE_400',
+  LINE_450 = 'LINE_450',
+  LINE_500 = 'LINE_500',
+  LINE_550 = 'LINE_550',
+  LINE_600 = 'LINE_600'
+}
+
+/** Y-min (minimalna szerokość frontu) per linia — zsynchronizowane z backendem. */
+export const CORNER_SYSTEM_LINE_MIN_FRONT_MM: Record<CornerSystemLine, number> = {
+  [CornerSystemLine.LINE_400]: 396,
+  [CornerSystemLine.LINE_450]: 446,
+  [CornerSystemLine.LINE_500]: 496,
+  [CornerSystemLine.LINE_550]: 546,
+  [CornerSystemLine.LINE_600]: 596
+};
+
+export const CORNER_SYSTEM_LINE_LABELS: Record<CornerSystemLine, string> = {
+  [CornerSystemLine.LINE_400]: 'Linia 400 (front ≥ 396 mm)',
+  [CornerSystemLine.LINE_450]: 'Linia 450 (front ≥ 446 mm)',
+  [CornerSystemLine.LINE_500]: 'Linia 500 (front ≥ 496 mm)',
+  [CornerSystemLine.LINE_550]: 'Linia 550 (front ≥ 546 mm)',
+  [CornerSystemLine.LINE_600]: 'Linia 600 (front ≥ 596 mm)'
+};
 
 /**
  * Opening type for Type A L-shaped corner cabinets.
@@ -96,14 +143,98 @@ export function computeBlindCornerWidthFromFormula(
   return 580 - 50 + x + frontUchylnyWidthMm + 4;
 }
 
+/** Returns true if mechanism is a Magic Corner variant (Comfort or Standard). */
+export function isMagicCorner(mechanism: CornerMechanismType): boolean {
+  return mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT
+    || mechanism === CornerMechanismType.MAGIC_CORNER_STANDARD;
+}
+
+/** Returns true if mechanism is a Le Mans variant (I or II). */
+export function isLeMans(mechanism: CornerMechanismType): boolean {
+  return mechanism === CornerMechanismType.LE_MANS_I
+    || mechanism === CornerMechanismType.LE_MANS_II;
+}
+
 /**
  * Returns true if mechanism is Type B (Blind/Rectangular).
- * Type B: BLIND_CORNER, MAGIC_CORNER, LE_MANS
+ * Type B: BLIND_CORNER, MAGIC_CORNER_COMFORT, MAGIC_CORNER_STANDARD, LE_MANS_I, LE_MANS_II
  */
 export function isBlindType(mechanism: CornerMechanismType): boolean {
   return mechanism === CornerMechanismType.BLIND_CORNER
-    || mechanism === CornerMechanismType.MAGIC_CORNER
-    || mechanism === CornerMechanismType.LE_MANS;
+    || isMagicCorner(mechanism)
+    || isLeMans(mechanism);
+}
+
+/**
+ * Resolves the minimum active-front width (Y-min) for a Type B mechanism, mirroring the backend
+ * {@code effectiveFrontMinWidth}. Magic Corner uses the selected line's Y-min (or the system default);
+ * other Type B systems use the generic 400mm minimum.
+ */
+export function effectiveFrontMinWidthMm(
+  mechanism: CornerMechanismType,
+  systemLine?: CornerSystemLine | null
+): number {
+  if (isMagicCorner(mechanism)) {
+    if (systemLine) {
+      return CORNER_SYSTEM_LINE_MIN_FRONT_MM[systemLine];
+    }
+    return mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT ? 446 : 396;
+  }
+  return 400;
+}
+
+/**
+ * Domyślne parametry systemowe (Magic Corner / Le Mans) dla danego mechanizmu Type B.
+ * Wartości są dobrane tak, by od razu spełniały zakresy walidacji backendu i FE:
+ *  - Le Mans: kąt ≥ 85°, grubość frontu 16–19 mm,
+ *  - Magic Corner Comfort: kąt ≤ 90°, linia ≥ 450 (nie 400),
+ *  - Magic Corner Standard: kąt ≤ 75°, linia od 400.
+ *
+ * `systemLine = null` oznacza, że linia jest opcjonalna dla danego systemu (Le Mans —
+ * `effectiveFrontMinWidthMm` i tak zwraca 400 niezależnie od linii).
+ */
+export interface CornerSystemParamDefaults {
+  systemLine: CornerSystemLine | null;
+  openingAngleDeg: number;
+  frontThicknessMm: number;
+}
+
+/**
+ * Zwraca sensowne wartości domyślne parametrów systemowych dla mechanizmów Magic Corner / Le Mans.
+ * Zwraca `null` dla mechanizmów bez parametrów systemowych (BLIND_CORNER, Type A).
+ */
+export function defaultCornerSystemParams(
+  mechanism: CornerMechanismType
+): CornerSystemParamDefaults | null {
+  if (isLeMans(mechanism)) {
+    // Le Mans: linia opcjonalna (Y-min = 400 niezależnie od linii); kąt ≥ 85°, front 16–19 mm.
+    return { systemLine: null, openingAngleDeg: 90, frontThicknessMm: 18 };
+  }
+  if (mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT) {
+    return { systemLine: CornerSystemLine.LINE_450, openingAngleDeg: 90, frontThicknessMm: 18 };
+  }
+  if (mechanism === CornerMechanismType.MAGIC_CORNER_STANDARD) {
+    return { systemLine: CornerSystemLine.LINE_400, openingAngleDeg: 75, frontThicknessMm: 18 };
+  }
+  return null;
+}
+
+/**
+ * Sprawdza, czy podany kąt otwarcia jest dopuszczalny dla danego systemu (mirror walidacji):
+ *  - Le Mans ≥ 85°, Magic Comfort ≤ 90°, Magic Standard ≤ 75°.
+ * Mechanizmy bez ograniczenia kąta zwracają `true`.
+ */
+export function isCornerOpeningAngleValid(mechanism: CornerMechanismType, angleDeg: number): boolean {
+  if (isLeMans(mechanism)) {
+    return angleDeg >= 85;
+  }
+  if (mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT) {
+    return angleDeg <= 90;
+  }
+  if (mechanism === CornerMechanismType.MAGIC_CORNER_STANDARD) {
+    return angleDeg <= 75;
+  }
+  return true;
 }
 
 /**
@@ -137,6 +268,15 @@ export interface CornerCabinetRequest {
    *  Default null = SPLIT_RECTANGLES (kompatybilność wsteczna). Wartość propagowana do BE bez UI dropdown
    *  (UI w Iteracji 5 razem z UX-TOOLBAR + Excel/BOM obsługą kształtu L). */
   wreathConstructionType?: CornerWreathConstructionType;
+  /** Iter.6 (Faza 1): strona aktywnego frontu/mechanizmu dla jednostronnych Type B (Le Mans, Magic Corner).
+   *  Null = niesprecyzowane / symetryczne. */
+  handedness?: CornerHandedness;
+  /** Iter.6 (Faza 1): wymagany/maks. kąt otwarcia frontu w stopniach (Le Mans ≥85°, Magic ≤90°/≤75°). */
+  openingAngleDeg?: number;
+  /** Iter.6 (Faza 1): grubość frontu w mm — Le Mans wymaga 16–19 mm. */
+  frontThicknessMm?: number;
+  /** Iter.6 (Faza 1): linia systemu (rodzina szerokości frontu / Y-min) dla Magic Corner / Le Mans. */
+  systemLine?: CornerSystemLine;
 }
 
 /** Domyślna szerokość widocznej części frontu ślepego (FS1) — książka str. 169. */
@@ -146,10 +286,12 @@ export const BLIND_PANEL_VISIBLE_WIDTH_DEFAULT_MM = 150;
  * Labels for corner mechanism types.
  */
 export const CORNER_MECHANISM_LABELS: Record<CornerMechanismType, string> = {
-  [CornerMechanismType.MAGIC_CORNER]: 'Magic Corner',
+  [CornerMechanismType.MAGIC_CORNER_COMFORT]: 'Magic Corner Comfort',
+  [CornerMechanismType.MAGIC_CORNER_STANDARD]: 'Magic Corner Standard',
   [CornerMechanismType.CAROUSEL_270]: 'Karuzela 270°',
   [CornerMechanismType.CAROUSEL_360]: 'Karuzela 360°',
-  [CornerMechanismType.LE_MANS]: 'Fasolka (Le Mans)',
+  [CornerMechanismType.LE_MANS_I]: 'Fasolka Le Mans I',
+  [CornerMechanismType.LE_MANS_II]: 'Fasolka Le Mans II',
   [CornerMechanismType.FIXED_SHELVES]: 'Półki stałe',
   [CornerMechanismType.NONE]: 'Brak (pusta)',
   [CornerMechanismType.BLIND_CORNER]: 'Ślepy narożnik (front uchylny)'
@@ -163,8 +305,10 @@ export const BASE_CORNER_MECHANISMS: CornerMechanismType[] = [
   CornerMechanismType.FIXED_SHELVES,
   CornerMechanismType.CAROUSEL_270,
   CornerMechanismType.CAROUSEL_360,
-  CornerMechanismType.MAGIC_CORNER,
-  CornerMechanismType.LE_MANS,
+  CornerMechanismType.MAGIC_CORNER_COMFORT,
+  CornerMechanismType.MAGIC_CORNER_STANDARD,
+  CornerMechanismType.LE_MANS_I,
+  CornerMechanismType.LE_MANS_II,
   CornerMechanismType.BLIND_CORNER
 ];
 

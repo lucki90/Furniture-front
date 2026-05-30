@@ -430,14 +430,26 @@
     </div>
   </div>
 
+  <!-- Powod blokady przycisku gdy brak szczegolowych bledow w podsumowaniu powyzej -->
+  <div *ngIf="addDisabledReason && validationErrors.length === 0 && !loading"
+       class="add-disabled-hint">
+    <span class="validation-summary-icon">âš </span>
+    <span>{{ addDisabledReason }}</span>
+  </div>
+
   <!-- Przyciski -->
   <div class="form-actions">
-    <button type="button" class="btn btn-primary" (click)="calculate()"
-            [disabled]="loading || form.invalid || (visibility.segments && !!segmentHeightError)">
-      <span *ngIf="loading" class="spinner-btn"></span>
-      <mat-icon *ngIf="!loading" class="form-action-icon" aria-hidden="true">{{ isEditMode ? 'save' : 'add_box' }}</mat-icon>
-      {{ isEditMode ? 'Zapisz' : 'Dodaj szafke' }}
-    </button>
+    <!-- Wrapper ze tooltipem: disabled <button> nie odbiera zdarzen hover, wiec title trzymamy na <span>. -->
+    <span class="btn-tooltip-wrapper"
+          [attr.title]="addDisabledReason"
+          [attr.aria-label]="addDisabledReason">
+      <button type="button" class="btn btn-primary" (click)="calculate()"
+              [disabled]="isAddDisabled">
+        <span *ngIf="loading" class="spinner-btn"></span>
+        <mat-icon *ngIf="!loading" class="form-action-icon" aria-hidden="true">{{ isEditMode ? 'save' : 'add_box' }}</mat-icon>
+        {{ isEditMode ? 'Zapisz' : 'Dodaj szafke' }}
+      </button>
+    </span>
     <button
       *ngIf="isEditMode"
       type="button"

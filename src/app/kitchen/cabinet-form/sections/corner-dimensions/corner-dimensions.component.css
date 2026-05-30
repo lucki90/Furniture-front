@@ -9,6 +9,12 @@
   padding-top: 0;
 }
 
+/* Pojedyncze pole (np. Szerokość A dla Type B, gdy brak Szerokości B) nie rozciąga się
+   na całą szerokość — zachowuje tę samą szerokość kolumny co wiersz Wysokość/Głębokość poniżej. */
+.form-row > app-form-field.form-group:only-child {
+  max-width: calc(50% - 5px);
+}
+
 /* Wiersz "Sugerowana szerokość" pod inputami */
 .suggested-row {
   margin-top: -2px;

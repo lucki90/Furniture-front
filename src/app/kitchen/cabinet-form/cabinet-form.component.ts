@@ -308,6 +308,34 @@ export class CabinetFormComponent implements OnChanges {
     );
   }
 
+  /** Whether the submit ("Dodaj szafkę"/"Zapisz") button is disabled. Mirror of the template binding. */
+  get isAddDisabled(): boolean {
+    return this.loading
+      || this.form.invalid
+      || (this.visibility.segments && !!this.segmentHeightError);
+  }
+
+  /**
+   * Human-readable reason why the submit button is disabled — shown as a hover tooltip
+   * and inline hint. Returns null when the button is enabled (no reason to show).
+   */
+  get addDisabledReason(): string | null {
+    if (!this.isAddDisabled) {
+      return null;
+    }
+    if (this.loading) {
+      return 'Trwa przetwarzanie...';
+    }
+    if (this.visibility.segments && this.segmentHeightError) {
+      return this.segmentHeightError;
+    }
+    const errors = this.validationErrors;
+    if (errors.length > 0) {
+      return errors.join(' • ');
+    }
+    return 'Uzupelnij poprawnie wszystkie wymagane pola, aby dodac szafke.';
+  }
+
   /** Whether the current cabinet is a built-in fridge cabinet. */
   get isFridgeCabinet(): boolean {
     return this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_FRIDGE;

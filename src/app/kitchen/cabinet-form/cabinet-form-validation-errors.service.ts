@@ -81,6 +81,19 @@ export class CabinetFormValidationErrorsService {
   private collectCornerErrors(form: FormGroup, errors: string[]): void {
     this.pushRangeError(errors, form.get('cornerWidthA'), 'Szerokosc A');
     this.pushRangeError(errors, form.get('cornerWidthB'), 'Szerokosc B');
+    this.pushRangeError(errors, form.get('height'), 'Wysokosc');
+    this.pushRangeError(errors, form.get('depth'), 'Glebokosc');
+    this.pushRangeError(errors, form.get('cornerShelfQuantity'), 'Liczba polek');
+
+    // Type B — front uchylny, parametry systemu, panel ślepy.
+    this.pushRangeError(errors, form.get('cornerFrontUchylnyWidthMm'), 'Szerokosc frontu uchylnego');
+    this.pushRangeError(errors, form.get('cornerOpeningAngleDeg'), 'Kat otwarcia');
+    this.pushRangeError(errors, form.get('blindPanelVisibleWidthMm'), 'Szerokosc widocznej czesci frontu slepego');
+
+    const mechanism = form.get('cornerMechanism');
+    if (mechanism?.invalid && mechanism.errors?.['required']) {
+      errors.push('Wybierz system organizacji wewnetrznej');
+    }
   }
 
   private collectSegmentErrors(
@@ -170,6 +183,11 @@ export class CabinetFormValidationErrorsService {
 
     if (control.errors?.['max']) {
       errors.push(`${label}: max ${control.errors['max'].max} mm`);
+      return;
+    }
+
+    if (control.errors?.['required']) {
+      errors.push(`${label}: wartosc wymagana`);
     }
   }
 }

@@ -229,6 +229,11 @@ export interface CornerCabinetRequest {
   cornerHandleType?: string;        // Type B: SCREWED | MILLED | PUSH_TO_OPEN — wpływa na blendę narożnikową
   blindPanelVisibleWidthMm?: number | null; // Iteracja 2 [B1]: FS1 — szerokość widocznej części frontu ślepego
   wreathConstructionType?: string | null;   // Iter.4 [A2 C]: Type A — SPLIT_RECTANGLES (default) | L_SHAPE_CNC
+  // Faza 1 — parametry systemu Magic Corner / Le Mans (Type B; null dla pozostałych)
+  handedness?: string | null;        // LEFT | RIGHT | null
+  openingAngleDeg?: number | null;
+  frontThicknessMm?: number | null;
+  systemLine?: string | null;        // LINE_400 | LINE_450 | LINE_500 | LINE_550 | LINE_600
 }
 
 export interface DrawerRequest {
@@ -290,6 +295,8 @@ export interface WallSummary {
 export interface CabinetSummary {
   cabinetId: string;
   kitchenCabinetType: string;
+  /** Iter.6 (Faza 1): mechanizm narożnika (np. MAGIC_CORNER_COMFORT, LE_MANS_I) — tylko CORNER_CABINET. */
+  cornerMechanism?: string;
   positionX: number;
   positionY: number;
   width: number;
@@ -496,6 +503,11 @@ export interface CabinetPlacementResponse {
   blindPanelSplitEnabled?: boolean;
   blindPanelVisibleWidthMm?: number;
   wreathConstructionType?: string;     // Iter.4 [A2 C]: Type A — SPLIT_RECTANGLES | L_SHAPE_CNC
+  // Faza 1 — parametry systemu Magic Corner / Le Mans (Type B)
+  cornerHandedness?: string | null;
+  cornerOpeningAngleDeg?: number | null;
+  cornerFrontThicknessMm?: number | null;
+  cornerSystemLine?: string | null;
 
   // Additional configuration - tall cabinet and fridge segments
   segments?: SegmentRequest[];

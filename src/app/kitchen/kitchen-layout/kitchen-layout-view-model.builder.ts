@@ -4,6 +4,7 @@ import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { CABINET_RENDER_REGISTRY } from './strategies/cabinet-render-registry';
 import { CabinetRenderContext, DisplayFront, DisplayHandle } from './strategies/cabinet-render-context';
 import { OVEN_HEIGHT_COMPACT_MM, OVEN_HEIGHT_STANDARD_MM, PLATE_THICKNESS_MM } from './kitchen-layout.constants';
+import { CornerMechanismType, isBlindType } from '../cabinet-form/model/corner-cabinet.model';
 
 export interface DisplayFoot {
   x: number;
@@ -71,6 +72,14 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
 
     const isCorner = cabinetType === KitchenCabinetType.CORNER_CABINET;
     const cornerWidthB = isCorner ? (cabinetData?.cornerWidthB as number | undefined) : undefined;
+    const cornerMechanism = cabinetData?.cornerMechanism as CornerMechanismType | undefined;
+    const cornerConfig = isCorner ? {
+      blind: cornerMechanism ? isBlindType(cornerMechanism) : false,
+      openingType: cabinetData?.cornerOpeningType as string | undefined,
+      widthAMm: (cabinetData?.cornerWidthA as number | undefined) ?? position.width,
+      frontUchylnyWidthMm: cabinetData?.cornerFrontUchylnyWidthMm as number | undefined,
+      handedness: cabinetData?.cornerHandedness as string | null | undefined
+    } : undefined;
     const cargoVariant = cabinetData?.cargoVariant as string | undefined;
     const drawerQuantity = cabinetData?.drawerQuantity as number | undefined;
     const shelfQuantity = originalCabinet?.shelfQuantity;
@@ -122,7 +131,8 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       cascadeLowerHeight,
       cascadeUpperHeight,
       ovenConfig,
-      fridgeConfig
+      fridgeConfig,
+      cornerConfig
     });
 
     let ovenSeparatorDisplayY: number | undefined;
