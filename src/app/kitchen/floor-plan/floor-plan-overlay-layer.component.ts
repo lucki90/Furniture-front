@@ -29,5 +29,5 @@ export class FloorPlanOverlayLayerComponent {
   @Input() doorArcs: FloorPlanArc[] = [];
 
   protected trackByCornerX = (_: number, corner: CornerCountertopOverlay) => `${corner.x}-${corner.y}`;
-  protected trackByArcId = (_: number, arc: FloorPlanArc) => arc.cabinetId;
+  protected trackByArcId = (_: number, arc: FloorPlanArc) => arc.id;
 }

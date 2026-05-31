@@ -15,6 +15,16 @@
   max-width: calc(50% - 5px);
 }
 
+/* Pole readonly (np. "Głębokość" 510mm dla szafki dolnej) — wizualnie wyszarzone,
+   żeby było jasne, że nie da się go edytować. Scope: tylko corner-dimensions
+   (ViewEncapsulation Emulated → inne formularze nie dostają rykoszetem). */
+.form-control[readonly] {
+  background: #f1f5f9;
+  color: var(--text-secondary, #64748b);
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
 /* Wiersz "Sugerowana szerokość" pod inputami */
 .suggested-row {
   margin-top: -2px;

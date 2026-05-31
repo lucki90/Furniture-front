@@ -30,9 +30,12 @@
     *ngFor="let arc of doorArcs; trackBy: trackByArcId"
     [attr.d]="arc.pathD"
     class="door-arc"
+    [class.drawer-pullout]="arc.kind === 'DRAWER'"
     [class.arc-clear]="!arc.hasCollision"
     [class.arc-collision]="arc.hasCollision">
-    <svg:title>{{ arc.hasCollision ? '⚠ Kolizja z sąsiednią szafką' : 'Otwarcie drzwi 90°' }}</svg:title>
+    <svg:title>{{ arc.hasCollision
+      ? '⚠ Kolizja z sąsiednią szafką'
+      : (arc.kind === 'DRAWER' ? 'Wysuw szuflady' : 'Otwarcie drzwi 90°') }}</svg:title>
   </svg:path>
 </ng-container>
 

@@ -1,7 +1,8 @@
 import { CabinetPosition, CabinetZone, getCabinetZone, KitchenCabinet, requiresCountertop, WallWithCabinets } from '../model/kitchen-state.model';
 import { WallType } from '../model/kitchen-project.model';
-import { CabinetOnFloorPlan } from './floor-plan-door-arcs';
+import { CabinetOnFloorPlan, FloorPlanOpening } from './floor-plan-door-arcs';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { isBlindType } from '../cabinet-form/model/corner-cabinet.model';
 import { DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
 import { kitchenGeometrySharedSingleton } from '../service/kitchen-geometry.service';
 import { ProjectWallAddonsRequestBuilder } from '../service/project-wall-addons-request.builder';
@@ -295,7 +296,8 @@ function buildLinearCabinetsForWall(
       isFreestanding,
       wallThickness,
       cabinet.cabinetSide ?? 'FRONT',
-      cabinet.type === KitchenCabinetType.PANTRY_PASSAGE ? referenceFrontDepth : undefined
+      cabinet.type === KitchenCabinetType.PANTRY_PASSAGE ? referenceFrontDepth : undefined,
+      classifyFloorPlanOpening(cabinet)
     );
 
     switch (zone) {
@@ -347,7 +349,9 @@ function buildIslandCabinetsForWall(
           cabinet.type === KitchenCabinetType.CORNER_CABINET,
           !requiresCountertop(cabinet.type) && getCabinetZone(cabinet) === 'BOTTOM',
           wallThickness,
-          cabinetSide
+          cabinetSide,
+          undefined,
+          classifyFloorPlanOpening(cabinet)
         ),
         y: cabinetSide === 'BACK'
           ? pos.y
@@ -662,7 +666,8 @@ function createCabinetOnFloorPlan(
   isFreestanding: boolean,
   wallThickness: number,
   cabinetSide: 'FRONT' | 'BACK' = 'FRONT',
-  frontAlignedDepth?: number
+  frontAlignedDepth?: number,
+  opening?: FloorPlanOpening
 ): CabinetOnFloorPlan {
   if (pos.isHorizontal) {
     const alignedFrontDepth = frontAlignedDepth && frontAlignedDepth > cabinetDepth
@@ -680,7 +685,8 @@ function createCabinetOnFloorPlan(
       isFreestanding,
       wallType,
       cabinetSide,
-      isReversed: wallType === 'ISLAND' && cabinetSide === 'BACK'
+      isReversed: wallType === 'ISLAND' && cabinetSide === 'BACK',
+      opening
     };
   }
 
@@ -699,7 +705,8 @@ function createCabinetOnFloorPlan(
       isCorner,
       isFreestanding,
       wallType,
-      cabinetSide
+      cabinetSide,
+      opening
     };
   }
 
@@ -714,8 +721,79 @@ function createCabinetOnFloorPlan(
     isCorner,
     isFreestanding,
     wallType,
-    cabinetSide
+    cabinetSide,
+    opening
   };
+}
+
+/**
+ * Klasyfikuje sposób otwierania szafki na floor planie z pełnego modelu `KitchenCabinet`.
+ * Kluczowe przypadki (zgłoszenie usera):
+ * - szafka ślepa (CORNER_CABINET Type B) → pojedyncze drzwi TYLKO na froncie uchylnym
+ *   (`cornerFrontUchylnyWidthMm` z całości `width`), umiejscowione po stronie zawiasów (`cornerHandedness`),
+ * - szafki z szufladami / koszami cargo / frontem szufladowym → prostokąt wysuwu (DRAWER), nie łuk.
+ * Pozostałe typy zachowują dotychczasowe zachowanie (pojedyncze albo podwójne drzwi).
+ */
+export function classifyFloorPlanOpening(cabinet: KitchenCabinet): FloorPlanOpening {
+  switch (cabinet.type) {
+    case KitchenCabinetType.BASE_OPEN:
+    case KitchenCabinetType.UPPER_OPEN_SHELF:
+      return { kind: 'NONE' };
+
+    case KitchenCabinetType.BASE_WITH_DRAWERS:
+    case KitchenCabinetType.BASE_CARGO:
+      return { kind: 'DRAWER' };
+
+    case KitchenCabinetType.BASE_SINK:
+      if (cabinet.sinkFrontType === 'DRAWER') return { kind: 'DRAWER' };
+      if (cabinet.sinkFrontType === 'TWO_DOORS') return { kind: 'DOUBLE_DOOR' };
+      return { kind: 'SINGLE_DOOR' };
+
+    case KitchenCabinetType.BASE_COOKTOP:
+      if (cabinet.cooktopFrontType === 'DRAWERS') return { kind: 'DRAWER' };
+      if (cabinet.cooktopFrontType === 'TWO_DOORS') return { kind: 'DOUBLE_DOOR' };
+      return { kind: 'SINGLE_DOOR' };
+
+    case KitchenCabinetType.BASE_OVEN:
+      if (cabinet.ovenLowerSectionType === 'LOW_DRAWER') return { kind: 'DRAWER' };
+      if (cabinet.ovenLowerSectionType === 'HINGED_DOOR') return { kind: 'SINGLE_DOOR' };
+      return { kind: 'NONE' };
+
+    case KitchenCabinetType.BASE_TWO_DOOR:
+      return { kind: 'DOUBLE_DOOR' };
+
+    case KitchenCabinetType.PANTRY_PASSAGE:
+      return { kind: cabinet.pantryPassageFrontType === 'TWO_DOORS' ? 'DOUBLE_DOOR' : 'SINGLE_DOOR' };
+
+    case KitchenCabinetType.CORNER_CABINET:
+      return classifyCornerOpening(cabinet);
+
+    default:
+      return { kind: 'SINGLE_DOOR' };
+  }
+}
+
+function classifyCornerOpening(cabinet: KitchenCabinet & { type: KitchenCabinetType.CORNER_CABINET }): FloorPlanOpening {
+  // Type B (ślepy narożnik): otwiera się tylko front uchylny — wąski wycinek całej szerokości.
+  if (isBlindType(cabinet.cornerMechanism)) {
+    const totalWidth = cabinet.width > 0 ? cabinet.width : cabinet.cornerWidthA;
+    const frontWidth = cabinet.cornerFrontUchylnyWidthMm ?? 0;
+    if (!(totalWidth > 0) || !(frontWidth > 0)) {
+      return { kind: 'SINGLE_DOOR' };
+    }
+    const fraction = Math.min(1, frontWidth / totalWidth);
+    // Front uchylny stoi po stronie zawiasów (handedness); domyślnie LEFT.
+    if (cabinet.cornerHandedness === 'RIGHT') {
+      return { kind: 'SINGLE_DOOR', hingeSide: 'RIGHT', spanStartFraction: 1 - fraction, spanEndFraction: 1 };
+    }
+    return { kind: 'SINGLE_DOOR', hingeSide: 'LEFT', spanStartFraction: 0, spanEndFraction: fraction };
+  }
+
+  // Type A: dwoje drzwi spotykających się w środku, harmonijka = jedno składane skrzydło (pełna szerokość).
+  if (cabinet.cornerOpeningType === 'BIFOLD') {
+    return { kind: 'SINGLE_DOOR' };
+  }
+  return { kind: 'DOUBLE_DOOR' };
 }
 
 function markIslandDepthCollisions(cabinets: CabinetOnFloorPlan[]): void {

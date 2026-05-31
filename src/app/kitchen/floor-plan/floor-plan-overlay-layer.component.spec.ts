@@ -33,7 +33,9 @@ class TestHostComponent {
     label: '600×600mm'
   }];
   doorArcs: FloorPlanArc[] = [{
+    id: 'cab-1-door',
     cabinetId: 'cab-1',
+    kind: 'SINGLE_DOOR',
     pathD: 'M 10 10 A 20 20 0 0 1 30 30',
     hasCollision: true,
     bboxX: 10,
