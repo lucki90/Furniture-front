@@ -5,9 +5,10 @@
    ============================================ */
 
 .corner-section {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-color, #e2e8f0);
+  /* Sekcja zaczyna się tuż pod wierszem „Nazwa / Typ szafki" — minimalny odstęp,
+     żeby sticky podgląd nie odjeżdżał od nagłówka formularza (UX 2026-06-01). */
+  margin-top: 0;
+  padding-top: 0;
 }
 
 /* Pojedyncze pole w wierszu (System organizacji, Układ drzwi, Liczba półek, Konstrukcja wieńca,
@@ -16,12 +17,14 @@
   max-width: calc(50% - 5px);
 }
 
-/* Drugi i kolejne nagłówki sekcji wewnątrz corner-form — dodatkowy margin-top
-   dla wizualnej separacji bez ciężkiego bordera. */
-.section-title-spaced {
-  margin-top: 20px !important;
-  padding-top: 12px;
-  border-top: 1px dashed var(--border-color, #e2e8f0);
+/* Konstrukcja (krok ④): równe kolumny — labelki rezerwują dwa wiersze tekstu, dzięki czemu
+   inputy w sąsiadujących kolumnach (różna długość etykiet) zaczynają się na tej samej wysokości. */
+.construction-row .form-label {
+  min-height: 28px;
+  line-height: 1.25;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 /* Tekst informacyjny — kompaktowy, dyskretny */
@@ -92,3 +95,265 @@
 .help-icon:hover {
   background: #bbdefb;
 }
+
+/* ════════════════════════════════════════════
+   PROWADZONY LAYOUT „Podstawowe" (handoff §7)
+   ════════════════════════════════════════════ */
+
+/* — tokeny lokalne (fallbacky do motywu apki) — */
+.corner-section {
+  --corner-accent: var(--accent-color, #1d6fa4);
+  --corner-accent-soft: #e8f4fb;
+  --corner-border: var(--border-color, #e5e7eb);
+  --corner-border-strong: #cbd2da;
+}
+
+/* — Sticky podgląd schematyczny (widok z góry) — */
+/* Sticky pod nagłówkiem panelu „Dodaj/Edytuj szafkę" (min-height 40px, z-index 2).
+   top: 40px parkuje podgląd tuż pod nagłówkiem, a z-index: 1 (< 2) sprawia, że
+   przy przewijaniu nagłówek pozostaje na wierzchu i nie jest zasłaniany. */
+.corner-preview-sticky {
+  position: sticky;
+  top: 40px;
+  z-index: 1;
+  margin: -12px -4px 12px;
+  padding: 10px 4px 8px;
+  background: var(--bg-surface, #ffffff);
+  border-bottom: 1px solid var(--corner-border);
+}
+
+.corner-preview-label {
+  display: block;
+  margin: 0 0 4px 2px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary, #64748b);
+}
+
+.corner-preview-svg {
+  width: 100%;
+  height: 146px;
+  display: block;
+  background: var(--bg-hover, #f8fafc);
+  border: 1px solid var(--corner-border);
+  border-radius: 6px;
+}
+
+.cp-wall { stroke: var(--corner-border-strong); stroke-width: 3; stroke-linecap: round; }
+.cp-body { fill: #eef2f6; stroke: var(--corner-accent); stroke-width: 1.6; }
+.cp-front { stroke: var(--corner-accent); stroke-width: 3.4; stroke-linecap: round; }
+.cp-front-blind { stroke: var(--corner-border-strong); stroke-dasharray: 3 3; }
+.cp-front-fill { fill: var(--corner-accent); fill-opacity: 0.16; stroke: var(--corner-accent); stroke-width: 1.4; }
+.cp-strip { fill: #9cc4dd; }
+.cp-hatch-line { stroke: var(--corner-border-strong); stroke-width: 1.1; }
+.cp-hidden-text { fill: var(--text-secondary, #64748b); font-size: 7.5px; }
+.cp-glyph { stroke: var(--corner-accent); }
+.cp-glyph-fill { fill: var(--corner-accent); }
+
+.corner-preview-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--corner-border);
+}
+.corner-preview-abbr {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--corner-accent);
+  font-family: 'Courier New', monospace;
+}
+.corner-preview-name {
+  flex: 1;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+  line-height: 1.2;
+}
+.corner-preview-dims {
+  font-size: 10.5px;
+  color: var(--text-secondary, #64748b);
+  font-family: 'Courier New', monospace;
+}
+
+/* — Ostrzeżenia inline (amber) — */
+.corner-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.corner-warning-bar {
+  display: flex;
+  gap: 8px;
+  padding: 9px 11px;
+  background: #fff8e1;
+  border-left: 3px solid #f59e0b;
+  border-radius: 0 6px 6px 0;
+  font-size: 11.5px;
+  color: #78350f;
+  line-height: 1.45;
+}
+.corner-warning-icon { color: #f59e0b; flex-shrink: 0; }
+
+/* — Numerowany nagłówek kroku — */
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 8px;
+}
+.step-header:first-of-type { margin-top: 4px; }
+.step-number {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--corner-accent);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.step-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-secondary, #64748b);
+}
+.step-hint {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+/* — Karty rodziny (krok ①) — */
+.family-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.family-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-start;
+  padding: 10px 11px;
+  border: 1.5px solid var(--corner-border);
+  border-radius: 6px;
+  background: var(--bg-surface, #fff);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+.family-card:hover { border-color: var(--corner-border-strong); }
+.family-card.selected {
+  border-color: var(--corner-accent);
+  background: var(--corner-accent-soft);
+}
+.family-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.family-icon { width: 30px; height: 30px; color: var(--text-secondary, #94a3b8); }
+.family-card.selected .family-icon { color: var(--corner-accent); }
+.family-icon polygon, .family-icon rect { stroke: currentColor; fill: currentColor; fill-opacity: 0.15; }
+.family-icon .family-icon-shade { fill-opacity: 0.3; }
+.family-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-secondary, #94a3b8);
+  background: var(--bg-hover, #f1f5f9);
+  border-radius: 20px;
+  padding: 1px 6px;
+}
+.family-card.selected .family-badge { color: var(--corner-accent); background: var(--bg-surface, #fff); }
+.family-card-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+.family-card.selected .family-card-label { color: var(--corner-accent); }
+.family-card-desc {
+  font-size: 10.5px;
+  color: var(--text-secondary, #94a3b8);
+  line-height: 1.35;
+}
+
+/* — Karty mechanizmu (krok ②) — */
+.mech-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.mech-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  border: 1.5px solid var(--corner-border);
+  border-radius: 6px;
+  background: var(--bg-surface, #fff);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: all 0.15s;
+}
+.mech-card:hover { border-color: var(--corner-border-strong); }
+.mech-card.selected {
+  border-color: var(--corner-accent);
+  background: var(--corner-accent-soft);
+}
+.mech-icon-tile {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--bg-hover, #f1f5f9);
+  border: 1px solid var(--corner-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary, #94a3b8);
+}
+.mech-card.selected .mech-icon-tile {
+  background: var(--bg-surface, #fff);
+  border-color: var(--corner-accent);
+  color: var(--corner-accent);
+}
+.mech-icon { width: 22px; height: 22px; }
+.mech-card-body { flex: 1; min-width: 0; }
+.mech-card-head { display: flex; align-items: center; gap: 6px; }
+.mech-card-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+.mech-card.selected .mech-card-label { color: var(--corner-accent); }
+.mech-card-abbr {
+  font-size: 9.5px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: var(--text-secondary, #94a3b8);
+  background: var(--bg-hover, #f1f5f9);
+  border-radius: 4px;
+  padding: 0 5px;
+}
+.mech-card-desc {
+  display: block;
+  font-size: 10.5px;
+  color: var(--text-secondary, #94a3b8);
+  line-height: 1.3;
+}
+.mech-card-check { color: var(--corner-accent); font-weight: 800; flex-shrink: 0; }

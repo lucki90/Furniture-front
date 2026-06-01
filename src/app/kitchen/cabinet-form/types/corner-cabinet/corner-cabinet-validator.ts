@@ -1,4 +1,4 @@
-import { FormGroup, Validators } from "@angular/forms";
+import { AbstractControl, FormGroup, ValidationErrors, Validators } from "@angular/forms";
 import { KitchenCabinetValidator } from "../../type-config/validator/kitchen-cabinet-validator";
 import {
   CornerMechanismType,
@@ -22,6 +22,25 @@ import {
 const LE_MANS_MIN_ANGLE_DEG = 85;
 const MAGIC_COMFORT_MAX_ANGLE_DEG = 90;
 const MAGIC_STANDARD_MAX_ANGLE_DEG = 75;
+
+/** Le Mans dopuszcza front 16–19 mm (manufacturer reference §12) — mirror backendu. */
+const LE_MANS_FRONT_THICKNESS_MIN_MM = 16;
+const LE_MANS_FRONT_THICKNESS_MAX_MM = 19;
+
+/** Komunikat błędu dla niedozwolonej linii Magic Corner Comfort (mirror backendu). */
+const MAGIC_COMFORT_LINE_400_MSG =
+  'Magic Corner Comfort nie obsługuje linii 400 — wybierz linię 450 lub wyższą.';
+
+/**
+ * Custom validator: Magic Corner Comfort nie obsługuje linii LINE_400 (siatka producenta od 450).
+ * Zwraca błąd z kluczem `message` (obsługiwany przez {@link getFormError}), aby pole „Linia systemu"
+ * pokazało czytelny komunikat inline, gdy do formularza trafi stan legacy / ręcznie wstrzyknięta wartość.
+ */
+function magicComfortLineValidator(control: AbstractControl): ValidationErrors | null {
+  return control.value === CornerSystemLine.LINE_400
+    ? { message: MAGIC_COMFORT_LINE_400_MSG }
+    : null;
+}
 
 /**
  * Validator dla szafki narożnej (CORNER_CABINET).
@@ -63,6 +82,7 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     form.get('cornerFrontUchylnyWidthMm')?.updateValueAndValidity(noEmit);
     form.get('blindPanelVisibleWidthMm')?.updateValueAndValidity(noEmit);
     form.get('cornerOpeningAngleDeg')?.updateValueAndValidity(noEmit);
+    form.get('cornerFrontThicknessMm')?.updateValueAndValidity(noEmit);
     form.get('cornerSystemLine')?.updateValueAndValidity(noEmit);
 
     form.updateValueAndValidity(noEmit);
@@ -120,8 +140,10 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     // frontUchylnyWidthMm — nie wymagane dla Type A
     form.get('cornerFrontUchylnyWidthMm')?.clearValidators();
     form.get('blindPanelVisibleWidthMm')?.clearValidators();
-    // Kąt otwarcia — parametr systemowy Type B; w Type A bez ograniczeń.
+    // Parametry systemowe (kąt / grubość frontu / linia) dotyczą tylko Type B; w Type A bez ograniczeń.
     form.get('cornerOpeningAngleDeg')?.clearValidators();
+    form.get('cornerFrontThicknessMm')?.clearValidators();
+    form.get('cornerSystemLine')?.clearValidators();
   }
 
   // ==================== TYPE B (BLIND/RECTANGULAR) ====================
@@ -177,6 +199,9 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     // Parametry systemu (Magic Corner / Le Mans) — twarde limity kąta otwarcia (manufacturer reference §12).
     // Mirror backendu: walidacja tylko gdy kąt podany (Validators.min/max traktują null jako poprawne).
     this.applyOpeningAngleValidators(form, mechanism);
+    // Grubość frontu (Le Mans 16–19 mm) i niedozwolona linia (Magic Comfort + LINE_400) — mirror backendu.
+    this.applyFrontThicknessValidators(form, mechanism);
+    this.applySystemLineValidators(form, mechanism);
 
     const handleType = (form.get('cornerHandleType')?.value ?? CornerHandleType.SCREWED) as CornerHandleType;
     const minVisibleWidth = CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
@@ -209,6 +234,42 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
       angleControl.setValidators([Validators.max(MAGIC_STANDARD_MAX_ANGLE_DEG)]);
     } else {
       angleControl.clearValidators();
+    }
+  }
+
+  /**
+   * Ustawia limity grubości frontu dla Le Mans (16–19 mm), mirror backendu (manufacturer reference §12).
+   * Walidacja odpala się tylko gdy grubość jest podana (Validators.min/max traktują null jako poprawne) —
+   * parytet z backendowym guardem `thickness != null` (źródłem prawdy pozostaje grubość frontu z materiałów/BOM).
+   */
+  private applyFrontThicknessValidators(form: FormGroup, mechanism: CornerMechanismType): void {
+    const thicknessControl = form.get('cornerFrontThicknessMm');
+    if (!thicknessControl) {
+      return;
+    }
+    if (isLeMans(mechanism)) {
+      thicknessControl.setValidators([
+        Validators.min(LE_MANS_FRONT_THICKNESS_MIN_MM),
+        Validators.max(LE_MANS_FRONT_THICKNESS_MAX_MM)
+      ]);
+    } else {
+      thicknessControl.clearValidators();
+    }
+  }
+
+  /**
+   * Magic Corner Comfort nie obsługuje linii LINE_400 — ustawia custom validator (mirror backendu),
+   * dzięki czemu pole „Linia systemu" pokaże błąd inline dla stanu legacy / ręcznie wstrzykniętej wartości.
+   */
+  private applySystemLineValidators(form: FormGroup, mechanism: CornerMechanismType): void {
+    const lineControl = form.get('cornerSystemLine');
+    if (!lineControl) {
+      return;
+    }
+    if (mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT) {
+      lineControl.setValidators([magicComfortLineValidator]);
+    } else {
+      lineControl.clearValidators();
     }
   }
 

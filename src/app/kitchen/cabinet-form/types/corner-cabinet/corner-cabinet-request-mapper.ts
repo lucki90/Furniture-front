@@ -106,8 +106,10 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
       blindPanelVisibleWidthMm: blindPanelSplitEnabled
         ? (form.blindPanelVisibleWidthMm ?? 150)
         : null,
-      // Iter.6 (Faza 1) — systemowe parametry Le Mans / Magic Corner.
-      handedness: isSystemMechanism ? ((form.cornerHandedness ?? null) as CornerHandedness | null) : null,
+      // Strona narożnika (handedness) dotyczy wszystkich Type B (ślepy + Magic/Le Mans) —
+      // decyduje, po której stronie jest aktywny front uchylny. Reszta parametrów (kąt/grubość/linia)
+      // ma sens tylko dla jednostronnych systemów (Magic Corner, Le Mans).
+      handedness: (form.cornerHandedness ?? null) as CornerHandedness | null,
       openingAngleDeg: isSystemMechanism ? (form.cornerOpeningAngleDeg ?? null) : null,
       frontThicknessMm: isSystemMechanism ? (form.cornerFrontThicknessMm ?? null) : null,
       systemLine: isSystemMechanism ? ((form.cornerSystemLine ?? null) as CornerSystemLine | null) : null

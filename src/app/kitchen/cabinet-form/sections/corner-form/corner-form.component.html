@@ -1,26 +1,195 @@
 <div class="corner-section" [formGroup]="form">
-  <app-cabinet-section-header title="Konfiguracja narożnika"></app-cabinet-section-header>
 
-  <!-- ═════════════════ SEKCJA 1: KONSTRUKCJA ═════════════════ -->
-  <h4 class="section-title">Konstrukcja</h4>
+  <!-- ═════════════════ STICKY PODGLĄD SCHEMATYCZNY (widok z góry) ═════════════════ -->
+  <div class="corner-preview-sticky">
+    <span class="corner-preview-label">Podgląd narożnika (z góry) — aktualizuje się na żywo</span>
+    <svg class="corner-preview-svg" viewBox="0 0 220 160" aria-label="Podgląd narożnika">
+      <defs>
+        <pattern id="cp-hatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="7" class="cp-hatch-line" />
+        </pattern>
+      </defs>
 
-  <!-- Iteracja 3 poprawka 2026-05-24: pole "Typ montażu" (isUpperCorner) usunięte z formularza —
-       dolna/górna jest wybierana w pickerze typu szafki ("Narożna" w sekcji dolnych vs wiszących).
-       To upraszcza UX (mniej duplikujących się pól) i jest spójne z innymi typami szafek. -->
-  <div class="form-row">
-    <div class="form-group">
-      <label class="form-label">System organizacji</label>
-      <select class="form-control" formControlName="cornerMechanism">
-        <option *ngFor="let m of availableCornerMechanisms; trackBy: trackByValue" [value]="m.value">{{ m.label }}</option>
-      </select>
+      <!-- ── Rodzina L (Type A): wielokąt L z dwoma frontami ── -->
+      <g *ngIf="!isCornerTypeB">
+        <line [attr.x1]="previewCx - 4" [attr.y1]="previewLCy - 4"
+              [attr.x2]="previewCx + previewLArmA + 6" [attr.y2]="previewLCy - 4"
+              class="cp-wall" />
+        <line [attr.x1]="previewCx - 4" [attr.y1]="previewLCy - 4"
+              [attr.x2]="previewCx - 4" [attr.y2]="previewLCy + previewLArmB + 6"
+              class="cp-wall" />
+        <polygon [attr.points]="previewLPolygon" class="cp-body" />
+        <!-- front na ramieniu poziomym -->
+        <line [attr.x1]="previewCx + previewLBand" [attr.y1]="previewLCy + previewLBand + 1"
+              [attr.x2]="previewCx + previewLArmA" [attr.y2]="previewLCy + previewLBand + 1"
+              class="cp-front" />
+        <!-- front na ramieniu pionowym (ślepy → przerywany) -->
+        <line [attr.x1]="previewCx + previewLBand + 1" [attr.y1]="previewLCy + previewLBand"
+              [attr.x2]="previewCx + previewLBand + 1" [attr.y2]="previewLCy + previewLArmB"
+              class="cp-front" [class.cp-front-blind]="previewLBlindArm" />
+        <ng-container *ngTemplateOutlet="glyph"></ng-container>
+      </g>
+
+      <!-- ── Rodzina Ślepy (Type B): korpus + front uchylny + ślepa część ── -->
+      <g *ngIf="isCornerTypeB">
+        <line [attr.x1]="previewCx - 4" [attr.y1]="previewBlindCy - 4"
+              [attr.x2]="previewCx + previewBlindBodyW + 6" [attr.y2]="previewBlindCy - 4"
+              class="cp-wall" />
+        <line [attr.x1]="previewCx - 4" [attr.y1]="previewBlindCy - 4"
+              [attr.x2]="previewCx - 4" [attr.y2]="previewBlindCy + previewBlindH + 6"
+              class="cp-wall" />
+        <!-- korpus -->
+        <rect [attr.x]="previewCx" [attr.y]="previewBlindCy"
+              [attr.width]="previewBlindBodyW" [attr.height]="previewBlindH" class="cp-body" />
+        <!-- ślepa (zasłonięta) część -->
+        <rect [attr.x]="previewBlindHiddenX" [attr.y]="previewBlindCy"
+              [attr.width]="previewBlindHiddenW" [attr.height]="previewBlindH"
+              fill="url(#cp-hatch)" stroke="none" />
+        <!-- pasek blendy narożnikowej -->
+        <rect *ngIf="previewBlindXb > 2" [attr.x]="previewBlindStripX" [attr.y]="previewBlindCy"
+              [attr.width]="previewBlindXb" [attr.height]="previewBlindH" class="cp-strip" stroke="none" />
+        <!-- aktywny front uchylny -->
+        <rect [attr.x]="previewBlindFrontX" [attr.y]="previewBlindCy"
+              [attr.width]="previewBlindFy" [attr.height]="previewBlindH" class="cp-front-fill" />
+        <line [attr.x1]="previewBlindHingeX" [attr.y1]="previewBlindCy + 3"
+              [attr.x2]="previewBlindHingeX" [attr.y2]="previewBlindCy + previewBlindH - 3" class="cp-front" />
+        <ng-container *ngTemplateOutlet="glyph"></ng-container>
+        <text [attr.x]="previewBlindHiddenLabelX" [attr.y]="previewBlindCy + previewBlindH / 2 + 3"
+              class="cp-hidden-text" text-anchor="middle">ślepa część</text>
+      </g>
+
+      <!-- ── Glif mechanizmu (półki / karuzela / fasolka) ── -->
+      <ng-template #glyph>
+        <ng-container [ngSwitch]="previewGlyph">
+          <g *ngSwitchCase="'carousel'" class="cp-glyph">
+            <circle [attr.cx]="previewGlyphCx" [attr.cy]="previewGlyphCy" r="15" fill="none" stroke-width="1.6" />
+            <circle [attr.cx]="previewGlyphCx" [attr.cy]="previewGlyphCy" r="2" class="cp-glyph-fill" />
+            <path [attr.d]="'M ' + (previewGlyphCx + 15) + ' ' + previewGlyphCy + ' A 15 15 0 0 1 ' + previewGlyphCx + ' ' + (previewGlyphCy + 15)"
+                  fill="none" stroke-width="2.2" />
+            <path [attr.d]="'M ' + previewGlyphCx + ' ' + (previewGlyphCy + 15) + ' l 4 -4 m -4 4 l 4 4'"
+                  fill="none" stroke-width="1.8" stroke-linecap="round" />
+          </g>
+          <g *ngSwitchCase="'bean'" class="cp-glyph" fill="none" stroke-width="1.8">
+            <ellipse [attr.cx]="previewGlyphCx - 5" [attr.cy]="previewGlyphCy" rx="7" ry="12"
+                     [attr.transform]="'rotate(-20 ' + (previewGlyphCx - 5) + ' ' + previewGlyphCy + ')'" />
+            <ellipse [attr.cx]="previewGlyphCx + 9" [attr.cy]="previewGlyphCy + 2" rx="6" ry="10"
+                     [attr.transform]="'rotate(-20 ' + (previewGlyphCx + 9) + ' ' + (previewGlyphCy + 2) + ')'" />
+          </g>
+          <g *ngSwitchDefault class="cp-glyph" stroke-width="1.8" stroke-linecap="round">
+            <line [attr.x1]="previewGlyphCx - 14" [attr.y1]="previewGlyphCy - 6"
+                  [attr.x2]="previewGlyphCx + 14" [attr.y2]="previewGlyphCy - 6" />
+            <line [attr.x1]="previewGlyphCx - 14" [attr.y1]="previewGlyphCy + 4"
+                  [attr.x2]="previewGlyphCx + 14" [attr.y2]="previewGlyphCy + 4" />
+          </g>
+        </ng-container>
+      </ng-template>
+    </svg>
+    <div class="corner-preview-footer">
+      <span class="corner-preview-abbr">{{ currentCornerMechanismAbbr }}</span>
+      <span class="corner-preview-name">{{ currentCornerMechanismLabel }}</span>
+      <span class="corner-preview-dims">{{ previewSummary }}</span>
     </div>
   </div>
 
-  <!-- Układ drzwi narożnika (Type A) — full-width row -->
-  <!-- Etykieta "Układ drzwi narożnika" (NIE "Typ otwarcia") — żeby nie kolidowała z polem `openingType`
-       w zakładce Podstawowe, które oznacza MECHANIZM otwierania (HANDLE / TIP_ON / PUSH_TO_OPEN). -->
-  <div class="form-row" *ngIf="showCornerOpeningType">
-    <div class="form-group">
+  <!-- ═════════════════ OSTRZEŻENIA WALIDACJI (inline) ═════════════════ -->
+  <div class="corner-warnings" *ngIf="cornerWarnings.length > 0">
+    <div class="corner-warning-bar" *ngFor="let w of cornerWarnings; trackBy: trackByString">
+      <span class="corner-warning-icon">⚠</span><span>{{ w }}</span>
+    </div>
+  </div>
+
+  <!-- ═════════════════ ① RODZAJ NAROŻNIKA (karty rodziny) ═════════════════ -->
+  <div class="step-header">
+    <span class="step-number">1</span>
+    <span class="step-title">Rodzaj narożnika</span>
+  </div>
+  <div class="family-grid">
+    <button type="button" class="family-card" [class.selected]="isFamilySelected('L')"
+            (click)="selectFamily('L')">
+      <div class="family-card-top">
+        <svg class="family-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <polygon points="5,5 27,5 27,14 14,14 14,27 5,27" stroke-width="1.8" stroke-linejoin="round" />
+        </svg>
+        <span class="family-badge">Type A</span>
+      </div>
+      <div class="family-card-label">L-kształt</div>
+      <div class="family-card-desc">Dwa ramiona, pełen dostęp z obu stron</div>
+    </button>
+
+    <!-- Type B (ślepy/Magic/Le Mans) jest zawsze dolny — ukryty dla narożnika górnego (wiszącego). -->
+    <button type="button" class="family-card" *ngIf="!isUpperCorner"
+            [class.selected]="isFamilySelected('BLIND')"
+            (click)="selectFamily('BLIND')">
+      <div class="family-card-top">
+        <svg class="family-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect x="5" y="9" width="22" height="14" stroke-width="1.8" />
+          <rect x="5" y="9" width="7" height="14" class="family-icon-shade" stroke-width="1.8" />
+        </svg>
+        <span class="family-badge">Type B</span>
+      </div>
+      <div class="family-card-label">Ślepy / prostokątny</div>
+      <div class="family-card-desc">Jeden front uchylny, część zasłonięta szafką</div>
+    </button>
+  </div>
+
+  <!-- ═════════════════ ② SYSTEM ORGANIZACJI (karty-radio mechanizmu) ═════════════════ -->
+  <div class="step-header">
+    <span class="step-number">2</span>
+    <span class="step-title">System organizacji</span>
+    <span class="step-hint">{{ mechanismCards.length }} dostępnych</span>
+  </div>
+  <div class="mech-list">
+    <button type="button" class="mech-card" *ngFor="let m of mechanismCards; trackBy: trackByValue"
+            [class.selected]="m.selected" (click)="selectMechanism(m.value)">
+      <span class="mech-icon-tile">
+        <svg class="mech-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <ng-container [ngSwitch]="m.glyph">
+            <g *ngSwitchCase="'carousel'">
+              <circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="1.6" />
+              <circle cx="20" cy="20" r="2" fill="currentColor" />
+              <path d="M 35 20 A 15 15 0 0 1 20 35" fill="none" stroke="currentColor" stroke-width="2.2" />
+              <path d="M 20 35 l 4 -4 m -4 4 l 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </g>
+            <g *ngSwitchCase="'bean'" fill="none" stroke="currentColor" stroke-width="1.8">
+              <ellipse cx="15" cy="20" rx="7" ry="12" transform="rotate(-20 15 20)" />
+              <ellipse cx="29" cy="22" rx="6" ry="10" transform="rotate(-20 29 22)" />
+            </g>
+            <g *ngSwitchDefault stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <line x1="6" y1="14" x2="34" y2="14" />
+              <line x1="6" y1="24" x2="34" y2="24" />
+            </g>
+          </ng-container>
+        </svg>
+      </span>
+      <span class="mech-card-body">
+        <span class="mech-card-head">
+          <span class="mech-card-label">{{ m.label }}</span>
+          <span class="mech-card-abbr">{{ m.abbr }}</span>
+        </span>
+        <span class="mech-card-desc">{{ m.desc }}</span>
+      </span>
+      <span class="mech-card-check" *ngIf="m.selected">✓</span>
+    </button>
+  </div>
+
+  <!-- ═════════════════ ③ WYMIARY (embed sub-komponentu) ═════════════════ -->
+  <div class="step-header">
+    <span class="step-number">3</span>
+    <span class="step-title">Wymiary</span>
+    <span class="step-hint">mm</span>
+  </div>
+  <app-corner-dimensions [form]="form"></app-corner-dimensions>
+
+  <!-- ═════════════════ ④ KONSTRUKCJA (pola zależne od rodziny) ═════════════════ -->
+  <div class="step-header">
+    <span class="step-number">4</span>
+    <span class="step-title">Konstrukcja</span>
+  </div>
+
+  <!-- Type A: układ drzwi + konstrukcja wieńca (dwie kolumny) -->
+  <div class="form-row construction-row" *ngIf="showCornerOpeningType || showWreathConstruction || showCornerShelfQuantity">
+    <!-- Type A: układ drzwi narożnika -->
+    <div class="form-group" *ngIf="showCornerOpeningType">
       <label class="form-label">Układ drzwi narożnika</label>
       <select class="form-control" formControlName="cornerOpeningType">
         <option value="TWO_DOORS">2 drzwi (jedna na każde ramię)</option>
@@ -29,47 +198,41 @@
       </select>
       <span class="form-hint">Sposób mechaniczny otwierania (uchwyt, push-to-open) wybierasz w zakładce "Podstawowe" → "Typ otwarcia".</span>
     </div>
-  </div>
 
-  <!-- Iter.5a [A6] (2026-05-28): warning USUNIĘTY — formuła F1/F2 jest teraz poprawna przez nową
-       strategię CornerTwoDoorsFrontCalcStrategy używającą cornerFrontWidthArmA/B per ramię.
-       Wzór z książki Wasiak v.2.3 str. 171-173: F = widthArm - depth - frontT - 4. -->
-
-  <!-- Iter.5b [A2 C] (2026-05-28): Konstrukcja wieńca/półek dla L-shape (Type A only) -->
-  <div class="form-row" *ngIf="showWreathConstruction">
-    <div class="form-group">
+    <!-- Type A: konstrukcja wieńca/półek -->
+    <div class="form-group" *ngIf="showWreathConstruction">
       <label class="form-label">
         Konstrukcja wieńca/półek
-        <a class="help-icon" href="javascript:void(0)"
-           [attr.title]="currentWreathConstructionTooltip">❓</a>
+        <a class="help-icon" href="javascript:void(0)" [attr.title]="currentWreathConstructionTooltip">❓</a>
       </label>
       <select class="form-control" formControlName="wreathConstructionType">
         <option *ngFor="let opt of wreathConstructionOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
       </select>
       <span class="form-hint">Wybór wpływa na liczbę i kształt płyt w BOM. Domyślnie: 2 prostokąty (taniej).</span>
     </div>
-  </div>
 
-  <!-- Liczba półek (tylko dla FIXED_SHELVES / BLIND_CORNER) -->
-  <div class="form-row" *ngIf="showCornerShelfQuantity">
-    <app-form-field class="form-group" label="Liczba półek"
-        [errorMessage]="getFieldError('cornerShelfQuantity')">
+    <!-- Liczba półek (FIXED_SHELVES / BLIND_CORNER) -->
+    <div class="form-group" *ngIf="showCornerShelfQuantity">
+      <label class="form-label">Liczba półek</label>
       <input type="number" class="form-control" formControlName="cornerShelfQuantity"
              [min]="cornerConstraints.shelfMin" [max]="cornerConstraints.shelfMax">
-    </app-form-field>
+      <span class="form-error" *ngIf="getFieldError('cornerShelfQuantity')">{{ getFieldError('cornerShelfQuantity') }}</span>
+    </div>
   </div>
 
-  <!-- ═════════════════ SEKCJA 2: FRONT UCHYLNY (Type B only) ═════════════════ -->
+  <!-- Type B: front uchylny + typ uchwytu -->
   <ng-container *ngIf="showCornerFrontUchylnyWidth">
-    <h4 class="section-title section-title-spaced">Front uchylny i blendy</h4>
-
-    <div class="form-row">
-      <app-form-field class="form-group" label="Szerokość frontu uchylnego (Y)" unit="mm"
-          [hint]="frontUchylnyHint"
-          [errorMessage]="getFieldError('cornerFrontUchylnyWidthMm')">
-        <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm"
-               [attr.min]="currentFrontUchylnyMin" max="600" step="1">
-      </app-form-field>
+    <div class="form-row construction-row">
+      <div class="form-group">
+        <label class="form-label">Szerokość frontu uchylnego (Y)</label>
+        <div class="input-with-unit">
+          <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm"
+                 [attr.min]="currentFrontUchylnyMin" max="600" step="1">
+          <span class="unit">mm</span>
+        </div>
+        <span class="form-error" *ngIf="getFieldError('cornerFrontUchylnyWidthMm')">{{ getFieldError('cornerFrontUchylnyWidthMm') }}</span>
+        <span class="form-hint" *ngIf="!getFieldError('cornerFrontUchylnyWidthMm')">{{ frontUchylnyHint }}</span>
+      </div>
 
       <div class="form-group">
         <label class="form-label">Typ uchwytu</label>
@@ -80,73 +243,19 @@
       </div>
     </div>
 
-    <p class="info-text">
-      ℹ Front uchylny zasłania przestrzeń narożną i umożliwia dostęp do mechanizmu wewnątrz szafki.
-    </p>
-  </ng-container>
-
-  <!-- ═════════════════ SEKCJA 2b: PARAMETRY SYSTEMU (Magic Corner / Le Mans) ═════════════════ -->
-  <ng-container *ngIf="showSystemParams">
-    <h4 class="section-title section-title-spaced">Parametry systemu (Magic Corner / Le Mans)</h4>
-
-    <div class="form-row">
+    <div class="form-row construction-row">
       <div class="form-group">
-        <label class="form-label">Strona aktywnego frontu</label>
+        <label class="form-label">Strona narożnika</label>
         <select class="form-control" formControlName="cornerHandedness">
-          <option [ngValue]="null">— niesprecyzowane —</option>
           <option *ngFor="let h of cornerHandednessOptions; trackBy: trackByValue" [value]="h.value">{{ h.label }}</option>
         </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Linia systemu</label>
-        <select class="form-control" formControlName="cornerSystemLine">
-          <option [ngValue]="null">— niesprecyzowane —</option>
-          <option *ngFor="let l of cornerSystemLineOptions; trackBy: trackByValue" [value]="l.value">{{ l.label }}</option>
-        </select>
+        <span class="form-hint">Po której stronie znajduje się aktywny front uchylny (lewy / prawy narożnik).</span>
       </div>
     </div>
 
-    <div class="form-row">
-      <app-form-field class="form-group" label="Kąt otwarcia" unit="°"
-          hint="Le Mans ≥ 85°, Magic Corner ≤ 90° (Comfort) / ≤ 75° (Standard)"
-          [errorMessage]="getFieldError('cornerOpeningAngleDeg')">
-        <input type="number" class="form-control" formControlName="cornerOpeningAngleDeg" min="0" max="180" step="1">
-      </app-form-field>
-
-      <app-form-field class="form-group" label="Grubość frontu" unit="mm"
-          hint="Le Mans wymaga 16–19 mm. Wiążąca jest grubość frontu z materiałów (BOM) — to pole służy tylko gdy materiał nie jest ustawiony.">
-        <input type="number" class="form-control" formControlName="cornerFrontThicknessMm" min="10" max="25" step="1">
-      </app-form-field>
-    </div>
-
-    <p class="info-text" *ngIf="systemConstraintNote">ℹ {{ systemConstraintNote }}</p>
-
-    <p class="warning-text" *ngIf="magicStandard730Warning">⚠ {{ magicStandard730Warning }}</p>
-  </ng-container>
-
-  <!-- ═════════════════ SEKCJA 3: OPTYMALIZACJA KOSZTU (Type B only, opcjonalne) ═════════════════ -->
-  <ng-container *ngIf="showCornerFrontUchylnyWidth">
-    <h4 class="section-title section-title-spaced">Optymalizacja kosztu frontu ślepego</h4>
-
-    <div class="form-row">
-      <label class="form-check">
-        <input type="checkbox" formControlName="blindPanelSplitEnabled">
-        <span>Podziel front ślepy na FS1 + FS2 (oszczędność drogiego materiału)</span>
-        <a class="help-icon" href="javascript:void(0)"
-           [attr.title]="'Książka Wasiak v.2.3 str. 169:&#10;&#10;Front ślepy (FS) ma ~580mm, z czego widoczne jest tylko ~50mm jako blenda — reszta chowa się za sąsiednią szafką w narożniku.&#10;&#10;Podział na 2 elementy oszczędza ~75% drogiego materiału frontu (MDF lakier / RAL / fornir):&#10;  • FS1 — widoczna część (np. 150mm) z materiału frontu&#10;  • FS2 — ukryta część (reszta) z materiału korpusu (płyta laminowana)&#10;&#10;Włącz dla lakierowanych / drogich frontów. Pomiń dla okleinowanych (taka sama cena).'">
-          ❓
-        </a>
-      </label>
-    </div>
-
-    <div class="form-row" *ngIf="form.get('blindPanelSplitEnabled')?.value">
-      <app-form-field class="form-group" label="Szerokość widocznej części (FS1)" unit="mm"
-          hint="Domyślnie 150 mm (z czego ~50 mm widoczne jako blenda)"
-          [errorMessage]="getFieldError('blindPanelVisibleWidthMm')">
-        <input type="number" class="form-control" formControlName="blindPanelVisibleWidthMm"
-               [attr.min]="currentBlindPanelVisibleWidthMin" max="600" step="1">
-      </app-form-field>
-    </div>
+    <p class="info-text">
+      ℹ Front uchylny zasłania przestrzeń narożną i umożliwia dostęp do mechanizmu wewnątrz szafki.
+      Pozostałe parametry systemu i podział frontu ślepego znajdziesz w zakładce „Opcje".
+    </p>
   </ng-container>
 </div>

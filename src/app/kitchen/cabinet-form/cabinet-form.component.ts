@@ -19,8 +19,7 @@ import { OvenFormComponent } from './sections/oven-form/oven-form.component';
 import { FridgeFormComponent } from './sections/fridge-form/fridge-form.component';
 import { CascadeFormComponent } from './sections/cascade-form/cascade-form.component';
 import { CornerFormComponent } from './sections/corner-form/corner-form.component';
-import { CornerDimensionsComponent } from './sections/corner-dimensions/corner-dimensions.component';
-import { CornerPreviewComponent } from './sections/corner-preview/corner-preview.component';
+import { CornerOptionsFormComponent } from './sections/corner-options-form/corner-options-form.component';
 import { EnclosureFormComponent } from './sections/enclosure-form/enclosure-form.component';
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
 import { getFormError } from '../../shared/form-error.util';
@@ -47,7 +46,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule,
     CooktopFormComponent, HoodFormComponent, SinkFormComponent, OvenFormComponent,
-    FridgeFormComponent, CascadeFormComponent, CornerFormComponent, CornerDimensionsComponent, CornerPreviewComponent, EnclosureFormComponent,
+    FridgeFormComponent, CascadeFormComponent, CornerFormComponent, CornerOptionsFormComponent, EnclosureFormComponent,
     FormFieldComponent, CabinetSegmentsSectionComponent, MatIconModule]
 })
 export class CabinetFormComponent implements OnChanges {

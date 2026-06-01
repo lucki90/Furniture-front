@@ -240,6 +240,109 @@ describe('CornerCabinetValidator', () => {
     );
   });
 
+  // ==================== Per-system front thickness (CR-fix P2) ====================
+
+  it('blocks Le Mans front thickness below 16 mm', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.LE_MANS_I,
+      cornerFrontUchylnyWidthMm: 500,
+      cornerFrontThicknessMm: 15
+    });
+
+    validator.validate(form);
+
+    expect(form.get('cornerFrontThicknessMm')?.hasError('min')).toBeTrue();
+  });
+
+  it('blocks Le Mans front thickness above 19 mm', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.LE_MANS_II,
+      cornerFrontUchylnyWidthMm: 500,
+      cornerFrontThicknessMm: 22
+    });
+
+    validator.validate(form);
+
+    expect(form.get('cornerFrontThicknessMm')?.hasError('max')).toBeTrue();
+  });
+
+  it('accepts Le Mans front thickness within 16-19 mm', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.LE_MANS_I,
+      cornerFrontUchylnyWidthMm: 500,
+      cornerFrontThicknessMm: 18
+    });
+
+    validator.validate(form);
+
+    expect(form.get('cornerFrontThicknessMm')?.errors).toBeNull();
+  });
+
+  it('accepts empty Le Mans front thickness (validated only when provided)', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.LE_MANS_I,
+      cornerFrontUchylnyWidthMm: 500,
+      cornerFrontThicknessMm: null
+    });
+
+    validator.validate(form);
+
+    expect(form.get('cornerFrontThicknessMm')?.errors).toBeNull();
+  });
+
+  it('does not constrain front thickness for non-Le-Mans mechanisms', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.MAGIC_CORNER_STANDARD,
+      cornerFrontUchylnyWidthMm: 500,
+      cornerFrontThicknessMm: 25
+    });
+
+    validator.validate(form);
+
+    expect(form.get('cornerFrontThicknessMm')?.errors).toBeNull();
+  });
+
+  // ==================== System line inline error (CR-fix P2) ====================
+
+  it('flags Magic Comfort LINE_400 as an inline control error on cornerSystemLine', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.MAGIC_CORNER_COMFORT,
+      cornerSystemLine: CornerSystemLine.LINE_400,
+      cornerFrontUchylnyWidthMm: 500
+    });
+
+    validator.validate(form);
+
+    expect(form.get('cornerSystemLine')?.hasError('message')).toBeTrue();
+    expect(form.get('cornerSystemLine')?.errors?.['message']).toBe(
+      'Magic Corner Comfort nie obsługuje linii 400 — wybierz linię 450 lub wyższą.'
+    );
+  });
+
+  it('does not flag Magic Comfort with an allowed line (LINE_450)', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.MAGIC_CORNER_COMFORT,
+      cornerSystemLine: CornerSystemLine.LINE_450,
+      cornerFrontUchylnyWidthMm: 500
+    });
+
+    validator.validate(form);
+
+    expect(form.get('cornerSystemLine')?.errors).toBeNull();
+  });
+
+  it('does not constrain the system line for Le Mans (LINE_400 allowed as metadata)', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.LE_MANS_I,
+      cornerSystemLine: CornerSystemLine.LINE_400,
+      cornerFrontUchylnyWidthMm: 500
+    });
+
+    validator.validate(form);
+
+    expect(form.get('cornerSystemLine')?.errors).toBeNull();
+  });
+
   // ==================== Stale `width` validators cleared (disabled-button fix) ====================
 
   it('clears stale `width` validators so a valid Type B corner is form-valid', () => {

@@ -298,6 +298,34 @@ export const CORNER_MECHANISM_LABELS: Record<CornerMechanismType, string> = {
 };
 
 /**
+ * Warstwa meta dla prezentacji kart mechanizmów (handoff „Layout narożnika" §5).
+ * Nie zmienia istniejących typów/reguł — służy wyłącznie do renderowania kart-radio
+ * (ikona/glif, skrót mono, jednolinijkowy opis) w zakładce „Podstawowe".
+ */
+export type CornerMechanismGlyph = 'shelves' | 'carousel' | 'bean';
+
+export interface CornerMechanismMeta {
+  /** Skrót mono pokazywany na karcie i w podglądzie (FS, C270, MCc, …). */
+  abbr: string;
+  /** Rodzaj ikony schematycznej. */
+  glyph: CornerMechanismGlyph;
+  /** Jednolinijkowy opis na karcie. */
+  desc: string;
+}
+
+export const CORNER_MECHANISM_META: Record<CornerMechanismType, CornerMechanismMeta> = {
+  [CornerMechanismType.FIXED_SHELVES]:        { abbr: 'FS',    glyph: 'shelves',  desc: 'Najtańsza — proste półki w narożniku' },
+  [CornerMechanismType.CAROUSEL_270]:         { abbr: 'C270',  glyph: 'carousel', desc: 'Obrotowa taca, 2 fronty na zawiasach' },
+  [CornerMechanismType.CAROUSEL_360]:         { abbr: 'C360',  glyph: 'carousel', desc: 'Pełny obrót, jeden łamany front' },
+  [CornerMechanismType.BLIND_CORNER]:         { abbr: 'BC',    glyph: 'shelves',  desc: 'Front uchylny + półki, część schowana' },
+  [CornerMechanismType.MAGIC_CORNER_COMFORT]: { abbr: 'MCc',   glyph: 'bean',     desc: 'Wysuwane kosze, maks. 90°' },
+  [CornerMechanismType.MAGIC_CORNER_STANDARD]:{ abbr: 'MCs',   glyph: 'bean',     desc: 'Wysuwane kosze, maks. 75°' },
+  [CornerMechanismType.LE_MANS_I]:            { abbr: 'LM I',  glyph: 'bean',     desc: 'Fasolka, front ≥ 85°' },
+  [CornerMechanismType.LE_MANS_II]:           { abbr: 'LM II', glyph: 'bean',     desc: 'Fasolka 2-poziomowa, front ≥ 85°' },
+  [CornerMechanismType.NONE]:                 { abbr: 'BOX',   glyph: 'shelves',  desc: 'Pusta szafka (kompatybilność wsteczna)' }
+};
+
+/**
  * Mechanisms allowed for base (floor) corner cabinet.
  * NONE is excluded — use FIXED_SHELVES with shelfQuantity=0 instead.
  */

@@ -3,15 +3,16 @@
 
   <!-- Wiersz 1: Szerokości (A — Type A i B; B tylko Type A) -->
   <div class="form-row">
-    <app-form-field class="form-group" label="Szerokość A" unit="mm"
-        [hint]="showWidthB ? 'Ściana główna' : 'Główny wymiar szafki ślepej'"
+    <app-form-field class="form-group" [label]="showWidthB ? 'Szerokość A (ściana główna)' : 'Szerokość (wzdłuż ściany)'" unit="mm"
+        [hint]="showWidthB ? 'Długość zabudowy wzdłuż ściany głównej — mierzona od narożnika do końca szafki' : 'Całkowita szerokość szafki ślepej mierzona wzdłuż ściany'"
         [errorMessage]="getFieldError('cornerWidthA')">
       <input type="number" class="form-control" formControlName="cornerWidthA"
              [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
              [step]="cornerConstraints.widthStep">
     </app-form-field>
 
-    <app-form-field class="form-group" *ngIf="showWidthB" label="Szerokość B" unit="mm" hint="Ściana boczna"
+    <app-form-field class="form-group" *ngIf="showWidthB" label="Szerokość B (ściana boczna)" unit="mm"
+        hint="Długość zabudowy wzdłuż ściany bocznej — mierzona od narożnika"
         [errorMessage]="getFieldError('cornerWidthB')">
       <input type="number" class="form-control" formControlName="cornerWidthB"
              [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"

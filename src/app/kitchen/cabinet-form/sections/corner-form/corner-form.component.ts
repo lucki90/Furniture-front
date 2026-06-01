@@ -19,7 +19,6 @@ import {
   CornerHandedness,
   CORNER_HANDEDNESS_LABELS,
   CornerSystemLine,
-  CORNER_SYSTEM_LINE_LABELS,
   effectiveFrontMinWidthMm,
   mechanismRequiresShelves,
   isBlindType,
@@ -27,13 +26,27 @@ import {
   isLeMans,
   CornerSystemParamDefaults,
   defaultCornerSystemParams,
-  isCornerOpeningAngleValid
+  isCornerOpeningAngleValid,
+  CornerMechanismGlyph,
+  CORNER_MECHANISM_META
 } from '../../model/corner-cabinet.model';
 import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
 import { KitchenCabinetTypeConfig } from '../../type-config/kitchen-cabinet-type-config';
-import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
 import { getFormError } from '../../../../shared/form-error.util';
-import { SectionHeaderComponent } from '../../shared/section-header.component';
+import { CornerDimensionsComponent } from '../corner-dimensions/corner-dimensions.component';
+
+/** Rodzina prezentacyjna narożnika (warstwa UI, nie zmienia modelu). */
+export type CornerFamily = 'L' | 'BLIND';
+
+/** Karta mechanizmu (krok ②) — łączy opcję z meta do renderu. */
+export interface CornerMechanismCard {
+  value: CornerMechanismType;
+  label: string;
+  abbr: string;
+  glyph: CornerMechanismGlyph;
+  desc: string;
+  selected: boolean;
+}
 
 /**
  * Sekcja konfiguracji szafki narożnej (CORNER_CABINET).
@@ -44,7 +57,7 @@ import { SectionHeaderComponent } from '../../shared/section-header.component';
   selector: 'app-corner-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, FormFieldComponent, SectionHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, CornerDimensionsComponent],
   templateUrl: './corner-form.component.html',
   styleUrls: ['./corner-form.component.css']
 })
@@ -84,27 +97,15 @@ export class CornerFormComponent implements OnInit {
     label: CORNER_WREATH_CONSTRUCTION_LABELS[value]
   }));
 
-  /** Iter.6 (Faza 1): opcje dropdown "Strona aktywnego frontu" (Le Mans / Magic Corner). */
+  /** Opcje dropdown „Strona narożnika" (lewy/prawy) — wszystkie warianty Type B (ślepy + Magic/Le Mans). */
   readonly cornerHandednessOptions = Object.values(CornerHandedness).map(value => ({
     value,
     label: CORNER_HANDEDNESS_LABELS[value]
   }));
 
-  /** Pełna lista linii systemowych (źródło dla filtrowanej listy per mechanizm). */
-  private readonly allCornerSystemLineOptions = Object.values(CornerSystemLine).map(value => ({
-    value,
-    label: CORNER_SYSTEM_LINE_LABELS[value]
-  }));
-
-  /**
-   * Iter.6 (Faza 1): opcje dropdown "Linia systemu" (Le Mans / Magic Corner).
-   * Mutowalna — rebudowana w {@link onCornerMechanismChange}; Magic Corner Comfort
-   * nie obsługuje LINE_400 (siatka producenta od 450), więc ta opcja jest odfiltrowana.
-   */
-  cornerSystemLineOptions = [...this.allCornerSystemLineOptions];
-
-  /** Widoczność sekcji parametrów systemowych (Magic Corner / Le Mans). */
-  showSystemParams = false;
+  // Parametry systemowe (Magic Corner / Le Mans) oraz podział frontu ślepego FS1/FS2 przeniesione
+  // do osobnego sub-komponentu `app-corner-options-form` (zakładka „Opcje", UX 2026-06-01).
+  // Tutaj zostaje tylko logika domenowa wstawiania defaultów + czyszczenia LINE_400 (Magic Comfort).
 
   /**
    * Iter.6 (Faza 1): true gdy mechanizm to jednostronny system z parametrami
@@ -113,44 +114,6 @@ export class CornerFormComponent implements OnInit {
   get isSystemMechanism(): boolean {
     const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
     return mechanism ? (isMagicCorner(mechanism) || isLeMans(mechanism)) : false;
-  }
-
-  /**
-   * Soft warning (FE-only, NIE blokuje) dla Magic Corner Standard z linią LINE_600:
-   * producent wymaga korpusu ≥ 730 mm dla frontu 600 mm (książka/ref. §12).
-   * Decyzja usera (Q4): ostrzeżenie + TODO, bez twardej blokady backendu.
-   */
-  get magicStandard730Warning(): string | null {
-    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
-    if (mechanism !== CornerMechanismType.MAGIC_CORNER_STANDARD) {
-      return null;
-    }
-    const line = this.form.get('cornerSystemLine')?.value as CornerSystemLine | null;
-    const widthA = this.form.get('cornerWidthA')?.value as number | null;
-    // TODO(corner-phase-2): doprecyzować min. korpus dla każdej linii Magic Standard wg karty producenta.
-    if (line === CornerSystemLine.LINE_600 && widthA != null && widthA < 730) {
-      return 'Magic Corner Standard z frontem linii 600 zwykle wymaga korpusu ≥ 730 mm. '
-        + 'Zweryfikuj kartę producenta przed zamówieniem.';
-    }
-    return null;
-  }
-
-  /** Informacyjna nota o ograniczeniach producenta dla aktualnego systemu (BOM §13). */
-  get systemConstraintNote(): string | null {
-    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
-    if (!mechanism) {
-      return null;
-    }
-    if (isLeMans(mechanism)) {
-      return 'Le Mans: front 16–19 mm, min. 85° otwarcia.';
-    }
-    if (mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT) {
-      return 'Magic Corner Comfort: maks. 90° otwarcia, kosz przedni 10 kg, tylny 8 kg, front ≥ 446 mm (nie linia 400).';
-    }
-    if (mechanism === CornerMechanismType.MAGIC_CORNER_STANDARD) {
-      return 'Magic Corner Standard: maks. 75° otwarcia, kosz przedni 7 kg, tylny 9 kg, front ≥ 396 mm.';
-    }
-    return null;
   }
 
   /** Tooltip dla aktualnie wybranej konstrukcji wieńca/półek. */
@@ -214,10 +177,276 @@ export class CornerFormComponent implements OnInit {
       .subscribe(() => this.revalidate());
   }
 
+  // ─────────────────────────── Rodzina + karty mechanizmów (kroki ① / ②) ───────────────────────────
+
+  /** Aktualnie wybrany mechanizm (fallback FIXED_SHELVES, jak w pickerze). */
+  get currentCornerMechanism(): CornerMechanismType {
+    return (this.form.get('cornerMechanism')?.value ?? CornerMechanismType.FIXED_SHELVES) as CornerMechanismType;
+  }
+
+  /** Etykieta aktualnego mechanizmu. */
+  get currentCornerMechanismLabel(): string {
+    return CORNER_MECHANISM_LABELS[this.currentCornerMechanism] ?? '';
+  }
+
+  /** Skrót mono aktualnego mechanizmu (do podglądu). */
+  get currentCornerMechanismAbbr(): string {
+    return CORNER_MECHANISM_META[this.currentCornerMechanism]?.abbr ?? 'BOX';
+  }
+
+  /** Rodzina prezentacyjna wynikająca z aktualnego mechanizmu. */
+  get cornerFamily(): CornerFamily {
+    return this.isCornerTypeB ? 'BLIND' : 'L';
+  }
+
+  isFamilySelected(family: CornerFamily): boolean {
+    return this.cornerFamily === family;
+  }
+
+  /**
+   * Klik karty rodziny (krok ①) ustawia pierwszy mechanizm danej rodziny:
+   *  - L-kształt → FIXED_SHELVES, ślepy → BLIND_CORNER.
+   * Pozostała logika (constraints, widoczność, parametry) odpala się w {@link onCornerMechanismChange}.
+   */
+  selectFamily(family: CornerFamily): void {
+    if (this.isFamilySelected(family)) {
+      return;
+    }
+    const target = family === 'BLIND' ? CornerMechanismType.BLIND_CORNER : CornerMechanismType.FIXED_SHELVES;
+    this.form.patchValue({ cornerMechanism: target });
+  }
+
+  /**
+   * Karty mechanizmów (krok ②) — wyłącznie systemy dedykowane wybranej rodzinie narożnika
+   * (krok ①). L-kształt → mechanizmy Type A (FIXED_SHELVES / CAROUSEL_*), ślepy → Type B
+   * (BLIND_CORNER / Magic / Le Mans). `availableCornerMechanisms` celowo trzyma pełną listę
+   * (żeby dropdown nigdy nie był pusty), więc filtr po rodzinie robimy tutaj, w warstwie prezentacji.
+   */
+  get mechanismCards(): CornerMechanismCard[] {
+    const current = this.currentCornerMechanism;
+    const typeB = this.isCornerTypeB;
+    return this.availableCornerMechanisms
+      .filter(option => isBlindType(option.value) === typeB)
+      .map(option => {
+        const meta = CORNER_MECHANISM_META[option.value];
+        return {
+          value: option.value,
+          label: option.label,
+          abbr: meta.abbr,
+          glyph: meta.glyph,
+          desc: meta.desc,
+          selected: option.value === current
+        };
+      });
+  }
+
+  selectMechanism(value: CornerMechanismType): void {
+    if (value === this.currentCornerMechanism) {
+      return;
+    }
+    this.form.patchValue({ cornerMechanism: value });
+  }
+
+  // ─────────────────────────── Podgląd (sticky, widok z góry) ───────────────────────────
+  //
+  // Schemat top-view w układzie viewBox 0 0 220 160 (jak prototyp handoff). Wszystkie wymiary
+  // są mapowane przez clampMap() z zakresu realnego (mm) na zakres pikseli podglądu — podgląd jest
+  // poglądowy (proporcjonalny), nie skalą 1:1. Lewy-górny narożnik korpusu = (PREVIEW_CX, *).
+
+  private static readonly PREVIEW_CX = 34;
+
+  private clampMap(value: number, vMin: number, vMax: number, oMin: number, oMax: number): number {
+    const t = Math.max(0, Math.min(1, ((value || vMin) - vMin) / (vMax - vMin)));
+    return oMin + t * (oMax - oMin);
+  }
+
+  /** Glif mechanizmu w podglądzie (półki / karuzela / fasolka). */
+  get previewGlyph(): CornerMechanismGlyph {
+    return CORNER_MECHANISM_META[this.currentCornerMechanism]?.glyph ?? 'shelves';
+  }
+
+  get previewCx(): number {
+    return CornerFormComponent.PREVIEW_CX;
+  }
+
+  private get previewWidthA(): number {
+    return Number(this.form.get('cornerWidthA')?.value) || (this.isCornerTypeB ? 1000 : 900);
+  }
+
+  private get previewWidthB(): number {
+    return Number(this.form.get('cornerWidthB')?.value) || 900;
+  }
+
+  private get previewFrontY(): number {
+    return Number(this.form.get('cornerFrontUchylnyWidthMm')?.value) || 500;
+  }
+
+  /** Czy aktywny front jest po prawej stronie (handedness RIGHT). */
+  get previewFrontRight(): boolean {
+    return this.form.get('cornerHandedness')?.value === CornerHandedness.RIGHT;
+  }
+
+  // — L-kształt (Type A): polygon + ramiona —
+  get previewLArmA(): number {
+    return this.clampMap(this.previewWidthA, 600, 1200, 96, 158);
+  }
+
+  get previewLArmB(): number {
+    return this.clampMap(this.previewWidthB, 600, 1200, 70, 108);
+  }
+
+  readonly previewLCy = 26;
+  readonly previewLBand = 40;
+
+  get previewLPolygon(): string {
+    const cx = this.previewCx;
+    const cy = this.previewLCy;
+    const sA = this.previewLArmA;
+    const sB = this.previewLArmB;
+    const band = this.previewLBand;
+    return `${cx},${cy} ${cx + sA},${cy} ${cx + sA},${cy + band} `
+      + `${cx + band},${cy + band} ${cx + band},${cy + sB} ${cx},${cy + sB}`;
+  }
+
+  /** Czy ramię B narożnika L jest ślepe (układ drzwi BLIND). */
+  get previewLBlindArm(): boolean {
+    return this.form.get('cornerOpeningType')?.value === 'BLIND';
+  }
+
+  // — Ślepy / prostokątny (Type B): korpus + front uchylny + ślepa część —
+  readonly previewBlindCy = 40;
+  readonly previewBlindH = 62;
+
+  get previewBlindBodyW(): number {
+    return this.clampMap(this.previewWidthA, 800, 1200, 110, 158);
+  }
+
+  get previewBlindFy(): number {
+    return this.clampMap(this.previewFrontY, 400, 600, 30, 52);
+  }
+
+  /** Szerokość paska blendy narożnikowej (X) w podglądzie. */
+  get previewBlindXb(): number {
+    return Math.max(2, this.currentBlindPanelVisibleWidthMin / 4);
+  }
+
+  /** X lewej krawędzi aktywnego frontu uchylnego (mirror przy handedness RIGHT). */
+  get previewBlindFrontX(): number {
+    return this.previewFrontRight
+      ? (this.previewCx + this.previewBlindBodyW - this.previewBlindFy)
+      : this.previewCx;
+  }
+
+  /** X lewej krawędzi paska blendy narożnikowej (przy froncie). */
+  get previewBlindStripX(): number {
+    return this.previewFrontRight
+      ? (this.previewBlindFrontX - this.previewBlindXb)
+      : (this.previewBlindFrontX + this.previewBlindFy);
+  }
+
+  /** Szerokość ślepej (zasłoniętej) części korpusu. */
+  get previewBlindHiddenW(): number {
+    return Math.max(0, this.previewBlindBodyW - this.previewBlindFy - this.previewBlindXb);
+  }
+
+  /** X lewej krawędzi ślepej części (po przeciwnej stronie niż front). */
+  get previewBlindHiddenX(): number {
+    return this.previewFrontRight
+      ? this.previewCx
+      : (this.previewBlindFrontX + this.previewBlindFy + this.previewBlindXb);
+  }
+
+  /** X osi zawiasu aktywnego frontu (krawędź obrotu). */
+  get previewBlindHingeX(): number {
+    return this.previewFrontRight
+      ? (this.previewCx + this.previewBlindBodyW - 1.5)
+      : (this.previewCx + 1.5);
+  }
+
+  /** X środka etykiety „ślepa część". */
+  get previewBlindHiddenLabelX(): number {
+    return this.previewBlindHiddenX + this.previewBlindHiddenW / 2;
+  }
+
+  // — Środek glifu mechanizmu (różny dla L i Type B) —
+  get previewGlyphCx(): number {
+    return this.isCornerTypeB
+      ? this.previewBlindFrontX + this.previewBlindFy / 2
+      : this.previewCx + this.previewLBand / 2 + 2;
+  }
+
+  get previewGlyphCy(): number {
+    return this.isCornerTypeB
+      ? this.previewBlindCy + this.previewBlindH / 2
+      : this.previewLCy + this.previewLBand / 2 + 2;
+  }
+
+  /** Krótkie podsumowanie wymiarów w stopce podglądu. */
+  get previewSummary(): string {
+    const a = Math.round(this.previewWidthA);
+    return this.isCornerTypeB
+      ? `${a} · Y${Math.round(this.previewFrontY)}`
+      : `${a}×${Math.round(this.previewWidthB)}`;
+  }
+
+  // ─────────────────────────── Ostrzeżenia inline (pomocnicze) ───────────────────────────
+
+  private fs1ExceedsFront(): boolean {
+    const fs1 = Number(this.form.get('blindPanelVisibleWidthMm')?.value);
+    const front = Number(this.form.get('cornerFrontUchylnyWidthMm')?.value);
+    return Number.isFinite(fs1) && Number.isFinite(front) && fs1 >= front;
+  }
+
+  // ─────────────────────────── Ostrzeżenia inline (handoff §6) ───────────────────────────
+
+  /**
+   * Ostrzeżenia walidacji prezentowane w kontekście (pasek nad krokiem ①).
+   * Mirror reguł walidatora (`effectiveFrontMinWidthMm`, `isCornerOpeningAngleValid`, FS1<front)
+   * — sam przycisk „Dodaj szafkę" blokuje walidator formularza.
+   */
+  get cornerWarnings(): string[] {
+    const warnings: string[] = [];
+    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
+    if (!mechanism) {
+      return warnings;
+    }
+
+    if (this.isCornerTypeB) {
+      const front = Number(this.form.get('cornerFrontUchylnyWidthMm')?.value);
+      const min = this.currentFrontUchylnyMin;
+      if (Number.isFinite(front) && front > 0 && front < min) {
+        warnings.push(`Front uchylny za wąski dla tego systemu — min. ${min} mm.`);
+      }
+    }
+
+    if (this.isSystemMechanism) {
+      const angle = this.form.get('cornerOpeningAngleDeg')?.value;
+      if (angle != null && !isCornerOpeningAngleValid(mechanism, Number(angle))) {
+        if (isLeMans(mechanism)) {
+          warnings.push(`Fasolka Le Mans wymaga min. 85° otwarcia (podano ${angle}°).`);
+        } else {
+          const max = mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT ? 90 : 75;
+          warnings.push(`Kąt otwarcia ${angle}° przekracza maks. ${max}° dla tego systemu.`);
+        }
+      }
+    }
+
+    if (this.isCornerTypeB && this.form.get('blindPanelSplitEnabled')?.value && this.fs1ExceedsFront()) {
+      warnings.push('FS1 musi być węższe niż front uchylny.');
+    }
+
+    return warnings;
+  }
+
   /** Czy aktualny mechanizm to Type B (Blind/Rectangular). */
   get isCornerTypeB(): boolean {
     const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
     return mechanism ? isBlindType(mechanism) : false;
+  }
+
+  /** Czy narożnik jest górny (wiszący). Type B (ślepy/Magic/Le Mans) jest zawsze dolny. */
+  get isUpperCorner(): boolean {
+    return this.form.get('isUpperCorner')?.value ?? false;
   }
 
   // getters `currentCornerMechanism` / `currentCornerMechanismLabel` przeniesione do
@@ -321,6 +550,11 @@ export class CornerFormComponent implements OnInit {
       }));
       // Type B: depth zawsze 510mm (preparer wymusza po stronie backendu — patchujemy też FE dla spójności)
       this.form.patchValue({ depth: BLIND_CORNER_CONSTRAINTS.depth }, { emitEvent: false });
+      // Strona narożnika (lewy/prawy) dotyczy WSZYSTKICH Type B (ślepy + Magic/Le Mans).
+      // Domyślnie LEWA, jeśli nie ustawiono — zachowaj wartość w trybie edycji.
+      if (this.form.get('cornerHandedness')?.value == null) {
+        this.form.patchValue({ cornerHandedness: CornerHandedness.LEFT }, { emitEvent: false });
+      }
     } else if (isUpper) {
       this.cornerConstraints = UPPER_CORNER_CONSTRAINTS;
       this.availableCornerMechanisms = UPPER_CORNER_MECHANISMS.map(m => ({
@@ -343,31 +577,38 @@ export class CornerFormComponent implements OnInit {
     this.showCornerFrontUchylnyWidth = typeB;
     this.showCornerShelfQuantity = mechanismRequiresShelves(mechanism);
 
-    // Iter.6 (Faza 1): sekcja parametrów systemowych tylko dla Magic Corner / Le Mans.
+    // Iter.6 (Faza 1): parametry systemowe (Magic Corner / Le Mans) renderowane w
+    // app-corner-options-form (zakładka „Opcje"). Tutaj utrzymujemy tylko domenowe efekty uboczne.
     const systemMechanism = mechanism ? (isMagicCorner(mechanism) || isLeMans(mechanism)) : false;
-    this.showSystemParams = systemMechanism;
 
-    // CR-fix: Magic Corner Comfort nie obsługuje linii 400 (siatka producenta od 450).
-    // Odfiltruj LINE_400 z dropdownu i wyczyść nieaktualną wartość, jeśli była wybrana.
+    // CR-fix: Magic Corner Comfort nie obsługuje linii 400 (siatka producenta od 450) —
+    // wyczyść nieaktualną wartość, jeśli była wybrana (filtrowanie dropdownu jest w options-form).
     const comfort = mechanism === CornerMechanismType.MAGIC_CORNER_COMFORT;
-    this.cornerSystemLineOptions = comfort
-      ? this.allCornerSystemLineOptions.filter(opt => opt.value !== CornerSystemLine.LINE_400)
-      : [...this.allCornerSystemLineOptions];
     if (comfort && this.form.get('cornerSystemLine')?.value === CornerSystemLine.LINE_400) {
       this.form.patchValue({ cornerSystemLine: null }, { emitEvent: false });
     }
 
-    // B4 (2026-05-29): wreathConstructionType is Type A only — clear for Type B to avoid
-    // stale value in persistenceJson when user switches from Type A to Type B.
+    // B4 (2026-05-29): wreathConstructionType is Type A only.
+    // Type B → clear (unikamy stale value w persistenceJson). Type A → domyślnie SPLIT_RECTANGLES
+    // gdy puste (dropdown nie może być pusty), z zachowaniem zapisanej wartości w trybie edycji.
     if (typeB) {
       this.form.patchValue({ wreathConstructionType: null }, { emitEvent: false });
+    } else if (this.form.get('wreathConstructionType')?.value == null) {
+      this.form.patchValue(
+        { wreathConstructionType: CornerWreathConstructionType.SPLIT_RECTANGLES },
+        { emitEvent: false }
+      );
     }
 
-    // Wyczyść parametry systemowe gdy mechanizm ich nie używa (np. BLIND_CORNER lub Type A).
-    // W przeciwnym razie wstaw domyślne wartości zgodne z zakresami walidacji wybranego systemu.
+    // Strona narożnika (handedness) dotyczy wszystkich Type B; dla Type A zawsze null.
+    if (!typeB) {
+      this.form.patchValue({ cornerHandedness: null }, { emitEvent: false });
+    }
+
+    // Parametry stricte systemowe (kąt / grubość frontu / linia) tylko dla Magic Corner / Le Mans.
+    // Pozostałe Type B (BLIND_CORNER) oraz Type A → wyczyść; systemy → wstaw domyślne z zakresów walidacji.
     if (!systemMechanism) {
       this.form.patchValue({
-        cornerHandedness: null,
         cornerOpeningAngleDeg: null,
         cornerFrontThicknessMm: null,
         cornerSystemLine: null
@@ -428,4 +669,7 @@ export class CornerFormComponent implements OnInit {
   }
 
   protected trackByValue = (_: number, item: { value: string }) => item.value;
+
+  /** trackBy dla list napisów (ostrzeżenia inline). */
+  protected trackByString = (_: number, item: string) => item;
 }
