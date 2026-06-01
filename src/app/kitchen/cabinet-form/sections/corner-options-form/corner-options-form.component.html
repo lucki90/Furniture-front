@@ -1,0 +1,58 @@
+<!-- Zaawansowane parametry narożnika — przeniesione z zakładki "Podstawowe" (UX 2026-06-01).
+     Zawsze widoczne (bez zwijania). -->
+<div class="sink-section" [formGroup]="form" *ngIf="hasCornerOptions">
+  <h4 class="section-title">Zaawansowane — narożnik</h4>
+
+  <!-- Parametry systemu (Magic Corner / Le Mans) -->
+  <!-- „Strona narożnika" (handedness) przeniesiona do zakładki „Podstawowe" (corner-form) — dotyczy
+       wszystkich Type B, więc nie jest już tutaj (UX 2026-06-01). -->
+  <ng-container *ngIf="showSystemParams">
+    <div class="form-row">
+      <app-form-field class="form-group" label="Linia systemu"
+          [hint]="cornerSystemLineHint"
+          [errorMessage]="getFieldError('cornerSystemLine')">
+        <select class="form-control" formControlName="cornerSystemLine">
+          <option [ngValue]="null">— niesprecyzowane —</option>
+          <option *ngFor="let l of cornerSystemLineOptions; trackBy: trackByValue" [value]="l.value">{{ l.label }}</option>
+        </select>
+      </app-form-field>
+    </div>
+
+    <div class="form-row">
+      <app-form-field class="form-group" label="Kąt otwarcia" unit="°"
+          hint="Le Mans ≥ 85°, Magic Corner ≤ 90° (Comfort) / ≤ 75° (Standard)"
+          [errorMessage]="getFieldError('cornerOpeningAngleDeg')">
+        <input type="number" class="form-control" formControlName="cornerOpeningAngleDeg" min="0" max="180" step="1">
+      </app-form-field>
+
+      <app-form-field class="form-group" label="Grubość frontu" unit="mm"
+          hint="Le Mans wymaga 16–19 mm. Wiążąca jest grubość frontu z materiałów (BOM) — to pole służy tylko gdy materiał nie jest ustawiony."
+          [errorMessage]="getFieldError('cornerFrontThicknessMm')">
+        <input type="number" class="form-control" formControlName="cornerFrontThicknessMm" min="10" max="25" step="1">
+      </app-form-field>
+    </div>
+
+    <p class="info-text" *ngIf="systemConstraintNote">ℹ {{ systemConstraintNote }}</p>
+    <p class="warning-text" *ngIf="magicStandard730Warning">⚠ {{ magicStandard730Warning }}</p>
+  </ng-container>
+
+  <!-- Optymalizacja kosztu frontu ślepego (Type B) -->
+  <ng-container *ngIf="isCornerTypeB">
+    <div class="form-row">
+      <label class="form-check">
+        <input type="checkbox" formControlName="blindPanelSplitEnabled">
+        <span>Podziel front ślepy na FS1 + FS2 (oszczędność drogiego materiału)</span>
+        <a class="help-icon" href="javascript:void(0)" [attr.title]="blindSplitTooltip">❓</a>
+      </label>
+    </div>
+
+    <div class="form-row" *ngIf="form.get('blindPanelSplitEnabled')?.value">
+      <app-form-field class="form-group" label="Szerokość widocznej części (FS1)" unit="mm"
+          hint="Domyślnie 150 mm (z czego ~50 mm widoczne jako blenda)"
+          [errorMessage]="getFieldError('blindPanelVisibleWidthMm')">
+        <input type="number" class="form-control" formControlName="blindPanelVisibleWidthMm"
+               [attr.min]="currentBlindPanelVisibleWidthMin" max="600" step="1">
+      </app-form-field>
+    </div>
+  </ng-container>
+</div>

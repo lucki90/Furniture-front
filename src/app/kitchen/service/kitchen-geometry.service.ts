@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.builder';
 import { CabinetPosition, CabinetZone, KitchenCabinet, getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { ProjectSettingsConstraints } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { WallType } from '../model/kitchen-project.model';
 
 export interface KitchenGeometrySettings {
@@ -98,7 +99,7 @@ export class KitchenGeometryService {
           currentXTop = x + cabinet.width + rightW;
 
           if (cabinet.positioningMode === 'RELATIVE_TO_COUNTERTOP') {
-            y = countertopHeight + (cabinet.gapFromCountertopMm ?? 500);
+            y = countertopHeight + (cabinet.gapFromCountertopMm ?? ProjectSettingsConstraints.UPPER_GAP_FROM_COUNTERTOP_DEFAULT);
           } else {
             // RELATIVE_TO_CEILING: szafka wisząca zawsze od sufitu w dół.
             // gapFromAnchorMm służy wyłącznie do walidacji — nie wpływa na pozycję Y.

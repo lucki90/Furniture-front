@@ -28,4 +28,16 @@ describe('UpperOpenShelfCabinetValidator', () => {
 
     expect(form.get('width')?.valid).toBeFalse();
   });
+
+  it('accepts shelf quantity of 8', () => {
+    form.get('shelfQuantity')?.setValue(8);
+
+    expect(form.get('shelfQuantity')?.valid).toBeTrue();
+  });
+
+  it('rejects shelf quantity above 8', () => {
+    form.get('shelfQuantity')?.setValue(9);
+
+    expect(form.get('shelfQuantity')?.valid).toBeFalse();
+  });
 });

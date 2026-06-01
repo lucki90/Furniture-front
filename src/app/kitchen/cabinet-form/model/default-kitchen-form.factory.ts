@@ -1,6 +1,7 @@
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { KitchenCabinetType } from './kitchen-cabinet-type';
 import { CornerMechanismType } from './corner-cabinet.model';
+import { ProjectSettingsConstraints } from './kitchen-cabinet-constants';
 
 export class DefaultKitchenFormFactory {
   static create(fb: FormBuilder): FormGroup {
@@ -46,7 +47,7 @@ export class DefaultKitchenFormFactory {
 
       // Upper positioning
       positioningMode: ['RELATIVE_TO_CEILING'],
-      gapFromCountertopMm: [500],
+      gapFromCountertopMm: [ProjectSettingsConstraints.UPPER_GAP_FROM_COUNTERTOP_DEFAULT],
       gapFromAnchorMm: [0],
       cabinetSide: ['FRONT'],
       gapBeforeMm: [0],

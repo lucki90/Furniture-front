@@ -2,6 +2,7 @@ import { FormGroup } from '@angular/forms';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
 import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
+import { ProjectSettingsConstraints } from '../../model/kitchen-cabinet-constants';
 
 /**
  * Preparer dla szafki wiszącej z ociekaczem (UPPER_DRAINER).
@@ -75,7 +76,7 @@ export class UpperDrainerCabinetPreparer implements KitchenCabinetPreparer {
       drawerQuantity: 0,
       drawerModel: null,
       positioningMode: 'RELATIVE_TO_CEILING',
-      gapFromCountertopMm: 500,
+      gapFromCountertopMm: ProjectSettingsConstraints.UPPER_GAP_FROM_COUNTERTOP_DEFAULT,
       drainerFrontType: 'OPEN',
       isFrontExtended: false
     });

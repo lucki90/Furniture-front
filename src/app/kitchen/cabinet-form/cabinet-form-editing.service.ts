@@ -3,6 +3,7 @@ import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { KitchenCabinet, cabinetHasSegments } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { CabinetSegmentsFormService } from './cabinet-segments-form.service';
+import { ProjectSettingsConstraints } from './model/kitchen-cabinet-constants';
 
 @Injectable({ providedIn: 'root' })
 export class CabinetFormEditingService {
@@ -58,7 +59,7 @@ export class CabinetFormEditingService {
       cargoBrand: c.cargoBrand ?? 'BLUM',
       pantryPassageFrontType: c.pantryPassageFrontType ?? 'TWO_DOORS',
       positioningMode: c.positioningMode ?? 'RELATIVE_TO_CEILING',
-      gapFromCountertopMm: c.gapFromCountertopMm ?? 500,
+      gapFromCountertopMm: c.gapFromCountertopMm ?? ProjectSettingsConstraints.UPPER_GAP_FROM_COUNTERTOP_DEFAULT,
       gapFromAnchorMm: c.gapFromAnchorMm ?? 0,
       cabinetSide: c.cabinetSide ?? 'FRONT',
       gapBeforeMm: c.gapBeforeMm ?? 0,

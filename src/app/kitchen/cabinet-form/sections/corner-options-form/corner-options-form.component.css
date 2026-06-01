@@ -1,0 +1,65 @@
+@import '../../shared/section-base.css';
+
+/* ============================================
+   ZAAWANSOWANE — NAROŻNIK (CORNER_CABINET) — zakładka "Opcje"
+   Parametry systemowe (Magic Corner / Le Mans) + podział frontu ślepego FS1/FS2.
+   ============================================ */
+
+/* Tekst informacyjny — kompaktowy, dyskretny */
+.info-text {
+  margin: 4px 4px 8px 4px;
+  padding: 6px 10px;
+  background: var(--bg-hover, #f8fafc);
+  border-left: 3px solid var(--accent-color, #1d6fa4);
+  border-radius: 3px;
+  font-size: 12px;
+  color: var(--text-secondary, #64748b);
+  line-height: 1.4;
+}
+
+/* Tekst ostrzegawczy — żółto-pomarańczowy, dla TODO/tymczasowych ograniczeń */
+.warning-text {
+  margin: 4px 4px 8px 4px;
+  padding: 8px 12px;
+  background: #fff8e1;
+  border-left: 3px solid #f59e0b;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #78350f;
+  line-height: 1.5;
+}
+
+/* Pojedyncze pole w wierszu nie rozciąga się na całą szerokość. */
+.form-row > .form-group:only-child {
+  max-width: calc(50% - 5px);
+}
+
+/* Checkbox z etykietą (split FS1+FS2) */
+.form-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--text-primary, #1e293b);
+}
+
+/* Help icon przy checkboxie */
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e3f2fd;
+  color: #1565c0;
+  font-size: 11px;
+  cursor: help;
+  text-decoration: none;
+}
+
+.help-icon:hover {
+  background: #bbdefb;
+}

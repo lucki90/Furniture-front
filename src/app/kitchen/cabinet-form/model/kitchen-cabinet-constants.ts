@@ -131,7 +131,7 @@ export const KitchenCabinetConstraints = {
     DEPTH_MIN: 250,
     DEPTH_MAX: 400,
     SHELF_MIN: 1,
-    SHELF_MAX: 6
+    SHELF_MAX: 8
   },
   BASE_COOKTOP: {
     WIDTH_MIN: 450,
@@ -245,6 +245,7 @@ export const ProjectSettingsConstraints = {
   UPPER_FILLER_HEIGHT_MIN: 0,
   UPPER_FILLER_HEIGHT_MAX: 150,
   UPPER_FILLER_HEIGHT_DEFAULT: 100,
+  UPPER_GAP_FROM_COUNTERTOP_DEFAULT: 550,
   MIN_WORKSPACE_GAP_MM: 450
 } as const;
 
