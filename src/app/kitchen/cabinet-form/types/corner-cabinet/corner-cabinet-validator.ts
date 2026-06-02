@@ -283,7 +283,8 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     const mechanism = form.get('cornerMechanism')?.value as CornerMechanismType;
 
     if (!mechanism) return false;
-    if (isUpper && isBlindType(mechanism)) return false;
+    // Wiszący narożnik: dozwolone Type A (FIXED_SHELVES) oraz wiszący ślepy narożnik (BLIND_CORNER).
+    // Magic Corner / Le Mans nie mają wariantu wiszącego → isAllowedForUpperCabinet je odrzuca.
     if (isUpper && !isAllowedForUpperCabinet(mechanism)) return false;
 
     return true;
@@ -298,12 +299,10 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
 
     if (!mechanism) return 'Wybierz system organizacji wewnętrznej.';
 
-    if (isUpper && isBlindType(mechanism)) {
-      return 'Ślepy narożnik jest dostępny tylko jako szafka dolna.';
-    }
-
+    // Wiszący narożnik: dozwolone Type A (FIXED_SHELVES) oraz wiszący ślepy narożnik (BLIND_CORNER).
+    // Magic Corner / Le Mans nie mają wariantu wiszącego.
     if (isUpper && !isAllowedForUpperCabinet(mechanism)) {
-      return 'Ten mechanizm jest dostępny tylko dla szafki dolnej. Dla szafki górnej wybierz "Półki stałe" lub "Brak".';
+      return 'Ten mechanizm jest dostępny tylko dla szafki dolnej. Dla szafki górnej wybierz "Półki stałe", "Brak" lub "Ślepy narożnik".';
     }
 
     return null;

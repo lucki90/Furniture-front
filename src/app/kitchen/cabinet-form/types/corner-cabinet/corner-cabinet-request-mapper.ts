@@ -91,6 +91,8 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
     // Iter.6 (Faza 1): pola systemowe (handedness/angle/thickness/line) mają znaczenie tylko dla
     // jednostronnych systemów Type B (Magic Corner, Le Mans); dla BLIND_CORNER zostają null.
     const isSystemMechanism = isMagicCorner(mechanism) || isLeMans(mechanism);
+    // Wiszący ślepy narożnik: wariant wiszący istnieje wyłącznie dla BLIND_CORNER (Magic/Le Mans tylko dolne).
+    const isUpper = mechanism === CornerMechanismType.BLIND_CORNER && (form.isUpperCorner ?? false);
     const cornerRequest = {
       widthA: form.cornerWidthA,
       widthB: null,  // Type B nie ma widthB
@@ -98,7 +100,7 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
       shelfQuantity: mechanism === CornerMechanismType.BLIND_CORNER
         ? (form.cornerShelfQuantity ?? 0)
         : null,
-      upperCabinet: false,  // Type B zawsze dolna
+      upperCabinet: isUpper,  // Type B dolna, z wyjątkiem wiszącego ślepego narożnika
       frontUchylnyWidthMm: form.cornerFrontUchylnyWidthMm ?? 500,
       cornerHandleType: (form.cornerHandleType ?? CornerHandleType.SCREWED) as CornerHandleType,
       // Iteracja 2 [B1] — split FS1 (mat. frontu, widoczna) + FS2 (mat. korpusu, ukryta).
@@ -128,12 +130,13 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
         : 0,
 
       needBacks: true,
-      isHanging: false,
-      isHangingOnRail: false,
-      isStandingOnFeet: true,
+      // Wiszący ślepy narożnik: brak nóżek/blatu, montaż na szynie + opcjonalny przedłużany front (jak szafki wiszące).
+      isHanging: isUpper,
+      isHangingOnRail: isUpper,
+      isStandingOnFeet: !isUpper,
       isBackInGroove: false,
-      isFrontExtended: false,
-      isCoveredWithCounterTop: true,
+      isFrontExtended: isUpper ? (form.isFrontExtended ?? false) : false,
+      isCoveredWithCounterTop: !isUpper,
       varnishedFront: materialDefaults.varnishedFront,
 
       frontType: 'CORNER_BLIND',

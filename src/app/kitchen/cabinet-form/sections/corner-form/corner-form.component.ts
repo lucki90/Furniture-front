@@ -480,7 +480,15 @@ export class CornerFormComponent implements OnInit {
   private onCornerTypeChange(isUpper: boolean): void {
     const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType;
     if (mechanism && isBlindType(mechanism)) {
-      return; // Type B zawsze dolna
+      // Type B: konstrukcja zawsze dolna w sensie wymiarów, ale wiszący ślepy narożnik (BLIND_CORNER)
+      // jest dozwolony. Po zmianie montażu odśwież listę mechanizmów Type B: górny dopuszcza tylko
+      // BLIND_CORNER (Magic/Le Mans nie mają wariantu wiszącego) → mechanismCards pokazuje wtedy 1 kartę.
+      const typeBMechanisms = isUpper ? UPPER_CORNER_MECHANISMS : BASE_CORNER_MECHANISMS;
+      this.availableCornerMechanisms = typeBMechanisms.map(m => ({
+        value: m,
+        label: CORNER_MECHANISM_LABELS[m]
+      }));
+      return;
     }
 
     if (isUpper) {
@@ -537,14 +545,20 @@ export class CornerFormComponent implements OnInit {
    */
   private onCornerMechanismChange(mechanism: CornerMechanismType): void {
     const typeB = mechanism ? isBlindType(mechanism) : false;
-    const isUpper = !typeB && (this.form.get('isUpperCorner')?.value ?? false);
+    const wantsUpper = this.form.get('isUpperCorner')?.value ?? false;
+    const isUpper = !typeB && wantsUpper;
 
     if (typeB) {
+      // Wiszący ślepy narożnik: konstrukcja identyczna jak dolnego (depth 510, width 800–1200),
+      // różni się tylko brakiem nóżek i opcjami szafki wiszącej (przedłużany front) → BLIND_CORNER_CONSTRAINTS.
       this.cornerConstraints = BLIND_CORNER_CONSTRAINTS;
       // BUG FIX (2026-05-24): wcześniej tutaj było `[]`, co powodowało że dropdown
       // mechanizmów był pusty i użytkownik nie mógł zmienić mechanizmu po wybraniu Le Mans/Magic/Blind.
-      // Lista MUSI zawierać pełen zbiór mechanizmów dostępnych dla dolnej szafki, niezależnie od aktualnego wyboru.
-      this.availableCornerMechanisms = BASE_CORNER_MECHANISMS.map(m => ({
+      // Lista MUSI zawierać pełen zbiór mechanizmów, niezależnie od aktualnego wyboru.
+      // Górny narożnik dopuszcza wśród Type B tylko BLIND_CORNER (Magic/Le Mans są dolne) →
+      // UPPER_CORNER_MECHANISMS, dzięki czemu `mechanismCards` (krok ②) pokazuje jedynie ślepy narożnik.
+      const typeBMechanisms = wantsUpper ? UPPER_CORNER_MECHANISMS : BASE_CORNER_MECHANISMS;
+      this.availableCornerMechanisms = typeBMechanisms.map(m => ({
         value: m,
         label: CORNER_MECHANISM_LABELS[m]
       }));

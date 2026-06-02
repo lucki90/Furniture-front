@@ -381,4 +381,34 @@ describe('CornerCabinetValidator', () => {
     expect(width?.errors).toBeNull();
     expect(form.valid).toBeTrue();
   });
+
+  // ==================== Upper (hanging) blind corner mechanism eligibility ====================
+
+  it('accepts BLIND_CORNER as an upper (hanging) corner mechanism', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.BLIND_CORNER,
+      isUpperCorner: true,
+      cornerWidthA: 1000,
+      height: 720,
+      depth: 510,
+      cornerFrontUchylnyWidthMm: 500
+    });
+
+    expect(validator.isMechanismValid(form)).toBeTrue();
+    expect(validator.getMechanismError(form)).toBeNull();
+  });
+
+  it('rejects Magic Corner as an upper corner mechanism (bottom-only)', () => {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.MAGIC_CORNER_COMFORT,
+      isUpperCorner: true,
+      cornerWidthA: 1000,
+      height: 720,
+      depth: 510,
+      cornerFrontUchylnyWidthMm: 500
+    });
+
+    expect(validator.isMechanismValid(form)).toBeFalse();
+    expect(validator.getMechanismError(form)).not.toBeNull();
+  });
 });

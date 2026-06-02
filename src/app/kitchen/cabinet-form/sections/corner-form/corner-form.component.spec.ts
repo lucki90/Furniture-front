@@ -258,15 +258,26 @@ describe('CornerFormComponent', () => {
     expect(bars.length).toBeGreaterThan(0);
   });
 
-  // ==================== Narożnik górny (wiszący) — bez Type B (Magic/Le Mans) ====================
+  // ==================== Narożnik górny (wiszący) — Type A + wiszący ślepy narożnik ====================
 
-  it('hides the blind (Type B) family card for an upper corner', () => {
+  it('keeps both family cards for an upper corner (blind corner has a hanging variant)', () => {
     form.patchValue({ cornerMechanism: CornerMechanismType.FIXED_SHELVES, isUpperCorner: true });
     fixture.detectChanges();
 
     expect(component.isUpperCorner).toBeTrue();
+    // Wiszący ślepy narożnik (BLIND_CORNER) istnieje → karta rodziny „ślepy" jest dostępna także dla górnego.
     const cards = fixture.nativeElement.querySelectorAll('.family-card');
-    expect(cards.length).toBe(1);
+    expect(cards.length).toBe(2);
+  });
+
+  it('shows only BLIND_CORNER among Type B mechanism cards for an upper corner (Magic/Le Mans are bottom-only)', () => {
+    form.patchValue({ isUpperCorner: true });
+    component.selectFamily('BLIND');
+    fixture.detectChanges();
+
+    expect(component.isCornerTypeB).toBeTrue();
+    const typeBCardValues = component.mechanismCards.map(m => m.value);
+    expect(typeBCardValues).toEqual([CornerMechanismType.BLIND_CORNER]);
   });
 
   it('keeps both family cards for a bottom corner', () => {

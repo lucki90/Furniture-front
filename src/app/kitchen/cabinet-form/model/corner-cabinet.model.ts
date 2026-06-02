@@ -342,10 +342,13 @@ export const BASE_CORNER_MECHANISMS: CornerMechanismType[] = [
 
 /**
  * Mechanisms allowed for upper (hanging) corner cabinet.
- * FIXED_SHELVES — standard upper corner (with shelves or blind: CornerOpeningType.BLIND for one arm without front).
+ * - FIXED_SHELVES — standard upper corner Type A (L-shape, z półkami lub BLIND opening dla ramienia bez frontu).
+ * - BLIND_CORNER — wiszący ślepy narożnik Type B: konstrukcja identyczna jak dolna, różni się tylko brakiem nóżek
+ *   i opcjami szafki wiszącej (przedłużany front). Magic Corner / Le Mans nie mają wariantu wiszącego.
  */
 export const UPPER_CORNER_MECHANISMS: CornerMechanismType[] = [
-  CornerMechanismType.FIXED_SHELVES
+  CornerMechanismType.FIXED_SHELVES,
+  CornerMechanismType.BLIND_CORNER
 ];
 
 /**
@@ -421,7 +424,9 @@ export function mechanismRequiresShelves(mechanism: CornerMechanismType): boolea
 
 /**
  * Checks if mechanism is allowed for upper cabinet.
+ * FIXED_SHELVES (Type A) oraz BLIND_CORNER (wiszący ślepy narożnik Type B). Magic Corner / Le Mans — tylko dolne.
  */
 export function isAllowedForUpperCabinet(mechanism: CornerMechanismType): boolean {
-  return mechanism === CornerMechanismType.FIXED_SHELVES;
+  return mechanism === CornerMechanismType.FIXED_SHELVES
+    || mechanism === CornerMechanismType.BLIND_CORNER;
 }

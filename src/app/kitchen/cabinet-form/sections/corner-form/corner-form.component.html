@@ -116,8 +116,9 @@
       <div class="family-card-desc">Dwa ramiona, pełen dostęp z obu stron</div>
     </button>
 
-    <!-- Type B (ślepy/Magic/Le Mans) jest zawsze dolny — ukryty dla narożnika górnego (wiszącego). -->
-    <button type="button" class="family-card" *ngIf="!isUpperCorner"
+    <!-- Type B: ślepy narożnik istnieje w wariancie dolnym i wiszącym (BLIND_CORNER). -->
+    <!-- Magic Corner / Le Mans pozostają dolne — filtr w `mechanismCards` (krok ②) ukrywa je dla górnego. -->
+    <button type="button" class="family-card"
             [class.selected]="isFamilySelected('BLIND')"
             (click)="selectFamily('BLIND')">
       <div class="family-card-top">

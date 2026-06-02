@@ -37,6 +37,8 @@ import {
   CARGO_VARIANT_OPTIONS,
   isCargoMechanismNominalWidth
 } from './types/base-cargo/cargo-cabinet.model';
+import { CornerMechanismType } from './model/corner-cabinet.model';
+import { ProjectSettingsConstraints } from './model/kitchen-cabinet-constants';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -366,6 +368,20 @@ export class CabinetFormComponent implements OnChanges {
         this.onTypeChange(nextType);
       });
 
+    // CORNER_CABINET — gdy użytkownik przełącza mechanizm wewnątrz formularza (karty rodziny/systemu),
+    // preparer NIE jest ponownie uruchamiany, więc parent-level visibility (opcje szafki wiszącej:
+    // pozycjonowanie + przedłużany front) nie odświeżyłaby się sama. Wiszący ślepy narożnik
+    // (BLIND_CORNER + isUpperCorner) musi pokazać te same opcje co zwykłe szafki wiszące — dlatego
+    // odświeżamy tu odpowiednie flagi widoczności (wzorzec jak przy drawerLayoutType powyżej).
+    this.form.get('cornerMechanism')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(mechanism => {
+        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.CORNER_CABINET) {
+          return;
+        }
+        this.refreshCornerHangingVisibility(mechanism as CornerMechanismType);
+      });
+
     // BASE_WITH_DRAWERS — synchronizacja FormArray wysokosci z drawerQuantity i drawerLayoutType
     this.form.get('drawerLayoutType')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -472,6 +488,44 @@ export class CabinetFormComponent implements OnChanges {
     if (lifecycleResult.restoreApplied) {
       this.segmentValidationService.validate(this.form, type);
     }
+  }
+
+  /**
+   * CORNER_CABINET — odświeża parent-level visibility, gdy użytkownik przełącza mechanizm
+   * narożnika wewnątrz formularza (karty rodziny/systemu). Preparer NIE jest wtedy ponownie
+   * uruchamiany (resetowałby wymiary = zła UX), więc tu replikujemy flagi z
+   * `CornerCabinetPreparer.updateVisibilityForMechanism` dla wiszącego ślepego narożnika.
+   *
+   * Wiszący ślepy narożnik (BLIND_CORNER + isUpperCorner) ma mieć WSZYSTKIE opcje szafki
+   * wiszącej typu "przedłużany front": pozycjonowanie + przedłużany front.
+   */
+  private refreshCornerHangingVisibility(mechanism: CornerMechanismType | null): void {
+    const wantsUpper = this.form.get('isUpperCorner')?.value ?? false;
+    const upperBlind = mechanism === CornerMechanismType.BLIND_CORNER && wantsUpper;
+
+    this.visibility = {
+      ...this.visibility,
+      positioningMode: upperBlind,
+      gapFromCountertopMm: upperBlind,
+      gapFromAnchorMm: upperBlind,
+      extendedFront: upperBlind,
+      liftUp: false,
+      blockUpperAbove: !upperBlind
+    };
+
+    // Domyślne wartości opcji szafki wiszącej muszą zostać wstawione przy reaktywnym przełączeniu
+    // (preparer się nie odpala). Zachowujemy istniejące wartości (tryb edycji).
+    if (upperBlind) {
+      this.form.patchValue({
+        positioningMode: this.form.get('positioningMode')?.value ?? 'RELATIVE_TO_CEILING',
+        gapFromCountertopMm: this.form.get('gapFromCountertopMm')?.value
+          ?? ProjectSettingsConstraints.UPPER_GAP_FROM_COUNTERTOP_DEFAULT,
+        isFrontExtended: this.form.get('isFrontExtended')?.value ?? false,
+        isLiftUp: false
+      }, { emitEvent: false });
+    }
+
+    this.cdr.markForCheck();
   }
 
   private resetGapBeforeMm(): void {
