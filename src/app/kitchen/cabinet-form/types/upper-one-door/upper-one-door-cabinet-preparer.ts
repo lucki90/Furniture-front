@@ -17,7 +17,7 @@ export class UpperOneDoorCabinetPreparer implements KitchenCabinetPreparer {
     form.patchValue({
       width: 400,
       height: 720,
-      depth: 320,
+      depth: 340,
       shelfQuantity: 1,
       drawerQuantity: 0,
       drawerModel: null,
