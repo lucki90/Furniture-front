@@ -6,6 +6,7 @@ import {
   BASE_CORNER_CONSTRAINTS,
   UPPER_CORNER_CONSTRAINTS,
   BLIND_CORNER_CONSTRAINTS,
+  UPPER_BLIND_CORNER_CONSTRAINTS,
   CORNER_HANDLE_FILLER_WIDTH_MM,
   CornerHandleType,
   effectiveFrontMinWidthMm,
@@ -26,6 +27,13 @@ const MAGIC_STANDARD_MAX_ANGLE_DEG = 75;
 /** Le Mans dopuszcza front 16–19 mm (manufacturer reference §12) — mirror backendu. */
 const LE_MANS_FRONT_THICKNESS_MIN_MM = 16;
 const LE_MANS_FRONT_THICKNESS_MAX_MM = 19;
+
+/**
+ * Domyślna grubość frontu (mm) gdy pole `cornerFrontThicknessMm` nie jest ustawione.
+ * Mirror backendowego DEFAULT_FRONT_THICKNESS_MM — używane jako podłoga progu blendy
+ * (książka: bez uchwytu blenda = grubość frontu, z uchwytem 50mm).
+ */
+const DEFAULT_FRONT_THICKNESS_MM = 18;
 
 /** Komunikat błędu dla niedozwolonej linii Magic Corner Comfort (mirror backendu). */
 const MAGIC_COMFORT_LINE_400_MSG =
@@ -149,7 +157,11 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
   // ==================== TYPE B (BLIND/RECTANGULAR) ====================
 
   private validateTypeB(form: FormGroup, mechanism: CornerMechanismType): void {
-    const constraints = BLIND_CORNER_CONSTRAINTS;
+    // Wiszący ślepy narożnik (BLIND_CORNER + górny) ma własne, książkowe wymiary (depth 320,
+    // width 660–960, height 300–1200, half 0–4) — parytet z backendowym validateTypeB.
+    const upperBlind = (form.get('isUpperCorner')?.value ?? false)
+      && mechanism === CornerMechanismType.BLIND_CORNER;
+    const constraints = upperBlind ? UPPER_BLIND_CORNER_CONSTRAINTS : BLIND_CORNER_CONSTRAINTS;
 
     // Szerokość A (tylko widthA, brak widthB)
     form.get('cornerWidthA')?.setValidators([
@@ -174,7 +186,7 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     // Mechanizm
     form.get('cornerMechanism')?.setValidators([Validators.required]);
 
-    // Półki (tylko BLIND_CORNER: 0-2)
+    // Półki (tylko BLIND_CORNER: dolny 0–2, wiszący 0–4)
     if (mechanism === CornerMechanismType.BLIND_CORNER) {
       form.get('cornerShelfQuantity')?.setValidators([
         Validators.required,
@@ -187,9 +199,11 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
 
     // frontUchylnyWidthMm — wymagane dla Type B. Minimalna szerokość zależy od systemu/linii:
     // Magic Corner używa Y-min wybranej linii (lub domyślnej systemu), pozostałe Type B = 400mm.
-    // Mirror backendowego effectiveFrontMinWidth (CR-fix Faza 1: FE blokował poprawne fronty Magic Corner).
+    // Wiszący ślepy narożnik: książkowy min 296mm. Mirror backendowego effectiveFrontMinWidth.
     const systemLine = form.get('cornerSystemLine')?.value as CornerSystemLine | null;
-    const frontUchylnyMin = effectiveFrontMinWidthMm(mechanism, systemLine);
+    const frontUchylnyMin = upperBlind
+      ? UPPER_BLIND_CORNER_CONSTRAINTS.frontUchylnyMin
+      : effectiveFrontMinWidthMm(mechanism, systemLine);
     form.get('cornerFrontUchylnyWidthMm')?.setValidators([
       Validators.required,
       Validators.min(frontUchylnyMin),
@@ -204,7 +218,7 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     this.applySystemLineValidators(form, mechanism);
 
     const handleType = (form.get('cornerHandleType')?.value ?? CornerHandleType.SCREWED) as CornerHandleType;
-    const minVisibleWidth = CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
+    const minVisibleWidth = this.resolveBlindPanelMinWidth(form, handleType);
 
     if (form.get('blindPanelSplitEnabled')?.value) {
       form.get('blindPanelVisibleWidthMm')?.setValidators([
@@ -273,6 +287,21 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     }
   }
 
+  /**
+   * Minimalna szerokość widocznej części frontu ślepego (blenda narożna).
+   * Książka: z uchwytem blenda = 50mm, bez uchwytu = grubość frontu (≈18–20mm).
+   * Mirror backendu: `Math.max(handle.fillerWidth, frontThickness)`. Stosowane identycznie
+   * dla narożnika dolnego i wiszącego (decyzja użytkownika 2026-06-02, pkt 8).
+   */
+  private resolveBlindPanelMinWidth(form: FormGroup, handleType: CornerHandleType): number {
+    const handleFloor = CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
+    const frontThickness = form.get('cornerFrontThicknessMm')?.value as number | null;
+    const frontThicknessFloor = frontThickness != null && frontThickness > 0
+      ? frontThickness
+      : DEFAULT_FRONT_THICKNESS_MM;
+    return Math.max(handleFloor, frontThicknessFloor);
+  }
+
   // ==================== HELPER METHODS ====================
 
   /**
@@ -315,9 +344,12 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
     const errors: string[] = [];
     const mechanism = form.get('cornerMechanism')?.value as CornerMechanismType;
     const typeB = mechanism && isBlindType(mechanism);
+    const wantsUpper = form.get('isUpperCorner')?.value ?? false;
 
-    const isUpper = !typeB && (form.get('isUpperCorner')?.value ?? false);
-    const constraints = typeB ? BLIND_CORNER_CONSTRAINTS
+    const upperBlind = typeB && mechanism === CornerMechanismType.BLIND_CORNER && wantsUpper;
+    const isUpper = !typeB && wantsUpper;
+    const constraints = upperBlind ? UPPER_BLIND_CORNER_CONSTRAINTS
+                      : typeB ? BLIND_CORNER_CONSTRAINTS
                       : isUpper ? UPPER_CORNER_CONSTRAINTS
                       : BASE_CORNER_CONSTRAINTS;
 
@@ -344,11 +376,16 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
 
     if (typeB) {
       const systemLine = form.get('cornerSystemLine')?.value as CornerSystemLine | null;
-      const frontUchylnyMin = effectiveFrontMinWidthMm(mechanism, systemLine);
+      const frontUchylnyMin = upperBlind
+        ? UPPER_BLIND_CORNER_CONSTRAINTS.frontUchylnyMin
+        : effectiveFrontMinWidthMm(mechanism, systemLine);
+      const frontUchylnyMax = upperBlind
+        ? UPPER_BLIND_CORNER_CONSTRAINTS.frontUchylnyMax
+        : BLIND_CORNER_CONSTRAINTS.frontUchylnyMax;
       const frontUchylny = form.get('cornerFrontUchylnyWidthMm')?.value;
       if (!frontUchylny || frontUchylny < frontUchylnyMin
-          || frontUchylny > BLIND_CORNER_CONSTRAINTS.frontUchylnyMax) {
-        errors.push(`Szerokość frontu uchylnego musi być między ${frontUchylnyMin} a ${BLIND_CORNER_CONSTRAINTS.frontUchylnyMax}mm`);
+          || frontUchylny > frontUchylnyMax) {
+        errors.push(`Szerokość frontu uchylnego musi być między ${frontUchylnyMin} a ${frontUchylnyMax}mm`);
       }
 
       // Parametry systemu (Magic Corner / Le Mans) — mirror backendu validateTypeBSystem.
@@ -371,7 +408,7 @@ export class CornerCabinetValidator implements KitchenCabinetValidator {
       if (form.get('blindPanelSplitEnabled')?.value) {
         const blindPanelVisibleWidth = form.get('blindPanelVisibleWidthMm')?.value;
         const handleType = (form.get('cornerHandleType')?.value ?? CornerHandleType.SCREWED) as CornerHandleType;
-        const minVisibleWidth = CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
+        const minVisibleWidth = this.resolveBlindPanelMinWidth(form, handleType);
         if (blindPanelVisibleWidth == null || blindPanelVisibleWidth < minVisibleWidth || blindPanelVisibleWidth > 600) {
           errors.push(`Szerokość widocznej części frontu ślepego musi być między ${minVisibleWidth} a 600mm`);
         }

@@ -8,6 +8,11 @@ export interface KitchenLayoutCooktopGapWarning {
   actualMm: number;
 }
 
+export interface KitchenLayoutSideFillerWarningView {
+  sides: ('left' | 'right')[];
+  message: string;
+}
+
 @Component({
   selector: 'app-kitchen-layout-info-panel',
   standalone: true,
@@ -22,4 +27,5 @@ export class KitchenLayoutInfoPanelComponent {
   @Input() fitsOnWall = true;
   @Input() wallLength = 0;
   @Input() cooktopGapWarning: KitchenLayoutCooktopGapWarning | null = null;
+  @Input() sideFillerWarning: KitchenLayoutSideFillerWarningView | null = null;
 }

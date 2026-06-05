@@ -11,6 +11,99 @@ export interface KitchenLayoutGapWarning {
   actualMm: number;
 }
 
+/** Minimalny zalecany luz montażowy między skrajną szafką a ścianą boczną (mm). Poniżej → zaleca się blendę boczną. */
+export const SIDE_WALL_CLEARANCE_MM = 50;
+
+export interface KitchenLayoutSideFillerWarning {
+  /** Strony, których dotyczy ostrzeżenie (skrajne szafki przy ścianie bez blendy bocznej). */
+  sides: ('left' | 'right')[];
+  message: string;
+}
+
+/** Minimalna pozycja/szerokość szafki potrzebna do wykrycia szafek skrajnych przy ścianie. */
+export interface KitchenLayoutCabinetSpan {
+  cabinetId: string;
+  x: number;
+  width: number;
+}
+
+/**
+ * Ostrzeżenie nieblokujące: szafka skrajna styka się ze ścianą boczną (luz < {@link SIDE_WALL_CLEARANCE_MM} mm)
+ * i nie ma po tej stronie blendy bocznej / panelu bocznego (obudowy).
+ *
+ * <p>To NIE jest inny sposób liczenia płyt — formuła pozostaje bez zmian. To wyłącznie uwaga do pozycjonowania:
+ * bez blendy front uchylny / zawias może kolidować ze ścianą, a montaż nie ma luzu (książka Wasiak v.2.3 —
+ * odstęp od ściany bocznej). Zalecenie: dodać blendę boczną (min. 20 mm) na skrajnej szafce.</p>
+ *
+ * <p>Reguły wygaszania:</p>
+ * <ul>
+ *   <li>ISLAND → pomijamy (wyspa nie ma ścian bocznych; używa paneli bocznych).</li>
+ *   <li>CORNER_LEFT → wygaszamy lewą stronę (łączy się z sąsiednią ścianą, nie ze ścianą boczną).</li>
+ *   <li>CORNER_RIGHT → wygaszamy prawą stronę.</li>
+ * </ul>
+ *
+ * TODO(uklad-L-U): dla ścian LEFT/RIGHT (pionowych w układzie L/U) krawędź stykająca się z narożnikiem jest
+ * wykrywana tylko heurystycznie po typie ściany — możliwe nadmiarowe ostrzeżenie po stronie wewnętrznego narożnika.
+ * Docelowo powiązać z modelem połączeń ścian (WallConnection), aby wygaszać dokładnie krawędź narożną.
+ */
+export function buildSideFillerWarning(
+  selectedWall: WallWithCabinets | undefined,
+  spans: KitchenLayoutCabinetSpan[],
+  wallWidthMm: number
+): KitchenLayoutSideFillerWarning | null {
+  if (!selectedWall || selectedWall.type === 'ISLAND' || spans.length === 0 || wallWidthMm <= 0) {
+    return null;
+  }
+
+  const cabinetsById = new Map(selectedWall.cabinets.map(cabinet => [cabinet.id, cabinet]));
+
+  let leftSpan = spans[0];
+  let rightSpan = spans[0];
+  for (const span of spans) {
+    if (span.x < leftSpan.x) {
+      leftSpan = span;
+    }
+    if (span.x + span.width > rightSpan.x + rightSpan.width) {
+      rightSpan = span;
+    }
+  }
+
+  const sides: ('left' | 'right')[] = [];
+
+  const leftConnectedToWall = selectedWall.type === 'CORNER_LEFT';
+  const leftGapMm = leftSpan.x;
+  if (!leftConnectedToWall && leftGapMm < SIDE_WALL_CLEARANCE_MM && hasNoSideFiller(cabinetsById.get(leftSpan.cabinetId), 'left')) {
+    sides.push('left');
+  }
+
+  const rightConnectedToWall = selectedWall.type === 'CORNER_RIGHT';
+  const rightGapMm = wallWidthMm - (rightSpan.x + rightSpan.width);
+  if (!rightConnectedToWall && rightGapMm < SIDE_WALL_CLEARANCE_MM && hasNoSideFiller(cabinetsById.get(rightSpan.cabinetId), 'right')) {
+    sides.push('right');
+  }
+
+  if (sides.length === 0) {
+    return null;
+  }
+
+  return { sides, message: buildSideFillerMessage(sides) };
+}
+
+function hasNoSideFiller(cabinet: KitchenCabinet | undefined, side: 'left' | 'right'): boolean {
+  if (!cabinet) {
+    return false;
+  }
+  const enclosureType = side === 'left' ? cabinet.leftEnclosureType : cabinet.rightEnclosureType;
+  return !enclosureType || enclosureType === 'NONE';
+}
+
+function buildSideFillerMessage(sides: ('left' | 'right')[]): string {
+  const label = sides.length === 2 ? 'lewa i prawa' : sides[0] === 'left' ? 'lewa' : 'prawa';
+  const subject = sides.length === 2 ? 'Skrajne szafki stykają się' : 'Skrajna szafka styka się';
+  return `${subject} ze ścianą boczną bez blendy bocznej (${label}). Zalecane dodanie blendy bocznej `
+    + `(min. 20 mm) — zabezpiecza front/zawias przed kolizją ze ścianą i daje luz montażowy.`;
+}
+
 export interface KitchenLayoutGapDimensionLine {
   x: number;
   y1: number;

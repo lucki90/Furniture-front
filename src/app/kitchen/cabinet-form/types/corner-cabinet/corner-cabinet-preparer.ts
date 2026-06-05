@@ -9,6 +9,7 @@ import {
   BASE_CORNER_CONSTRAINTS,
   UPPER_CORNER_CONSTRAINTS,
   BLIND_CORNER_CONSTRAINTS,
+  UPPER_BLIND_CORNER_CONSTRAINTS,
   isBlindType
 } from '../../model/corner-cabinet.model';
 
@@ -103,19 +104,24 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
     // Type B jako wiszący istnieje WYŁĄCZNIE dla BLIND_CORNER (Magic/Le Mans już skoercowane do FIXED_SHELVES).
     const upperBlind = typeB && mechanism === CornerMechanismType.BLIND_CORNER && wantsUpper;
     const isUpperTypeA = !typeB && wantsUpper;
-    // Wiszący ślepy narożnik ma konstrukcję identyczną jak dolny → BLIND_CORNER_CONSTRAINTS (depth 510, width 800–1200).
-    const constraints = typeB ? BLIND_CORNER_CONSTRAINTS
+    // Wiszący ślepy narożnik ma WŁASNĄ książkową geometrię (depth 320, width 660–960) — UPPER_BLIND_CORNER_CONSTRAINTS;
+    // dolny ślepy: BLIND_CORNER_CONSTRAINTS (depth 510, width 800–1200).
+    const constraints = upperBlind ? UPPER_BLIND_CORNER_CONSTRAINTS
+                      : typeB ? BLIND_CORNER_CONSTRAINTS
                       : isUpperTypeA ? UPPER_CORNER_CONSTRAINTS
                       : BASE_CORNER_CONSTRAINTS;
 
+    // Domyślna szerokość: wiszący ślepy 800 (w zakresie 660–960), dolny ślepy 1000, górny Type A 700, dolny Type A 900.
+    const defaultCornerWidthA = upperBlind ? 800 : (typeB ? 1000 : (isUpperTypeA ? 700 : 900));
+
     // TODO R.9: `patch: any` — rozważ typowany interfejs CornerPatchValues zamiast any
     const patch: any = {
-      cornerWidthA: typeB ? 1000 : (isUpperTypeA ? 700 : 900),
+      cornerWidthA: defaultCornerWidthA,
       cornerWidthB: isUpperTypeA ? 700 : 900,
       height: 720,
       depth: constraints.depth,
       cornerMechanism: mechanism,
-      width: typeB ? 1000 : (isUpperTypeA ? 700 : 900),
+      width: defaultCornerWidthA,
       shelfQuantity: 0,
       drawerQuantity: 0,
       drawerModel: null

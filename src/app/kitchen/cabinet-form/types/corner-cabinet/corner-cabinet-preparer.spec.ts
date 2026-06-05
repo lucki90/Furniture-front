@@ -1,7 +1,7 @@
 import { FormBuilder } from '@angular/forms';
 import { DefaultKitchenFormFactory } from '../../model/default-kitchen-form.factory';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
-import { BLIND_CORNER_CONSTRAINTS, CornerMechanismType } from '../../model/corner-cabinet.model';
+import { BLIND_CORNER_CONSTRAINTS, UPPER_BLIND_CORNER_CONSTRAINTS, CornerMechanismType } from '../../model/corner-cabinet.model';
 import { CornerCabinetPreparer } from './corner-cabinet-preparer';
 
 describe('CornerCabinetPreparer', () => {
@@ -14,7 +14,7 @@ describe('CornerCabinetPreparer', () => {
     expect(form.get('width')?.enabled).toBeTrue();
   });
 
-  it('preserves BLIND_CORNER as an upper (hanging) blind corner with bottom-blind construction and hanging options', () => {
+  it('preserves BLIND_CORNER as an upper (hanging) blind corner with book dimensions and hanging options', () => {
     const form = DefaultKitchenFormFactory.create(new FormBuilder());
     const visibility = {} as CabinetFormVisibility;
 
@@ -23,10 +23,13 @@ describe('CornerCabinetPreparer', () => {
 
     new CornerCabinetPreparer().prepare(form, visibility);
 
-    // BLIND_CORNER stays — upper blind corner is a supported variant (same construction as bottom blind).
+    // BLIND_CORNER stays — upper blind corner is a supported variant.
     expect(form.get('cornerMechanism')?.value).toBe(CornerMechanismType.BLIND_CORNER);
     expect(form.get('isUpperCorner')?.value).toBeTrue();
-    expect(form.get('depth')?.value).toBe(BLIND_CORNER_CONSTRAINTS.depth);
+    // Decyzja 1-2 (książka): wiszący ślepy ma własną geometrię — depth 320, width default 800 (zakres 660–960).
+    expect(form.get('depth')?.value).toBe(UPPER_BLIND_CORNER_CONSTRAINTS.depth);
+    expect(form.get('depth')?.value).toBe(320);
+    expect(form.get('cornerWidthA')?.value).toBe(800);
     // Type B layout: single width, hidden widthB, front uchylny visible.
     expect(visibility.cornerWidthB).toBeFalse();
     expect(visibility.cornerFrontUchylnyWidth).toBeTrue();
@@ -35,6 +38,19 @@ describe('CornerCabinetPreparer', () => {
     expect(visibility.gapFromCountertopMm).toBeTrue();
     expect(visibility.extendedFront).toBeTrue();
     expect(visibility.blockUpperAbove).toBeFalse();
+  });
+
+  it('keeps bottom blind corner at book depth 510 (non-upper)', () => {
+    const form = DefaultKitchenFormFactory.create(new FormBuilder());
+    const visibility = {} as CabinetFormVisibility;
+
+    form.patchValue({ cornerMechanism: CornerMechanismType.BLIND_CORNER, isUpperCorner: false });
+
+    new CornerCabinetPreparer().prepare(form, visibility);
+
+    expect(form.get('depth')?.value).toBe(BLIND_CORNER_CONSTRAINTS.depth);
+    expect(form.get('depth')?.value).toBe(510);
+    expect(form.get('isUpperCorner')?.value).toBeFalse();
   });
 
   it('coerces Magic/Le Mans to FIXED_SHELVES when switching to an upper corner (only Type A and BLIND_CORNER are upper-eligible)', () => {

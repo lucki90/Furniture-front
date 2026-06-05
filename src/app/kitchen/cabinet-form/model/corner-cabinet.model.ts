@@ -388,7 +388,7 @@ export const BLIND_CORNER_CONSTRAINTS = {
 };
 
 /**
- * Dimension constraints for upper corner cabinet.
+ * Dimension constraints for upper corner cabinet (Type A — L-shaped, wiszący).
  */
 export const UPPER_CORNER_CONSTRAINTS = {
   widthMin: 600,
@@ -399,6 +399,26 @@ export const UPPER_CORNER_CONSTRAINTS = {
   depth: 320,  // Stała głębokość dla górnej (typowo 300-350mm)
   shelfMin: 0,  // 0 półek dozwolone — np. przy karuzeli lub pustej szafce
   shelfMax: 3
+};
+
+/**
+ * Dimension constraints for upper BLIND corner cabinet (wiszący ślepy narożnik).
+ * Książka Wasiak v.2.3 ("Szafka górna narożna ślepa") — węższa, wyższa i płytsza od dolnej.
+ * Decyzje użytkownika 2026-06-02: głębokość/szerokość/wysokość jak w książce; półki 0–4
+ * (książka 2–4, ale dopuszczamy 0); front uchylny min 296mm.
+ */
+export const UPPER_BLIND_CORNER_CONSTRAINTS = {
+  widthMin: 660,
+  widthMax: 960,
+  widthStep: 1,
+  heightMin: 300,
+  heightMax: 1200,
+  depth: 320,   // Stała głębokość korpusu wiszącego ślepego narożnika
+  shelfMin: 0,
+  shelfMax: 4,
+  frontUchylnyMin: 296,
+  frontUchylnyMax: 600,
+  frontUchylnyDefault: 500
 };
 
 /**

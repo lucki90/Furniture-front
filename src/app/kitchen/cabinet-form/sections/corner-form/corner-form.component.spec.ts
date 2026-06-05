@@ -70,17 +70,19 @@ describe('CornerFormComponent', () => {
   });
 
   it('revalidates blind-panel min when handle type changes', () => {
+    // Decyzja 8: próg = max(uchwyt, grubość frontu 18). SCREWED → 50 (uchwyt wystający),
+    // MILLED → max(15,18)=18. Wartość 30 jest poniżej progu SCREWED, ale powyżej MILLED.
     form.patchValue({
       blindPanelSplitEnabled: true,
-      cornerHandleType: CornerHandleType.MILLED,
-      blindPanelVisibleWidthMm: 14
+      cornerHandleType: CornerHandleType.SCREWED,
+      blindPanelVisibleWidthMm: 30
     });
 
     fixture.detectChanges();
 
     expect(form.get('blindPanelVisibleWidthMm')?.hasError('min')).toBeTrue();
 
-    form.get('cornerHandleType')?.setValue(CornerHandleType.PUSH_TO_OPEN);
+    form.get('cornerHandleType')?.setValue(CornerHandleType.MILLED);
     fixture.detectChanges();
 
     expect(form.get('blindPanelVisibleWidthMm')?.errors).toBeNull();

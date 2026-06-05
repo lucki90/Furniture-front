@@ -10,7 +10,7 @@ import {
   OVEN_HEIGHT_STANDARD_MM
 } from './kitchen-layout.constants';
 import { computeCountertopRunsMm } from '../floor-plan/floor-plan-layout.builder';
-import { buildCooktopGapWarning, buildKitchenLayoutMetrics } from './kitchen-layout-metrics';
+import { buildCooktopGapWarning, buildKitchenLayoutMetrics, buildSideFillerWarning, KitchenLayoutSideFillerWarning } from './kitchen-layout-metrics';
 import { buildVisualCabinetPositions, VisualCabinetPosition } from './kitchen-layout-view-model.builder';
 import { KitchenLayoutCabinetsLayerComponent } from './kitchen-layout-cabinets-layer.component';
 import { KitchenLayoutSurfacesLayerComponent } from './kitchen-layout-surfaces-layer.component';
@@ -100,6 +100,15 @@ export class KitchenLayoutComponent {
    */
   readonly cooktopGapWarning = computed((): { message: string; minMm: number; actualMm: number } | null => {
     return buildCooktopGapWarning(this.selectedWall(), this.hasHangingCabinets(), this.layoutMetrics().actualGapMm);
+  });
+
+  /**
+   * Ostrzeżenie nieblokujące: skrajna szafka styka się ze ścianą boczną bez blendy bocznej.
+   * To uwaga do pozycjonowania (nie zmienia kalkulacji płyt) — zalecenie dodania blendy bocznej dla luzu montażowego.
+   */
+  readonly sideFillerWarning = computed((): KitchenLayoutSideFillerWarning | null => {
+    const wall = this.selectedWall();
+    return buildSideFillerWarning(wall, this.cabinetPositions(), wall?.widthMm ?? 0);
   });
 
   // Stałe dla elementów wizualnych

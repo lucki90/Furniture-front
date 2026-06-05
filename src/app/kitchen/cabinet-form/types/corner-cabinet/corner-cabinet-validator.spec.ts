@@ -46,16 +46,35 @@ describe('CornerCabinetValidator', () => {
     expect(form.get('blindPanelVisibleWidthMm')?.errors).toBeNull();
   });
 
-  it('allows 15 mm visible blind panel for MILLED handle', () => {
+  // ==================== Blenda narożna (decyzja 8) ====================
+  // Próg widocznej części frontu ślepego = max(uchwyt, grubość frontu ≥18mm) — książka Wasiak v.2.3.
+  // Bez uchwytu wystającego (MILLED/PUSH_TO_OPEN) → grubość frontu 18mm; z uchwytem (SCREWED) → 50mm.
+
+  it('allows 18 mm visible blind panel for MILLED handle (front-thickness floor)', () => {
     form.patchValue({
       blindPanelSplitEnabled: true,
       cornerHandleType: CornerHandleType.MILLED,
-      blindPanelVisibleWidthMm: 15
+      blindPanelVisibleWidthMm: 18
     });
 
     validator.validate(form);
 
     expect(form.get('blindPanelVisibleWidthMm')?.errors).toBeNull();
+  });
+
+  it('rejects 17 mm visible blind panel for MILLED handle (below 18mm front floor)', () => {
+    form.patchValue({
+      blindPanelSplitEnabled: true,
+      cornerHandleType: CornerHandleType.MILLED,
+      blindPanelVisibleWidthMm: 17
+    });
+
+    validator.validate(form);
+
+    expect(form.get('blindPanelVisibleWidthMm')?.hasError('min')).toBeTrue();
+    expect(validator.getDimensionErrors(form)).toContain(
+      'Szerokość widocznej części frontu ślepego musi być między 18 a 600mm'
+    );
   });
 
   it('allows 50 mm visible blind panel for SCREWED handle', () => {
@@ -70,11 +89,11 @@ describe('CornerCabinetValidator', () => {
     expect(form.get('blindPanelVisibleWidthMm')?.errors).toBeNull();
   });
 
-  it('allows 0 mm visible blind panel for PUSH_TO_OPEN handle', () => {
+  it('allows 18 mm visible blind panel for PUSH_TO_OPEN handle (front-thickness floor)', () => {
     form.patchValue({
       blindPanelSplitEnabled: true,
       cornerHandleType: CornerHandleType.PUSH_TO_OPEN,
-      blindPanelVisibleWidthMm: 0
+      blindPanelVisibleWidthMm: 18
     });
 
     validator.validate(form);
@@ -82,17 +101,31 @@ describe('CornerCabinetValidator', () => {
     expect(form.get('blindPanelVisibleWidthMm')?.errors).toBeNull();
   });
 
-  it('uses handle-specific minimum in dimension errors', () => {
+  it('rejects 17 mm visible blind panel for PUSH_TO_OPEN handle (below 18mm front floor)', () => {
     form.patchValue({
       blindPanelSplitEnabled: true,
-      cornerHandleType: CornerHandleType.MILLED,
-      blindPanelVisibleWidthMm: 14
+      cornerHandleType: CornerHandleType.PUSH_TO_OPEN,
+      blindPanelVisibleWidthMm: 17
     });
 
     validator.validate(form);
 
+    expect(form.get('blindPanelVisibleWidthMm')?.hasError('min')).toBeTrue();
+  });
+
+  it('uses configured front thickness as floor when greater than handle filler', () => {
+    form.patchValue({
+      blindPanelSplitEnabled: true,
+      cornerHandleType: CornerHandleType.MILLED,
+      cornerFrontThicknessMm: 20,
+      blindPanelVisibleWidthMm: 19
+    });
+
+    validator.validate(form);
+
+    expect(form.get('blindPanelVisibleWidthMm')?.hasError('min')).toBeTrue();
     expect(validator.getDimensionErrors(form)).toContain(
-      'Szerokość widocznej części frontu ślepego musi być między 15 a 600mm'
+      'Szerokość widocznej części frontu ślepego musi być między 20 a 600mm'
     );
   });
 
@@ -410,5 +443,86 @@ describe('CornerCabinetValidator', () => {
 
     expect(validator.isMechanismValid(form)).toBeFalse();
     expect(validator.getMechanismError(form)).not.toBeNull();
+  });
+
+  // ==================== Upper (hanging) blind corner — book dimensions (decyzja 1-4) ====================
+  // Wiszący ślepy narożnik: szerokość 660–960, wysokość 300–1200, półki 0–4, front uchylny min 296mm.
+
+  function patchUpperBlind(overrides: Record<string, unknown>): void {
+    form.patchValue({
+      cornerMechanism: CornerMechanismType.BLIND_CORNER,
+      isUpperCorner: true,
+      cornerWidthA: 800,
+      height: 720,
+      cornerShelfQuantity: 2,
+      cornerFrontUchylnyWidthMm: 500,
+      ...overrides
+    });
+  }
+
+  it('accepts upper-blind width 660 and 960', () => {
+    patchUpperBlind({ cornerWidthA: 660 });
+    validator.validate(form);
+    expect(form.get('cornerWidthA')?.errors).toBeNull();
+
+    patchUpperBlind({ cornerWidthA: 960 });
+    validator.validate(form);
+    expect(form.get('cornerWidthA')?.errors).toBeNull();
+  });
+
+  it('rejects upper-blind width below 660 or above 960', () => {
+    patchUpperBlind({ cornerWidthA: 659 });
+    validator.validate(form);
+    expect(form.get('cornerWidthA')?.invalid).toBeTrue();
+
+    patchUpperBlind({ cornerWidthA: 961 });
+    validator.validate(form);
+    expect(form.get('cornerWidthA')?.invalid).toBeTrue();
+  });
+
+  it('accepts upper-blind height 300 and 1200', () => {
+    patchUpperBlind({ height: 300 });
+    validator.validate(form);
+    expect(form.get('height')?.errors).toBeNull();
+
+    patchUpperBlind({ height: 1200 });
+    validator.validate(form);
+    expect(form.get('height')?.errors).toBeNull();
+  });
+
+  it('rejects upper-blind height below 300 or above 1200', () => {
+    patchUpperBlind({ height: 299 });
+    validator.validate(form);
+    expect(form.get('height')?.invalid).toBeTrue();
+
+    patchUpperBlind({ height: 1201 });
+    validator.validate(form);
+    expect(form.get('height')?.invalid).toBeTrue();
+  });
+
+  it('accepts upper-blind shelf quantity 0 through 4', () => {
+    [0, 4].forEach(qty => {
+      patchUpperBlind({ cornerShelfQuantity: qty });
+      validator.validate(form);
+      expect(form.get('cornerShelfQuantity')?.errors).toBeNull();
+    });
+  });
+
+  it('rejects upper-blind shelf quantity above 4', () => {
+    patchUpperBlind({ cornerShelfQuantity: 5 });
+    validator.validate(form);
+    expect(form.get('cornerShelfQuantity')?.invalid).toBeTrue();
+  });
+
+  it('accepts upper-blind front uchylny min 296', () => {
+    patchUpperBlind({ cornerFrontUchylnyWidthMm: 296 });
+    validator.validate(form);
+    expect(form.get('cornerFrontUchylnyWidthMm')?.errors).toBeNull();
+  });
+
+  it('rejects upper-blind front uchylny below 296', () => {
+    patchUpperBlind({ cornerFrontUchylnyWidthMm: 295 });
+    validator.validate(form);
+    expect(form.get('cornerFrontUchylnyWidthMm')?.invalid).toBeTrue();
   });
 });
