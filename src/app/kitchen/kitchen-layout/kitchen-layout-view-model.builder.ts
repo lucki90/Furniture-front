@@ -73,12 +73,21 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
     const isCorner = cabinetType === KitchenCabinetType.CORNER_CABINET;
     const cornerWidthB = isCorner ? (cabinetData?.cornerWidthB as number | undefined) : undefined;
     const cornerMechanism = cabinetData?.cornerMechanism as CornerMechanismType | undefined;
+    const isCornerBlind = cornerMechanism ? isBlindType(cornerMechanism) : false;
+    const rawHandedness = cabinetData?.cornerHandedness as string | null | undefined;
+    // Type A (L-kształt) zwykle nie ma jawnego cornerHandedness — wnioskujemy stronę styku
+    // (ramienia prostopadłego) z położenia szafki na ścianie. Type B zostawia stronę aktywnego frontu.
+    const resolvedHandedness = rawHandedness
+      ?? (isCorner && !isCornerBlind
+        ? inferCornerJunctionSide(position.x * input.scale, position.width * input.scale, input.wallWidth)
+        : null);
     const cornerConfig = isCorner ? {
-      blind: cornerMechanism ? isBlindType(cornerMechanism) : false,
+      blind: isCornerBlind,
       openingType: cabinetData?.cornerOpeningType as string | undefined,
       widthAMm: (cabinetData?.cornerWidthA as number | undefined) ?? position.width,
+      widthBMm: cornerWidthB,
       frontUchylnyWidthMm: cabinetData?.cornerFrontUchylnyWidthMm as number | undefined,
-      handedness: cabinetData?.cornerHandedness as string | null | undefined
+      handedness: resolvedHandedness
     } : undefined;
     const cargoVariant = cabinetData?.cargoVariant as string | undefined;
     const drawerQuantity = cabinetData?.drawerQuantity as number | undefined;
@@ -191,6 +200,17 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       isFreestandingAppliance: isFreestandingAppliance(cabinetType)
     };
   });
+}
+
+/**
+ * Wnioskuje stronę styku (ramienia prostopadłego) szafki narożnej Type A na podstawie położenia.
+ * Szafka w lewej połowie ściany łączy się ze ścianą po lewej → styk po lewej; analogicznie prawa.
+ * Używane gdy brak jawnego `cornerHandedness` (preparer Type A go nie ustawia).
+ * Wszystkie argumenty w jednostkach wyświetlania (px), spójnie z `wallWidth`.
+ */
+function inferCornerJunctionSide(displayX: number, displayWidth: number, wallWidth: number): 'LEFT' | 'RIGHT' {
+  const center = displayX + displayWidth / 2;
+  return center <= wallWidth / 2 ? 'LEFT' : 'RIGHT';
 }
 
 function resolveDisplayY(

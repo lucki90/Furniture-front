@@ -1,6 +1,7 @@
 import { CabinetPosition, CabinetZone, getCabinetZone, KitchenCabinet, requiresCountertop, WallWithCabinets } from '../model/kitchen-state.model';
 import { WallType } from '../model/kitchen-project.model';
 import { CabinetOnFloorPlan, FloorPlanOpening } from './floor-plan-door-arcs';
+import { buildHorizontalLCornerShape } from './floor-plan-corner-footprint';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { isBlindType } from '../cabinet-form/model/corner-cabinet.model';
 import { DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
@@ -299,6 +300,8 @@ function buildLinearCabinetsForWall(
       cabinet.type === KitchenCabinetType.PANTRY_PASSAGE ? referenceFrontDepth : undefined,
       classifyFloorPlanOpening(cabinet)
     );
+
+    applyCornerLFootprint(cabinetOnPlan, cabinet, wall, geometryPosition.x, scale);
 
     switch (zone) {
       case 'BOTTOM':
@@ -794,6 +797,69 @@ function classifyCornerOpening(cabinet: KitchenCabinet & { type: KitchenCabinetT
     return { kind: 'SINGLE_DOOR' };
   }
   return { kind: 'DOUBLE_DOOR' };
+}
+
+/**
+ * Dla szafki narożnej Type A (L-kształt, NIE ślepej) na ścianie poziomej MAIN dokleja do
+ * `CabinetOnFloorPlan` obrys „L" (`cornerFootprintPath`) oraz gotowe łuki otwierania frontów
+ * spotykające się w rogu wewnętrznym „L" (`cornerDoorArcs`).
+ *
+ * <p>Strona styku (ramię boczne) liczona wg `cornerHandedness`, a w razie braku — z położenia szafki
+ * na ścianie (Q1 „z połączenia ścian": lewa połowa → styk LEWY). Type B (ślepy), ściany pionowe
+ * (LEFT/RIGHT), CORNER_* i ISLAND zostają prostokątem — patrz TODO.</p>
+ */
+function applyCornerLFootprint(
+  cabinetOnPlan: CabinetOnFloorPlan,
+  cabinet: KitchenCabinet,
+  wall: WallWithCabinets,
+  geometryXmm: number,
+  scale: number
+): void {
+  if (cabinet.type !== KitchenCabinetType.CORNER_CABINET) {
+    return;
+  }
+  // TODO(naroznik-floor-L): obsłużyć ściany pionowe (LEFT/RIGHT), CORNER_LEFT/RIGHT i wyspę —
+  // obecnie obrys „L" rysujemy tylko na MAIN (jedyny układ z poprawną orientacją „do pomieszczenia").
+  if (wall.type !== 'MAIN') {
+    return;
+  }
+  // Ślepy narożnik (Type B) jest prostokątny — bez obrysu „L".
+  if (isBlindType(cabinet.cornerMechanism)) {
+    return;
+  }
+
+  const armSideMm = cabinet.cornerWidthB;
+  if (!armSideMm || !(armSideMm > 0)) {
+    return;
+  }
+
+  const centerMm = geometryXmm + cabinet.width / 2;
+  const junction: 'LEFT' | 'RIGHT' = cabinet.cornerHandedness === 'LEFT'
+    ? 'LEFT'
+    : cabinet.cornerHandedness === 'RIGHT'
+      ? 'RIGHT'
+      : (centerMm <= wall.widthMm / 2 ? 'LEFT' : 'RIGHT');
+
+  const shape = buildHorizontalLCornerShape({
+    cabinetId: cabinetOnPlan.cabinetId,
+    x: cabinetOnPlan.x,
+    wallY: cabinetOnPlan.y + cabinetOnPlan.depth,
+    armMainPx: cabinetOnPlan.width,
+    armSidePx: armSideMm * scale,
+    depthPx: cabinetOnPlan.depth,
+    junction,
+    // Tylko TWO_DOORS daje front na obu ramionach (2 łuki). BIFOLD (harmonijka na ramieniu głównym)
+    // i BLIND (ramię boczne bez frontu — mapowane na ONE_DOOR) mają jeden front → 1 łuk.
+    doubleDoor: cabinet.cornerOpeningType === 'TWO_DOORS'
+  });
+
+  if (!shape) {
+    return;
+  }
+
+  cabinetOnPlan.cornerFootprintPath = shape.pathD;
+  cabinetOnPlan.cornerDoorArcs = shape.doorArcs;
+  cabinetOnPlan.cornerBlockingRects = shape.blockingRects;
 }
 
 function markIslandDepthCollisions(cabinets: CabinetOnFloorPlan[]): void {

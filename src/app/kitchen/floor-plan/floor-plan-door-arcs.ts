@@ -44,6 +44,21 @@ export interface CabinetOnFloorPlan {
   isReversed?: boolean;
   /** Opis otwierania (door/drawer/none). Gdy brak — domyślnie pojedyncze drzwi na całej szerokości. */
   opening?: FloorPlanOpening;
+  /**
+   * Ścieżka SVG obrysu „L" dla szafki narożnej Type A (L-kształt). Gdy ustawiona, komponent
+   * renderuje `<path>` zamiast prostokąta. Type B (ślepy) i pozostałe typy zostają prostokątem.
+   */
+  cornerFootprintPath?: string;
+  /**
+   * Gotowe łuki otwierania frontów dla narożnika L (po jednym na ramię główne i boczne).
+   * Gdy ustawione, `buildCabinetOpeningShapes` zwraca je zamiast standardowej heurystyki.
+   */
+  cornerDoorArcs?: FloorPlanArc[];
+  /**
+   * Bryła kolizyjna obrysu „L" (ramię główne + boczne). Gdy ustawiona, kolizje liczone są względem
+   * tych prostokątów zamiast pojedynczego prostokąta width×depth — ramię boczne wystaje głębiej.
+   */
+  cornerBlockingRects?: { x: number; y: number; w: number; h: number }[];
 }
 
 export interface FloorPlanArc {
@@ -63,13 +78,13 @@ export interface FloorPlanArc {
 export function buildFloorPlanArcs(cabinets: CabinetOnFloorPlan[]): FloorPlanArc[] {
   const blockingRects = cabinets
     .filter(cabinet => cabinet.zone !== 'TOP')
-    .map(cabinet => ({
-      id: cabinet.cabinetId,
-      x: cabinet.x,
-      y: cabinet.y,
-      w: cabinet.width,
-      h: cabinet.depth
-    }));
+    .flatMap(cabinet => {
+      // Narożnik L wystaje ramieniem bocznym poza prostokąt width×depth — użyj precyzyjnej bryły „L".
+      if (cabinet.cornerBlockingRects?.length) {
+        return cabinet.cornerBlockingRects.map(rect => ({ id: cabinet.cabinetId, ...rect }));
+      }
+      return [{ id: cabinet.cabinetId, x: cabinet.x, y: cabinet.y, w: cabinet.width, h: cabinet.depth }];
+    });
 
   const arcs = cabinets
     .filter(cabinet => !cabinet.isFreestanding && cabinet.zone !== 'TOP')
@@ -96,6 +111,11 @@ export function buildFloorPlanArcs(cabinets: CabinetOnFloorPlan[]): FloorPlanArc
  * 1 prostokąt dla szuflady, 0 dla braku frontu).
  */
 export function buildCabinetOpeningShapes(cabinet: CabinetOnFloorPlan): FloorPlanArc[] {
+  // Narożnik L (Type A) ma gotowe łuki per ramię — policzone razem z obrysem „L".
+  if (cabinet.cornerDoorArcs?.length) {
+    return cabinet.cornerDoorArcs;
+  }
+
   const opening = cabinet.opening ?? { kind: 'SINGLE_DOOR' as const };
 
   switch (opening.kind) {
@@ -128,7 +148,7 @@ export function buildFloorPlanArc(cabinet: CabinetOnFloorPlan, hingeSide: 'LEFT'
   return buildDoorLeaf(cabinet, 0, 1, hingeSide, `${cabinet.cabinetId}-door`);
 }
 
-function buildDoorLeaf(
+export function buildDoorLeaf(
   cabinet: CabinetOnFloorPlan,
   startFraction: number,
   endFraction: number,

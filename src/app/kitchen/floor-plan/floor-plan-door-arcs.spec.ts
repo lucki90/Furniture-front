@@ -63,6 +63,46 @@ describe('floor-plan-door-arcs', () => {
     expect(arcs.find(arc => arc.cabinetId === 'base-1')?.hasCollision).toBeTrue();
   });
 
+  it('should flag a collision against the protruding L side arm (cornerBlockingRects)', () => {
+    // Narożnik L: ramię główne {100,144,90,56} + ramię boczne wystające do y=120 {100,120,56,80}.
+    // Sąsiad ma łuk bbox {110,104,40,40} → styka się TYLKO z wystającym ramieniem bocznym (y 120..144),
+    // a NIE z prostokątem width×depth ramienia głównego (y≥144). Bez bryły „L" kolizja byłaby niewykryta.
+    const arcs = buildFloorPlanArcs([
+      createCabinet({
+        cabinetId: 'corner-1', wallType: 'MAIN', x: 100, y: 144, width: 90, depth: 56, zone: 'BOTTOM',
+        opening: { kind: 'NONE' },
+        cornerBlockingRects: [{ x: 100, y: 144, w: 90, h: 56 }, { x: 100, y: 120, w: 56, h: 80 }]
+      }),
+      createCabinet({
+        cabinetId: 'nb', wallType: 'MAIN', x: 110, y: 144, width: 40, depth: 56, zone: 'BOTTOM',
+        opening: { kind: 'SINGLE_DOOR', hingeSide: 'LEFT' }
+      })
+    ]);
+
+    expect(arcs).toHaveSize(1);
+    expect(arcs[0].cabinetId).toBe('nb');
+    expect(arcs[0].hasCollision).toBeTrue();
+  });
+
+  it('should NOT flag the same neighbor when only the width×depth rect is used (no cornerBlockingRects)', () => {
+    // Kontrola: bez bryły „L" narożnik blokuje tylko prostokątem {100,144,90,56} (y≥144),
+    // którego łuk sąsiada (bbox do y=144) nie dotyka → brak kolizji.
+    const arcs = buildFloorPlanArcs([
+      createCabinet({
+        cabinetId: 'corner-1', wallType: 'MAIN', x: 100, y: 144, width: 90, depth: 56, zone: 'BOTTOM',
+        opening: { kind: 'NONE' }
+      }),
+      createCabinet({
+        cabinetId: 'nb', wallType: 'MAIN', x: 110, y: 144, width: 40, depth: 56, zone: 'BOTTOM',
+        opening: { kind: 'SINGLE_DOOR', hingeSide: 'LEFT' }
+      })
+    ]);
+
+    expect(arcs).toHaveSize(1);
+    expect(arcs[0].cabinetId).toBe('nb');
+    expect(arcs[0].hasCollision).toBeFalse();
+  });
+
   it('should draw the door arc only on the openable sub-span (blind corner, hinge LEFT)', () => {
     const shapes = buildCabinetOpeningShapes(createCabinet({
       wallType: 'MAIN',
@@ -134,5 +174,20 @@ describe('floor-plan-door-arcs', () => {
     }));
 
     expect(shapes).toHaveSize(0);
+  });
+
+  it('should return precomputed corner door arcs when present (L-shape Type A)', () => {
+    const cornerArcs = [
+      { id: 'cab-1-corner-main', cabinetId: 'cab-1', kind: 'SINGLE_DOOR' as const, pathD: 'M 0,0 Z', hasCollision: false, bboxX: 0, bboxY: 0, bboxW: 10, bboxH: 10 },
+      { id: 'cab-1-corner-side', cabinetId: 'cab-1', kind: 'SINGLE_DOOR' as const, pathD: 'M 1,1 Z', hasCollision: false, bboxX: 1, bboxY: 1, bboxW: 10, bboxH: 10 }
+    ];
+    const shapes = buildCabinetOpeningShapes(createCabinet({
+      wallType: 'MAIN',
+      // Mimo że opening sugeruje DOUBLE_DOOR, gotowe łuki narożnika mają pierwszeństwo.
+      opening: { kind: 'DOUBLE_DOOR' },
+      cornerDoorArcs: cornerArcs
+    }));
+
+    expect(shapes).toBe(cornerArcs);
   });
 });

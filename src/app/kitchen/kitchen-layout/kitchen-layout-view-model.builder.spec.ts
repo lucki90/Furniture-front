@@ -214,7 +214,7 @@ describe('kitchen-layout-view-model.builder', () => {
     })[0];
   }
 
-  it('should render Type A two-door corner as two doors meeting in the center', () => {
+  it('should render Type A two-door corner as one frontal door + perpendicular edge + side panel', () => {
     const position = buildCorner({
       cornerWidthA: 900,
       cornerWidthB: 600,
@@ -224,12 +224,20 @@ describe('kitchen-layout-view-model.builder', () => {
     } as Partial<KitchenCabinet>);
 
     expect(position.isCorner).toBeTrue();
-    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(2);
-    expect(position.fronts.some(front => front.type === 'VERT_DIVIDER')).toBeFalse();
-    expect(position.handles).toHaveSize(2);
+    // Tylko jeden front jest skierowany do widza; drugi (prostopadły) widać jako pionową krawędź,
+    // a reszta szerokości to bok szafki (korpus prześwituje — brak prostokąta frontu).
+    const doors = position.fronts.filter(front => front.type === 'DOOR_SINGLE');
+    expect(doors).toHaveSize(1);
+    expect(position.fronts.filter(front => front.type === 'VERT_DIVIDER')).toHaveSize(1);
+    expect(position.handles).toHaveSize(1);
+    // Szafka w lewej połowie ściany → styk po lewej, front po prawej (zawias na wolnej, prawej krawędzi).
+    expect(doors[0].hingesSide).toBe('RIGHT');
+    // Front czołowy ≈ widthA/(widthA+widthB) = 900/1500 = 0.6 użytecznej szerokości.
+    const usableWidth = position.displayWidth - 2; // frontGap=1 z obu stron
+    expect(doors[0].width).toBeCloseTo(usableWidth * 0.6, 1);
   });
 
-  it('should render Type A bifold corner as two folding panels with a fold divider', () => {
+  it('should render Type A bifold corner the same as two-door in front elevation (one frontal door)', () => {
     const position = buildCorner({
       cornerWidthA: 900,
       cornerWidthB: 600,
@@ -238,11 +246,47 @@ describe('kitchen-layout-view-model.builder', () => {
       isUpperCorner: false
     } as Partial<KitchenCabinet>);
 
-    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(2);
+    // W widoku od frontu BIFOLD wygląda identycznie jak TWO_DOORS (różnica tylko w rzucie z góry).
+    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(1);
     expect(position.fronts.filter(front => front.type === 'VERT_DIVIDER')).toHaveSize(1);
-    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')
-      .every(front => front.hingesSide === 'LEFT')).toBeTrue();
     expect(position.handles).toHaveSize(1);
+  });
+
+  it('should place the side panel on the RIGHT for a corner in the right half of the wall', () => {
+    // Szafka w prawej połowie ściany (x=2000mm, wallWidth=200px @ scale 0.1 → center px = 205 > 100).
+    const position = buildVisualCabinetPositions({
+      cabinetPositions: [createPosition({ cabinetId: 'corner-r', x: 2000, width: 900, height: 720 })],
+      cabinets: [
+        createCabinet({
+          id: 'corner-r',
+          type: KitchenCabinetType.CORNER_CABINET,
+          width: 900,
+          height: 720,
+          depth: 560,
+          cornerWidthA: 900,
+          cornerWidthB: 600,
+          cornerMechanism: 'FIXED_SHELVES',
+          cornerOpeningType: 'TWO_DOORS',
+          isUpperCorner: false
+        } as Partial<KitchenCabinet>)
+      ],
+      scale: 0.1,
+      wallWidth: 200,
+      wallDisplayHeight: 180,
+      scaleVert: 0.1,
+      feetHeightMm: 100,
+      fillerWidthMm: 50,
+      standardBottomHeight: 720,
+      standardTopHeight: 720,
+      standardBottomDepth: 560,
+      standardTopDepth: 320,
+      frontGap: 1
+    })[0];
+
+    const doors = position.fronts.filter(front => front.type === 'DOOR_SINGLE');
+    expect(doors).toHaveSize(1);
+    // Styk po prawej → front po lewej, zawias na wolnej (lewej) krawędzi.
+    expect(doors[0].hingesSide).toBe('LEFT');
   });
 
   it('should render Type B blind corner as active front + fixed blind panel with a single handle', () => {
@@ -266,7 +310,7 @@ describe('kitchen-layout-view-model.builder', () => {
     expect(active!.width).toBeCloseTo(blind!.width, 0);
   });
 
-  it('should render upper corner (isUpperCorner variant) in the TOP zone with two doors', () => {
+  it('should render upper corner (isUpperCorner variant) in the TOP zone as an L-shape front', () => {
     const position = buildVisualCabinetPositions({
       cabinetPositions: [createPosition({ cabinetId: 'corner-up', x: 0, y: 1500, width: 700, height: 720 })],
       cabinets: [
@@ -298,6 +342,9 @@ describe('kitchen-layout-view-model.builder', () => {
 
     expect(position.zone).toBe('TOP');
     expect(position.feetHeight).toBe(0);
-    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(2);
+    // Type A (L-kształt) w elewacji: tylko 1 front czołowy + krawędź frontu prostopadłego + bok.
+    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(1);
+    expect(position.fronts.filter(front => front.type === 'VERT_DIVIDER')).toHaveSize(1);
+    expect(position.handles).toHaveSize(1);
   });
 });

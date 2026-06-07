@@ -14,21 +14,37 @@
     <svg:title>{{ getWallTooltip() }}</svg:title>
   </svg:rect>
 
-  <svg:rect *ngFor="let cab of cabinets; trackBy: trackByCabinetId"
-            [attr.x]="cab.x"
-            [attr.y]="cab.y"
-            [attr.width]="cab.width"
-            [attr.height]="cab.depth"
-            [attr.fill]="getCabinetFill(cab)"
-            [attr.stroke]="getCabinetStroke(cab)"
-            [attr.stroke-width]="isEditing(cab.cabinetId) ? 2 : 0.5"
-            class="cabinet-rect"
-            [class.editing]="isEditing(cab.cabinetId)"
-            [class.corner]="cab.isCorner"
-            [style.display]="!showUpperCabinets && cab.zone === 'TOP' ? 'none' : null"
-            rx="1">
-    <svg:title>{{ cab.name || cab.cabinetId }} ({{ cab.isCorner ? 'narozna' : cab.zone === 'FULL' ? 'slupek' : cab.zone === 'TOP' ? 'gorna' : 'dolna' }})</svg:title>
-  </svg:rect>
+  <ng-container *ngFor="let cab of cabinets; trackBy: trackByCabinetId">
+    <!-- Narożnik Type A (L-kształt) → obrys „L" zamiast prostokąta. -->
+    <svg:path *ngIf="cab.cornerFootprintPath; else cabinetRect"
+              [attr.d]="cab.cornerFootprintPath"
+              [attr.fill]="getCabinetFill(cab)"
+              [attr.stroke]="getCabinetStroke(cab)"
+              [attr.stroke-width]="isEditing(cab.cabinetId) ? 2 : 0.5"
+              class="cabinet-rect cabinet-corner-path"
+              [class.editing]="isEditing(cab.cabinetId)"
+              [class.corner]="cab.isCorner"
+              [style.display]="!showUpperCabinets && cab.zone === 'TOP' ? 'none' : null">
+      <svg:title>{{ cab.name || cab.cabinetId }} (narozna L)</svg:title>
+    </svg:path>
+    <ng-template #cabinetRect>
+      <svg:rect
+                [attr.x]="cab.x"
+                [attr.y]="cab.y"
+                [attr.width]="cab.width"
+                [attr.height]="cab.depth"
+                [attr.fill]="getCabinetFill(cab)"
+                [attr.stroke]="getCabinetStroke(cab)"
+                [attr.stroke-width]="isEditing(cab.cabinetId) ? 2 : 0.5"
+                class="cabinet-rect"
+                [class.editing]="isEditing(cab.cabinetId)"
+                [class.corner]="cab.isCorner"
+                [style.display]="!showUpperCabinets && cab.zone === 'TOP' ? 'none' : null"
+                rx="1">
+        <svg:title>{{ cab.name || cab.cabinetId }} ({{ cab.isCorner ? 'narozna' : cab.zone === 'FULL' ? 'slupek' : cab.zone === 'TOP' ? 'gorna' : 'dolna' }})</svg:title>
+      </svg:rect>
+    </ng-template>
+  </ng-container>
 
   <ng-container *ngIf="showCountertop">
     <svg:g *ngFor="let countertop of countertops; trackBy: trackByCountertopX" class="countertop-group">

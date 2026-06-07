@@ -70,11 +70,17 @@ export interface CabinetRenderContext {
     blind: boolean;
     /** Type A: 'TWO_DOORS' | 'BIFOLD'. */
     openingType?: string;
-    /** Szerokość szafki (widthA) w mm — baza do proporcji frontu uchylnego. */
+    /** Szerokość ramienia głównego (widthA) w mm — baza do proporcji frontu czołowego. */
     widthAMm?: number;
+    /** Type A: szerokość ramienia bocznego (widthB) w mm — drugi front prostopadły (niewidoczny w elewacji). */
+    widthBMm?: number;
     /** Type B: szerokość frontu uchylnego (otwieranego) w mm. */
     frontUchylnyWidthMm?: number;
-    /** Type B: strona aktywnego frontu — 'LEFT' | 'RIGHT' | null. */
+    /**
+     * Strona styku/narożnika wewnętrznego ('LEFT' | 'RIGHT' | null).
+     * Type B: strona aktywnego (uchylnego) frontu.
+     * Type A: strona, po której znajduje się ramię prostopadłe (bok szafki w elewacji).
+     */
     handedness?: string | null;
   };
 }
