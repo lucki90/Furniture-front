@@ -1,7 +1,7 @@
 import { CabinetPosition, CabinetZone, getCabinetZone, KitchenCabinet, requiresCountertop, WallWithCabinets } from '../model/kitchen-state.model';
 import { WallType } from '../model/kitchen-project.model';
 import { CabinetOnFloorPlan, FloorPlanOpening } from './floor-plan-door-arcs';
-import { buildHorizontalLCornerShape } from './floor-plan-corner-footprint';
+import { buildHorizontalLCornerShape, buildVerticalLCornerShape, HorizontalLCornerShape } from './floor-plan-corner-footprint';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { isBlindType } from '../cabinet-form/model/corner-cabinet.model';
 import { DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
@@ -805,8 +805,8 @@ function classifyCornerOpening(cabinet: KitchenCabinet & { type: KitchenCabinetT
  * spotykające się w rogu wewnętrznym „L" (`cornerDoorArcs`).
  *
  * <p>Strona styku (ramię boczne) liczona wg `cornerHandedness`, a w razie braku — z położenia szafki
- * na ścianie (Q1 „z połączenia ścian": lewa połowa → styk LEWY). Type B (ślepy), ściany pionowe
- * (LEFT/RIGHT), CORNER_* i ISLAND zostają prostokątem — patrz TODO.</p>
+ * na ścianie (Q1 „z połączenia ścian": lewa połowa → styk LEWY/START). Obsługiwane są ściany pozioma
+ * MAIN i pionowe LEFT/RIGHT. Type B (ślepy), CORNER_LEFT/RIGHT i ISLAND zostają prostokątem — patrz TODO.</p>
  */
 function applyCornerLFootprint(
   cabinetOnPlan: CabinetOnFloorPlan,
@@ -818,9 +818,13 @@ function applyCornerLFootprint(
   if (cabinet.type !== KitchenCabinetType.CORNER_CABINET) {
     return;
   }
-  // TODO(naroznik-floor-L): obsłużyć ściany pionowe (LEFT/RIGHT), CORNER_LEFT/RIGHT i wyspę —
-  // obecnie obrys „L" rysujemy tylko na MAIN (jedyny układ z poprawną orientacją „do pomieszczenia").
-  if (wall.type !== 'MAIN') {
+  // TODO(naroznik-floor-L): obsłużyć CORNER_LEFT/RIGHT (poziome, pozycjonowane od góry) i wyspę —
+  // obecnie obrys „L" rysujemy na MAIN oraz ścianach pionowych LEFT/RIGHT.
+  // TODO(naroznik-cross-wall): narożnik L jest dziś rysowany tylko na ścianie, na której dodano szafkę.
+  // Po przełączeniu na ścianę sąsiednią (styk L/U) „druga połowa" narożnika powinna być od razu widoczna
+  // po obu stronach styku. Wymaga świadomości `connections` całego układu + wykrywania szafek/kolizji
+  // przez granicę ścian (cross-wall). Patrz backlog ROADMAP_ANALIZA.md §5 (Visual / Floor + Blat / Walidacja).
+  if (wall.type !== 'MAIN' && wall.type !== 'LEFT' && wall.type !== 'RIGHT') {
     return;
   }
   // Ślepy narożnik (Type B) jest prostokątny — bez obrysu „L".
@@ -833,25 +837,54 @@ function applyCornerLFootprint(
     return;
   }
 
+  // Tylko TWO_DOORS daje front na obu ramionach (2 łuki). BIFOLD (harmonijka na ramieniu głównym)
+  // i BLIND (ramię boczne bez frontu — mapowane na ONE_DOOR) mają jeden front → 1 łuk.
+  const doubleDoor = cabinet.cornerOpeningType === 'TWO_DOORS';
+  const armSidePx = armSideMm * scale;
   const centerMm = geometryXmm + cabinet.width / 2;
-  const junction: 'LEFT' | 'RIGHT' = cabinet.cornerHandedness === 'LEFT'
-    ? 'LEFT'
-    : cabinet.cornerHandedness === 'RIGHT'
-      ? 'RIGHT'
-      : (centerMm <= wall.widthMm / 2 ? 'LEFT' : 'RIGHT');
 
-  const shape = buildHorizontalLCornerShape({
-    cabinetId: cabinetOnPlan.cabinetId,
-    x: cabinetOnPlan.x,
-    wallY: cabinetOnPlan.y + cabinetOnPlan.depth,
-    armMainPx: cabinetOnPlan.width,
-    armSidePx: armSideMm * scale,
-    depthPx: cabinetOnPlan.depth,
-    junction,
-    // Tylko TWO_DOORS daje front na obu ramionach (2 łuki). BIFOLD (harmonijka na ramieniu głównym)
-    // i BLIND (ramię boczne bez frontu — mapowane na ONE_DOOR) mają jeden front → 1 łuk.
-    doubleDoor: cabinet.cornerOpeningType === 'TWO_DOORS'
-  });
+  let shape: HorizontalLCornerShape | null;
+  if (wall.type === 'MAIN') {
+    const junction: 'LEFT' | 'RIGHT' = cabinet.cornerHandedness === 'LEFT'
+      ? 'LEFT'
+      : cabinet.cornerHandedness === 'RIGHT'
+        ? 'RIGHT'
+        : (centerMm <= wall.widthMm / 2 ? 'LEFT' : 'RIGHT');
+
+    shape = buildHorizontalLCornerShape({
+      cabinetId: cabinetOnPlan.cabinetId,
+      x: cabinetOnPlan.x,
+      wallY: cabinetOnPlan.y + cabinetOnPlan.depth,
+      armMainPx: cabinetOnPlan.width,
+      armSidePx,
+      depthPx: cabinetOnPlan.depth,
+      junction,
+      doubleDoor
+    });
+  } else {
+    // Ściana pionowa: ramię główne biegnie pionowo wzdłuż ściany (cabinetOnPlan.depth = widthA × skala),
+    // korpus wychodzi w głąb pomieszczenia (cabinetOnPlan.width = głębokość × skala).
+    const side: 'LEFT' | 'RIGHT' = wall.type === 'LEFT' ? 'LEFT' : 'RIGHT';
+    // wallX = krawędź korpusu przy ścianie: LEFT → lewa (korpus w prawo), RIGHT → prawa (korpus w lewo).
+    const wallX = side === 'LEFT' ? cabinetOnPlan.x : cabinetOnPlan.x + cabinetOnPlan.width;
+    const junction: 'START' | 'END' = cabinet.cornerHandedness === 'LEFT'
+      ? 'START'
+      : cabinet.cornerHandedness === 'RIGHT'
+        ? 'END'
+        : (centerMm <= wall.widthMm / 2 ? 'START' : 'END');
+
+    shape = buildVerticalLCornerShape({
+      cabinetId: cabinetOnPlan.cabinetId,
+      side,
+      wallX,
+      anchorY: cabinetOnPlan.y,
+      armMainPx: cabinetOnPlan.depth,
+      armSidePx,
+      depthPx: cabinetOnPlan.width,
+      junction,
+      doubleDoor
+    });
+  }
 
   if (!shape) {
     return;

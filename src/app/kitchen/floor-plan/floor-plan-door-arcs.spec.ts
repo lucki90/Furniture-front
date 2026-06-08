@@ -150,6 +150,25 @@ describe('floor-plan-door-arcs', () => {
     expect(shapes[1].pathD).toContain('A 40,40');
   });
 
+  it('should hinge double-door leaves at the OUTER edges on a LEFT wall (not both at the middle)', () => {
+    // Ściana LEWA: front wychodzi w prawo (frontX = x + width = 330), bieg wzdłuż osi Y.
+    // Dwoje drzwi → zawiasy na ZEWNĄTRZ (góra y=50, dół y=120), wolne krawędzie spotykają się w środku (y=85).
+    const shapes = buildCabinetOpeningShapes(createCabinet({
+      wallType: 'LEFT',
+      x: 250,
+      y: 50,
+      width: 80,
+      depth: 70,
+      opening: { kind: 'DOUBLE_DOOR' }
+    }));
+
+    expect(shapes).toHaveSize(2);
+    // Skrzydło górne: zawias (środek łuku) przy y=50 — ścieżka kończy się na L 330,50.
+    expect(shapes[0].pathD).toBe('M 330,85 A 35,35 0 0 0 365,50 L 330,50 Z');
+    // Skrzydło dolne: zawias przy y=120 — ścieżka kończy się na L 330,120.
+    expect(shapes[1].pathD).toBe('M 330,85 A 35,35 0 0 1 365,120 L 330,120 Z');
+  });
+
   it('should render a drawer as a pull-out rectangle, not an arc', () => {
     const shapes = buildCabinetOpeningShapes(createCabinet({
       wallType: 'MAIN',

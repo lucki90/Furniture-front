@@ -215,9 +215,11 @@ export function buildDoorLeaf(
       const frontX = cabinet.x + cabinet.width;
 
       if (hingeSide === 'LEFT') {
-        pathD = `M ${frontX},${s0} A ${radius},${radius} 0 0 1 ${frontX + radius},${s1} L ${frontX},${s1} Z`;
-      } else {
+        // Zawias przy s0 (początek pod-przedziału); skrzydło zamknięte leży do s1, otwiera się w głąb (frontX+radius).
         pathD = `M ${frontX},${s1} A ${radius},${radius} 0 0 0 ${frontX + radius},${s0} L ${frontX},${s0} Z`;
+      } else {
+        // Zawias przy s1 (koniec pod-przedziału); skrzydło zamknięte leży do s0.
+        pathD = `M ${frontX},${s0} A ${radius},${radius} 0 0 1 ${frontX + radius},${s1} L ${frontX},${s1} Z`;
       }
       bboxX = frontX;
       bboxY = s0;
