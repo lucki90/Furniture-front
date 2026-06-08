@@ -5,40 +5,40 @@ import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.u
 import { ProjectSettingsConstraints } from '../../model/kitchen-cabinet-constants';
 
 /**
- * Preparer dla szafki wiszącej otwartej — bez drzwi (UPPER_OPEN_SHELF).
- * Szafka wisząca: brak cokołu, brak blatu, montowana na szynie, bez frontu.
+ * Preparer dla szafki wiszacej otwartej - bez drzwi (UPPER_OPEN_SHELF).
+ * Szafka wiszaca: brak cokolu, brak blatu, montowana na szynie, bez frontu.
  */
 export class UpperOpenShelfCabinetPreparer implements KitchenCabinetPreparer {
 
   prepare(form: FormGroup, v: CabinetFormVisibility): void {
-    // Widoczność — standardowe pola wymiarów + półki
+    // Widocznosc - standardowe pola wymiarow + polki
     v.width = true;
     v.shelfQuantity = true;
     v.drawerQuantity = false;
     v.drawerModel = false;
     v.segments = false;
 
-    // Ukryj pola narożnika
+    // Ukryj pola naroznika
     v.cornerWidthA = false;
     v.cornerWidthB = false;
     v.cornerMechanism = false;
     v.cornerShelfQuantity = false;
     v.isUpperCorner = false;
 
-    // Pokaż pola pozycjonowania szafek wiszących
+    // Pokaz pola pozycjonowania szafek wiszacych
     v.positioningMode = true;
     v.gapFromCountertopMm = true;
     v.gapFromAnchorMm = true;
 
-    // Pokaż sekcję obudowy bocznej
+    // Pokaz sekcje obudowy bocznej
     v.enclosureSection = true;
 
-    // Wartości domyślne — szafka otwarta, min 1 półka
+    // Wartosci domyslne - szafka otwarta, min 1 polka
     form.patchValue({
       width: 400,
-      height: 720,     // Typowa wysokość szafki wiszącej
-      depth: 320,       // Typowa głębokość szafki wiszącej
-      shelfQuantity: 2, // Otwarta półka — domyślnie 2 półki
+      height: 720,
+      depth: 340,
+      shelfQuantity: 2,
       drawerQuantity: 0,
       drawerModel: null,
       positioningMode: 'RELATIVE_TO_CEILING',
