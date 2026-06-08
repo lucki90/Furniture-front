@@ -5,25 +5,25 @@ import { setStandardDoorVisibility, setUpperExtraVisibility, setControlEnabled }
 import { ProjectSettingsConstraints } from '../../model/kitchen-cabinet-constants';
 
 /**
- * Preparer dla szafki wiszącej z jednymi drzwiami (UPPER_ONE_DOOR).
- * Szafka wisząca: brak cokołu, brak blatu, montowana na szynie.
+ * Preparer dla osobnego typu szafki wiszacej z klapa unoszona do gory (UPPER_LIFT_UP).
+ * V1 uzywa obecnej logiki gas-lift / UPWARDS, ale bez checkboxa lift-up w formularzu.
  */
-export class UpperOneDoorCabinetPreparer implements KitchenCabinetPreparer {
+export class UpperLiftUpCabinetPreparer implements KitchenCabinetPreparer {
 
   prepare(form: FormGroup, v: CabinetFormVisibility): void {
     setStandardDoorVisibility(v);
     setUpperExtraVisibility(v, /* liftUpVisible */ false);
 
     form.patchValue({
-      width: 400,
-      height: 720,
+      width: 600,
+      height: 400,
       depth: 340,
       shelfQuantity: 1,
       drawerQuantity: 0,
       drawerModel: null,
       positioningMode: 'RELATIVE_TO_CEILING',
       gapFromCountertopMm: ProjectSettingsConstraints.UPPER_GAP_FROM_COUNTERTOP_DEFAULT,
-      isLiftUp: false,
+      isLiftUp: true,
       isFrontExtended: false
     });
 

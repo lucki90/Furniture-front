@@ -56,6 +56,7 @@
           <option value="BASE_FRIDGE_FREESTANDING">Dolna â€“ lodowka wolnostojÄ…ca</option>
           <option value="PANTRY_PASSAGE">Przejscie do spizarni</option>
           <option value="UPPER_ONE_DOOR">WiszÄ…ca â€“ 1 drzwi</option>
+          <option value="UPPER_LIFT_UP">Wiszaca â€“ klapa do gory</option>
           <option value="UPPER_TWO_DOOR">WiszÄ…ca â€“ 2 drzwi</option>
           <option value="UPPER_OPEN_SHELF">WiszÄ…ca â€“ otwarta polka</option>
           <option value="UPPER_CASCADE">WiszÄ…ca â€“ kaskadowa</option>
@@ -374,7 +375,7 @@
     <!-- Szafka na lodĂłwkÄ™ (BASE_FRIDGE / BASE_FRIDGE_FREESTANDING) -->
     <app-fridge-form *ngIf="visibility.fridgeSectionType || visibility.fridgeFreestandingType" [form]="form"></app-fridge-form>
 
-    <!-- Opcje frontu szafki wiszÄ…cej (UPPER_ONE_DOOR / UPPER_TWO_DOOR) -->
+    <!-- Opcje frontu szafki wiszacej (UPPER_ONE_DOOR / UPPER_LIFT_UP / UPPER_TWO_DOOR) -->
     <div *ngIf="visibility.liftUp || visibility.extendedFront" class="sink-section">
       <h4 class="section-title">Opcje frontu</h4>
 

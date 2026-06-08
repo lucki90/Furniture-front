@@ -17,10 +17,10 @@ import { renderCorner } from './renderers/corner.renderer';
 /**
  * Rejestr strategii renderowania SVG per typ szafki.
  * Dodanie nowego typu szafki = stworzenie nowego pliku renderera + wpis tutaj.
- * Brak wpisu = brak elementów wizualnych (pusty korpus).
+ * Brak wpisu = brak elementow wizualnych (pusty korpus).
  */
 export const CABINET_RENDER_REGISTRY: Partial<Record<KitchenCabinetType, CabinetRenderer>> = {
-  // Szafki dolne — standardowe
+  // Szafki dolne - standardowe
   [KitchenCabinetType.BASE_ONE_DOOR]:                renderSingleDoor,
   [KitchenCabinetType.BASE_TWO_DOOR]:                renderDoubleDoor,
   [KitchenCabinetType.BASE_OPEN]:                    renderOpenShelf,
@@ -30,26 +30,27 @@ export const CABINET_RENDER_REGISTRY: Partial<Record<KitchenCabinetType, Cabinet
   [KitchenCabinetType.BASE_COOKTOP]:                 renderDrawers,
   [KitchenCabinetType.BASE_DISHWASHER]:              renderSingleDoor,
 
-  // Wolnostojące AGD — tylko srebrny korpus, bez elementów wizualnych
-  // (brak wpisu = brak renderowania → pusty srebrny prostokąt z CSS)
-  // BASE_DISHWASHER_FREESTANDING: nie ma wpisu → noop
-  // BASE_OVEN_FREESTANDING: nie ma wpisu → noop
+  // Wolnostojace AGD - tylko srebrny korpus, bez elementow wizualnych
+  // (brak wpisu = brak renderowania -> pusty srebrny prostokat z CSS)
+  // BASE_DISHWASHER_FREESTANDING: nie ma wpisu -> noop
+  // BASE_OVEN_FREESTANDING: nie ma wpisu -> noop
 
-  // Szafki dolne — specjalne
+  // Szafki dolne - specjalne
   [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]:     renderFridgeFreestanding,
   [KitchenCabinetType.BASE_FRIDGE]:                  renderFridgeBuiltIn,
   [KitchenCabinetType.BASE_OVEN]:                    renderOven,
 
-  // Słupek
+  // Slupek
   [KitchenCabinetType.TALL_CABINET]:                 renderTallCabinet,
   // TODO: replace with a dedicated frame-only renderer (doors to floor + attached plinth) before production polish.
   [KitchenCabinetType.PANTRY_PASSAGE]:               renderPantryPassage,
 
-  // Szafka narożna (dolna i górna wariant isUpperCorner) — front wg typu otwarcia / ślepego panelu
+  // Szafka narozna (dolna i gorna wariant isUpperCorner) - front wg typu otwarcia / slepego panelu
   [KitchenCabinetType.CORNER_CABINET]:               renderCorner,
 
-  // Szafki wiszące
+  // Szafki wiszace
   [KitchenCabinetType.UPPER_ONE_DOOR]:               renderSingleDoor,
+  [KitchenCabinetType.UPPER_LIFT_UP]:                renderSingleDoor,
   [KitchenCabinetType.UPPER_TWO_DOOR]:               renderDoubleDoor,
   [KitchenCabinetType.UPPER_OPEN_SHELF]:             renderOpenShelf,
   [KitchenCabinetType.UPPER_CASCADE]:                renderCascade,

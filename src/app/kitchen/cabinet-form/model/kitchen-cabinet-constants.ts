@@ -113,6 +113,16 @@ export const KitchenCabinetConstraints = {
     SHELF_MIN: 0,
     SHELF_MAX: 4
   },
+  UPPER_LIFT_UP: {
+    WIDTH_MIN: 300,
+    WIDTH_MAX: 900,
+    HEIGHT_MIN: 300,
+    HEIGHT_MAX: 600,
+    DEPTH_MIN: 250,
+    DEPTH_MAX: 400,
+    SHELF_MIN: 0,
+    SHELF_MAX: 4
+  },
   UPPER_TWO_DOOR: {
     WIDTH_MIN: 600,
     WIDTH_MAX: 1000,

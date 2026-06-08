@@ -275,6 +275,12 @@ export interface KCabinetUpperOneDoor extends KitchenCabinetBase {
   isFrontExtended: boolean;
 }
 
+export interface KCabinetUpperLiftUp extends KitchenCabinetBase {
+  type: KitchenCabinetType.UPPER_LIFT_UP;
+  isLiftUp: true;
+  isFrontExtended: boolean;
+}
+
 export interface KCabinetUpperTwoDoor extends KitchenCabinetBase {
   type: KitchenCabinetType.UPPER_TWO_DOOR;
   isLiftUp: boolean;
@@ -320,7 +326,7 @@ export type KitchenCabinet =
   | KCabinetOven | KCabinetOvenFreestanding
   | KCabinetFridge | KCabinetFridgeFreestanding
   | KCabinetTall | KCabinetPantryPassage | KCabinetCorner
-  | KCabinetUpperOneDoor | KCabinetUpperTwoDoor | KCabinetUpperOpenShelf
+  | KCabinetUpperOneDoor | KCabinetUpperLiftUp | KCabinetUpperTwoDoor | KCabinetUpperOpenShelf
   | KCabinetCascade | KCabinetHood | KCabinetDrainer;
 
 /**
@@ -528,8 +534,8 @@ export interface CabinetFormData {
   // Pola lodówki wolnostojącej (BASE_FRIDGE_FREESTANDING)
   fridgeFreestandingType?: string; // SINGLE_DOOR | TWO_DOORS | SIDE_BY_SIDE
 
-  // Pola szafek wiszących (UPPER_ONE_DOOR, UPPER_TWO_DOOR)
-  isLiftUp?: boolean;          // klapa lift-up zamiast drzwi obrotowych
+  // Pola szafek wiszacych (UPPER_LIFT_UP, legacy UPPER_ONE_DOOR, UPPER_TWO_DOOR)
+  isLiftUp?: boolean;          // klapa lift-up / front unoszony do gory
   isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
 
   // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)

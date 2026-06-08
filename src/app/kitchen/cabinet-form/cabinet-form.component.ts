@@ -177,6 +177,7 @@ export class CabinetFormComponent implements OnChanges {
     [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]:    'Dolna - lodowka wolnostojaca',
     [KitchenCabinetType.PANTRY_PASSAGE]:              'Przejscie do spizarni',
     [KitchenCabinetType.UPPER_ONE_DOOR]:              'Wiszaca - 1 drzwi',
+    [KitchenCabinetType.UPPER_LIFT_UP]:               'Wiszaca - klapa do gory',
     [KitchenCabinetType.UPPER_TWO_DOOR]:              'Wiszaca - 2 drzwi',
     [KitchenCabinetType.UPPER_OPEN_SHELF]:            'Wiszaca - otwarta polka',
     [KitchenCabinetType.UPPER_CASCADE]:               'Wiszaca - kaskadowa',

@@ -353,4 +353,63 @@ describe('KitchenCabinetStateFactory', () => {
       drawerModel: undefined
     }));
   });
+
+  it('should build dedicated upper lift-up cabinet from form data', () => {
+    const cabinet = factory.fromFormData({
+      kitchenCabinetType: KitchenCabinetType.UPPER_LIFT_UP,
+      openingType: 'HANDLE',
+      width: 600,
+      height: 400,
+      depth: 340,
+      positionY: 0,
+      shelfQuantity: 1,
+      isFrontExtended: true
+    } as CabinetFormData, 'lift-up-1', {
+      boards: [],
+      components: [],
+      jobs: [],
+      summaryCosts: 420,
+      boardTotalCost: 200,
+      componentTotalCost: 140,
+      jobTotalCost: 80
+    });
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      id: 'lift-up-1',
+      type: KitchenCabinetType.UPPER_LIFT_UP,
+      isLiftUp: true,
+      isFrontExtended: true
+    }));
+  });
+
+  it('should map legacy upper one-door lift-up response to dedicated upper lift-up type', () => {
+    const cabinet = factory.fromPlacementResponse({
+      id: 7,
+      cabinetId: 'legacy-lift-1',
+      cabinetType: KitchenCabinetType.UPPER_ONE_DOOR,
+      positionX: 0,
+      positionY: 1200,
+      widthMm: 600,
+      heightMm: 400,
+      depthMm: 340,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      shelfQuantity: 1,
+      isLiftUp: true,
+      isFrontExtended: false,
+      boardsCost: 90,
+      componentsCost: 60,
+      jobsCost: 30,
+      totalCost: 180,
+      displayOrder: 0
+    }, 'fallback-lift');
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      id: 'legacy-lift-1',
+      type: KitchenCabinetType.UPPER_LIFT_UP,
+      isLiftUp: true,
+      isFrontExtended: false
+    }));
+  });
 });

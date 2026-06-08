@@ -403,4 +403,26 @@ describe('ProjectWallCabinetsBuilder', () => {
       expect(request.pantryPassageFrontType).toBe('ONE_DOOR');
     });
   });
+
+  describe('UPPER_LIFT_UP mapping', () => {
+    it('should persist dedicated lift-up cabinet as isLiftUp=true with extended front flag', () => {
+      const liftUp = makeCabinet({
+        id: 'lift-up-1',
+        type: KitchenCabinetType.UPPER_LIFT_UP,
+        width: 600,
+        height: 400,
+        depth: 340,
+        shelfQuantity: 1,
+        positioningMode: 'RELATIVE_TO_CEILING',
+        isLiftUp: true,
+        isFrontExtended: true
+      } as Partial<KitchenCabinet>);
+
+      const [request] = buildRequests([liftUp]);
+
+      expect(request.kitchenCabinetType).toBe(KitchenCabinetType.UPPER_LIFT_UP);
+      expect(request.isLiftUp).toBeTrue();
+      expect(request.isFrontExtended).toBeTrue();
+    });
+  });
 });

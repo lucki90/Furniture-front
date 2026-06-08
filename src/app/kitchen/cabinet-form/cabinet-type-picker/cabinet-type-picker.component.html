@@ -150,6 +150,13 @@
               <line x1="22" y1="28" x2="22" y2="32" class="svg-handle"/>
             </ng-container>
 
+            <!-- UPPER_LIFT_UP -->
+            <ng-container *ngIf="card.svgTemplate === 'upper-lift-up'">
+              <rect x="2" y="16" width="40" height="32" rx="1" class="svg-body svg-upper"/>
+              <polygon points="3,16 41,16 37,6 7,6" class="svg-front svg-front-upper"/>
+              <line x1="22" y1="7" x2="22" y2="11" class="svg-handle"/>
+            </ng-container>
+
             <!-- UPPER_TWO_DOOR -->
             <ng-container *ngIf="card.svgTemplate === 'upper-two-door'">
               <rect x="2" y="10" width="40" height="38" rx="1" class="svg-body svg-upper"/>

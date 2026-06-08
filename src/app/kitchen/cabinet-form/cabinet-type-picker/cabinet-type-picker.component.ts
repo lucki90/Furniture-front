@@ -72,6 +72,7 @@ export class CabinetTypePickerComponent {
       title: 'Szafki wiszące',
       types: [
         { type: KitchenCabinetType.UPPER_ONE_DOOR,   label: '1 drzwi',       svgTemplate: 'upper-one-door' },
+        { type: KitchenCabinetType.UPPER_LIFT_UP,    label: 'Klapa do góry', svgTemplate: 'upper-lift-up' },
         { type: KitchenCabinetType.UPPER_TWO_DOOR,   label: '2 drzwi',       svgTemplate: 'upper-two-door' },
         { type: KitchenCabinetType.UPPER_OPEN_SHELF, label: 'Otwarta półka', svgTemplate: 'upper-open' },
         { type: KitchenCabinetType.UPPER_CASCADE,    label: 'Kaskadowa',     svgTemplate: 'upper-cascade' },

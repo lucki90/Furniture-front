@@ -166,6 +166,13 @@ export class KitchenCabinetStateFactory {
           isLiftUp: formData.isLiftUp ?? false,
           isFrontExtended: formData.isFrontExtended ?? false
         };
+      case KitchenCabinetType.UPPER_LIFT_UP:
+        return {
+          ...base,
+          type: KitchenCabinetType.UPPER_LIFT_UP,
+          isLiftUp: true,
+          isFrontExtended: formData.isFrontExtended ?? false
+        };
       case KitchenCabinetType.UPPER_TWO_DOOR:
         return {
           ...base,
@@ -353,10 +360,25 @@ export class KitchenCabinetStateFactory {
         };
       }
       case KitchenCabinetType.UPPER_ONE_DOOR:
+        if (cabResp.isLiftUp) {
+          return {
+            ...baseFromResp,
+            type: KitchenCabinetType.UPPER_LIFT_UP,
+            isLiftUp: true,
+            isFrontExtended: cabResp.isFrontExtended ?? false
+          };
+        }
         return {
           ...baseFromResp,
           type: KitchenCabinetType.UPPER_ONE_DOOR,
-          isLiftUp: cabResp.isLiftUp ?? false,
+          isLiftUp: false,
+          isFrontExtended: cabResp.isFrontExtended ?? false
+        };
+      case KitchenCabinetType.UPPER_LIFT_UP:
+        return {
+          ...baseFromResp,
+          type: KitchenCabinetType.UPPER_LIFT_UP,
+          isLiftUp: true,
           isFrontExtended: cabResp.isFrontExtended ?? false
         };
       case KitchenCabinetType.UPPER_TWO_DOOR:

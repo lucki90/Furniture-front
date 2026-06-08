@@ -335,6 +335,11 @@ export class ProjectWallCabinetsBuilder {
           isLiftUp: cab.isLiftUp,
           isFrontExtended: cab.isFrontExtended
         };
+      case KitchenCabinetType.UPPER_LIFT_UP:
+        return {
+          isLiftUp: true,
+          isFrontExtended: cab.isFrontExtended
+        };
       case KitchenCabinetType.UPPER_DRAINER:
         return { drainerFrontType: cab.drainerFrontType };
       default:

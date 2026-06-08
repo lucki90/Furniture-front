@@ -26,6 +26,9 @@ import {CornerCabinetRequestMapper} from "../types/corner-cabinet/corner-cabinet
 import {UpperOneDoorCabinetPreparer} from "../types/upper-one-door/upper-one-door-cabinet-preparer";
 import {UpperOneDoorCabinetValidator} from "../types/upper-one-door/upper-one-door-cabinet-validator";
 import {UpperOneDoorRequestMapper} from "../types/upper-one-door/upper-one-door-request-mapper";
+import {UpperLiftUpCabinetPreparer} from "../types/upper-lift-up/upper-lift-up-cabinet-preparer";
+import {UpperLiftUpCabinetValidator} from "../types/upper-lift-up/upper-lift-up-cabinet-validator";
+import {UpperLiftUpRequestMapper} from "../types/upper-lift-up/upper-lift-up-request-mapper";
 import {UpperTwoDoorCabinetPreparer} from "../types/upper-two-door/upper-two-door-cabinet-preparer";
 import {UpperTwoDoorCabinetValidator} from "../types/upper-two-door/upper-two-door-cabinet-validator";
 import {UpperTwoDoorRequestMapper} from "../types/upper-two-door/upper-two-door-request-mapper";
@@ -111,6 +114,11 @@ export const KitchenCabinetTypeConfig = {
     preparer: new UpperOneDoorCabinetPreparer(),
     validator: new UpperOneDoorCabinetValidator(),
     requestMapper: new UpperOneDoorRequestMapper()
+  },
+  [KitchenCabinetType.UPPER_LIFT_UP]: {
+    preparer: new UpperLiftUpCabinetPreparer(),
+    validator: new UpperLiftUpCabinetValidator(),
+    requestMapper: new UpperLiftUpRequestMapper()
   },
   [KitchenCabinetType.UPPER_TWO_DOOR]: {
     preparer: new UpperTwoDoorCabinetPreparer(),

@@ -47,7 +47,8 @@ export function setBaseExtraVisibility(v: CabinetFormVisibility): void {
  * Musi być wywołany po setStandardDoorVisibility().
  *
  * @param v - visibility object
- * @param liftUpVisible - czy pole lift-up ma być widoczne (true dla ONE_DOOR, false dla TWO_DOOR)
+ * @param liftUpVisible - czy checkbox lift-up ma być widoczny. Obecnie wszystkie typy UPPER_* przekazują false,
+ *                        bo klapa unoszona ma własny typ UPPER_LIFT_UP zamiast checkboxa na UPPER_ONE_DOOR.
  */
 export function setUpperExtraVisibility(v: CabinetFormVisibility, liftUpVisible: boolean): void {
   v.bottomWreathOnFloor = false;

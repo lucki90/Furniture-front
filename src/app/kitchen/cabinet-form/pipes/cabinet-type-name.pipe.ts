@@ -10,6 +10,7 @@ const CABINET_TYPE_LABELS: Record<KitchenCabinetType, string> = {
   [KitchenCabinetType.TALL_CABINET]: 'Słupek',
   [KitchenCabinetType.CORNER_CABINET]: 'Narożna',
   [KitchenCabinetType.UPPER_ONE_DOOR]: 'Wisząca 1-drzwiowa',
+  [KitchenCabinetType.UPPER_LIFT_UP]: 'Wisząca z klapą do góry',
   [KitchenCabinetType.UPPER_TWO_DOOR]: 'Wisząca 2-drzwiowa',
   [KitchenCabinetType.UPPER_OPEN_SHELF]: 'Wisząca otwarta',
   [KitchenCabinetType.UPPER_CASCADE]: 'Wisząca kaskadowa',
