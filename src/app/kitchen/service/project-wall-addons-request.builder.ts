@@ -54,19 +54,20 @@ export class ProjectWallAddonsRequestBuilder {
 
   buildPlinthRequest(wall: WallWithCabinets, fallbackPlinthHeightMm: number): PlinthRequest {
     const config = wall.plinthConfig;
-    if (!config || !config.enabled) {
-      return { ...DEFAULT_PLINTH_REQUEST, enabled: false };
-    }
-
-    const heightMm = config.heightMm ?? fallbackPlinthHeightMm ?? DEFAULT_PLINTH_REQUEST.heightMm;
+    // Bug-fix 2026-06-08: nawet przy wyłączonym panelu cokołu nóżki są obecne — backend
+    // (`calculateFeetOnlyResponse`) liczy ich wysokość/model z TEGO requestu. Wcześniej dla
+    // enabled=false wysyłaliśmy DEFAULT_PLINTH_REQUEST (height=100mm), więc kalkulacja/BOM nóżek
+    // ignorowały realną wysokość cokołu (np. 120/150mm) → "widok OK, produkcja/koszt źle".
+    // Teraz zawsze niesiemy realną wysokość; flaga enabled steruje tylko panelem cokołu.
+    const heightMm = config?.heightMm ?? fallbackPlinthHeightMm ?? DEFAULT_PLINTH_REQUEST.heightMm;
 
     return {
-      enabled: true,
+      enabled: config?.enabled ?? false,
       heightMm,
       feetType: pickFeetTypeForPlinthHeight(heightMm),
-      materialType: config.materialType ?? DEFAULT_PLINTH_REQUEST.materialType,
-      colorCode: config.colorCode,
-      setbackMm: config.setbackMm ?? DEFAULT_PLINTH_REQUEST.setbackMm
+      materialType: config?.materialType ?? DEFAULT_PLINTH_REQUEST.materialType,
+      colorCode: config?.colorCode,
+      setbackMm: config?.setbackMm ?? DEFAULT_PLINTH_REQUEST.setbackMm
     };
   }
 }

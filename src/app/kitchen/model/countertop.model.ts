@@ -114,11 +114,17 @@ export interface CountertopResponse {
   backOverhangMm?: number;
   leftOverhangMm?: number;
   rightOverhangMm?: number;
+  manualLengthMm?: number;
   thicknessMm: number;
   maxBaseCorpusHeightMm?: number;
   computedCountertopHeightMm?: number;
   materialType: CountertopMaterialType;
   colorCode?: string;
+  jointType?: CountertopJointType;
+  frontEdgeType?: CountertopEdgeType;
+  leftEdgeType?: CountertopEdgeType;
+  rightEdgeType?: CountertopEdgeType;
+  backEdgeType?: CountertopEdgeType;
   islandSurfaceM2?: number;
   segments: CountertopSegmentResponse[];
   segmentCount: number;

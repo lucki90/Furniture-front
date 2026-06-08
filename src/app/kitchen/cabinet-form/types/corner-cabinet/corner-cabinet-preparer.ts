@@ -10,6 +10,7 @@ import {
   UPPER_CORNER_CONSTRAINTS,
   BLIND_CORNER_CONSTRAINTS,
   UPPER_BLIND_CORNER_CONSTRAINTS,
+  UPPER_CORNER_MECHANISMS,
   isBlindType
 } from '../../model/corner-cabinet.model';
 
@@ -38,14 +39,17 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
     v.enclosureSection = true;
 
     // Wstępna konfiguracja na podstawie bieżącego mechanizmu.
-    // Narożnik górny (wiszący) obsługuje Type A (L-kształt) ORAZ wiszący ślepy narożnik (BLIND_CORNER) —
-    // konstrukcja ślepego górnego jest identyczna jak dolnego, różni się brakiem nóżek i opcjami szafki
-    // wiszącej (przedłużany front). Magic Corner / Le Mans nie mają wariantu wiszącego, więc gdy użytkownik
-    // przełącza taki dolny narożnik na górny (picker ustawia isUpperCorner=true przed zmianą typu),
-    // wymuszamy FIXED_SHELVES, żeby kontekst formularza faktycznie się zmienił (bug-fix 2026-06-01).
+    // Narożnik górny (wiszący) obsługuje WYŁĄCZNIE mechanizmy z UPPER_CORNER_MECHANISMS:
+    // FIXED_SHELVES (Type A L-kształt) oraz BLIND_CORNER (wiszący ślepy — konstrukcja identyczna jak dolnego,
+    // różni się brakiem nóżek i opcjami szafki wiszącej / przedłużanym frontem).
+    // CAROUSEL_270/360 (Type A, ale base-only), Magic Corner i Le Mans (Type B base-only) NIE mają wariantu
+    // wiszącego. Gdy użytkownik przełącza taki dolny narożnik na górny (picker ustawia isUpperCorner=true przed
+    // zmianą typu), wymuszamy FIXED_SHELVES, żeby kontekst formularza faktycznie się zmienił i front nie
+    // wysyłał niedozwolonego mechanizmu (bug-fix 2026-06-08; wcześniej koercja łapała tylko Type B,
+    // przez co karuzela zostawała wybrana na górnym narożniku → błąd walidacji po "Dodaj szafkę").
     const rawMechanism = (form.get('cornerMechanism')?.value ?? CornerMechanismType.FIXED_SHELVES) as CornerMechanismType;
     const wantsUpper = form.get('isUpperCorner')?.value ?? false;
-    const mustCoerce = wantsUpper && isBlindType(rawMechanism) && rawMechanism !== CornerMechanismType.BLIND_CORNER;
+    const mustCoerce = wantsUpper && !UPPER_CORNER_MECHANISMS.includes(rawMechanism);
     const mechanism = mustCoerce ? CornerMechanismType.FIXED_SHELVES : rawMechanism;
     this.updateVisibilityForMechanism(mechanism, form, v);
 

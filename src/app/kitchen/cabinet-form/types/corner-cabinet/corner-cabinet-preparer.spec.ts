@@ -69,4 +69,26 @@ describe('CornerCabinetPreparer', () => {
     expect(visibility.cornerWidthB).toBeTrue();
     expect(visibility.cornerFrontUchylnyWidth).toBeFalse();
   });
+
+  // Bug-fix 2026-06-08: karuzela (CAROUSEL_270/360) jest Type A, ale base-only — nie ma wariantu wiszącego.
+  // Wcześniej koercja łapała tylko Type B (isBlindType), więc karuzela zostawała wybrana na górnym narożniku
+  // → front oferował niedozwolony mechanizm i po „Dodaj szafkę" leciał błąd walidacji.
+  [CornerMechanismType.CAROUSEL_270, CornerMechanismType.CAROUSEL_360].forEach(mechanism => {
+    it(`coerces base-only ${mechanism} to FIXED_SHELVES when switching to an upper corner`, () => {
+      const form = DefaultKitchenFormFactory.create(new FormBuilder());
+      const visibility = {} as CabinetFormVisibility;
+
+      // Simulate the picker: a bottom carousel corner switched to an upper corner.
+      form.patchValue({ cornerMechanism: mechanism, isUpperCorner: true });
+
+      new CornerCabinetPreparer().prepare(form, visibility);
+
+      // Carousel has no hanging variant → coerced to the only Type A upper mechanism.
+      expect(form.get('cornerMechanism')?.value).toBe(CornerMechanismType.FIXED_SHELVES);
+      expect(form.get('isUpperCorner')?.value).toBeTrue();
+      // Upper Type A layout: two widths, no front uchylny.
+      expect(visibility.cornerWidthB).toBeTrue();
+      expect(visibility.cornerFrontUchylnyWidth).toBeFalse();
+    });
+  });
 });

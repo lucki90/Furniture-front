@@ -66,6 +66,30 @@ describe('KitchenLayoutComponent', () => {
     expect(root.textContent).toContain('Razem sciana');
   });
 
+  describe('Plinth checkbox controls only the plinth panel, never the feet (bug-fix 2026-06-08)', () => {
+    it('hides the plinth panel but keeps the feet when plinth is disabled', () => {
+      stateService.setPlinthEnabled(false);
+      fixture.detectChanges();
+
+      // Panel cokołu znika...
+      expect(component.plinthSegments()).toEqual([]);
+      // ...ale nóżki zostają (feetHeight > 0 dla szafki dolnej).
+      const bottom = component.visualPositions().find(p => p.zone === 'BOTTOM');
+      expect(bottom).toBeDefined();
+      expect(bottom!.feetHeight).toBeGreaterThan(0);
+      expect(bottom!.feet.length).toBeGreaterThan(0);
+    });
+
+    it('renders both the plinth panel and the feet when plinth is enabled', () => {
+      stateService.setPlinthEnabled(true);
+      fixture.detectChanges();
+
+      expect(component.plinthSegments().length).toBeGreaterThan(0);
+      const bottom = component.visualPositions().find(p => p.zone === 'BOTTOM');
+      expect(bottom!.feetHeight).toBeGreaterThan(0);
+    });
+  });
+
   describe('Delete shortcut', () => {
     function dispatchDelete(target: EventTarget = document.body): void {
       const event = new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true });
@@ -157,6 +181,14 @@ class KitchenStateServiceStub {
 
   setCabinetRun(startX: number): void {
     this.cabinetPositionsSignal.set([{ cabinetId: 'base-1', x: startX, y: 100, width: 400, height: 720 }]);
+  }
+
+  setPlinthEnabled(enabled: boolean): void {
+    const wall = this.selectedWallSignal();
+    this.selectedWallSignal.set({
+      ...wall,
+      plinthConfig: { enabled, heightMm: 100 } as any
+    });
   }
 
   getWallLabel(): string {

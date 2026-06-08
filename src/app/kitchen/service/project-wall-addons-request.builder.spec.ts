@@ -70,6 +70,56 @@ describe('ProjectWallAddonsRequestBuilder', () => {
     });
   });
 
+  // Bug-fix 2026-06-08: panel cokołu wyłączony, ale nóżki zostają — request musi nieść realną
+  // wysokość cokołu, inaczej backend (calculateFeetOnlyResponse) policzy nóżki na domyślne 100mm.
+  it('should keep the real plinth height for feet calculation when the plinth panel is disabled', () => {
+    const wall = {
+      id: 'wall-1',
+      type: 'MAIN',
+      widthMm: 3000,
+      heightMm: 2600,
+      cabinets: [],
+      plinthConfig: {
+        enabled: false,
+        heightMm: 150,
+        materialType: 'PVC',
+        setbackMm: 45
+      }
+    } as any;
+
+    expect(builder.buildPlinthRequest(wall, 100)).toEqual({
+      enabled: false,
+      heightMm: 150,
+      feetType: 'FEET_150',
+      materialType: 'PVC',
+      colorCode: undefined,
+      setbackMm: 45
+    });
+  });
+
+  it('should fall back to project plinth height for disabled plinth without explicit height', () => {
+    const wall = {
+      id: 'wall-1',
+      type: 'MAIN',
+      widthMm: 3000,
+      heightMm: 2600,
+      cabinets: [],
+      plinthConfig: {
+        enabled: false,
+        materialType: 'PVC'
+      }
+    } as any;
+
+    expect(builder.buildPlinthRequest(wall, 120)).toEqual({
+      enabled: false,
+      heightMm: 120,
+      feetType: 'FEET_120',
+      materialType: 'PVC',
+      colorCode: undefined,
+      setbackMm: 40
+    });
+  });
+
   it('should fall back to project plinth height when wall does not override it', () => {
     const wall = {
       id: 'wall-1',

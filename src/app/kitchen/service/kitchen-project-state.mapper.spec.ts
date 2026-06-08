@@ -66,10 +66,13 @@ describe('KitchenProjectStateMapper', () => {
             enabled: true,
             totalLengthMm: 800,
             depthMm: 620,
+            manualLengthMm: 2100,
             frontOverhangMm: 35,
             backOverhangMm: 10,
             thicknessMm: 38,
             materialType: 'LAMINATE',
+            jointType: 'MITER_JOINT',
+            frontEdgeType: 'POSTFORMED',
             segments: [],
             segmentCount: 1,
             wasSplit: false,
@@ -114,9 +117,12 @@ describe('KitchenProjectStateMapper', () => {
         enabled: true,
         materialType: 'LAMINATE',
         thicknessMm: 38,
+        manualLengthMm: 2100,
         manualDepthMm: 620,
         frontOverhangMm: 35,
         backOverhangMm: 10,
+        jointType: 'MITER_JOINT',
+        edgeType: 'POSTFORMED',
         sideOverhangExtraMm: 5
       }),
       plinthConfig: jasmine.objectContaining({
@@ -136,9 +142,9 @@ describe('KitchenProjectStateMapper', () => {
     }));
   });
 
-  it('should preserve {enabled: false} for explicitly disabled countertop on load', () => {
-    // Jak user explicite wylaczyl blat, reload MUSI zachowac ten stan (nie `undefined`),
-    // zeby floor plan / UI odroznilo "wylaczony" od "nieskonfigurowany". Symetria z zapisem.
+  it('should preserve disabled countertop config values on load', () => {
+    // Jak user explicite wylaczyl blat, reload MUSI zachowac ten stan (nie `undefined`)
+    // oraz parametry z zapisanej konfiguracji, zeby ponowne wlaczenie nie wracalo do przypadkowych defaultow.
     const result = mapper.mapProject({
       id: 55,
       name: 'Island disabled countertop',
@@ -164,10 +170,17 @@ describe('KitchenProjectStateMapper', () => {
           cabinets: [],
           countertop: {
             enabled: false,
-            totalLengthMm: 0,
-            depthMm: 0,
-            thicknessMm: 0,
+            totalLengthMm: 2100,
+            depthMm: 620,
+            manualLengthMm: 2100,
+            frontOverhangMm: 35,
+            backOverhangMm: 10,
+            leftOverhangMm: 12,
+            rightOverhangMm: 18,
+            thicknessMm: 38,
             materialType: 'LAMINATE',
+            jointType: 'MITER_JOINT',
+            frontEdgeType: 'POSTFORMED',
             segments: [],
             segmentCount: 0,
             wasSplit: false,
@@ -182,7 +195,17 @@ describe('KitchenProjectStateMapper', () => {
       ]
     } as KitchenProjectDetailResponse);
 
-    expect(result.walls[0].countertopConfig).toEqual({ enabled: false });
+    expect(result.walls[0].countertopConfig).toEqual(jasmine.objectContaining({
+      enabled: false,
+      materialType: 'LAMINATE',
+      thicknessMm: 38,
+      manualLengthMm: 2100,
+      manualDepthMm: 620,
+      frontOverhangMm: 35,
+      backOverhangMm: 10,
+      jointType: 'MITER_JOINT',
+      edgeType: 'POSTFORMED'
+    }));
   });
 
   it('should leave countertopConfig undefined when backend did not send countertop info', () => {
@@ -213,6 +236,94 @@ describe('KitchenProjectStateMapper', () => {
     } as KitchenProjectDetailResponse);
 
     expect(result.walls[0].countertopConfig).toBeUndefined();
+  });
+
+  it('should preserve {enabled: false} plinth with real height/feet on load (panel off, feet on)', () => {
+    // Bug-fix 2026-06-08: panel cokołu wyłączony, ale nóżki obecne — backend zwraca enabled=false
+    // z realną wysokością (calculateFeetOnlyResponse). Reload MUSI zachować enabled=false + wymiary,
+    // inaczej consumenci (plinthConfig?.enabled !== false) potraktują cokół jak włączony.
+    const result = mapper.mapProject({
+      id: 57,
+      name: 'Plinth panel disabled, feet kept',
+      status: 'DRAFT',
+      version: 1,
+      totalCost: 0,
+      totalBoardsCost: 0,
+      totalComponentsCost: 0,
+      totalJobsCost: 0,
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      walls: [
+        {
+          id: 1,
+          wallType: 'MAIN',
+          widthMm: 3000,
+          heightMm: 2600,
+          wallCost: 0,
+          cabinetCount: 0,
+          usedWidthMm: 0,
+          remainingWidthMm: 3000,
+          cabinets: [],
+          plinth: {
+            enabled: false,
+            feetType: 'FEET_150',
+            feetHeightMm: 150,
+            plinthHeightMm: 150,
+            totalLengthMm: 0,
+            materialType: 'PVC',
+            setbackMm: 40,
+            segments: [],
+            segmentCount: 0,
+            wasSplit: false,
+            components: [],
+            totalFeetCount: 4,
+            totalMountingClipCount: 0,
+            totalMaterialCost: 0,
+            totalCuttingCost: 0,
+            totalComponentsCost: 0,
+            totalCost: 0
+          }
+        } as any
+      ]
+    } as KitchenProjectDetailResponse);
+
+    expect(result.walls[0].plinthConfig).toEqual(jasmine.objectContaining({
+      enabled: false,
+      heightMm: 150,
+      feetType: 'FEET_150',
+      materialType: 'PVC',
+      setbackMm: 40
+    }));
+  });
+
+  it('should leave plinthConfig undefined when backend did not send plinth info', () => {
+    const result = mapper.mapProject({
+      id: 58,
+      name: 'Legacy wall without plinth field',
+      status: 'DRAFT',
+      version: 1,
+      totalCost: 0,
+      totalBoardsCost: 0,
+      totalComponentsCost: 0,
+      totalJobsCost: 0,
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      walls: [
+        {
+          id: 1,
+          wallType: 'MAIN',
+          widthMm: 3000,
+          heightMm: 2600,
+          wallCost: 0,
+          cabinetCount: 0,
+          usedWidthMm: 0,
+          remainingWidthMm: 3000,
+          cabinets: []
+        } as any
+      ]
+    } as KitchenProjectDetailResponse);
+
+    expect(result.walls[0].plinthConfig).toBeUndefined();
   });
 
   it('should create a default main wall when project has no walls', () => {

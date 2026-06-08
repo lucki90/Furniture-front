@@ -82,13 +82,6 @@ export class KitchenProjectStateMapper {
       // Backend nie wyslal zadnej informacji o blacie — wall bez konfiguracji (nowy/legacy).
       return undefined;
     }
-    if (!wallResp.countertop.enabled) {
-      // User EXPLICITNIE wylaczyl blat — zachowujemy ten stan, zeby floor plan / UI
-      // odroznilo "wylaczony" od "nieskonfigurowany". Inaczej rzut z gory wyspy nadal
-      // pokazywalby blat po reloadzie projektu z disabled countertop.
-      return { enabled: false };
-    }
-
     const isIsland = wallResp.wallType === 'ISLAND';
     const adjacent = wallResp.adjacentToWall ?? 'NONE';
 
@@ -102,13 +95,16 @@ export class KitchenProjectStateMapper {
     );
 
     return {
-      enabled: true,
+      enabled: wallResp.countertop.enabled,
       materialType: wallResp.countertop.materialType,
-      thicknessMm: wallResp.countertop.thicknessMm,
-      manualDepthMm: wallResp.countertop.depthMm ?? 600,
+      thicknessMm: wallResp.countertop.thicknessMm || undefined,
+      manualLengthMm: wallResp.countertop.manualLengthMm,
+      manualDepthMm: wallResp.countertop.depthMm > 0 ? wallResp.countertop.depthMm : undefined,
       frontOverhangMm: wallResp.countertop.frontOverhangMm ?? 30,
       backOverhangMm: wallResp.countertop.backOverhangMm ?? 0,
-      sideOverhangExtraMm
+      sideOverhangExtraMm,
+      jointType: wallResp.countertop.jointType,
+      edgeType: wallResp.countertop.frontEdgeType
     };
   }
 
@@ -164,17 +160,23 @@ export class KitchenProjectStateMapper {
   }
 
   private mapPlinthConfig(wallResp: WallDetailResponse): PlinthConfig | undefined {
-    if (!wallResp.plinth?.enabled) {
+    const plinth = wallResp.plinth;
+    if (!plinth) {
       return undefined;
     }
 
+    // Bug-fix 2026-06-08: przy wyłączonym panelu cokołu backend zwraca enabled=false, ale wciąż
+    // z realną wysokością i modelem nóżek (`calculateFeetOnlyResponse`). Wcześniej mapper zwracał
+    // undefined dla enabled=false → po reloadzie projekt traktował cokół jak domyślnie WŁĄCZONY
+    // (consumenci czytają `plinthConfig?.enabled !== false`). Teraz zachowujemy enabled=false +
+    // wymiary, żeby decyzja użytkownika (panel cokołu off, nóżki on) przetrwała save/load.
     return {
-      enabled: true,
-      heightMm: wallResp.plinth.plinthHeightMm,
-      feetType: wallResp.plinth.feetType,
-      materialType: wallResp.plinth.materialType,
-      setbackMm: wallResp.plinth.setbackMm,
-      colorCode: wallResp.plinth.colorCode
+      enabled: plinth.enabled,
+      heightMm: plinth.plinthHeightMm,
+      feetType: plinth.feetType,
+      materialType: plinth.materialType,
+      setbackMm: plinth.setbackMm,
+      colorCode: plinth.colorCode
     };
   }
 }

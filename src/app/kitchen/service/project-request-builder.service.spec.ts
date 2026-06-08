@@ -184,7 +184,8 @@ describe('ProjectRequestBuilderService', () => {
 
       expect(service.buildPlinthRequest(wall, settings.plinthHeightMm)).toEqual({
         ...DEFAULT_PLINTH_REQUEST,
-        enabled: false
+        enabled: false,
+        colorCode: undefined
       });
     });
 

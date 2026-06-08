@@ -19,6 +19,7 @@ interface WallCardVm {
   widthMm: number;
   heightMm: number;
   plinthHeightMm: number;
+  plinthEnabled: boolean;
   countertopThicknessMm: number;
   upperFillerHeightMm: number;
   fillerWidthMm: number;
@@ -158,7 +159,10 @@ export class FrontContextPanelComponent {
         label: this.stateService.getWallLabel(wall.type),
         widthMm: wall.widthMm,
         heightMm: wall.heightMm,
-        plinthHeightMm: wall.plinthConfig?.enabled === false ? 0 : (wall.plinthConfig?.heightMm ?? globalPlinthHeightMm),
+        // Bug-fix 2026-06-08: nóżki zawsze obecne — przekazujemy realną wysokość cokołu niezależnie od flagi enabled.
+        // Sam panel cokołu jest ukrywany przez plinthEnabled (mini-podgląd: buildPlinthRuns).
+        plinthHeightMm: wall.plinthConfig?.heightMm ?? globalPlinthHeightMm,
+        plinthEnabled: wall.plinthConfig?.enabled !== false,
         countertopThicknessMm: (wall.countertopConfig?.enabled ?? true)
           ? (wall.countertopConfig?.thicknessMm ?? globalCountertopThicknessMm)
           : 0,

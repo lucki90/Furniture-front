@@ -114,12 +114,14 @@ export class KitchenLayoutComponent {
   // Stałe dla elementów wizualnych
   // Uwaga: FEET_HEIGHT_MM jest getter — używa rzeczywistej wysokości cokołu z ustawień projektu
   private get FEET_HEIGHT_MM(): number { return this.stateService.plinthHeightMm(); }
+  /**
+   * Wysokość nóżek (px-mm) używana do pozycjonowania korpusów szafek dolnych.
+   * Bug-fix 2026-06-08: nóżki są ZAWSZE obecne — checkbox „Cokół" steruje WYŁĄCZNIE panelem cokołu
+   * (patrz `plinthSegments`), a nie obecnością nóżek. Wcześniej zwracane 0 przy wyłączonym cokole
+   * zerowało też wysokość nóżek → szafki „siadały" na podłodze bez nóżek.
+   */
   private get activeWallPlinthHeightMm(): number {
-    const wall = this.selectedWall();
-    const plinth = wall?.plinthConfig;
-    if (plinth?.enabled === false) {
-      return 0;
-    }
+    const plinth = this.selectedWall()?.plinthConfig;
     return plinth?.heightMm ?? this.stateService.plinthHeightMm();
   }
   /** Szpara między górną krawędzią panelu cokołu a dolną krawędzią korpusu (nóżki są o tyle wyższe) */
@@ -450,6 +452,11 @@ export class KitchenLayoutComponent {
    * przez tę szparę widoczne są końcówki nóżek tuż pod korpusem.
    */
   readonly plinthSegments = computed(() => {
+    // Bug-fix 2026-06-08: wyłączony checkbox „Cokół" ukrywa WYŁĄCZNIE panel cokołu — nóżki zostają
+    // (ich wysokość pochodzi z activeWallPlinthHeightMm, niezależnie od tej flagi).
+    if (this.selectedWall()?.plinthConfig?.enabled === false) {
+      return [];
+    }
     const positions = this.visualPositions();
     // Tylko szafki mające cokół (nie wolnostojące AGD)
     const plinthPositions = positions.filter(p =>

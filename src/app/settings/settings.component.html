@@ -124,9 +124,16 @@
               <input type="number" class="form-control" [(ngModel)]="supportHeightReductionMm" [disabled]="saving" min="0" max="100" step="5" />
             </app-form-field>
 
+            <!--
+              Bug-fix 2026-06-08 (Codex P2): po naprawie podpory blendy równoległej szerokość podpory
+              jest równa szerokości blendy (EnclosureCalculationService: supportW = max(1, fillerWidthMm)),
+              więc „Zmniejsz podporę (W)" stało się ustawieniem-no-op. Ukrywamy pole, by użytkownik nie
+              regulował parametru bez efektu. Plumbing (DB/DTO/sygnały) zostaje — pełne usunięcie albo
+              rozdzielenie semantyki dla różnych typów podpór jest w ROADMAP §5 (TODO(podpora-W-martwe-ustawienie)).
             <app-form-field label="Zmniejsz podporę (W)" unit="mm" hint="Pomniejszenie podpory blendy w poziomie (0–200 mm)">
               <input type="number" class="form-control" [(ngModel)]="supportWidthReductionMm" [disabled]="saving" min="0" max="200" step="10" />
             </app-form-field>
+            -->
           </div>
         </div>
       </section>

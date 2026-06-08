@@ -22,6 +22,11 @@ export class MiniWallPreviewComponent implements OnChanges {
   @Input() wallWidthMm = 3600;
   @Input() wallHeightMm = 2600;
   @Input() plinthHeightMm = 100;
+  /**
+   * Bug-fix 2026-06-08: checkbox „Cokół" steruje WYŁĄCZNIE panelem cokołu (mini-podgląd) — nóżki zostają zawsze
+   * (ich wysokość pochodzi z plinthHeightMm, niezależnie od tej flagi). Wcześniej wyłączony cokół zerował też nóżki.
+   */
+  @Input() plinthEnabled = true;
   @Input() countertopThicknessMm = 38;
   @Input() upperFillerHeightMm = 100;
   @Input() fillerWidthMm = 50;
@@ -70,6 +75,11 @@ export class MiniWallPreviewComponent implements OnChanges {
   protected trackByIndex = (index: number) => index;
 
   private buildPlinthRuns(scaleVert: number): Array<{ x: number; width: number; y: number; height: number }> {
+    // Bug-fix 2026-06-08: wyłączony checkbox „Cokół" ukrywa WYŁĄCZNIE panel cokołu — nóżki renderują się dalej.
+    if (!this.plinthEnabled) {
+      return [];
+    }
+
     const plinthPositions = this.visualPositions
       .filter(position => (position.zone === 'BOTTOM' || position.zone === 'FULL') && position.feetHeight > 0)
       .sort((a, b) => a.displayX - b.displayX);
