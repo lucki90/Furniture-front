@@ -13,6 +13,7 @@ import { renderCascade } from './renderers/cascade.renderer';
 import { renderDrainer } from './renderers/drainer.renderer';
 import { renderPantryPassage } from './renderers/pantry-passage.renderer';
 import { renderCorner } from './renderers/corner.renderer';
+import { renderUpperLiftUp } from './renderers/upper-lift-up.renderer';
 
 /**
  * Rejestr strategii renderowania SVG per typ szafki.
@@ -50,7 +51,7 @@ export const CABINET_RENDER_REGISTRY: Partial<Record<KitchenCabinetType, Cabinet
 
   // Szafki wiszace
   [KitchenCabinetType.UPPER_ONE_DOOR]:               renderSingleDoor,
-  [KitchenCabinetType.UPPER_LIFT_UP]:                renderSingleDoor,
+  [KitchenCabinetType.UPPER_LIFT_UP]:                renderUpperLiftUp,
   [KitchenCabinetType.UPPER_TWO_DOOR]:               renderDoubleDoor,
   [KitchenCabinetType.UPPER_OPEN_SHELF]:             renderOpenShelf,
   [KitchenCabinetType.UPPER_CASCADE]:                renderCascade,

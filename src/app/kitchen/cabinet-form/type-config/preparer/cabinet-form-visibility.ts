@@ -77,6 +77,12 @@ export interface CabinetFormVisibility {
   // Upper one/two door options
   liftUp: boolean;
   extendedFront: boolean;
+  // UPPER_LIFT_UP — wybór mechanizmu podnośnika klapy (GAS_GTV / Aventos HK top / HK-S / HF top)
+  liftMechanismType: boolean;
+  // UPPER_LIFT_UP — checkbox: zezwól na trzeci mechanizm Aventos dla zbyt ciężkiego frontu
+  allowThirdLiftMechanism: boolean;
+  // UPPER_LIFT_UP — pole wysokości górnego frontu HF (fronty asymetryczne, tylko AVENTOS_HF_TOP)
+  hfUpperFrontHeightMm: boolean;
 
   // Opening type
   openingType: boolean;

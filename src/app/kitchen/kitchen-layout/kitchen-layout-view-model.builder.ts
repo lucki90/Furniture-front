@@ -123,6 +123,12 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       upperSections: cabinetData?.segments as SegmentFormData[] | undefined
     } : undefined;
 
+    const liftConfig = cabinetType === KitchenCabinetType.UPPER_LIFT_UP ? {
+      hfFolding: cabinetData?.liftMechanismType === 'AVENTOS_HF_TOP',
+      upperFrontHeightMm: cabinetData?.hfUpperFrontHeightMm as number | null | undefined,
+      cabinetHeightMm: originalCabinet?.height
+    } : undefined;
+
     const { fronts, handles } = generateVisualElements({
       type: cabinetType,
       displayX,
@@ -141,7 +147,8 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       cascadeUpperHeight,
       ovenConfig,
       fridgeConfig,
-      cornerConfig
+      cornerConfig,
+      liftConfig
     });
 
     let ovenSeparatorDisplayY: number | undefined;

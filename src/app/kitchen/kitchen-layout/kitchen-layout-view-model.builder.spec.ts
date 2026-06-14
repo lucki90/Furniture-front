@@ -347,4 +347,73 @@ describe('kitchen-layout-view-model.builder', () => {
     expect(position.fronts.filter(front => front.type === 'VERT_DIVIDER')).toHaveSize(1);
     expect(position.handles).toHaveSize(1);
   });
+
+  function buildLiftUp(overrides: Partial<KitchenCabinet>) {
+    return buildVisualCabinetPositions({
+      cabinetPositions: [createPosition({ cabinetId: 'lift-1', x: 0, y: 1500, width: 600, height: 700 })],
+      cabinets: [
+        createCabinet({
+          id: 'lift-1',
+          type: KitchenCabinetType.UPPER_LIFT_UP,
+          width: 600,
+          height: 700,
+          depth: 320,
+          ...overrides
+        } as Partial<KitchenCabinet>)
+      ],
+      scale: 0.1,
+      wallWidth: 100,
+      wallDisplayHeight: 180,
+      scaleVert: 0.1,
+      feetHeightMm: 100,
+      fillerWidthMm: 50,
+      standardBottomHeight: 720,
+      standardTopHeight: 720,
+      standardBottomDepth: 560,
+      standardTopDepth: 320,
+      frontGap: 1
+    })[0];
+  }
+
+  it('should render AVENTOS_HF_TOP as two folding fronts split by a visible gap (asymmetric)', () => {
+    const position = buildLiftUp({
+      liftMechanismType: 'AVENTOS_HF_TOP',
+      hfUpperFrontHeightMm: 400
+    } as Partial<KitchenCabinet>);
+
+    const fronts = position.fronts
+      .filter(front => front.type === 'DOOR_SINGLE')
+      .sort((a, b) => a.y - b.y);
+    expect(fronts).toHaveSize(2);
+    // Widoczna przerwa między skrzydłami: dół górnego frontu < góra dolnego frontu.
+    expect(fronts[0].y + fronts[0].height).toBeLessThan(fronts[1].y);
+    // Reguła Blum „większy front u góry" — przy 400/700 górne skrzydło jest wyższe.
+    expect(fronts[0].height).toBeGreaterThan(fronts[1].height);
+    // Front składany ma uchwyt do podniesienia, ale bez bocznego zawiasu.
+    expect(position.handles).toHaveSize(1);
+    expect(fronts.every(front => front.hingesSide === undefined)).toBeTrue();
+  });
+
+  it('should render AVENTOS_HF_TOP symmetric (null upper height) as ~50/50 fronts with a gap', () => {
+    const position = buildLiftUp({
+      liftMechanismType: 'AVENTOS_HF_TOP',
+      hfUpperFrontHeightMm: null
+    } as Partial<KitchenCabinet>);
+
+    const fronts = position.fronts
+      .filter(front => front.type === 'DOOR_SINGLE')
+      .sort((a, b) => a.y - b.y);
+    expect(fronts).toHaveSize(2);
+    expect(fronts[0].y + fronts[0].height).toBeLessThan(fronts[1].y);
+    expect(fronts[0].height).toBeCloseTo(fronts[1].height, 0);
+  });
+
+  it('should render non-HF lift mechanism (GAS_GTV) as a single front', () => {
+    const position = buildLiftUp({
+      liftMechanismType: 'GAS_GTV',
+      hfUpperFrontHeightMm: null
+    } as Partial<KitchenCabinet>);
+
+    expect(position.fronts.filter(front => front.type === 'DOOR_SINGLE')).toHaveSize(1);
+  });
 });

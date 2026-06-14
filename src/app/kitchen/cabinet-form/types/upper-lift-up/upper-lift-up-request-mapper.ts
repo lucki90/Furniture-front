@@ -27,6 +27,10 @@ export class UpperLiftUpRequestMapper extends AbstractCabinetRequestMapper {
       varnishedFront: materialDefaults.varnishedFront,
 
       isLiftUp: true,
+      liftMechanismType: form.liftMechanismType ?? 'GAS_GTV',
+      allowThirdLiftMechanism: form.allowThirdLiftMechanism ?? false,
+      // Fronty asymetryczne HF (TKH): tylko AVENTOS_HF_TOP; null = symetryczny (parytet z walidatorem BE)
+      hfUpperFrontHeightMm: form.liftMechanismType === 'AVENTOS_HF_TOP' ? (form.hfUpperFrontHeightMm ?? null) : null,
       frontType: 'UPWARDS',
       cabinetType: 'STANDARD',
       openingType: form.openingType ?? 'HANDLE',

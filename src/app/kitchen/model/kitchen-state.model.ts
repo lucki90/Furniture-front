@@ -1,5 +1,5 @@
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
-import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
+import { OpeningType, LiftMechanismType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { WallType, PositioningMode, CabinetSide, IslandAdjacentSide } from './kitchen-project.model';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
@@ -279,6 +279,12 @@ export interface KCabinetUpperLiftUp extends KitchenCabinetBase {
   type: KitchenCabinetType.UPPER_LIFT_UP;
   isLiftUp: true;
   isFrontExtended: boolean;
+  // V2A: typ mechanizmu podnośnika klapy (GAS_GTV domyślny; Aventos HK top / HK-S / HF top — realny dobór Blum z orientacyjnym cennikiem)
+  liftMechanismType: LiftMechanismType;
+  // Aventos: zezwól na dobór trzeciego mechanizmu dla zbyt ciężkiego frontu (HK-S / HF top); domyślnie false → 422 poza zakresem
+  allowThirdLiftMechanism: boolean;
+  // Fronty asymetryczne HF (TKH, doc §10.4): nominalna wysokość górnego frontu; null = symetryczny (tylko AVENTOS_HF_TOP)
+  hfUpperFrontHeightMm: number | null;
 }
 
 export interface KCabinetUpperTwoDoor extends KitchenCabinetBase {
@@ -537,6 +543,9 @@ export interface CabinetFormData {
   // Pola szafek wiszacych (UPPER_LIFT_UP, legacy UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   isLiftUp?: boolean;          // klapa lift-up / front unoszony do gory
   isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
+  liftMechanismType?: string;  // V2A: typ podnośnika klapy dla UPPER_LIFT_UP (GAS_GTV domyślny)
+  allowThirdLiftMechanism?: boolean; // Aventos: zezwól na trzeci mechanizm (HK-S / HF top) dla zbyt ciężkiego frontu
+  hfUpperFrontHeightMm?: number | null; // fronty asymetryczne HF (TKH): wysokość górnego frontu; null = symetryczny
 
   // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
   drainerFrontType?: string;   // OPEN | ONE_DOOR | TWO_DOORS

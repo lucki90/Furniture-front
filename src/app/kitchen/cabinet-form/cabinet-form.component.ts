@@ -38,7 +38,8 @@ import {
   isCargoMechanismNominalWidth
 } from './types/base-cargo/cargo-cabinet.model';
 import { CornerMechanismType } from './model/corner-cabinet.model';
-import { ProjectSettingsConstraints } from './model/kitchen-cabinet-constants';
+import { ProjectSettingsConstraints, LiftMechanismType, supportsThirdLiftMechanism, supportsHfAsymmetricFront } from './model/kitchen-cabinet-constants';
+import { hfUpperFrontHeightValidator } from './types/upper-lift-up/upper-lift-up.validators';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -97,8 +98,19 @@ export class CabinetFormComponent implements OnChanges {
     return !!(v.cornerWidthA || v.cascadeSegments || v.segments
       || v.sinkFrontType || v.cooktopType || v.hoodFrontType || v.drainerFrontType
       || v.ovenHeightType || v.fridgeSectionType || v.fridgeFreestandingType
-      || v.liftUp || v.extendedFront || v.enclosureSection);
+      || v.liftUp || v.extendedFront || v.liftMechanismType || v.allowThirdLiftMechanism
+      || v.hfUpperFrontHeightMm || v.enclosureSection);
   }
+  /**
+   * Mechanizmy podnośnika klapy dla UPPER_LIFT_UP: GAS_GTV + realny dobór Blum Aventos (HK top / HK-S / HF top).
+   * Etykiety z backendowego słownika (LIFT_MECHANISM_TYPE), memoizowane aby nie odbudowywać tablicy w każdym cyklu CD.
+   */
+  readonly liftMechanismTypes = computed(() =>
+    this.dictionaryService.data().liftMechanismTypes.map(item => ({
+      value: item.code,
+      label: item.label
+    }))
+  );
   /** Opening types from DictionaryService, memoized to avoid rebuilding arrays on every CD cycle. */
   readonly openingTypes = computed(() =>
     this.dictionaryService.data().openingTypes.map(item => ({
@@ -383,6 +395,28 @@ export class CabinetFormComponent implements OnChanges {
         this.refreshCornerHangingVisibility(mechanism as CornerMechanismType);
       });
 
+    // UPPER_LIFT_UP — opcje zależne od mechanizmu: trzeci mechanizm Aventos (HK-S / HF top) i wysokość górnego
+    // frontu HF (tylko HF top). Preparer NIE jest ponownie uruchamiany przy zmianie mechanizmu w selekcie, więc tu
+    // odświeżamy widoczność (parytet z BE) i zerujemy wartości, których nowy mechanizm nie obsługuje.
+    this.form.get('liftMechanismType')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(mechanism => {
+        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.UPPER_LIFT_UP) {
+          return;
+        }
+        this.refreshLiftMechanismDependentVisibility(mechanism as LiftMechanismType);
+      });
+
+    // UPPER_LIFT_UP / HF top — walidator wysokości górnego frontu zależy od wysokości szafki (< height),
+    // więc po zmianie wysokości rewalidujemy pole, gdy fronty asymetryczne HF są aktywne.
+    this.form.get('height')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.visibility.hfUpperFrontHeightMm) {
+          this.form.get('hfUpperFrontHeightMm')?.updateValueAndValidity({ emitEvent: false });
+        }
+      });
+
     // BASE_WITH_DRAWERS — synchronizacja FormArray wysokosci z drawerQuantity i drawerLayoutType
     this.form.get('drawerLayoutType')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -477,6 +511,13 @@ export class CabinetFormComponent implements OnChanges {
     const lifecycleResult = this.typeLifecycleService.applyTypeChange(this.form, type, this.editingCabinet);
     this.visibility = lifecycleResult.visibility;
 
+    // UPPER_LIFT_UP — po przywróceniu wartości edytowanej szafki (restore patchuje z emitEvent:false, więc
+    // subskrypcja selektu się nie odpala) widoczność opcji zależnych od mechanizmu (trzeci mechanizm, wysokość
+    // górnego frontu HF) musi odzwierciedlać REALNY mechanizm zapisanej szafki, nie domyślny z preparera.
+    if (type === KitchenCabinetType.UPPER_LIFT_UP) {
+      this.refreshLiftMechanismDependentVisibility(this.form.get('liftMechanismType')?.value as LiftMechanismType);
+    }
+
     // Reset taba do "basic" — w przeciwnym razie po zmianie typu można utknąć w tabie Opcje
     // który dla nowego typu może być pusty (np. przejście BASE_SINK -> BASE_OPEN).
     if (this.activeTab !== 'basic') {
@@ -526,6 +567,37 @@ export class CabinetFormComponent implements OnChanges {
       }, { emitEvent: false });
     }
 
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * UPPER_LIFT_UP — odświeża widoczność opcji zależnych od mechanizmu podnośnika. Checkbox „Zezwól na trzeci
+   * mechanizm Aventos" obsługuje wyłącznie HK-S / HF top (parytet z katalogiem BE {@code AventosCatalog}), a pole
+   * wysokości górnego frontu (fronty asymetryczne TKH, doc §10.4) wyłącznie HF top — dla pozostałych mechanizmów
+   * sekcje są ukrywane. Gdy nowy mechanizm nie obsługuje opcji, zerujemy wartość kontrolki, żeby nie wysłać
+   * „martwej" wartości do backendu.
+   */
+  private refreshLiftMechanismDependentVisibility(mechanism: LiftMechanismType | null): void {
+    const allowsThird = supportsThirdLiftMechanism(mechanism);
+    const allowsHfAsymmetry = supportsHfAsymmetricFront(mechanism);
+    this.visibility = {
+      ...this.visibility,
+      allowThirdLiftMechanism: allowsThird,
+      hfUpperFrontHeightMm: allowsHfAsymmetry
+    };
+    if (!allowsThird && this.form.get('allowThirdLiftMechanism')?.value) {
+      this.form.get('allowThirdLiftMechanism')?.setValue(false, { emitEvent: false });
+    }
+    const hfControl = this.form.get('hfUpperFrontHeightMm');
+    if (allowsHfAsymmetry) {
+      hfControl?.setValidators(hfUpperFrontHeightValidator);
+    } else {
+      hfControl?.clearValidators();
+      if (hfControl?.value != null) {
+        hfControl.setValue(null, { emitEvent: false });
+      }
+    }
+    hfControl?.updateValueAndValidity({ emitEvent: false });
     this.cdr.markForCheck();
   }
 

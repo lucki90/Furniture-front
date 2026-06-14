@@ -210,6 +210,127 @@ describe('CabinetFormComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('mechanizm cargo moze nie pasowac');
   });
 
+  describe('UPPER_LIFT_UP — third Aventos mechanism checkbox visibility', () => {
+    it('treats the lift mechanism section as options tab content', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      (component as any).activeTab = 'options';
+      fixture.detectChanges();
+
+      expect(component.hasOptionsTabContent()).toBeTrue();
+      expect(fixture.nativeElement.textContent).toContain('Mechanizm podnośnika');
+      expect(fixture.nativeElement.textContent).not.toContain('Ten typ szafki nie ma dodatkowych opcji');
+    });
+
+    it('hides the third-mechanism checkbox for default GAS_GTV mechanism', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      (component as any).activeTab = 'options';
+      fixture.detectChanges();
+
+      expect(component.form.get('liftMechanismType')?.value).toBe('GAS_GTV');
+      expect(component.visibility.allowThirdLiftMechanism).toBeFalse();
+      expect(fixture.nativeElement.textContent).toContain('Mechanizm podnośnika');
+      expect(fixture.nativeElement.textContent).not.toContain('Zezwól na trzeci mechanizm Aventos');
+    });
+
+    it('shows the third-mechanism checkbox for AVENTOS_HK_S', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      (component as any).activeTab = 'options';
+      component.form.get('liftMechanismType')?.setValue('AVENTOS_HK_S');
+      fixture.detectChanges();
+
+      expect(component.visibility.allowThirdLiftMechanism).toBeTrue();
+      expect(fixture.nativeElement.textContent).toContain('Zezwól na trzeci mechanizm Aventos');
+    });
+
+    it('keeps the third-mechanism checkbox hidden for AVENTOS_HK_TOP', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      (component as any).activeTab = 'options';
+      component.form.get('liftMechanismType')?.setValue('AVENTOS_HK_TOP');
+      fixture.detectChanges();
+
+      expect(component.visibility.allowThirdLiftMechanism).toBeFalse();
+      expect(fixture.nativeElement.textContent).toContain('Mechanizm podnośnika');
+      expect(fixture.nativeElement.textContent).not.toContain('Zezwól na trzeci mechanizm Aventos');
+    });
+
+    it('shows the third-mechanism checkbox for AVENTOS_HF_TOP', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      (component as any).activeTab = 'options';
+      component.form.get('liftMechanismType')?.setValue('AVENTOS_HF_TOP');
+      fixture.detectChanges();
+
+      expect(component.visibility.allowThirdLiftMechanism).toBeTrue();
+      expect(fixture.nativeElement.textContent).toContain('Zezwól na trzeci mechanizm Aventos');
+    });
+
+    it('zeroes the opt-in when switching from a supported mechanism to GAS_GTV', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      component.form.get('liftMechanismType')?.setValue('AVENTOS_HK_S');
+      component.form.get('allowThirdLiftMechanism')?.setValue(true);
+      fixture.detectChanges();
+
+      component.form.get('liftMechanismType')?.setValue('GAS_GTV');
+      fixture.detectChanges();
+
+      expect(component.visibility.allowThirdLiftMechanism).toBeFalse();
+      expect(component.form.get('allowThirdLiftMechanism')?.value).toBeFalse();
+    });
+
+    it('sanitizes a saved-but-unsupported AVENTOS_HK_TOP + opt-in: hides checkbox and zeroes the control', () => {
+      // [P3] Stan z bazy moze niesc "martwy" opt-in (HK top nie wspiera trzeciego mechanizmu, ale raw zapis go zachowal).
+      // Gdy formularz odswiezy widocznosc dla HK top, checkbox musi zniknac, a kontrolka wyzerowac sie — zeby nie wyslac
+      // martwego allowThirdLiftMechanism dalej do backendu.
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      (component as any).activeTab = 'options';
+      component.form.get('allowThirdLiftMechanism')?.setValue(true);
+      component.form.get('liftMechanismType')?.setValue('AVENTOS_HK_TOP');
+      fixture.detectChanges();
+
+      expect(component.visibility.allowThirdLiftMechanism).toBeFalse();
+      expect(component.form.get('allowThirdLiftMechanism')?.value).toBeFalse();
+      expect(fixture.nativeElement.textContent).not.toContain('Zezwól na trzeci mechanizm Aventos');
+    });
+  });
+
+  describe('UPPER_LIFT_UP — HF asymmetric front field visibility (hfUpperFrontHeightMm)', () => {
+    it('shows the upper-front height field only for AVENTOS_HF_TOP', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      (component as any).activeTab = 'options';
+      component.form.get('liftMechanismType')?.setValue('AVENTOS_HF_TOP');
+      fixture.detectChanges();
+
+      expect(component.visibility.hfUpperFrontHeightMm).toBeTrue();
+      expect(fixture.nativeElement.textContent).toContain('Wysokość górnego frontu (mm)');
+    });
+
+    it('keeps the upper-front height field hidden for non-HF mechanisms (HK-S)', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      (component as any).activeTab = 'options';
+      component.form.get('liftMechanismType')?.setValue('AVENTOS_HK_S');
+      fixture.detectChanges();
+
+      expect(component.visibility.hfUpperFrontHeightMm).toBeFalse();
+      expect(fixture.nativeElement.textContent).not.toContain('Wysokość górnego frontu (mm)');
+    });
+
+    it('zeroes the upper-front height when switching from AVENTOS_HF_TOP to another mechanism', () => {
+      // Wartość asymetrii nie może przeżyć zmiany mechanizmu — walidator BE odrzuca hfUpperFrontHeightMm
+      // dla mechanizmów innych niż AVENTOS_HF_TOP.
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      (component as any).activeTab = 'options';
+      component.form.get('liftMechanismType')?.setValue('AVENTOS_HF_TOP');
+      component.form.get('hfUpperFrontHeightMm')?.setValue(420);
+      fixture.detectChanges();
+
+      component.form.get('liftMechanismType')?.setValue('AVENTOS_HK_S');
+      fixture.detectChanges();
+
+      expect(component.visibility.hfUpperFrontHeightMm).toBeFalse();
+      expect(component.form.get('hfUpperFrontHeightMm')?.value).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Wysokość górnego frontu (mm)');
+    });
+  });
+
   it('shows pantry passage door variant selector and validates one-door width over 600 mm', () => {
     component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.PANTRY_PASSAGE);
     new PantryPassageCabinetValidator().validate(component.form);
@@ -240,6 +361,12 @@ class DictionaryServiceStub {
     drawerModels: [
       { code: 'ANTARO_TANDEMBOX', label: 'Blum Antaro / Tandembox' },
       { code: 'SEVROLL_BALL', label: 'Sevroll kulkowe' }
+    ],
+    liftMechanismTypes: [
+      { code: 'GAS_GTV', label: 'Podnośnik gazowy (GTV)' },
+      { code: 'AVENTOS_HK_TOP', label: 'Aventos HK top' },
+      { code: 'AVENTOS_HK_S', label: 'Aventos HK-S' },
+      { code: 'AVENTOS_HF_TOP', label: 'Aventos HF top (front składany)' }
     ]
   });
 }
@@ -291,6 +418,8 @@ class CabinetFormTypeLifecycleServiceStub {
         cargoWidthSelect: type === KitchenCabinetType.BASE_CARGO,
         cargoVariant: type === KitchenCabinetType.BASE_CARGO,
         pantryPassageFrontType: type === KitchenCabinetType.PANTRY_PASSAGE,
+        liftMechanismType: type === KitchenCabinetType.UPPER_LIFT_UP,
+        liftUp: type === KitchenCabinetType.UPPER_LIFT_UP,
         enclosureSection: false,
         openingType: type !== KitchenCabinetType.BASE_OPEN
       },

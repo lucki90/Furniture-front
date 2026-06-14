@@ -1,6 +1,6 @@
 <form [formGroup]="form" class="cabinet-form">
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â• TAB BAR â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ═══════════ TAB BAR ═══════════ -->
   <div class="form-tabs" role="tablist" aria-label="Sekcje formularza szafki">
     <button type="button" role="tab"
             class="form-tab"
@@ -28,7 +28,7 @@
     </button>
   </div>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: PODSTAWOWE â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ═══════════ TAB: PODSTAWOWE ═══════════ -->
   <ng-container *ngIf="activeTab === 'basic'">
 
     <!-- Wiersz 1: Nazwa i Typ szafki -->
@@ -39,33 +39,33 @@
       </div>
       <div class="form-group flex-2">
         <label class="form-label">Typ szafki</label>
-        <!-- Ukryty select â€” potrzebny dla reactive forms binding -->
+        <!-- Ukryty select — potrzebny dla reactive forms binding -->
         <select class="form-control" formControlName="kitchenCabinetType" style="display:none">
-          <option value="BASE_TWO_DOOR">Dolna â€“ 2 drzwi</option>
-          <option value="BASE_ONE_DOOR">Dolna â€“ 1 drzwi</option>
-          <option value="BASE_OPEN">Dolna â€“ otwarta</option>
-          <option value="BASE_CARGO">Dolna â€“ cargo</option>
-          <option value="BASE_WITH_DRAWERS">Dolna â€“ szuflady</option>
-          <option value="BASE_SINK">Dolna â€“ zlewowa</option>
-          <option value="BASE_COOKTOP">Dolna â€“ pod plyte grzewczÄ…</option>
-          <option value="BASE_DISHWASHER">Dolna â€“ zmywarka (front)</option>
-          <option value="BASE_DISHWASHER_FREESTANDING">Dolna â€“ zmywarka wolnostojÄ…ca</option>
-          <option value="BASE_OVEN">Dolna â€“ piekarnik (zabudowany)</option>
-          <option value="BASE_OVEN_FREESTANDING">Dolna â€“ piekarnik wolnostojÄ…cy</option>
-          <option value="BASE_FRIDGE">Slupek â€“ lodowka w zabudowie</option>
-          <option value="BASE_FRIDGE_FREESTANDING">Dolna â€“ lodowka wolnostojÄ…ca</option>
-          <option value="PANTRY_PASSAGE">Przejscie do spizarni</option>
-          <option value="UPPER_ONE_DOOR">WiszÄ…ca â€“ 1 drzwi</option>
-          <option value="UPPER_LIFT_UP">Wiszaca â€“ klapa do gory</option>
-          <option value="UPPER_TWO_DOOR">WiszÄ…ca â€“ 2 drzwi</option>
-          <option value="UPPER_OPEN_SHELF">WiszÄ…ca â€“ otwarta polka</option>
-          <option value="UPPER_CASCADE">WiszÄ…ca â€“ kaskadowa</option>
-          <option value="UPPER_HOOD">WiszÄ…ca â€“ na okap</option>
+          <option value="BASE_TWO_DOOR">Dolna – 2 drzwi</option>
+          <option value="BASE_ONE_DOOR">Dolna – 1 drzwi</option>
+          <option value="BASE_OPEN">Dolna – otwarta</option>
+          <option value="BASE_CARGO">Dolna – cargo</option>
+          <option value="BASE_WITH_DRAWERS">Dolna – szuflady</option>
+          <option value="BASE_SINK">Dolna – zlewowa</option>
+          <option value="BASE_COOKTOP">Dolna – pod płytę grzewczą</option>
+          <option value="BASE_DISHWASHER">Dolna – zmywarka (front)</option>
+          <option value="BASE_DISHWASHER_FREESTANDING">Dolna – zmywarka wolnostojąca</option>
+          <option value="BASE_OVEN">Dolna – piekarnik (zabudowany)</option>
+          <option value="BASE_OVEN_FREESTANDING">Dolna – piekarnik wolnostojący</option>
+          <option value="BASE_FRIDGE">Słupek – lodówka w zabudowie</option>
+          <option value="BASE_FRIDGE_FREESTANDING">Dolna – lodówka wolnostojąca</option>
+          <option value="PANTRY_PASSAGE">Przejście do spiżarni</option>
+          <option value="UPPER_ONE_DOOR">Wisząca – 1 drzwi</option>
+          <option value="UPPER_LIFT_UP">Wisząca – klapa do góry</option>
+          <option value="UPPER_TWO_DOOR">Wisząca – 2 drzwi</option>
+          <option value="UPPER_OPEN_SHELF">Wisząca – otwarta półka</option>
+          <option value="UPPER_CASCADE">Wisząca – kaskadowa</option>
+          <option value="UPPER_HOOD">Wisząca – na okap</option>
           <option value="UPPER_DRAINER">Szafka z ociekaczem</option>
-          <option value="TALL_CABINET">Slupek</option>
-          <option value="CORNER_CABINET">Narozna</option>
+          <option value="TALL_CABINET">Słupek</option>
+          <option value="CORNER_CABINET">Narożna</option>
         </select>
-        <!-- Widoczny trigger â€” otwiera dialog pickera -->
+        <!-- Widoczny trigger — otwiera dialog pickera -->
         <button type="button" class="type-picker-trigger" (click)="openTypePicker()">
           <span class="type-picker-current">{{ currentTypeLabel }}</span>
           <span class="type-picker-chevron">v</span>
@@ -124,7 +124,7 @@
          więc nie renderujemy go osobno tutaj (uniknięcie duplikatu wymiarów). -->
     <app-corner-form *ngIf="visibility.cornerWidthA" [form]="form"></app-corner-form>
 
-    <!-- Pantry passage â€” wariant drzwi -->
+    <!-- Pantry passage — wariant drzwi -->
     <div class="form-row" *ngIf="visibility.pantryPassageFrontType">
       <div class="form-group flex-2">
         <label class="form-label">Wariant drzwi przejscia</label>
@@ -158,7 +158,7 @@
       </div>
     </div>
 
-    <!-- Info: obliczona wysokosc blatu (dla szafek dolnych BASE_*, z wyjÄ…tkiem wolnostojÄ…cych AGD) -->
+    <!-- Info: obliczona wysokosc blatu (dla szafek dolnych BASE_*, z wyjątkiem wolnostojących AGD) -->
     <div *ngIf="isBaseCabinet && !isFreestandingAppliance && visibility.width !== false" class="countertop-info-bar">
       Blat na wysokosci: <strong>{{ computedCountertopHeight }} mm</strong>
       <span class="countertop-info-detail">
@@ -166,15 +166,15 @@
       </span>
     </div>
 
-    <!-- Info: szafka wiszÄ…ca (dla szafek UPPER_*) -->
+    <!-- Info: szafka wisząca (dla szafek UPPER_*) -->
     <div *ngIf="isUpperCabinet && (visibility.width !== false || visibility.drainerWidthSelect)" class="countertop-info-bar upper-info-bar">
-      Szafka wiszÄ…ca â€” montaz na szynie, bez cokolu i blatu.
+      Szafka wisząca — montaż na szynie, bez cokołu i blatu.
       <span class="countertop-info-detail">
         Pozycja Y obliczana automatycznie z ustawien projektu.
       </span>
     </div>
 
-    <!-- Opcje frontu/wnÄ™trza -->
+    <!-- Opcje frontu/wnętrza -->
     <div class="form-row">
       <div class="form-group" *ngIf="visibility.openingType !== false">
         <label class="form-label">Typ otwarcia</label>
@@ -236,10 +236,10 @@
 
   </ng-container>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: POZYCJA â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ═══════════ TAB: POZYCJA ═══════════ -->
   <ng-container *ngIf="activeTab === 'position'">
 
-    <!-- Strona wyspy + pusta przestrzeĹ„ przed -->
+    <!-- Strona wyspy + pusta przestrzeń przed -->
     <div class="form-row">
       <div class="form-group flex-2" *ngIf="isIslandWall">
         <label class="form-label">Strona wyspy</label>
@@ -247,35 +247,35 @@
           <option value="FRONT">FRONT</option>
           <option value="BACK">BACK</option>
         </select>
-        <span class="form-hint">Front i back ukĹ‚adajÄ… siÄ™ niezaleĹĽnie po dwĂłch stronach wyspy.</span>
+        <span class="form-hint">Front i back układają się niezależnie po dwóch stronach wyspy.</span>
       </div>
       <div class="form-group" [class.flex-1]="isIslandWall" [class.flex-2]="!isIslandWall">
-        <label class="form-label">Pusta przestrzeĹ„ przed (mm)</label>
+        <label class="form-label">Pusta przestrzeń przed (mm)</label>
         <input type="number" class="form-control" formControlName="gapBeforeMm" min="0" max="5000" step="50">
-        <span class="form-hint">Dodaje pustÄ… przestrzeĹ„ przed tÄ… szafkÄ… w aktualnym rzÄ™dzie, wiÄ™c kolejne pozycjonowanie zaczyna siÄ™ dalej.</span>
+        <span class="form-hint">Dodaje pustą przestrzeń przed tą szafką w aktualnym rzędzie, więc kolejne pozycjonowanie zaczyna się dalej.</span>
       </div>
     </div>
 
-    <!-- Sekcja pozycjonowania (tylko szafki wiszÄ…ce UPPER_*) -->
+    <!-- Sekcja pozycjonowania (tylko szafki wiszące UPPER_*) -->
     <div *ngIf="visibility.positioningMode" class="positioning-section">
       <h4 class="section-title">Pozycjonowanie</h4>
       <div class="form-row">
         <div class="form-group flex-2">
           <label class="form-label">Tryb</label>
           <select class="form-control" formControlName="positioningMode">
-            <option value="RELATIVE_TO_CEILING">Od sufitu (z blendÄ…)</option>
-            <option value="RELATIVE_TO_COUNTERTOP">Od blatu (z odstÄ™pem)</option>
+            <option value="RELATIVE_TO_CEILING">Od sufitu (z blendą)</option>
+            <option value="RELATIVE_TO_COUNTERTOP">Od blatu (z odstępem)</option>
           </select>
         </div>
         <app-form-field class="form-group flex-2" *ngIf="isCountertopMode"
-            label="OdstÄ™p od blatu" unit="mm"
+            label="Odstęp od blatu" unit="mm"
             hint="Standard 550-600 mm, min. 450 mm (przestrzen robocza)"
             [errorMessage]="getFieldError('gapFromCountertopMm')">
           <input type="number" class="form-control" formControlName="gapFromCountertopMm" min="450" step="10">
         </app-form-field>
         <app-form-field class="form-group flex-2" *ngIf="visibility.gapFromAnchorMm && !isCountertopMode"
-            label="Min. odlegĹ‚oĹ›Ä‡ od sĹ‚upka" unit="mm"
-            hint="Minimalny wymagany odstÄ™p miÄ™dzy wierzchoĹ‚kiem sĹ‚upka/lodĂłwki a doĹ‚em szafki. Tylko walidacja â€” nie zmienia pozycji (0â€“500 mm)."
+            label="Min. odległość od słupka" unit="mm"
+            hint="Minimalny wymagany odstęp między wierzchołkiem słupka/lodówki a dołem szafki. Tylko walidacja — nie zmienia pozycji (0–500 mm)."
             [errorMessage]="getFieldError('gapFromAnchorMm')">
           <input type="number" class="form-control" formControlName="gapFromAnchorMm" min="0" max="500" step="5">
         </app-form-field>
@@ -284,7 +284,7 @@
         <ng-container *ngIf="!isCountertopMode">
           <span class="positioning-info-icon">[sufit]</span>
           <span>
-            Szafka przylegnie do sufitu z blendÄ… <strong>{{ stateService.upperFillerHeightMm() }} mm</strong>.
+            Szafka przylegnie do sufitu z blendą <strong>{{ stateService.upperFillerHeightMm() }} mm</strong>.
             Pozycja = wysokosc sciany - blenda - wysokosc korpusu.
           </span>
         </ng-container>
@@ -311,14 +311,14 @@
     <div *ngIf="visibility.blockUpperAbove" class="config-field">
       <label class="form-label enclosure-checkbox-label">
         <input type="checkbox" formControlName="blockUpperAbove" class="enclosure-checkbox" />
-        Brak szafki wiszÄ…cej powyĹĽej
-        <span class="form-hint">(blokuje umieszczenie wiszÄ…cych nad tym elementem)</span>
+        Brak szafki wiszącej powyżej
+        <span class="form-hint">(blokuje umieszczenie wiszących nad tym elementem)</span>
       </label>
     </div>
 
   </ng-container>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â• TAB: OPCJE â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ═══════════ TAB: OPCJE ═══════════ -->
   <ng-container *ngIf="activeTab === 'options'">
 
     <!-- Sekcja kaskadowych segmentow (UPPER_CASCADE) -->
@@ -347,13 +347,13 @@
     <!-- Szafka zlewowa (BASE_SINK) -->
     <app-sink-form *ngIf="visibility.sinkFrontType" [form]="form"></app-sink-form>
 
-    <!-- Szafka pod plyte grzewczÄ… (BASE_COOKTOP) -->
+    <!-- Szafka pod płytę grzewczą (BASE_COOKTOP) -->
     <app-cooktop-form *ngIf="visibility.cooktopType" [form]="form"></app-cooktop-form>
 
-    <!-- Szafka wiszÄ…ca na okap (UPPER_HOOD) -->
+    <!-- Szafka wisząca na okap (UPPER_HOOD) -->
     <app-hood-form *ngIf="visibility.hoodFrontType" [form]="form"></app-hood-form>
 
-    <!-- Szafka wiszÄ…ca z ociekaczem (UPPER_DRAINER) -->
+    <!-- Szafka wisząca z ociekaczem (UPPER_DRAINER) -->
     <div *ngIf="visibility.drainerFrontType" class="sink-section">
       <h4 class="section-title">Konfiguracja ociekacza</h4>
       <div class="form-row">
@@ -364,7 +364,7 @@
             <option value="ONE_DOOR">1 drzwi</option>
             <option value="TWO_DOORS">2 drzwi</option>
           </select>
-          <span class="form-hint">Ociekacz montowany jest wewnÄ…trz szafki. Wybierz wariant frontu â€” bez drzwi (otwarta) lub z drzwiami ochronnymi.</span>
+          <span class="form-hint">Ociekacz montowany jest wewnątrz szafki. Wybierz wariant frontu — bez drzwi (otwarta) lub z drzwiami ochronnymi.</span>
         </div>
       </div>
     </div>
@@ -372,12 +372,44 @@
     <!-- Szafka na wbudowany piekarnik (BASE_OVEN) -->
     <app-oven-form *ngIf="visibility.ovenHeightType" [form]="form"></app-oven-form>
 
-    <!-- Szafka na lodĂłwkÄ™ (BASE_FRIDGE / BASE_FRIDGE_FREESTANDING) -->
+    <!-- Szafka na lodówkę (BASE_FRIDGE / BASE_FRIDGE_FREESTANDING) -->
     <app-fridge-form *ngIf="visibility.fridgeSectionType || visibility.fridgeFreestandingType" [form]="form"></app-fridge-form>
 
     <!-- Opcje frontu szafki wiszacej (UPPER_ONE_DOOR / UPPER_LIFT_UP / UPPER_TWO_DOOR) -->
-    <div *ngIf="visibility.liftUp || visibility.extendedFront" class="sink-section">
+    <div *ngIf="visibility.liftUp || visibility.extendedFront || visibility.liftMechanismType" class="sink-section">
       <h4 class="section-title">Opcje frontu</h4>
+
+      <!-- Mechanizm podnośnika klapy (UPPER_LIFT_UP) -->
+      <div class="form-row" *ngIf="visibility.liftMechanismType">
+        <div class="form-group flex-2">
+          <label class="form-label">Mechanizm podnośnika</label>
+          <select class="form-control" formControlName="liftMechanismType">
+            <option *ngFor="let opt of liftMechanismTypes(); trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
+          </select>
+          <span class="form-hint">Podnośnik gazowy (GTV) oraz Aventos HK top / HK-S / HF top są dostępne (realny dobór mechanizmu wg wagi frontu i wymiarów; ceny katalogowe orientacyjne). Aventos HF top to front składany z 2 skrzydeł &mdash; domyślnie symetryczny, opcjonalnie asymetryczny (pole „Wysokość górnego frontu").</span>
+        </div>
+      </div>
+
+      <!-- Aventos: zezwolenie na trzeci mechanizm dla zbyt ciężkiego frontu (HK-S / HF top) -->
+      <div class="form-row" *ngIf="visibility.allowThirdLiftMechanism">
+        <div class="form-group flex-2">
+          <label class="form-label enclosure-checkbox-label">
+            <input type="checkbox" formControlName="allowThirdLiftMechanism" class="enclosure-checkbox">
+            Zezwól na trzeci mechanizm Aventos (cięższy front)
+          </label>
+          <span class="form-hint">Dotyczy Aventos HK-S / HF top. Gdy front jest zbyt ciężki dla pojedynczej pary mechanizmów, dobór próbuje trzeciego mechanizmu (siła LF / 1.5). Gdy trzeci mechanizm jest realnie potrzebny, w wycenie pojawia się dodatkowy, oznaczony wiersz mechanizmu (dodatkowy hardware do dokupienia). Domyślnie wyłączone (zbyt ciężki front kończy się błędem).</span>
+        </div>
+      </div>
+
+      <!-- Aventos HF top: fronty asymetryczne (TKH) — nominalna wysokość górnego frontu -->
+      <div class="form-row" *ngIf="visibility.hfUpperFrontHeightMm">
+        <div class="form-group flex-2">
+          <label class="form-label">Wysokość górnego frontu (mm)</label>
+          <input type="number" class="form-control" formControlName="hfUpperFrontHeightMm" min="1" [max]="form.get('height')?.value || 1200">
+          <span class="form-error" *ngIf="form.get('hfUpperFrontHeightMm')?.touched && form.get('hfUpperFrontHeightMm')?.errors?.['message']">{{ form.get('hfUpperFrontHeightMm')?.errors?.['message'] }}</span>
+          <span class="form-hint">Pole opcjonalne (puste = front symetryczny, skrzydła równej wysokości). Dla frontu asymetrycznego dobór liczy TKH = 2 &times; wysokość górnego frontu + szczelina. Zalecenie Blum: większy front u góry (wysokość górnego frontu &ge; połowy frontu całkowitego).</span>
+        </div>
+      </div>
 
       <!-- Klapa lift-up -->
       <div class="form-row" *ngIf="visibility.liftUp">
@@ -397,7 +429,7 @@
             <input type="checkbox" formControlName="isFrontExtended" class="enclosure-checkbox">
             Przedluzony front (wychodzi ponad korpus)
           </label>
-          <span class="form-hint">Front wysuniÄ™ty ponad gorny wieniec (wg ustawien technicznych, domyLvnie 23 mm). Stosowane przy szafkach do sufitu.</span>
+          <span class="form-hint">Front wysunięty ponad górny wieniec (wg ustawień technicznych, domyślnie 23 mm). Stosowane przy szafkach do sufitu.</span>
         </div>
       </div>
     </div>
@@ -410,16 +442,16 @@
 
     <!-- Pusty stan -->
     <div *ngIf="!hasOptionsTabContent()" class="form-tab-empty">
-      Ten typ szafki nie ma dodatkowych opcji do skonfigurowania. SprawdĹş zakĹ‚adkÄ™ <strong>Podstawowe</strong>.
+      Ten typ szafki nie ma dodatkowych opcji do skonfigurowania. Sprawdź zakładkę <strong>Podstawowe</strong>.
     </div>
 
   </ng-container>
 
-  <!-- â•â•â•â•â•â•â•â•â•â•â• FOOTER FORMULARZA â€” zawsze widoczny â•â•â•â•â•â•â•â•â•â•â• -->
+  <!-- ═══════════ FOOTER FORMULARZA — zawsze widoczny ═══════════ -->
 
   <!-- Podsumowanie bledow walidacji -->
   <div *ngIf="validationErrors.length > 0" class="validation-summary">
-    <span class="validation-summary-icon">âš </span>
+    <span class="validation-summary-icon">⚠</span>
     <div>
       <strong>Uzupelnij przed dodaniem szafki:</strong>
       <ul class="validation-error-list">
@@ -431,7 +463,7 @@
   <!-- Powod blokady przycisku gdy brak szczegolowych bledow w podsumowaniu powyzej -->
   <div *ngIf="addDisabledReason && validationErrors.length === 0 && !loading"
        class="add-disabled-hint">
-    <span class="validation-summary-icon">âš </span>
+    <span class="validation-summary-icon">⚠</span>
     <span>{{ addDisabledReason }}</span>
   </div>
 

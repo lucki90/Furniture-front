@@ -363,7 +363,9 @@ describe('KitchenCabinetStateFactory', () => {
       depth: 340,
       positionY: 0,
       shelfQuantity: 1,
-      isFrontExtended: true
+      isFrontExtended: true,
+      liftMechanismType: 'AVENTOS_HK_S',
+      allowThirdLiftMechanism: true
     } as CabinetFormData, 'lift-up-1', {
       boards: [],
       components: [],
@@ -378,7 +380,35 @@ describe('KitchenCabinetStateFactory', () => {
       id: 'lift-up-1',
       type: KitchenCabinetType.UPPER_LIFT_UP,
       isLiftUp: true,
-      isFrontExtended: true
+      isFrontExtended: true,
+      liftMechanismType: 'AVENTOS_HK_S',
+      allowThirdLiftMechanism: true
+    }));
+  });
+
+  it('should default lift mechanism to GAS_GTV when form data omits it', () => {
+    const cabinet = factory.fromFormData({
+      kitchenCabinetType: KitchenCabinetType.UPPER_LIFT_UP,
+      openingType: 'HANDLE',
+      width: 600,
+      height: 400,
+      depth: 340,
+      positionY: 0,
+      shelfQuantity: 1,
+      isFrontExtended: false
+    } as CabinetFormData, 'lift-up-2', {
+      boards: [],
+      components: [],
+      jobs: [],
+      summaryCosts: 0,
+      boardTotalCost: 0,
+      componentTotalCost: 0,
+      jobTotalCost: 0
+    });
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      type: KitchenCabinetType.UPPER_LIFT_UP,
+      liftMechanismType: 'GAS_GTV'
     }));
   });
 
@@ -409,7 +439,101 @@ describe('KitchenCabinetStateFactory', () => {
       id: 'legacy-lift-1',
       type: KitchenCabinetType.UPPER_LIFT_UP,
       isLiftUp: true,
-      isFrontExtended: false
+      isFrontExtended: false,
+      liftMechanismType: 'GAS_GTV'
     }));
+  });
+
+  it('should preserve persisted lift mechanism when reconstructing UPPER_LIFT_UP response', () => {
+    const cabinet = factory.fromPlacementResponse({
+      id: 8,
+      cabinetId: 'lift-resp-1',
+      cabinetType: KitchenCabinetType.UPPER_LIFT_UP,
+      positionX: 0,
+      positionY: 1200,
+      widthMm: 600,
+      heightMm: 400,
+      depthMm: 340,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      shelfQuantity: 1,
+      isLiftUp: true,
+      isFrontExtended: false,
+      liftMechanismType: 'AVENTOS_HK_TOP',
+      allowThirdLiftMechanism: true,
+      boardsCost: 90,
+      componentsCost: 60,
+      jobsCost: 30,
+      totalCost: 180,
+      displayOrder: 0
+    }, 'fallback-lift-2');
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      type: KitchenCabinetType.UPPER_LIFT_UP,
+      liftMechanismType: 'AVENTOS_HK_TOP',
+      allowThirdLiftMechanism: true
+    }));
+  });
+
+  it('should carry hfUpperFrontHeightMm from form data for AVENTOS_HF_TOP (asymmetric front)', () => {
+    const cabinet = factory.fromFormData({
+      kitchenCabinetType: KitchenCabinetType.UPPER_LIFT_UP,
+      openingType: 'HANDLE',
+      width: 600,
+      height: 700,
+      depth: 340,
+      positionY: 0,
+      shelfQuantity: 1,
+      isFrontExtended: false,
+      liftMechanismType: 'AVENTOS_HF_TOP',
+      hfUpperFrontHeightMm: 420
+    } as CabinetFormData, 'lift-up-hf-1', {
+      boards: [],
+      components: [],
+      jobs: [],
+      summaryCosts: 0,
+      boardTotalCost: 0,
+      componentTotalCost: 0,
+      jobTotalCost: 0
+    });
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      type: KitchenCabinetType.UPPER_LIFT_UP,
+      liftMechanismType: 'AVENTOS_HF_TOP',
+      hfUpperFrontHeightMm: 420
+    }));
+  });
+
+  it('should round-trip hfUpperFrontHeightMm when reconstructing UPPER_LIFT_UP response (null when absent)', () => {
+    const baseResponse = {
+      id: 9,
+      cabinetId: 'lift-resp-hf-1',
+      cabinetType: KitchenCabinetType.UPPER_LIFT_UP,
+      positionX: 0,
+      positionY: 1200,
+      widthMm: 600,
+      heightMm: 700,
+      depthMm: 340,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      shelfQuantity: 1,
+      isLiftUp: true,
+      isFrontExtended: false,
+      liftMechanismType: 'AVENTOS_HF_TOP',
+      boardsCost: 90,
+      componentsCost: 60,
+      jobsCost: 30,
+      totalCost: 180,
+      displayOrder: 0
+    };
+
+    const asymmetric = factory.fromPlacementResponse(
+      { ...baseResponse, hfUpperFrontHeightMm: 420 }, 'fallback-hf-1');
+    const symmetric = factory.fromPlacementResponse(baseResponse, 'fallback-hf-2');
+
+    expect(asymmetric).toEqual(jasmine.objectContaining({ hfUpperFrontHeightMm: 420 }));
+    expect(symmetric).toEqual(jasmine.objectContaining({ hfUpperFrontHeightMm: null }));
   });
 });

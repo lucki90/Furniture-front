@@ -121,6 +121,69 @@ describe('CabinetFormEditingService', () => {
     expect(form.get('drawerLayoutType')?.value).toBe('EQUAL');
   });
 
+  it('should restore liftMechanismType and allowThirdLiftMechanism when editing an UPPER_LIFT_UP cabinet', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+
+    service.patchFormForEditing(form, {
+      id: 'lift-hks',
+      type: KitchenCabinetType.UPPER_LIFT_UP,
+      openingType: 'NONE' as any,
+      width: 900,
+      height: 500,
+      depth: 340,
+      positionY: 1200,
+      shelfQuantity: 1,
+      isLiftUp: true,
+      liftMechanismType: 'AVENTOS_HK_S',
+      allowThirdLiftMechanism: true
+    } as unknown as KitchenCabinet);
+
+    expect(form.get('isLiftUp')?.value).toBeTrue();
+    expect(form.get('liftMechanismType')?.value).toBe('AVENTOS_HK_S');
+    expect(form.get('allowThirdLiftMechanism')?.value).toBeTrue();
+  });
+
+  it('should default liftMechanismType to GAS_GTV and clear third mechanism for legacy lift-up cabinet without explicit fields', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+
+    service.patchFormForEditing(form, {
+      id: 'lift-legacy',
+      type: KitchenCabinetType.UPPER_LIFT_UP,
+      openingType: 'HANDLE' as any,
+      width: 600,
+      height: 400,
+      depth: 340,
+      positionY: 1200,
+      shelfQuantity: 1,
+      isLiftUp: true
+    } as unknown as KitchenCabinet);
+
+    expect(form.get('liftMechanismType')?.value).toBe('GAS_GTV');
+    expect(form.get('allowThirdLiftMechanism')?.value).toBeFalse();
+    expect(form.get('hfUpperFrontHeightMm')?.value).toBeNull();
+  });
+
+  it('should restore hfUpperFrontHeightMm when editing an AVENTOS_HF_TOP cabinet with asymmetric front', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+
+    service.patchFormForEditing(form, {
+      id: 'lift-hf-asym',
+      type: KitchenCabinetType.UPPER_LIFT_UP,
+      openingType: 'HANDLE' as any,
+      width: 600,
+      height: 700,
+      depth: 340,
+      positionY: 1200,
+      shelfQuantity: 1,
+      isLiftUp: true,
+      liftMechanismType: 'AVENTOS_HF_TOP',
+      hfUpperFrontHeightMm: 420
+    } as unknown as KitchenCabinet);
+
+    expect(form.get('liftMechanismType')?.value).toBe('AVENTOS_HF_TOP');
+    expect(form.get('hfUpperFrontHeightMm')?.value).toBe(420);
+  });
+
   it('should infer blind-panel split from persisted visible width when legacy corner cabinet has no explicit flag', () => {
     const form = DefaultKitchenFormFactory.create(fb);
 

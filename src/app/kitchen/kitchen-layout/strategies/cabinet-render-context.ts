@@ -61,6 +61,19 @@ export interface CabinetRenderContext {
     upperSections?: SegmentFormData[];
   };
   /**
+   * Konfiguracja podnośnika klapy (UPPER_LIFT_UP) — steruje widokiem frontu w elewacji.
+   * Aventos HF top jest frontem składanym z DWÓCH skrzydeł → rysujemy dwa fronty z widoczną przerwą.
+   * Pozostałe mechanizmy (GAS_GTV, HK top, HK-S) to pojedyncza klapa → renderowane jak zwykłe drzwi.
+   */
+  liftConfig?: {
+    /** true = Aventos HF top (front składany z dwóch skrzydeł). */
+    hfFolding: boolean;
+    /** Nominalna wysokość górnego frontu (mm); null = symetryczny (podział 50/50). */
+    upperFrontHeightMm?: number | null;
+    /** Całkowita wysokość szafki (mm) — baza do proporcji podziału na górny/dolny front. */
+    cabinetHeightMm?: number;
+  };
+  /**
    * Konfiguracja szafki narożnej (Faza 11.4) — steruje widokiem frontu w elewacji.
    * Type A (L-shape): TWO_DOORS / BIFOLD. Type B (blind): front uchylny + ślepy panel.
    * Dotyczy zarówno dolnej, jak i górnej (UPPER_CORNER jako wariant `isUpperCorner`) szafki narożnej.

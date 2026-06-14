@@ -338,7 +338,10 @@ export class ProjectWallCabinetsBuilder {
       case KitchenCabinetType.UPPER_LIFT_UP:
         return {
           isLiftUp: true,
-          isFrontExtended: cab.isFrontExtended
+          isFrontExtended: cab.isFrontExtended,
+          liftMechanismType: cab.liftMechanismType ?? 'GAS_GTV',
+          allowThirdLiftMechanism: cab.allowThirdLiftMechanism ?? false,
+          hfUpperFrontHeightMm: cab.hfUpperFrontHeightMm ?? null
         };
       case KitchenCabinetType.UPPER_DRAINER:
         return { drainerFrontType: cab.drainerFrontType };

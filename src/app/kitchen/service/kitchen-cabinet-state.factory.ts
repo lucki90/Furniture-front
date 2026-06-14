@@ -10,7 +10,7 @@ import {
 import { CabinetPlacementResponse } from '../model/kitchen-project.model';
 import { SegmentFormData, SegmentRequest } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
-import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
+import { OpeningType, LiftMechanismType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 
 @Injectable({
@@ -171,7 +171,10 @@ export class KitchenCabinetStateFactory {
           ...base,
           type: KitchenCabinetType.UPPER_LIFT_UP,
           isLiftUp: true,
-          isFrontExtended: formData.isFrontExtended ?? false
+          isFrontExtended: formData.isFrontExtended ?? false,
+          liftMechanismType: (formData.liftMechanismType ?? 'GAS_GTV') as LiftMechanismType,
+          allowThirdLiftMechanism: formData.allowThirdLiftMechanism ?? false,
+          hfUpperFrontHeightMm: formData.hfUpperFrontHeightMm ?? null
         };
       case KitchenCabinetType.UPPER_TWO_DOOR:
         return {
@@ -365,7 +368,10 @@ export class KitchenCabinetStateFactory {
             ...baseFromResp,
             type: KitchenCabinetType.UPPER_LIFT_UP,
             isLiftUp: true,
-            isFrontExtended: cabResp.isFrontExtended ?? false
+            isFrontExtended: cabResp.isFrontExtended ?? false,
+            liftMechanismType: (cabResp.liftMechanismType ?? 'GAS_GTV') as LiftMechanismType,
+            allowThirdLiftMechanism: cabResp.allowThirdLiftMechanism ?? false,
+            hfUpperFrontHeightMm: cabResp.hfUpperFrontHeightMm ?? null
           };
         }
         return {
@@ -379,7 +385,10 @@ export class KitchenCabinetStateFactory {
           ...baseFromResp,
           type: KitchenCabinetType.UPPER_LIFT_UP,
           isLiftUp: true,
-          isFrontExtended: cabResp.isFrontExtended ?? false
+          isFrontExtended: cabResp.isFrontExtended ?? false,
+          liftMechanismType: (cabResp.liftMechanismType ?? 'GAS_GTV') as LiftMechanismType,
+          allowThirdLiftMechanism: cabResp.allowThirdLiftMechanism ?? false,
+          hfUpperFrontHeightMm: cabResp.hfUpperFrontHeightMm ?? null
         };
       case KitchenCabinetType.UPPER_TWO_DOOR:
         return {

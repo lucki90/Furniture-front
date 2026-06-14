@@ -114,10 +114,13 @@ export const KitchenCabinetConstraints = {
     SHELF_MAX: 4
   },
   UPPER_LIFT_UP: {
+    // Zakres mechanizm-agnostyczny (suma zakresów mechanizmów Aventos HK top / HK-S / HF top).
+    // Źródłem prawdy jest BE (UpperLiftUpKitchenCabinetValidator); twarde limity per-mechanizm
+    // (KH/KB/LT, waga frontu, LF) egzekwuje warstwa strategii → niezgodna konfiguracja kończy się błędem 422.
     WIDTH_MIN: 300,
     WIDTH_MAX: 900,
-    HEIGHT_MIN: 300,
-    HEIGHT_MAX: 600,
+    HEIGHT_MIN: 180,
+    HEIGHT_MAX: 1200,
     DEPTH_MIN: 250,
     DEPTH_MAX: 400,
     SHELF_MIN: 0,
@@ -271,3 +274,43 @@ export const OPENING_TYPES = [
 ] as const;
 
 export type OpeningType = typeof OPENING_TYPES[number]['value'];
+
+/**
+ * Wartości (kontrakt enuma) mechanizmu podnośnika klapy dla szafki otwieranej do góry (UPPER_LIFT_UP).
+ *
+ * GAS_GTV jest w pełni zaimplementowany (matryca DB). Systemy Blum Aventos liczy realny silnik doboru po stronie
+ * backendu (katalog HK top / HK-S / HF top — matryca siły LF, kody modeli, ramiona, zawiasy); niezgodna konfiguracja
+ * kończy się tam błędem 422. Kody katalogowe Blum mają już realne (orientacyjne) ceny w cenniku. GAS_GTV jest
+ * wartością domyślną (również dla legacy frontów UPWARDS bez jawnego mechanizmu). HF top składa front z dwóch
+ * skrzydeł (jeden nad drugim) — domyślnie symetrycznych, opcjonalnie asymetrycznych (pole hfUpperFrontHeightMm, TKH).
+ *
+ * Etykiety dropdownu pochodzą teraz z backendowego słownika (LIFT_MECHANISM_TYPE → DictionaryService.liftMechanismTypes),
+ * tak jak pozostałe słowniki. Tutaj trzymamy wyłącznie zamknięty zbiór wartości jako kontrakt typu (parytet z BE
+ * LiftMechanismTypeEnum) — używany do walidacji, wartości domyślnej i logiki trzeciego mechanizmu.
+ */
+export const LIFT_MECHANISM_TYPE_VALUES = ['GAS_GTV', 'AVENTOS_HK_TOP', 'AVENTOS_HK_S', 'AVENTOS_HF_TOP'] as const;
+
+export type LiftMechanismType = typeof LIFT_MECHANISM_TYPE_VALUES[number];
+
+export const DEFAULT_LIFT_MECHANISM_TYPE: LiftMechanismType = 'GAS_GTV';
+
+/**
+ * Mechanizmy Aventos, dla których backend (katalog {@code AventosCatalog}) dopuszcza opcję trzeciego mechanizmu
+ * (rozłożenie LF na komplet wzmocniony). Tylko HK-S i HF top mają {@code supportsThirdMechanism=true} — HK top oraz
+ * podnośnik gazowy GTV nie korzystają z tej opcji, więc checkbox „Zezwól na trzeci mechanizm" nie powinien być dla nich
+ * pokazywany (parytet z BE → inaczej martwe/mylące ustawienie).
+ */
+export const LIFT_MECHANISMS_SUPPORTING_THIRD: readonly LiftMechanismType[] = ['AVENTOS_HK_S', 'AVENTOS_HF_TOP'];
+
+export function supportsThirdLiftMechanism(type: LiftMechanismType | null | undefined): boolean {
+  return type != null && LIFT_MECHANISMS_SUPPORTING_THIRD.includes(type);
+}
+
+/**
+ * Fronty asymetryczne (TKH, doc §10.4) obsługuje wyłącznie Aventos HF top — jedyny system z frontem składanym
+ * z 2 skrzydeł. Pole {@code hfUpperFrontHeightMm} (nominalna wysokość górnego frontu) jest pokazywane i wysyłane
+ * tylko dla tego mechanizmu (parytet z walidatorem BE {@code UpperLiftUpKitchenCabinetValidator}).
+ */
+export function supportsHfAsymmetricFront(type: LiftMechanismType | null | undefined): boolean {
+  return type === 'AVENTOS_HF_TOP';
+}

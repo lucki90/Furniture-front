@@ -105,6 +105,10 @@ export class DefaultKitchenFormFactory {
       // Upper one/two door
       isLiftUp: [false],
       isFrontExtended: [false],
+      liftMechanismType: ['GAS_GTV'],
+      allowThirdLiftMechanism: [false],
+      // Fronty asymetryczne HF (TKH): nominalna wysokość górnego frontu; null = front symetryczny
+      hfUpperFrontHeightMm: [null as number | null],
 
       // Drainer
       drainerFrontType: ['OPEN']

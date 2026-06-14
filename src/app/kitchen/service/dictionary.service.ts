@@ -29,6 +29,7 @@ export interface AllDictionaries {
   cornerMechanisms: DictionaryItem[];
   segmentTypes: DictionaryItem[];
   enclosureTypes: DictionaryItem[];
+  liftMechanismTypes: DictionaryItem[];
 }
 
 /** Fallback — polskie etykiety gdy backend niedostępny */
@@ -52,6 +53,7 @@ export const DICTIONARY_FALLBACK: AllDictionaries = {
   cornerMechanisms:        [{ code: 'FIXED_SHELVES', label: 'Półki stałe' }, { code: 'CAROUSEL_270', label: 'Karuzela 270°' }, { code: 'CAROUSEL_360', label: 'Karuzela 360°' }, { code: 'MAGIC_CORNER_COMFORT', label: 'Magic Corner Comfort' }, { code: 'MAGIC_CORNER_STANDARD', label: 'Magic Corner Standard' }, { code: 'LE_MANS_I', label: 'Fasolka Le Mans I' }, { code: 'LE_MANS_II', label: 'Fasolka Le Mans II' }, { code: 'BLIND_CORNER', label: 'Ślepy narożnik' }, { code: 'NONE', label: 'Brak (pusta)' }],
   segmentTypes:            [{ code: 'DRAWER', label: 'Szuflady' }, { code: 'DOOR', label: 'Drzwi' }, { code: 'OPEN_SHELF', label: 'Otwarte półki' }, { code: 'OVEN', label: 'Piekarnik (wnęka)' }, { code: 'MICROWAVE', label: 'Mikrofalówka (wnęka)' }],
   enclosureTypes:          [{ code: 'NONE', label: 'Brak obudowy' }, { code: 'SIDE_PLATE_WITH_PLINTH', label: 'Płyta boczna + cokół' }, { code: 'SIDE_PLATE_TO_FLOOR', label: 'Płyta boczna do podłogi' }, { code: 'PARALLEL_FILLER_STRIP', label: 'Blenda równoległa' }],
+  liftMechanismTypes:      [{ code: 'GAS_GTV', label: 'Podnośnik gazowy (GTV)' }, { code: 'AVENTOS_HK_TOP', label: 'Aventos HK top' }, { code: 'AVENTOS_HK_S', label: 'Aventos HK-S' }, { code: 'AVENTOS_HF_TOP', label: 'Aventos HF top (front składany)' }],
 };
 
 @Injectable({ providedIn: 'root' })

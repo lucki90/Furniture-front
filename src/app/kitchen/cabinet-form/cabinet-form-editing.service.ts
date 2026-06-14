@@ -114,6 +114,9 @@ export class CabinetFormEditingService {
       blindPanelVisibleWidthMm,
       isLiftUp: c.isLiftUp ?? false,
       isFrontExtended: c.isFrontExtended ?? false,
+      liftMechanismType: c.liftMechanismType ?? 'GAS_GTV',
+      allowThirdLiftMechanism: c.allowThirdLiftMechanism ?? false,
+      hfUpperFrontHeightMm: c.hfUpperFrontHeightMm ?? null,
       drainerFrontType: c.drainerFrontType ?? 'OPEN'
     };
   }

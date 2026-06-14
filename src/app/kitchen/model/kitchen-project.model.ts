@@ -209,6 +209,9 @@ export interface ProjectCabinetRequest {
   // Pola szafek wiszacych (UPPER_LIFT_UP, legacy UPPER_ONE_DOOR, UPPER_TWO_DOOR)
   isLiftUp?: boolean;          // klapa lift-up / front unoszony do gory
   isFrontExtended?: boolean;   // front wychodzi ponad górny wieniec (extendedFrontMm)
+  liftMechanismType?: string;  // V2A: typ podnośnika klapy dla UPPER_LIFT_UP (GAS_GTV domyślny; HK top/HK-S/HF top)
+  allowThirdLiftMechanism?: boolean; // Aventos: zezwól na trzeci mechanizm (HK-S / HF top) dla zbyt ciężkiego frontu
+  hfUpperFrontHeightMm?: number | null; // fronty asymetryczne HF (TKH): wysokość górnego frontu; null = symetryczny
 
   // Pola szafki wiszącej z ociekaczem (UPPER_DRAINER)
   drainerFrontType?: string;   // OPEN | ONE_DOOR | TWO_DOORS
@@ -555,6 +558,9 @@ export interface CabinetPlacementResponse {
   fridgeFreestandingType?: string;
   isLiftUp?: boolean;
   isFrontExtended?: boolean;
+  liftMechanismType?: string; // V2A: round-trip podnośnika klapy (legacy → GAS_GTV)
+  allowThirdLiftMechanism?: boolean; // Aventos: round-trip zezwolenia na trzeci mechanizm (HK-S / HF top)
+  hfUpperFrontHeightMm?: number | null; // fronty asymetryczne HF (TKH): round-trip wysokości górnego frontu
   drainerFrontType?: string;
   magicCornerFrontOnHinges?: boolean;
 

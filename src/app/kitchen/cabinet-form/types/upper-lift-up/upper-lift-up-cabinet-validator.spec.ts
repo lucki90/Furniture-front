@@ -33,14 +33,26 @@ describe('UpperLiftUpCabinetValidator', () => {
     expect(form.get('width')?.valid).toBeFalse();
   });
 
-  it('rejects height below 300 mm', () => {
-    form.get('height')?.setValue(299);
+  it('rejects height below 180 mm', () => {
+    form.get('height')?.setValue(179);
 
     expect(form.get('height')?.valid).toBeFalse();
   });
 
-  it('rejects height above 600 mm', () => {
-    form.get('height')?.setValue(601);
+  it('accepts height at lower bound 180 mm', () => {
+    form.get('height')?.setValue(180);
+
+    expect(form.get('height')?.valid).toBeTrue();
+  });
+
+  it('accepts tall lift-up front within Aventos HF range (height 1000 mm)', () => {
+    form.get('height')?.setValue(1000);
+
+    expect(form.get('height')?.valid).toBeTrue();
+  });
+
+  it('rejects height above 1200 mm', () => {
+    form.get('height')?.setValue(1201);
 
     expect(form.get('height')?.valid).toBeFalse();
   });
