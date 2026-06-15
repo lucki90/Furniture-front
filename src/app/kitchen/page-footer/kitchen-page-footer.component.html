@@ -8,7 +8,7 @@
       <span class="footer-stat-label">Scian</span>
       <span class="footer-stat-value">{{ wallsCount }}</span>
     </div>
-    <div class="footer-stat" *ngIf="projectResult">
+    <div *ngIf="projectResult" class="footer-stat">
       <span class="footer-stat-label">Lacznie</span>
       <span class="footer-stat-value footer-stat-value--accent">{{ adjustedTotalCost.toFixed(0) }} zł</span>
     </div>
@@ -18,16 +18,16 @@
     <div class="footer-actions-aux">
       <ng-container *ngIf="projectResult">
         <button
-          class="btn-footer btn-footer-secondary"
-          type="button"
           (click)="downloadExcel.emit()"
           [disabled]="isExporting"
-          [title]="isExporting ? 'Generowanie pliku...' : 'Pobierz liste plyt do zamowienia (.xlsx)'">
+          [title]="isExporting ? 'Generowanie pliku...' : 'Pobierz liste plyt do zamowienia (.xlsx)'"
+          class="btn-footer btn-footer-secondary"
+          type="button">
           <ng-container *ngIf="isExporting; else excelIcon">
-            <mat-icon class="btn-footer-icon btn-footer-icon--spinning" aria-hidden="true">autorenew</mat-icon>
+            <mat-icon aria-hidden="true" class="btn-footer-icon btn-footer-icon--spinning">autorenew</mat-icon>
           </ng-container>
           <ng-template #excelIcon>
-            <mat-icon class="btn-footer-icon" aria-hidden="true">table_chart</mat-icon>
+            <mat-icon aria-hidden="true" class="btn-footer-icon">table_chart</mat-icon>
           </ng-template>
           <span class="btn-footer-text">{{ isExporting ? 'Generowanie...' : 'Excel' }}</span>
         </button>
@@ -36,28 +36,28 @@
 
     <div class="workflow-actions">
       <button
-        class="btn workflow-action-btn workflow-action-btn--clear"
-        type="button"
         (click)="clearAll.emit()"
         [disabled]="totalCabinetCount === 0 || editingCabinetId !== null"
-        title="Wyczysc projekt">
-        <mat-icon class="workflow-action-icon" aria-hidden="true">delete</mat-icon>
+        class="btn workflow-action-btn workflow-action-btn--clear"
+        title="Wyczysc projekt"
+        type="button">
+        <mat-icon aria-hidden="true" class="workflow-action-icon">delete</mat-icon>
         Wyczysc
       </button>
       <button
-        class="btn workflow-action-btn workflow-action-btn--calculate"
-        type="button"
         (click)="calculateProject.emit()"
-        [disabled]="totalCabinetCount === 0 || isCalculatingProject || editingCabinetId !== null">
-        <mat-icon class="workflow-action-icon" aria-hidden="true">functions</mat-icon>
+        [disabled]="totalCabinetCount === 0 || isCalculatingProject || editingCabinetId !== null"
+        class="btn workflow-action-btn workflow-action-btn--calculate"
+        type="button">
+        <mat-icon aria-hidden="true" class="workflow-action-icon">functions</mat-icon>
         <span class="btn-footer-text">{{ isCalculatingProject ? 'Wyliczam...' : 'Wylicz' }}</span>
       </button>
       <button
-        class="btn workflow-action-btn workflow-action-btn--save"
-        type="button"
         (click)="saveProject.emit()"
-        [disabled]="totalCabinetCount === 0 || isSavingProject || editingCabinetId !== null">
-        <mat-icon class="workflow-action-icon" aria-hidden="true">save</mat-icon>
+        [disabled]="totalCabinetCount === 0 || isSavingProject || editingCabinetId !== null"
+        class="btn workflow-action-btn workflow-action-btn--save"
+        type="button">
+        <mat-icon aria-hidden="true" class="workflow-action-icon">save</mat-icon>
         <span class="btn-footer-text">{{ isSavingProject ? 'Zapisuje...' : 'Zapisz' }}</span>
       </button>
     </div>

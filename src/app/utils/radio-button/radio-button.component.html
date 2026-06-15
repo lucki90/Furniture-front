@@ -1,22 +1,22 @@
-<div *ngIf="visible" class="radio-button-group" [class.disabled]="disabled" [class.has-error]="hasError">
+<div *ngIf="visible" [class.disabled]="disabled" [class.has-error]="hasError" class="radio-button-group">
   <span *ngIf="title" class="group-title">{{ title }}</span>
 
   <div class="radio-options">
     <div *ngFor="let option of options; let i = index; trackBy: trackByValue" class="radio-option">
       <input
-        class="radio-input"
-        type="radio"
-        [id]="id + '-' + i"
-        [value]="option.value"
+        (change)="onSelectionChange(option.value)"
         [checked]="option.value === selectedValue"
         [disabled]="disabled"
-        (change)="onSelectionChange(option.value)"
+        [id]="id + '-' + i"
         [title]="option.tooltip || ''"
+        [value]="option.value"
+        class="radio-input"
+        type="radio"
       />
       <label
-        class="radio-label"
         [for]="id + '-' + i"
-        [title]="option.tooltip || ''">
+        [title]="option.tooltip || ''"
+        class="radio-label">
         {{ option.label }}
       </label>
     </div>

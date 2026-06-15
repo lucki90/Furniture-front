@@ -1,78 +1,85 @@
-<div class="wall-config-section" *ngIf="selectedWall()">
+<div *ngIf="selectedWall()" class="wall-config-section">
   <!-- Blat -->
   <div class="config-group">
     <div class="config-header">
       <label class="toggle-label">
-        <input type="checkbox" [(ngModel)]="countertopEnabled">
+        <input [(ngModel)]="countertopEnabled" type="checkbox">
         <span class="toggle-text">
-          <mat-icon class="toggle-text-icon" aria-hidden="true">countertops</mat-icon>
+          <mat-icon aria-hidden="true" class="toggle-text-icon">countertops</mat-icon>
           Blat
         </span>
       </label>
     </div>
-    <div class="config-fields" *ngIf="countertopEnabled">
+    <div *ngIf="countertopEnabled" class="config-fields">
       <div class="config-field">
         <label>Materiał</label>
         <select [(ngModel)]="countertopMaterial">
-          <option *ngFor="let opt of countertopMaterialOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of countertopMaterialOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label
+            }}
+          </option>
         </select>
       </div>
       <div class="config-field">
         <label>Grubość</label>
         <select [(ngModel)]="countertopThickness">
-          <option *ngFor="let opt of countertopThicknessOptions; trackBy: trackByValue" [ngValue]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of countertopThicknessOptions; trackBy: trackByValue" [ngValue]="opt.value">{{
+            opt.label }}
+          </option>
         </select>
       </div>
       <div class="config-field">
         <label>Łączenie</label>
         <select [(ngModel)]="countertopJoint">
-          <option *ngFor="let opt of countertopJointOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of countertopJointOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label
+            }}
+          </option>
         </select>
       </div>
       <div class="config-field">
         <label>Krawędź</label>
         <select [(ngModel)]="countertopEdge">
-          <option *ngFor="let opt of countertopEdgeOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of countertopEdgeOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}
+          </option>
         </select>
       </div>
       <!-- Głębokość blatu -->
       <div class="config-field">
         <label>Głębokość (mm)</label>
-        <input type="number" [(ngModel)]="countertopDepth"
-               min="200" max="1200" step="10"
-               title="Domyślna głębokość blatu to 600mm. Powinna być ≥ głębokości szafek.">
+        <input [(ngModel)]="countertopDepth" max="1200"
+               min="200" step="10" title="Domyślna głębokość blatu to 600mm. Powinna być ≥ głębokości szafek."
+               type="number">
         <span *ngIf="countertopDepthWarning()" class="warning-hint">
-          <mat-icon class="warning-hint-icon" aria-hidden="true">warning_amber</mat-icon>
+          <mat-icon aria-hidden="true" class="warning-hint-icon">warning_amber</mat-icon>
           Mniej niz glebokosc szafek ({{ maxBottomCabinetDepth() }}mm)
         </span>
       </div>
       <!-- Naddatek boczny -->
       <div class="config-field">
         <label>Naddatek boczny (mm)</label>
-        <input type="number" [(ngModel)]="countertopSideOverhang"
-               min="0" max="50" step="1"
-               title="Dodatkowe mm z każdej strony poza blendami bocznymi (standardowo 5mm)">
+        <input [(ngModel)]="countertopSideOverhang" max="50"
+               min="0" step="1" title="Dodatkowe mm z każdej strony poza blendami bocznymi (standardowo 5mm)"
+               type="number">
       </div>
-      <div class="config-field" *ngIf="isIslandWall">
+      <div *ngIf="isIslandWall" class="config-field">
         <label>Nawis front (mm)</label>
-        <input type="number" [(ngModel)]="countertopFrontOverhang" min="0" max="300" step="5">
+        <input [(ngModel)]="countertopFrontOverhang" max="300" min="0" step="5" type="number">
       </div>
-      <div class="config-field" *ngIf="isIslandWall && adjacentToWall !== 'BACK'">
+      <div *ngIf="isIslandWall && adjacentToWall !== 'BACK'" class="config-field">
         <label>Nawis back (mm)</label>
-        <input type="number" [(ngModel)]="countertopBackOverhang" min="0" max="300" step="5">
+        <input [(ngModel)]="countertopBackOverhang" max="300" min="0" step="5" type="number">
       </div>
       <!-- Nadpisz długość -->
       <div class="config-field">
         <label class="toggle-label">
-          <input type="checkbox" [checked]="countertopManualLengthEnabled"
-                 (change)="countertopManualLengthEnabled = $any($event.target).checked">
+          <input (change)="countertopManualLengthEnabled = $any($event.target).checked" [checked]="countertopManualLengthEnabled"
+                 type="checkbox">
           Nadpisz długość
         </label>
       </div>
-      <div class="config-field" *ngIf="countertopManualLengthEnabled">
+      <div *ngIf="countertopManualLengthEnabled" class="config-field">
         <label>Długość (mm)</label>
-        <input type="number" [(ngModel)]="countertopManualLength"
-               min="100" max="6000" step="10">
+        <input [(ngModel)]="countertopManualLength" max="6000"
+               min="100" step="10" type="number">
       </div>
     </div>
   </div>
@@ -81,18 +88,18 @@
   <div class="config-group">
     <div class="config-header">
       <label class="toggle-label">
-        <input type="checkbox" [(ngModel)]="plinthEnabled">
+        <input [(ngModel)]="plinthEnabled" type="checkbox">
         <span class="toggle-text">
-          <mat-icon class="toggle-text-icon" aria-hidden="true">view_agenda</mat-icon>
+          <mat-icon aria-hidden="true" class="toggle-text-icon">view_agenda</mat-icon>
           Cokol
         </span>
       </label>
-      <span class="config-info" *ngIf="plinthEnabled">({{ plinthHeight() }}mm)</span>
+      <span *ngIf="plinthEnabled" class="config-info">({{ plinthHeight() }}mm)</span>
     </div>
-    <div class="config-fields" *ngIf="plinthEnabled">
+    <div *ngIf="plinthEnabled" class="config-fields">
       <div class="config-field">
         <label>Wysokość cokołu (mm)</label>
-        <input type="number" [(ngModel)]="plinthHeightValue" min="90" max="170" step="1">
+        <input [(ngModel)]="plinthHeightValue" max="170" min="90" step="1" type="number">
         <small class="config-hint">
           Dobór nóżek: nominal {{ recommendedFeetOption().nominalHeightMm }} mm
           (regulacja {{ recommendedFeetOption().minHeightMm }}–{{ recommendedFeetOption().maxHeightMm }} mm)
@@ -101,13 +108,14 @@
       <div class="config-field">
         <label>Materiał</label>
         <select [(ngModel)]="plinthMaterial">
-          <option *ngFor="let opt of plinthMaterialOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
+          <option *ngFor="let opt of plinthMaterialOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}
+          </option>
         </select>
       </div>
       <div class="config-field">
         <label>Grubość (mm)</label>
-        <input type="number" [(ngModel)]="plinthThickness" min="12" max="25" step="1"
-               style="width:60px" [title]="'Grubość płyty cokołowej (domyślnie ' + plinthThickness + 'mm)'">
+        <input [(ngModel)]="plinthThickness" [title]="'Grubość płyty cokołowej (domyślnie ' + plinthThickness + 'mm)'" max="25" min="12" step="1"
+               style="width:60px" type="number">
       </div>
     </div>
   </div>
@@ -121,13 +129,13 @@
     <div class="config-fields">
       <div class="config-field">
         <label>Wysokość (mm)</label>
-        <input type="number" [(ngModel)]="upperFillerHeight"
-               min="0" max="150" step="10" class="number-input">
+        <input [(ngModel)]="upperFillerHeight" class="number-input"
+               max="150" min="0" step="10" type="number">
       </div>
     </div>
   </div>
 
-  <div class="config-group" *ngIf="isIslandWall">
+  <div *ngIf="isIslandWall" class="config-group">
     <div class="config-header">
       <span class="toggle-text">Wyspa</span>
       <span class="config-info">({{ islandDepth }} mm)</span>
@@ -135,29 +143,31 @@
     <div class="config-fields">
       <div class="config-field">
         <label>Głębokość wyspy (mm)</label>
-        <input type="number" [(ngModel)]="islandDepth" min="600" max="1500" step="10">
+        <input [(ngModel)]="islandDepth" max="1500" min="600" step="10" type="number">
       </div>
       <div class="config-field">
         <label>Przylega do ściany</label>
         <select [(ngModel)]="adjacentToWall">
-          <option *ngFor="let option of islandAdjacentOptions; trackBy: trackByValue" [value]="option.value">{{ option.label }}</option>
+          <option *ngFor="let option of islandAdjacentOptions; trackBy: trackByValue" [value]="option.value">{{
+            option.label }}
+          </option>
         </select>
       </div>
-      <div class="config-field" *ngIf="adjacentToWall !== 'LEFT'">
+      <div *ngIf="adjacentToWall !== 'LEFT'" class="config-field">
         <label class="toggle-label">
-          <input type="checkbox" [(ngModel)]="leftSidePanelEnabled">
+          <input [(ngModel)]="leftSidePanelEnabled" type="checkbox">
           Lewy panel boczny
         </label>
       </div>
-      <div class="config-field" *ngIf="adjacentToWall !== 'RIGHT'">
+      <div *ngIf="adjacentToWall !== 'RIGHT'" class="config-field">
         <label class="toggle-label">
-          <input type="checkbox" [(ngModel)]="rightSidePanelEnabled">
+          <input [(ngModel)]="rightSidePanelEnabled" type="checkbox">
           Prawy panel boczny
         </label>
       </div>
-      <div class="config-field" *ngIf="adjacentToWall !== 'BACK'">
+      <div *ngIf="adjacentToWall !== 'BACK'" class="config-field">
         <label class="toggle-label">
-          <input type="checkbox" [(ngModel)]="backBlendaEnabled">
+          <input [(ngModel)]="backBlendaEnabled" type="checkbox">
           Tylna blenda dekoracyjna
         </label>
       </div>

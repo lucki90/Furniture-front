@@ -11,32 +11,32 @@
     <div *ngIf="!companyLogoUrl" class="logo-dropzone">
       <span class="logo-dropzone-icon">🖼️</span>
       <span class="logo-dropzone-text">Nie ustawiono logo</span>
-      <label class="btn btn-sm logo-upload-btn" [class.disabled]="logoUploading">
+      <label [class.disabled]="logoUploading" class="btn btn-sm logo-upload-btn">
         <span *ngIf="logoUploading" class="spinner spinner-sm logo-spinner"></span>
         {{ logoUploading ? 'Przesyłanie…' : 'Wybierz plik' }}
-        <input type="file" accept="image/png,image/jpeg"
-               (change)="onLogoSelected($event)"
-               [disabled]="logoUploading"
-               class="settings-hidden-file-input" />
+        <input (change)="onLogoSelected($event)" [disabled]="logoUploading"
+               accept="image/png,image/jpeg"
+               class="settings-hidden-file-input"
+               type="file"/>
       </label>
     </div>
 
     <!-- Stan: logo ustawione -->
     <div *ngIf="companyLogoUrl" class="logo-filled">
       <div class="logo-img-wrap">
-        <img [src]="companyLogoUrl" alt="Logo firmy" class="logo-img" />
+        <img [src]="companyLogoUrl" alt="Logo firmy" class="logo-img"/>
       </div>
       <div class="logo-filled-actions">
-        <label class="btn btn-sm btn-outline" [class.disabled]="logoUploading">
+        <label [class.disabled]="logoUploading" class="btn btn-sm btn-outline">
           <span *ngIf="logoUploading" class="spinner spinner-sm logo-spinner"></span>
           {{ logoUploading ? 'Przesyłanie…' : 'Zmień' }}
-          <input type="file" accept="image/png,image/jpeg"
-                 (change)="onLogoSelected($event)"
-                 [disabled]="logoUploading"
-                 class="settings-hidden-file-input" />
+          <input (change)="onLogoSelected($event)" [disabled]="logoUploading"
+                 accept="image/png,image/jpeg"
+                 class="settings-hidden-file-input"
+                 type="file"/>
         </label>
-        <button class="btn btn-sm btn-outline-danger"
-                (click)="removeLogo()" [disabled]="logoUploading">
+        <button (click)="removeLogo()"
+                [disabled]="logoUploading" class="btn btn-sm btn-outline-danger">
           Usuń
         </button>
       </div>
@@ -46,29 +46,29 @@
   </div>
 
   <div class="form-grid">
-    <app-form-field label="Nazwa firmy" hint="Wyświetlana w nagłówku oferty (max 255 znaków)">
-      <input type="text" class="form-control" [(ngModel)]="companyName"
-             maxlength="255" placeholder="np. Studio Mebli XYZ" />
+    <app-form-field hint="Wyświetlana w nagłówku oferty (max 255 znaków)" label="Nazwa firmy">
+      <input [(ngModel)]="companyName" class="form-control" maxlength="255"
+             placeholder="np. Studio Mebli XYZ" type="text"/>
     </app-form-field>
 
-    <app-form-field label="Adres" hint="Adres firmy (max 500 znaków)">
-      <input type="text" class="form-control" [(ngModel)]="companyAddress"
-             maxlength="500" placeholder="np. ul. Stolarska 5, 00-001 Warszawa" />
+    <app-form-field hint="Adres firmy (max 500 znaków)" label="Adres">
+      <input [(ngModel)]="companyAddress" class="form-control" maxlength="500"
+             placeholder="np. ul. Stolarska 5, 00-001 Warszawa" type="text"/>
     </app-form-field>
 
-    <app-form-field label="Telefon" hint="Numer telefonu firmy (max 50 znaków)">
-      <input type="text" class="form-control" [(ngModel)]="companyPhone"
-             maxlength="50" placeholder="np. +48 600 100 200" />
+    <app-form-field hint="Numer telefonu firmy (max 50 znaków)" label="Telefon">
+      <input [(ngModel)]="companyPhone" class="form-control" maxlength="50"
+             placeholder="np. +48 600 100 200" type="text"/>
     </app-form-field>
 
-    <app-form-field label="E-mail" hint="Adres e-mail firmy (max 255 znaków)">
-      <input type="email" class="form-control" [(ngModel)]="companyEmail"
-             maxlength="255" placeholder="np. kontakt@meble.pl" />
+    <app-form-field hint="Adres e-mail firmy (max 255 znaków)" label="E-mail">
+      <input [(ngModel)]="companyEmail" class="form-control" maxlength="255"
+             placeholder="np. kontakt@meble.pl" type="email"/>
     </app-form-field>
 
-    <app-form-field label="Ważność oferty" unit="dni" hint="Liczba dni ważności oferty PDF (1–365)">
-      <input type="number" class="form-control" [(ngModel)]="offerValidityDays"
-             min="1" max="365" step="1" />
+    <app-form-field hint="Liczba dni ważności oferty PDF (1–365)" label="Ważność oferty" unit="dni">
+      <input [(ngModel)]="offerValidityDays" class="form-control" max="365"
+             min="1" step="1" type="number"/>
     </app-form-field>
   </div>
 

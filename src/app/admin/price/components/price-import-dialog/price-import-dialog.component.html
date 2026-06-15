@@ -2,20 +2,20 @@
 
 <mat-dialog-content>
   <div
-    class="drop-zone"
-    *ngIf="!importResult"
     (dragover)="onDragOver($event)"
     (drop)="onDrop($event)"
-    [class.has-file]="selectedFile">
+    *ngIf="!importResult"
+    [class.has-file]="selectedFile"
+    class="drop-zone">
 
     <input
-      type="file"
       #fileInput
-      hidden
+      (change)="onFileSelected($event)"
       [accept]="acceptedTypes"
-      (change)="onFileSelected($event)">
+      hidden
+      type="file">
 
-    <div *ngIf="!selectedFile" class="drop-content" (click)="fileInput.click()">
+    <div (click)="fileInput.click()" *ngIf="!selectedFile" class="drop-content">
       <mat-icon aria-hidden="true">cloud_upload</mat-icon>
       <p>Przeciagnij plik tutaj lub kliknij, aby wybrac</p>
       <span class="hint">Obslugiwane formaty: CSV, XLSX, XLS</span>
@@ -27,7 +27,7 @@
         <span class="file-name">{{ selectedFile.name }}</span>
         <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
       </div>
-      <button mat-icon-button type="button" (click)="clearSelectedFile(fileInput)">
+      <button (click)="clearSelectedFile(fileInput)" mat-icon-button type="button">
         <mat-icon>close</mat-icon>
       </button>
     </div>
@@ -40,10 +40,10 @@
 
   <div *ngIf="importResult" class="import-result">
     <div
-      class="result-summary"
-      [class.success]="importResult.failedImports === 0"
+      [class.failed]="importResult.successfulImports === 0"
       [class.partial]="importResult.failedImports > 0 && importResult.successfulImports > 0"
-      [class.failed]="importResult.successfulImports === 0">
+      [class.success]="importResult.failedImports === 0"
+      class="result-summary">
 
       <mat-icon *ngIf="importResult.failedImports === 0">check_circle</mat-icon>
       <mat-icon *ngIf="importResult.failedImports > 0">warning</mat-icon>
@@ -57,13 +57,13 @@
       </div>
     </div>
 
-    <mat-progress-bar mode="determinate" [value]="successRate"></mat-progress-bar>
+    <mat-progress-bar [value]="successRate" mode="determinate"></mat-progress-bar>
 
     <div *ngIf="hasErrors" class="errors-section">
       <h4>Bledy importu ({{ importResult.errors?.length }})</h4>
       <mat-list dense>
         <mat-list-item *ngFor="let error of importResult.errors; trackBy: trackByIndex">
-          <mat-icon matListItemIcon color="warn">error</mat-icon>
+          <mat-icon color="warn" matListItemIcon>error</mat-icon>
           <span matListItemTitle>Wiersz {{ error.rowNumber }}</span>
           <span matListItemLine>{{ error.message }}</span>
         </mat-list-item>
@@ -76,7 +76,7 @@
     <span>{{ error }}</span>
   </div>
 
-  <div class="format-hint" *ngIf="!importResult && !importing">
+  <div *ngIf="!importResult && !importing" class="format-hint">
     <h4>Format pliku CSV:</h4>
     <code>name,unit,currency,currentPrice,sourceUrl,urlSelector,description</code>
     <p>Pierwszy wiersz to naglowek i zostanie pominiety.</p>
@@ -84,16 +84,16 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="onClose()" [disabled]="importing">
+  <button (click)="onClose()" [disabled]="importing" mat-button type="button">
     {{ importResult ? 'Zamknij' : 'Anuluj' }}
   </button>
   <button
-    mat-raised-button
-    color="primary"
-    type="button"
-    *ngIf="!importResult"
     (click)="onImport()"
-    [disabled]="!selectedFile || importing">
+    *ngIf="!importResult"
+    [disabled]="!selectedFile || importing"
+    color="primary"
+    mat-raised-button
+    type="button">
     Importuj
   </button>
 </mat-dialog-actions>

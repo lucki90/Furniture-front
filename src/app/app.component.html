@@ -1,41 +1,45 @@
-<div class="app-shell" *ngIf="authService.isLoggedIn(); else authPages">
+<div *ngIf="authService.isLoggedIn(); else authPages" class="app-shell">
   <nav class="topnav">
     <a class="topnav-brand" routerLink="/kitchen/projects">
       <span class="topnav-logo">
-        <img src="assets/furnitio-logo-tight.png" alt="Furnitio" />
+        <img alt="Furnitio" src="assets/furnitio-logo-tight.png"/>
       </span>
     </a>
 
     <div class="topnav-links">
       <a class="topnav-link" routerLink="/alone-cabinet" routerLinkActive="active" title="Pojedyncza szafka">
-        <mat-icon class="topnav-link-icon" aria-hidden="true">inventory_2</mat-icon>
+        <mat-icon aria-hidden="true" class="topnav-link-icon">inventory_2</mat-icon>
         <span class="topnav-link-text">Pojedyncza szafka</span>
       </a>
       <a class="topnav-link" routerLink="/kitchen/projects" routerLinkActive="active" title="Projekty">
-        <mat-icon class="topnav-link-icon" aria-hidden="true">folder</mat-icon>
+        <mat-icon aria-hidden="true" class="topnav-link-icon">folder</mat-icon>
         <span class="topnav-link-text">Projekty</span>
       </a>
-      <a class="topnav-link" routerLink="/kitchen" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" title="Nowy projekt">
-        <mat-icon class="topnav-link-icon" aria-hidden="true">kitchen</mat-icon>
+      <a [routerLinkActiveOptions]="{exact: true}" class="topnav-link" routerLink="/kitchen" routerLinkActive="active"
+         title="Nowy projekt">
+        <mat-icon aria-hidden="true" class="topnav-link-icon">kitchen</mat-icon>
         <span class="topnav-link-text">Nowy projekt</span>
       </a>
-      <a class="topnav-link" *ngIf="authService.isAdmin()" routerLink="/admin/materials" routerLinkActive="active" title="Zarzadzanie materialami">
-        <mat-icon class="topnav-link-icon" aria-hidden="true">inventory</mat-icon>
+      <a *ngIf="authService.isAdmin()" class="topnav-link" routerLink="/admin/materials" routerLinkActive="active"
+         title="Zarzadzanie materialami">
+        <mat-icon aria-hidden="true" class="topnav-link-icon">inventory</mat-icon>
         <span class="topnav-link-text">Materialy</span>
       </a>
       <a class="topnav-link" routerLink="/settings" routerLinkActive="active" title="Ustawienia">
-        <mat-icon class="topnav-link-icon" aria-hidden="true">settings</mat-icon>
+        <mat-icon aria-hidden="true" class="topnav-link-icon">settings</mat-icon>
         <span class="topnav-link-text">Ustawienia</span>
       </a>
     </div>
 
     <div class="topnav-right">
       <select
-        class="topnav-lang"
-        [value]="languageService.lang()"
         (change)="onLanguageChange($event)"
+        [value]="languageService.lang()"
+        class="topnav-lang"
         title="Jezyk / Language">
-        <option *ngFor="let l of languageService.supportedLanguages; trackBy: trackByCode" [value]="l.code">{{ l.label }}</option>
+        <option *ngFor="let l of languageService.supportedLanguages; trackBy: trackByCode" [value]="l.code">{{ l.label
+          }}
+        </option>
       </select>
 
       <div class="topnav-user">
@@ -46,7 +50,7 @@
         </div>
       </div>
 
-      <button class="topnav-logout" type="button" (click)="authService.logout()" title="Wyloguj sie">
+      <button (click)="authService.logout()" class="topnav-logout" title="Wyloguj sie" type="button">
         Wyloguj
       </button>
     </div>

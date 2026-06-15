@@ -1,4 +1,4 @@
-<div class="numeric-input-container" [id]="id">
+<div [id]="id" class="numeric-input-container">
   <div class="numeric-input-header">
     <label *ngIf="label" [for]="id + '-input'" class="numeric-input-label">
       {{ label }}
@@ -7,37 +7,37 @@
   </div>
 
   <input
-    type="number"
-    [id]="id + '-input'"
-    [value]="value"
     (input)="onInputChange($event)"
-    [disabled]="_isDisabled"
-    [class.error]="hasError"
-    [min]="min"
-    [max]="max"
-    [step]="step"
     [appMaxLengthForNumber]="10"
+    [class.error]="hasError"
+    [disabled]="_isDisabled"
+    [id]="id + '-input'"
     [maxDecimalPlaces]="2"
+    [max]="max"
+    [min]="min"
+    [step]="step"
+    [value]="value"
     class="numeric-input-field"
+    type="number"
   />
 
   <div class="range-container">
     <span class="range-label">{{ min }}</span>
     <input
-      type="range"
-      [id]="id + '-range'"
-      [value]="value"
       (input)="onInputChange($event)"
-      [min]="min"
-      [max]="max"
-      [step]="step"
       [disabled]="_isDisabled"
+      [id]="id + '-range'"
+      [max]="max"
+      [min]="min"
+      [step]="step"
+      [value]="value"
       class="numeric-input-range"
+      type="range"
     />
     <span class="range-label">{{ max }}</span>
   </div>
 
-  <p class="numeric-input-error" *ngIf="hasError">
+  <p *ngIf="hasError" class="numeric-input-error">
     {{ displayedErrorMessage }}
   </p>
 </div>

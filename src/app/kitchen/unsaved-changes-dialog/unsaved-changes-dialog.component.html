@@ -11,8 +11,8 @@
   </div>
 
   <div class="dialog-actions">
-    <button type="button" class="btn btn-secondary" (click)="onCancel()">Anuluj</button>
-    <button type="button" class="btn btn-danger" (click)="onDiscard()">Odrzuć zmiany</button>
-    <button type="button" class="btn btn-success" (click)="onSave()">Zapisz i przejdź</button>
+    <button (click)="onCancel()" class="btn btn-secondary" type="button">Anuluj</button>
+    <button (click)="onDiscard()" class="btn btn-danger" type="button">Odrzuć zmiany</button>
+    <button (click)="onSave()" class="btn btn-success" type="button">Zapisz i przejdź</button>
   </div>
 </div>

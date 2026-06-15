@@ -97,7 +97,7 @@
     <!-- ===== PRAWY PANEL: formularz rejestracji ===== -->
     <section class="auth-card">
       <div class="auth-card-brand auth-card-brand--compact">
-        <img class="auth-brand-logo" src="assets/furnitio-logo-white-tight.png" alt="Furnitio" />
+        <img alt="Furnitio" class="auth-brand-logo" src="assets/furnitio-logo-white-tight.png"/>
       </div>
 
       <div class="auth-header">
@@ -118,69 +118,69 @@
           <div class="form-group">
             <label for="firstName">Imie</label>
             <input
-              id="firstName"
-              type="text"
               [(ngModel)]="firstName"
-              name="firstName"
-              class="form-control"
-              placeholder="Jan"
+              [disabled]="isLoading"
               autocomplete="given-name"
-              [disabled]="isLoading" />
+              class="form-control"
+              id="firstName"
+              name="firstName"
+              placeholder="Jan"
+              type="text"/>
           </div>
           <div class="form-group">
             <label for="lastName">Nazwisko</label>
             <input
-              id="lastName"
-              type="text"
               [(ngModel)]="lastName"
-              name="lastName"
-              class="form-control"
-              placeholder="Kowalski"
+              [disabled]="isLoading"
               autocomplete="family-name"
-              [disabled]="isLoading" />
+              class="form-control"
+              id="lastName"
+              name="lastName"
+              placeholder="Kowalski"
+              type="text"/>
           </div>
         </div>
 
         <div class="form-group">
           <label for="email">Email *</label>
           <input
-            id="email"
-            type="email"
             [(ngModel)]="email"
-            name="email"
-            class="form-control"
-            placeholder="twoj@email.com"
+            [disabled]="isLoading"
             autocomplete="email"
+            class="form-control"
+            id="email"
+            name="email"
+            placeholder="twoj@email.com"
             required
-            [disabled]="isLoading" />
+            type="email"/>
         </div>
 
         <div class="form-group">
           <label for="password">Haslo * <span class="hint">(min. 8 znakow)</span></label>
           <input
-            id="password"
-            type="password"
             [(ngModel)]="password"
-            name="password"
-            class="form-control"
-            placeholder="Wprowadz haslo"
+            [disabled]="isLoading"
             autocomplete="new-password"
+            class="form-control"
+            id="password"
+            name="password"
+            placeholder="Wprowadz haslo"
             required
-            [disabled]="isLoading" />
+            type="password"/>
         </div>
 
         <div class="form-group">
           <label for="confirmPassword">Powtorz haslo *</label>
           <input
-            id="confirmPassword"
-            type="password"
             [(ngModel)]="confirmPassword"
-            name="confirmPassword"
-            class="form-control"
-            placeholder="Powtorz haslo"
+            [disabled]="isLoading"
             autocomplete="new-password"
+            class="form-control"
+            id="confirmPassword"
+            name="confirmPassword"
+            placeholder="Powtorz haslo"
             required
-            [disabled]="isLoading" />
+            type="password"/>
         </div>
 
         <div *ngIf="errorMessage" class="auth-error" role="alert">
@@ -188,10 +188,10 @@
           <span>{{ errorMessage }}</span>
         </div>
 
-        <button type="submit" class="btn btn-primary auth-submit" [disabled]="isLoading">
+        <button [disabled]="isLoading" class="btn btn-primary auth-submit" type="submit">
           <span *ngIf="isLoading" class="spinner-btn"></span>
           <ng-container *ngIf="!isLoading">
-            <mat-icon class="workflow-action-icon" aria-hidden="true">person_add</mat-icon>
+            <mat-icon aria-hidden="true" class="workflow-action-icon">person_add</mat-icon>
           </ng-container>
           {{ isLoading ? 'Rejestracja...' : 'Zarejestruj sie' }}
         </button>

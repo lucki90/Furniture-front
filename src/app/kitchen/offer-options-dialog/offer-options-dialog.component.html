@@ -4,7 +4,7 @@
 
   <div class="option-row checkbox-row">
     <label class="checkbox-label">
-      <input type="checkbox" [(ngModel)]="showCostDetails" />
+      <input [(ngModel)]="showCostDetails" type="checkbox"/>
       <span>Pokaż szczegóły kosztów (materiały, montaż, narzuty)</span>
     </label>
     <p class="hint">
@@ -18,28 +18,28 @@
 
   <div class="option-row">
     <label class="form-label" for="frontDesc">Fronty</label>
-    <input id="frontDesc" type="text" class="form-input"
-           [(ngModel)]="frontDescription"
-           placeholder="np. Lakierowane matowe MDF" />
+    <input [(ngModel)]="frontDescription" class="form-input" id="frontDesc"
+           placeholder="np. Lakierowane matowe MDF"
+           type="text"/>
   </div>
 
   <div class="option-row">
     <label class="form-label" for="countertopDesc">Blat</label>
-    <input id="countertopDesc" type="text" class="form-input"
-           [(ngModel)]="countertopDescription"
-           placeholder="np. 38mm Dąb laminowany" />
+    <input [(ngModel)]="countertopDescription" class="form-input" id="countertopDesc"
+           placeholder="np. 38mm Dąb laminowany"
+           type="text"/>
   </div>
 
   <div class="option-row">
     <label class="form-label" for="hardwareDesc">Okucia</label>
-    <input id="hardwareDesc" type="text" class="form-input"
-           [(ngModel)]="hardwareDescription"
-           placeholder="np. Blum" />
+    <input [(ngModel)]="hardwareDescription" class="form-input" id="hardwareDesc"
+           placeholder="np. Blum"
+           type="text"/>
   </div>
 
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button class="btn-cancel" (click)="onCancel()">Anuluj</button>
-  <button class="btn-generate" (click)="onGenerate()">Generuj PDF</button>
+  <button (click)="onCancel()" class="btn-cancel">Anuluj</button>
+  <button (click)="onGenerate()" class="btn-generate">Generuj PDF</button>
 </mat-dialog-actions>

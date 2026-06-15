@@ -1,13 +1,14 @@
-<section class="costs-section" *ngIf="projectResult || totalCabinetCount > 0">
+<section *ngIf="projectResult || totalCabinetCount > 0" class="costs-section">
 
   <!-- ===== Pre-calculation state ===== -->
-  <div class="pre-calc" *ngIf="!projectResult && totalCabinetCount > 0">
+  <div *ngIf="!projectResult && totalCabinetCount > 0" class="pre-calc">
     <div class="pre-calc-cards">
-      <div class="pre-calc-card" *ngIf="selectedWallCabinetCount > 0">
+      <div *ngIf="selectedWallCabinetCount > 0" class="pre-calc-card">
         <span class="pre-calc-card-label">{{ selectedWallLabel }}</span>
         <span class="pre-calc-card-stat">{{ selectedWallCabinetCount }} szafek · {{ totalWidth }} mm</span>
-        <span class="pre-calc-card-status" [class.ok]="fitsOnWall" [class.err]="!fitsOnWall">
-          <mat-icon class="pre-calc-status-icon" aria-hidden="true">{{ fitsOnWall ? 'check_circle' : 'error' }}</mat-icon>
+        <span [class.err]="!fitsOnWall" [class.ok]="fitsOnWall" class="pre-calc-card-status">
+          <mat-icon aria-hidden="true"
+                    class="pre-calc-status-icon">{{ fitsOnWall ? 'check_circle' : 'error' }}</mat-icon>
           {{ fitsOnWall ? 'Miesci sie' : 'Nie miesci sie!' }}
           <small>({{ remainingWidth }} mm wolne)</small>
         </span>
@@ -22,15 +23,17 @@
     <div class="pre-calc-prompt">
       <p>Kliknij <strong>„Wylicz projekt"</strong>, aby uzyskać szczegółową kalkulację kosztów i listę materiałów.</p>
       <div class="pre-calc-actions">
-        <button class="btn btn-primary" type="button"
-          (click)="calculateProject.emit()"
-          [disabled]="editingCabinetId !== null || isCalculatingProject">
-          <mat-icon class="pre-calc-action-icon" aria-hidden="true">{{ isCalculatingProject ? 'autorenew' : 'calculate' }}</mat-icon>
+        <button (click)="calculateProject.emit()" [disabled]="editingCabinetId !== null || isCalculatingProject"
+                class="btn btn-primary"
+                type="button">
+          <mat-icon aria-hidden="true" class="pre-calc-action-icon">{{ isCalculatingProject ? 'autorenew' : 'calculate'
+            }}
+          </mat-icon>
           {{ isCalculatingProject ? 'Obliczam...' : 'Wylicz caly projekt' }}
         </button>
-        <button class="btn btn-secondary" type="button"
-          (click)="clearAll.emit()" [disabled]="editingCabinetId !== null">
-          <mat-icon class="pre-calc-action-icon" aria-hidden="true">delete</mat-icon>
+        <button (click)="clearAll.emit()" [disabled]="editingCabinetId !== null"
+                class="btn btn-secondary" type="button">
+          <mat-icon aria-hidden="true" class="pre-calc-action-icon">delete</mat-icon>
           Wyczysc wszystko
         </button>
       </div>
@@ -38,11 +41,11 @@
   </div>
 
   <!-- ===== Post-calculation results ===== -->
-  <div class="results-layout" *ngIf="projectResult">
+  <div *ngIf="projectResult" class="results-layout">
 
     <!-- Warning banner -->
-    <div class="warn-banner" *ngIf="pricingWarnings.length > 0">
-      <mat-icon class="warn-banner-icon" aria-hidden="true">warning_amber</mat-icon>
+    <div *ngIf="pricingWarnings.length > 0" class="warn-banner">
+      <mat-icon aria-hidden="true" class="warn-banner-icon">warning_amber</mat-icon>
       <div>
         <strong>Uwagi i ostrzeżenia</strong>
         <span class="warn-entries"> — {{ pricingWarnings.join(', ') }}</span>
@@ -51,10 +54,12 @@
 
     <!-- Summary strip -->
     <div class="summary-strip">
-      <div class="summary-strip-status"
-           [class.summary-strip-status--ok]="projectResult.allFit"
-           [class.summary-strip-status--warn]="!projectResult.allFit">
-        <mat-icon class="summary-strip-status-icon" aria-hidden="true">{{ projectResult.allFit ? 'check_circle' : 'warning_amber' }}</mat-icon>
+      <div [class.summary-strip-status--ok]="projectResult.allFit"
+           [class.summary-strip-status--warn]="!projectResult.allFit"
+           class="summary-strip-status">
+        <mat-icon aria-hidden="true" class="summary-strip-status-icon">{{ projectResult.allFit ? 'check_circle' :
+          'warning_amber' }}
+        </mat-icon>
         {{ projectResult.allFit ? 'Wszystko miesci sie' : 'Nie miesci sie!' }}
       </div>
       <div class="summary-strip-meta">
@@ -79,12 +84,12 @@
           <span class="summary-metric-label">RAZEM</span>
           <span class="summary-metric-value">{{ adjustedTotalCost.toFixed(0) }} zł</span>
         </div>
-        <div class="summary-waste" *ngIf="totalWasteCost > 0">
+        <div *ngIf="totalWasteCost > 0" class="summary-waste">
           <label class="waste-toggle-label">
-            <input type="checkbox" [ngModel]="includeWasteCost" (ngModelChange)="onIncludeWasteCostChange($event)">
+            <input (ngModelChange)="onIncludeWasteCostChange($event)" [ngModel]="includeWasteCost" type="checkbox">
             <span>Odpad</span>
           </label>
-          <span class="waste-amount" [class.waste-amount--on]="includeWasteCost">
+          <span [class.waste-amount--on]="includeWasteCost" class="waste-amount">
             {{ includeWasteCost ? '+' : '' }}{{ totalWasteCost.toFixed(0) }} zł
           </span>
         </div>
@@ -99,13 +104,14 @@
         <div class="panel-header">
           <span class="panel-title">Lista materiałów (BOM)</span>
           <div class="pill-tabs">
-            <button class="pill-tab" [class.active]="bomTab === 'boards'" type="button" (click)="setBomTab('boards')">
+            <button (click)="setBomTab('boards')" [class.active]="bomTab === 'boards'" class="pill-tab" type="button">
               Płyty <span class="pill-count">{{ aggregatedBoards.length }}</span>
             </button>
-            <button class="pill-tab" [class.active]="bomTab === 'components'" type="button" (click)="setBomTab('components')">
+            <button (click)="setBomTab('components')" [class.active]="bomTab === 'components'" class="pill-tab"
+                    type="button">
               Komponenty <span class="pill-count">{{ aggregatedComponents.length - wasteDetails.length }}</span>
             </button>
-            <button class="pill-tab" [class.active]="bomTab === 'jobs'" type="button" (click)="setBomTab('jobs')">
+            <button (click)="setBomTab('jobs')" [class.active]="bomTab === 'jobs'" class="pill-tab" type="button">
               Prace <span class="pill-count">{{ aggregatedJobs.length }}</span>
             </button>
           </div>
@@ -118,26 +124,26 @@
           <!-- Boards -->
           <ng-container *ngIf="bomTab === 'boards'">
             <div class="bom-scroll-area">
-              <table class="bom-table" *ngIf="aggregatedBoards.length > 0; else emptyBoards">
+              <table *ngIf="aggregatedBoards.length > 0; else emptyBoards" class="bom-table">
                 <thead>
-                  <tr>
-                    <th>Materiał</th>
-                    <th>Wymiary mm</th>
-                    <th>Okleina</th>
-                    <th class="col-num">Szt.</th>
-                    <th class="col-num">Cena</th>
-                    <th class="col-num">Razem</th>
-                  </tr>
+                <tr>
+                  <th>Materiał</th>
+                  <th>Wymiary mm</th>
+                  <th>Okleina</th>
+                  <th class="col-num">Szt.</th>
+                  <th class="col-num">Cena</th>
+                  <th class="col-num">Razem</th>
+                </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let board of aggregatedBoards; trackBy: trackByIndex">
-                    <td>{{ board.material }} <span class="dim-muted">({{ board.thickness }}mm)</span></td>
-                    <td class="col-mono">{{ board.width }} × {{ board.height }}</td>
-                    <td>{{ board.veneerEdgeLabel || '—' }}</td>
-                    <td class="col-num">{{ board.quantity }}</td>
-                    <td class="col-num col-mono">{{ board.unitCost.toFixed(2) }} zł</td>
-                    <td class="col-num col-mono col-bold">{{ board.totalCost.toFixed(2) }} zł</td>
-                  </tr>
+                <tr *ngFor="let board of aggregatedBoards; trackBy: trackByIndex">
+                  <td>{{ board.material }} <span class="dim-muted">({{ board.thickness }}mm)</span></td>
+                  <td class="col-mono">{{ board.width }} × {{ board.height }}</td>
+                  <td>{{ board.veneerEdgeLabel || '—' }}</td>
+                  <td class="col-num">{{ board.quantity }}</td>
+                  <td class="col-num col-mono">{{ board.unitCost.toFixed(2) }} zł</td>
+                  <td class="col-num col-mono col-bold">{{ board.totalCost.toFixed(2) }} zł</td>
+                </tr>
                 </tbody>
               </table>
               <ng-template #emptyBoards><p class="bom-empty">Brak płyt do wyświetlenia</p></ng-template>
@@ -151,29 +157,32 @@
           <!-- Components -->
           <ng-container *ngIf="bomTab === 'components'">
             <div class="bom-scroll-area">
-              <table class="bom-table" *ngIf="aggregatedComponents.length > 0; else emptyComponents">
+              <table *ngIf="aggregatedComponents.length > 0; else emptyComponents" class="bom-table">
                 <thead>
-                  <tr>
-                    <th>Nazwa</th>
-                    <th>Typ</th>
-                    <th class="col-num">Szt.</th>
-                    <th class="col-num">Cena</th>
-                    <th class="col-num">Razem</th>
-                  </tr>
+                <tr>
+                  <th>Nazwa</th>
+                  <th>Typ</th>
+                  <th class="col-num">Szt.</th>
+                  <th class="col-num">Cena</th>
+                  <th class="col-num">Razem</th>
+                </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let comp of aggregatedComponents; trackBy: trackByIndex"
-                      [class.row-waste]="comp.isWaste"
-                      [class.row-waste-off]="comp.isWaste && !includeWasteCost">
-                    <td>{{ comp.name }}</td>
-                    <td>{{ comp.type }}</td>
-                    <td class="col-num">{{ comp.quantity }}</td>
-                    <td class="col-num col-mono">{{ comp.isWaste && !includeWasteCost ? '—' : (comp.unitCost.toFixed(2) + ' zł') }}</td>
-                    <td class="col-num col-mono col-bold">
-                      <ng-container *ngIf="!comp.isWaste || includeWasteCost">{{ comp.totalCost.toFixed(2) }} zł</ng-container>
-                      <span *ngIf="comp.isWaste && !includeWasteCost" class="muted-label">{{ comp.totalCost.toFixed(2) }} zł (nie wliczono)</span>
-                    </td>
-                  </tr>
+                <tr *ngFor="let comp of aggregatedComponents; trackBy: trackByIndex"
+                    [class.row-waste-off]="comp.isWaste && !includeWasteCost"
+                    [class.row-waste]="comp.isWaste">
+                  <td>{{ comp.name }}</td>
+                  <td>{{ comp.type }}</td>
+                  <td class="col-num">{{ comp.quantity }}</td>
+                  <td class="col-num col-mono">{{ comp.isWaste && !includeWasteCost ? '—' : (comp.unitCost.toFixed(2) +
+                    ' zł') }}
+                  </td>
+                  <td class="col-num col-mono col-bold">
+                    <ng-container *ngIf="!comp.isWaste || includeWasteCost">{{ comp.totalCost.toFixed(2) }} zł
+                    </ng-container>
+                    <span *ngIf="comp.isWaste && !includeWasteCost" class="muted-label">{{ comp.totalCost.toFixed(2) }} zł (nie wliczono)</span>
+                  </td>
+                </tr>
                 </tbody>
               </table>
               <ng-template #emptyComponents><p class="bom-empty">Brak komponentów do wyświetlenia</p></ng-template>
@@ -187,24 +196,24 @@
           <!-- Jobs -->
           <ng-container *ngIf="bomTab === 'jobs'">
             <div class="bom-scroll-area">
-              <table class="bom-table" *ngIf="aggregatedJobs.length > 0; else emptyJobs">
+              <table *ngIf="aggregatedJobs.length > 0; else emptyJobs" class="bom-table">
                 <thead>
-                  <tr>
-                    <th>Nazwa</th>
-                    <th>Typ</th>
-                    <th class="col-num">Szt.</th>
-                    <th class="col-num">Cena</th>
-                    <th class="col-num">Razem</th>
-                  </tr>
+                <tr>
+                  <th>Nazwa</th>
+                  <th>Typ</th>
+                  <th class="col-num">Szt.</th>
+                  <th class="col-num">Cena</th>
+                  <th class="col-num">Razem</th>
+                </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let job of aggregatedJobs; trackBy: trackByIndex">
-                    <td>{{ job.name }}</td>
-                    <td>{{ job.type }}</td>
-                    <td class="col-num">{{ job.quantity }}</td>
-                    <td class="col-num col-mono">{{ job.unitCost.toFixed(2) }} zł</td>
-                    <td class="col-num col-mono col-bold">{{ job.totalCost.toFixed(2) }} zł</td>
-                  </tr>
+                <tr *ngFor="let job of aggregatedJobs; trackBy: trackByIndex">
+                  <td>{{ job.name }}</td>
+                  <td>{{ job.type }}</td>
+                  <td class="col-num">{{ job.quantity }}</td>
+                  <td class="col-num col-mono">{{ job.unitCost.toFixed(2) }} zł</td>
+                  <td class="col-num col-mono col-bold">{{ job.totalCost.toFixed(2) }} zł</td>
+                </tr>
                 </tbody>
               </table>
               <ng-template #emptyJobs><p class="bom-empty">Brak prac do wyświetlenia</p></ng-template>
@@ -223,10 +232,12 @@
         <div class="panel-header">
           <span class="panel-title">Szczegóły</span>
           <div class="pill-tabs">
-            <button class="pill-tab" [class.active]="activeDetailsTab !== 'pricing'" type="button" (click)="setActiveTab('walls')">
+            <button (click)="setActiveTab('walls')" [class.active]="activeDetailsTab !== 'pricing'" class="pill-tab"
+                    type="button">
               Ściany <span class="pill-count">{{ projectResult.walls.length }}</span>
             </button>
-            <button *ngIf="currentProjectId" class="pill-tab" [class.active]="activeDetailsTab === 'pricing'" type="button" (click)="setActiveTab('pricing')">
+            <button (click)="setActiveTab('pricing')" *ngIf="currentProjectId" [class.active]="activeDetailsTab === 'pricing'"
+                    class="pill-tab" type="button">
               Wycena
             </button>
           </div>
@@ -237,12 +248,12 @@
 
           <!-- Walls tab -->
           <div *ngIf="activeDetailsTab !== 'pricing'" class="walls-list">
-            <div class="wall-item" *ngFor="let wall of projectResult.walls; trackBy: trackByWall">
+            <div *ngFor="let wall of projectResult.walls; trackBy: trackByWall" class="wall-item">
               <div class="wall-row wall-row--header">
                 <span class="wall-name">{{ wall.wallType }}</span>
                 <span class="wall-dims">{{ wall.widthMm }} × {{ wall.heightMm }} mm</span>
-                <span class="wall-status-badge" [class.ok]="wall.fits" [class.err]="!wall.fits">
-                  <mat-icon class="summary-strip-status-icon" aria-hidden="true">{{ wall.fits ? 'check_circle' : 'cancel' }}</mat-icon>
+                <span [class.err]="!wall.fits" [class.ok]="wall.fits" class="wall-status-badge">
+                  <mat-icon aria-hidden="true" class="summary-strip-status-icon">{{ wall.fits ? 'check_circle' : 'cancel' }}</mat-icon>
                 </span>
                 <span class="wall-cost">{{ wall.wallTotalCost.toFixed(0) }} zł</span>
               </div>
@@ -253,7 +264,7 @@
                 <span class="strip-sep">·</span>
                 <span>Góra: {{ wall.usedWidthTop }}/{{ wall.widthMm }} mm</span>
               </div>
-              <div class="wall-row wall-row--extras" *ngIf="wall.countertop?.enabled || wall.plinth?.enabled">
+              <div *ngIf="wall.countertop?.enabled || wall.plinth?.enabled" class="wall-row wall-row--extras">
                 <span *ngIf="wall.countertop?.enabled" class="extra-chip">
                   Blat {{ wall.countertop!.totalLengthMm }}×{{ wall.countertop!.depthMm }}mm
                   <em>{{ wall.countertopCost?.toFixed(0) || 0 }} zł</em>
@@ -263,7 +274,7 @@
                   <em>{{ wall.plinthCost?.toFixed(0) || 0 }} zł</em>
                 </span>
               </div>
-              <div class="wall-row wall-row--diag" *ngIf="hasCountertopDiagnostics(wall)">
+              <div *ngIf="hasCountertopDiagnostics(wall)" class="wall-row wall-row--diag">
                 <span *ngIf="wall.countertop?.computedCountertopHeightMm != null" class="diag-chip">
                   H blatu: {{ wall.countertop!.computedCountertopHeightMm }} mm
                 </span>
@@ -271,7 +282,7 @@
                   Max korpus: {{ wall.countertop!.maxBaseCorpusHeightMm }} mm
                 </span>
               </div>
-              <div class="wall-row wall-row--diag" *ngIf="hasEnclosureDiagnostics(wall)">
+              <div *ngIf="hasEnclosureDiagnostics(wall)" class="wall-row wall-row--diag">
                 <ng-container *ngFor="let cabinet of wall.cabinets; trackBy: trackByCabinet">
                   <span
                     *ngIf="(cabinet.enclosureLeftOuterWidthMm ?? 0) > 0 || (cabinet.enclosureRightOuterWidthMm ?? 0) > 0"
@@ -294,50 +305,50 @@
             <ng-container *ngIf="!isPricingLoading && pricing">
               <table class="bom-table pricing-table">
                 <thead>
-                  <tr>
-                    <th>Kategoria</th>
-                    <th class="col-num">Netto</th>
-                    <th class="col-num">Marża %</th>
-                    <th class="col-num">Marża zł</th>
-                    <th class="col-num">Łącznie</th>
-                  </tr>
+                <tr>
+                  <th>Kategoria</th>
+                  <th class="col-num">Netto</th>
+                  <th class="col-num">Marża %</th>
+                  <th class="col-num">Marża zł</th>
+                  <th class="col-num">Łącznie</th>
+                </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>Płyty</td>
-                    <td class="col-num col-mono">{{ pricing.boardsNet.toFixed(2) }} zł</td>
-                    <td class="col-num">{{ pricing.markupMaterialsPct }}%</td>
-                    <td class="col-num col-mono">{{ pricing.boardsMarkupAmount.toFixed(2) }} zł</td>
-                    <td class="col-num col-mono col-bold">{{ pricing.boardsTotal.toFixed(2) }} zł</td>
-                  </tr>
-                  <tr>
-                    <td>Komponenty</td>
-                    <td class="col-num col-mono">{{ pricing.componentsNet.toFixed(2) }} zł</td>
-                    <td class="col-num">{{ pricing.markupComponentsPct }}%</td>
-                    <td class="col-num col-mono">{{ pricing.componentsMarkupAmount.toFixed(2) }} zł</td>
-                    <td class="col-num col-mono col-bold">{{ pricing.componentsTotal.toFixed(2) }} zł</td>
-                  </tr>
-                  <tr>
-                    <td>Robocizna</td>
-                    <td class="col-num col-mono">{{ pricing.jobsNet.toFixed(2) }} zł</td>
-                    <td class="col-num">{{ pricing.markupJobsPct }}%</td>
-                    <td class="col-num col-mono">{{ pricing.jobsMarkupAmount.toFixed(2) }} zł</td>
-                    <td class="col-num col-mono col-bold">{{ pricing.jobsTotal.toFixed(2) }} zł</td>
-                  </tr>
+                <tr>
+                  <td>Płyty</td>
+                  <td class="col-num col-mono">{{ pricing.boardsNet.toFixed(2) }} zł</td>
+                  <td class="col-num">{{ pricing.markupMaterialsPct }}%</td>
+                  <td class="col-num col-mono">{{ pricing.boardsMarkupAmount.toFixed(2) }} zł</td>
+                  <td class="col-num col-mono col-bold">{{ pricing.boardsTotal.toFixed(2) }} zł</td>
+                </tr>
+                <tr>
+                  <td>Komponenty</td>
+                  <td class="col-num col-mono">{{ pricing.componentsNet.toFixed(2) }} zł</td>
+                  <td class="col-num">{{ pricing.markupComponentsPct }}%</td>
+                  <td class="col-num col-mono">{{ pricing.componentsMarkupAmount.toFixed(2) }} zł</td>
+                  <td class="col-num col-mono col-bold">{{ pricing.componentsTotal.toFixed(2) }} zł</td>
+                </tr>
+                <tr>
+                  <td>Robocizna</td>
+                  <td class="col-num col-mono">{{ pricing.jobsNet.toFixed(2) }} zł</td>
+                  <td class="col-num">{{ pricing.markupJobsPct }}%</td>
+                  <td class="col-num col-mono">{{ pricing.jobsMarkupAmount.toFixed(2) }} zł</td>
+                  <td class="col-num col-mono col-bold">{{ pricing.jobsTotal.toFixed(2) }} zł</td>
+                </tr>
                 </tbody>
                 <tfoot>
-                  <tr class="pricing-sub-row">
-                    <td colspan="4"><strong>Przed rabatem</strong></td>
-                    <td class="col-num col-mono"><strong>{{ pricing.subtotal.toFixed(2) }} zł</strong></td>
-                  </tr>
-                  <tr>
-                    <td colspan="4">Rabat {{ pricing.discountPct }}%</td>
-                    <td class="col-num col-mono pricing-discount">−{{ pricing.discountAmount.toFixed(2) }} zł</td>
-                  </tr>
-                  <tr class="pricing-total-row">
-                    <td colspan="4">Cena końcowa</td>
-                    <td class="col-num col-mono">{{ pricing.finalPrice.toFixed(2) }} zł</td>
-                  </tr>
+                <tr class="pricing-sub-row">
+                  <td colspan="4"><strong>Przed rabatem</strong></td>
+                  <td class="col-num col-mono"><strong>{{ pricing.subtotal.toFixed(2) }} zł</strong></td>
+                </tr>
+                <tr>
+                  <td colspan="4">Rabat {{ pricing.discountPct }}%</td>
+                  <td class="col-num col-mono pricing-discount">−{{ pricing.discountAmount.toFixed(2) }} zł</td>
+                </tr>
+                <tr class="pricing-total-row">
+                  <td colspan="4">Cena końcowa</td>
+                  <td class="col-num col-mono">{{ pricing.finalPrice.toFixed(2) }} zł</td>
+                </tr>
                 </tfoot>
               </table>
               <p *ngIf="pricing.manualPriceOverride != null" class="pricing-manual-note">
@@ -350,27 +361,38 @@
                 <div class="pricing-fields">
                   <div class="pricing-field">
                     <label>Rabat (%)</label>
-                    <input type="number" [ngModel]="pricingDiscountPct" (ngModelChange)="onPricingDiscountPctChange($event)" min="0" max="100" step="0.5" />
+                    <input (ngModelChange)="onPricingDiscountPctChange($event)" [ngModel]="pricingDiscountPct"
+                           max="100" min="0" step="0.5" type="number"/>
                   </div>
                   <div class="pricing-field">
                     <label>
-                      <input type="checkbox" [ngModel]="pricingManualOverrideEnabled" (ngModelChange)="onPricingManualOverrideEnabledChange($event)" />
+                      <input (ngModelChange)="onPricingManualOverrideEnabledChange($event)" [ngModel]="pricingManualOverrideEnabled"
+                             type="checkbox"/>
                       Nadpisz cenę (zł)
                     </label>
-                    <input type="number" [ngModel]="pricingManualOverride" (ngModelChange)="onPricingManualOverrideChange($event)" [disabled]="!pricingManualOverrideEnabled" min="0" step="1" />
+                    <input (ngModelChange)="onPricingManualOverrideChange($event)" [disabled]="!pricingManualOverrideEnabled"
+                           [ngModel]="pricingManualOverride"
+                           min="0" step="1" type="number"/>
                   </div>
                 </div>
                 <div class="pricing-notes-field">
                   <label>Notatki do oferty</label>
-                  <textarea [ngModel]="pricingOfferNotes" (ngModelChange)="onPricingOfferNotesChange($event)" placeholder="Notatki dla klienta, warunki oferty…"></textarea>
+                  <textarea (ngModelChange)="onPricingOfferNotesChange($event)" [ngModel]="pricingOfferNotes"
+                            placeholder="Notatki dla klienta, warunki oferty…"></textarea>
                 </div>
                 <div class="pricing-actions">
-                  <button class="btn btn-primary btn-sm" type="button" (click)="savePricing.emit()" [disabled]="isPricingSaving">
-                    <mat-icon class="pricing-action-icon" aria-hidden="true">{{ isPricingSaving ? 'autorenew' : 'save' }}</mat-icon>
+                  <button (click)="savePricing.emit()" [disabled]="isPricingSaving" class="btn btn-primary btn-sm"
+                          type="button">
+                    <mat-icon aria-hidden="true" class="pricing-action-icon">{{ isPricingSaving ? 'autorenew' : 'save'
+                      }}
+                    </mat-icon>
                     {{ isPricingSaving ? 'Zapisuje...' : 'Zapisz wycene' }}
                   </button>
-                  <button class="btn btn-secondary btn-sm" type="button" (click)="downloadOfferPdf.emit()" [disabled]="isPdfDownloading">
-                    <mat-icon class="pricing-action-icon" aria-hidden="true">{{ isPdfDownloading ? 'autorenew' : 'description' }}</mat-icon>
+                  <button (click)="downloadOfferPdf.emit()" [disabled]="isPdfDownloading" class="btn btn-secondary btn-sm"
+                          type="button">
+                    <mat-icon aria-hidden="true" class="pricing-action-icon">{{ isPdfDownloading ? 'autorenew' :
+                      'description' }}
+                    </mat-icon>
                     {{ isPdfDownloading ? 'Generuje PDF...' : 'Pobierz oferte PDF' }}
                   </button>
                 </div>

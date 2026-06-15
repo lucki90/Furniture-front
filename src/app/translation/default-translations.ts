@@ -153,7 +153,9 @@ export const DEFAULT_TRANSLATIONS: { [key: string]: string } = {
   'GENERAL.UNIT_PIECE': 'sztuk',
 
   // Errors
-  //TODO zmienilismy nazwy tlumaczen dla wyjatkow - zaczynaja sie od ex. -> sprawdzic w bazie backednu
+  // Uwaga: poniższe klucze ERROR.* to etykiety walidacji formularza po stronie FE
+  // (używane w alone-cabinet.component.html), NIE komunikaty wyjątków backendu.
+  // Wyjątki serwera mają osobny prefiks ex.* (np. ex.validation.failed) i nie przechodzą przez tę mapę.
   'ERROR.INVALID_HEIGHT': 'Nieprawidłowa wysokość szafki',
   'ERROR.INVALID_WIDTH': 'Nieprawidłowa szerokość szafki',
   'ERROR.INVALID_DEPTH': 'Nieprawidłowa głębokość szafki',

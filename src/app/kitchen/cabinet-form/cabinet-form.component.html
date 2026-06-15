@@ -1,29 +1,29 @@
 <form [formGroup]="form" class="cabinet-form">
 
   <!-- ═══════════ TAB BAR ═══════════ -->
-  <div class="form-tabs" role="tablist" aria-label="Sekcje formularza szafki">
-    <button type="button" role="tab"
-            class="form-tab"
+  <div aria-label="Sekcje formularza szafki" class="form-tabs" role="tablist">
+    <button (click)="setActiveTab('basic')" [attr.aria-selected]="activeTab === 'basic'"
             [class.active]="activeTab === 'basic'"
-            [attr.aria-selected]="activeTab === 'basic'"
-            (click)="setActiveTab('basic')">
+            class="form-tab"
+            role="tab"
+            type="button">
       Podstawowe
     </button>
-    <button type="button" role="tab"
-            class="form-tab"
+    <button (click)="setActiveTab('position')" [attr.aria-selected]="activeTab === 'position'"
             [class.active]="activeTab === 'position'"
-            [attr.aria-selected]="activeTab === 'position'"
-            (click)="setActiveTab('position')">
+            class="form-tab"
+            role="tab"
+            type="button">
       Pozycja
     </button>
-    <button type="button" role="tab"
-            class="form-tab"
+    <button (click)="setActiveTab('options')" [attr.aria-selected]="activeTab === 'options'"
             [class.active]="activeTab === 'options'"
             [class.disabled]="!hasOptionsTabContent()"
-            [attr.aria-selected]="activeTab === 'options'"
             [disabled]="!hasOptionsTabContent()"
             [title]="hasOptionsTabContent() ? 'Opcje specjalistyczne dla wybranego typu szafki' : 'Brak opcji specjalistycznych dla tego typu szafki'"
-            (click)="setActiveTab('options')">
+            class="form-tab"
+            role="tab"
+            type="button">
       Opcje
     </button>
   </div>
@@ -35,7 +35,7 @@
     <div class="form-row">
       <div class="form-group flex-2">
         <label class="form-label">Nazwa (opcjonalnie)</label>
-        <input type="text" class="form-control" formControlName="name" placeholder="np. Zlewozmywakowa">
+        <input class="form-control" formControlName="name" placeholder="np. Zlewozmywakowa" type="text">
       </div>
       <div class="form-group flex-2">
         <label class="form-label">Typ szafki</label>
@@ -66,7 +66,7 @@
           <option value="CORNER_CABINET">Narożna</option>
         </select>
         <!-- Widoczny trigger — otwiera dialog pickera -->
-        <button type="button" class="type-picker-trigger" (click)="openTypePicker()">
+        <button (click)="openTypePicker()" class="type-picker-trigger" type="button">
           <span class="type-picker-current">{{ currentTypeLabel }}</span>
           <span class="type-picker-chevron">v</span>
         </button>
@@ -74,8 +74,8 @@
     </div>
 
     <!-- Wymiary UPPER_DRAINER - szerokosc jako SELECT z 5 sztywnych wartosci -->
-    <div class="form-row" *ngIf="visibility.drainerWidthSelect">
-      <app-form-field class="form-group" label="Szerokosc" unit="mm" [errorMessage]="getFieldError('width')">
+    <div *ngIf="visibility.drainerWidthSelect" class="form-row">
+      <app-form-field [errorMessage]="getFieldError('width')" class="form-group" label="Szerokosc" unit="mm">
         <select class="form-control" formControlName="width">
           <option [ngValue]="400">400 mm</option>
           <option [ngValue]="500">500 mm</option>
@@ -84,37 +84,38 @@
           <option [ngValue]="900">900 mm</option>
         </select>
       </app-form-field>
-      <app-form-field class="form-group" label="Wysokosc" unit="mm" [errorMessage]="getFieldError('height')">
-        <input type="number" class="form-control" formControlName="height">
+      <app-form-field [errorMessage]="getFieldError('height')" class="form-group" label="Wysokosc" unit="mm">
+        <input class="form-control" formControlName="height" type="number">
       </app-form-field>
-      <app-form-field class="form-group" label="Glebokosc" unit="mm" [errorMessage]="getFieldError('depth')">
-        <input type="number" class="form-control" formControlName="depth">
+      <app-form-field [errorMessage]="getFieldError('depth')" class="form-group" label="Glebokosc" unit="mm">
+        <input class="form-control" formControlName="depth" type="number">
       </app-form-field>
     </div>
 
     <!-- Wymiary BASE_CARGO - szerokosc ciagla 150-600 mm -->
-    <div class="form-row" *ngIf="visibility.cargoWidthSelect">
-      <app-form-field class="form-group" label="Szerokosc" unit="mm" [hint]="cargoWidthHint ?? undefined" [errorMessage]="getFieldError('width')">
-        <input type="number" class="form-control" formControlName="width">
+    <div *ngIf="visibility.cargoWidthSelect" class="form-row">
+      <app-form-field [errorMessage]="getFieldError('width')" [hint]="cargoWidthHint ?? undefined" class="form-group" label="Szerokosc"
+                      unit="mm">
+        <input class="form-control" formControlName="width" type="number">
       </app-form-field>
-      <app-form-field class="form-group" label="Wysokosc" unit="mm" [errorMessage]="getFieldError('height')">
-        <input type="number" class="form-control" formControlName="height">
+      <app-form-field [errorMessage]="getFieldError('height')" class="form-group" label="Wysokosc" unit="mm">
+        <input class="form-control" formControlName="height" type="number">
       </app-form-field>
-      <app-form-field class="form-group" label="Glebokosc" unit="mm" [errorMessage]="getFieldError('depth')">
-        <input type="number" class="form-control" formControlName="depth">
+      <app-form-field [errorMessage]="getFieldError('depth')" class="form-group" label="Glebokosc" unit="mm">
+        <input class="form-control" formControlName="depth" type="number">
       </app-form-field>
     </div>
 
     <!-- Wymiary (standardowe) -->
-    <div class="form-row" *ngIf="visibility.width !== false && !visibility.cargoWidthSelect">
-      <app-form-field class="form-group" label="Szerokosc" unit="mm" [errorMessage]="getFieldError('width')">
-        <input type="number" class="form-control" formControlName="width">
+    <div *ngIf="visibility.width !== false && !visibility.cargoWidthSelect" class="form-row">
+      <app-form-field [errorMessage]="getFieldError('width')" class="form-group" label="Szerokosc" unit="mm">
+        <input class="form-control" formControlName="width" type="number">
       </app-form-field>
-      <app-form-field class="form-group" label="Wysokosc" unit="mm" [errorMessage]="getFieldError('height')">
-        <input type="number" class="form-control" formControlName="height">
+      <app-form-field [errorMessage]="getFieldError('height')" class="form-group" label="Wysokosc" unit="mm">
+        <input class="form-control" formControlName="height" type="number">
       </app-form-field>
-      <app-form-field class="form-group" label="Glebokosc" unit="mm" [errorMessage]="getFieldError('depth')">
-        <input type="number" class="form-control" formControlName="depth">
+      <app-form-field [errorMessage]="getFieldError('depth')" class="form-group" label="Glebokosc" unit="mm">
+        <input class="form-control" formControlName="depth" type="number">
       </app-form-field>
     </div>
 
@@ -125,7 +126,7 @@
     <app-corner-form *ngIf="visibility.cornerWidthA" [form]="form"></app-corner-form>
 
     <!-- Pantry passage — wariant drzwi -->
-    <div class="form-row" *ngIf="visibility.pantryPassageFrontType">
+    <div *ngIf="visibility.pantryPassageFrontType" class="form-row">
       <div class="form-group flex-2">
         <label class="form-label">Wariant drzwi przejscia</label>
         <select class="form-control" formControlName="pantryPassageFrontType">
@@ -137,7 +138,7 @@
     </div>
 
     <!-- Cargo variant + brand -->
-    <div class="form-row" *ngIf="visibility.cargoVariant">
+    <div *ngIf="visibility.cargoVariant" class="form-row">
       <div class="form-group flex-2">
         <label class="form-label">Wariant cargo</label>
         <select class="form-control" formControlName="cargoVariant">
@@ -147,7 +148,7 @@
         </select>
         <span class="form-hint">Mechanizm cargo ma jeden front. Wariant szufladowy ma jeden zewnetrzny front i wewnetrzne szuflady.</span>
       </div>
-      <div class="form-group flex-2" *ngIf="isCargoMechanismVariant">
+      <div *ngIf="isCargoMechanismVariant" class="form-group flex-2">
         <label class="form-label">Marka mechanizmu</label>
         <select class="form-control" formControlName="cargoBrand">
           <option *ngFor="let option of cargoBrandOptions; trackBy: trackByValue" [value]="option.value">
@@ -167,7 +168,8 @@
     </div>
 
     <!-- Info: szafka wisząca (dla szafek UPPER_*) -->
-    <div *ngIf="isUpperCabinet && (visibility.width !== false || visibility.drainerWidthSelect)" class="countertop-info-bar upper-info-bar">
+    <div *ngIf="isUpperCabinet && (visibility.width !== false || visibility.drainerWidthSelect)"
+         class="countertop-info-bar upper-info-bar">
       Szafka wisząca — montaż na szynie, bez cokołu i blatu.
       <span class="countertop-info-detail">
         Pozycja Y obliczana automatycznie z ustawien projektu.
@@ -176,38 +178,38 @@
 
     <!-- Opcje frontu/wnętrza -->
     <div class="form-row">
-      <div class="form-group" *ngIf="visibility.openingType !== false">
+      <div *ngIf="visibility.openingType !== false" class="form-group">
         <label class="form-label">Typ otwarcia</label>
         <select class="form-control" formControlName="openingType">
           <option *ngFor="let opt of openingTypes(); trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <!-- Sekcja ogolna "Polki" - ukryta gdy aktywna jest sekcja lodowki (ma wlasna sekcje Polki) -->
-      <div class="form-group" *ngIf="visibility.shelfQuantity && !visibility.fridgeSectionType">
+      <div *ngIf="visibility.shelfQuantity && !visibility.fridgeSectionType" class="form-group">
         <label class="form-label">Polki</label>
-        <input type="number" class="form-control" formControlName="shelfQuantity">
-        <span class="form-error" *ngIf="form.get('shelfQuantity')?.touched && form.get('shelfQuantity')?.errors">
+        <input class="form-control" formControlName="shelfQuantity" type="number">
+        <span *ngIf="form.get('shelfQuantity')?.touched && form.get('shelfQuantity')?.errors" class="form-error">
           <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['min']">Min: {{ form.get('shelfQuantity')?.errors?.['min'].min }}</ng-container>
           <ng-container *ngIf="form.get('shelfQuantity')?.errors?.['max']">Max: {{ form.get('shelfQuantity')?.errors?.['max'].max }}</ng-container>
         </span>
       </div>
-      <div class="form-group" *ngIf="visibility.drawerQuantity">
+      <div *ngIf="visibility.drawerQuantity" class="form-group">
         <label class="form-label">{{ isCargoCabinet ? cargoDrawerQuantityLabel : 'Ilosc szuflad' }}</label>
-        <input type="number" class="form-control" formControlName="drawerQuantity">
-        <span class="form-error" *ngIf="form.get('drawerQuantity')?.touched && form.get('drawerQuantity')?.errors">
+        <input class="form-control" formControlName="drawerQuantity" type="number">
+        <span *ngIf="form.get('drawerQuantity')?.touched && form.get('drawerQuantity')?.errors" class="form-error">
           <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['required']">Wymagane</ng-container>
           <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['min']">Min: {{ form.get('drawerQuantity')?.errors?.['min'].min }}</ng-container>
           <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['max']">Max: {{ form.get('drawerQuantity')?.errors?.['max'].max }}</ng-container>
         </span>
       </div>
-      <div class="form-group" *ngIf="visibility.drawerModel && (!isCargoCabinet || isCargoDrawersVariant)">
+      <div *ngIf="visibility.drawerModel && (!isCargoCabinet || isCargoDrawersVariant)" class="form-group">
         <label class="form-label">System szuflad</label>
         <select class="form-control" formControlName="drawerModel">
           <option *ngFor="let opt of drawerModels(); trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
         </select>
       </div>
       <!-- BASE_WITH_DRAWERS — wybor ukladu frontow szuflad -->
-      <div class="form-group" *ngIf="visibility.drawerLayoutType">
+      <div *ngIf="visibility.drawerLayoutType" class="form-group">
         <label class="form-label">Uklad szuflad</label>
         <select class="form-control" formControlName="drawerLayoutType">
           <option value="EQUAL">Rowne wysokosci</option>
@@ -218,17 +220,17 @@
     </div>
 
     <!-- BASE_WITH_DRAWERS — CUSTOM: pola wysokosci frontow per szuflada -->
-    <div class="form-row" *ngIf="visibility.drawerCustomHeights">
+    <div *ngIf="visibility.drawerCustomHeights" class="form-row">
       <div class="form-group" style="flex-direction: column; align-items: stretch;">
         <label class="form-label">Wysokosci frontow per szuflada (mm)</label>
         <ng-container formArrayName="drawerCustomHeightsMm">
           <div *ngFor="let _ of drawerCustomHeightsArray.controls; let i = index; trackBy: trackByIndex"
                style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
             <span style="min-width: 90px;">Szuflada {{ i + 1 }}:</span>
-            <input type="number" class="form-control" [formControlName]="i" placeholder="np. 141">
+            <input [formControlName]="i" class="form-control" placeholder="np. 141" type="number">
           </div>
         </ng-container>
-        <span class="form-error" *ngIf="customHeightsTotalWarning">
+        <span *ngIf="customHeightsTotalWarning" class="form-error">
           {{ customHeightsTotalWarning }}
         </span>
       </div>
@@ -241,7 +243,7 @@
 
     <!-- Strona wyspy + pusta przestrzeń przed -->
     <div class="form-row">
-      <div class="form-group flex-2" *ngIf="isIslandWall">
+      <div *ngIf="isIslandWall" class="form-group flex-2">
         <label class="form-label">Strona wyspy</label>
         <select class="form-control" formControlName="cabinetSide">
           <option value="FRONT">FRONT</option>
@@ -249,9 +251,9 @@
         </select>
         <span class="form-hint">Front i back układają się niezależnie po dwóch stronach wyspy.</span>
       </div>
-      <div class="form-group" [class.flex-1]="isIslandWall" [class.flex-2]="!isIslandWall">
+      <div [class.flex-1]="isIslandWall" [class.flex-2]="!isIslandWall" class="form-group">
         <label class="form-label">Pusta przestrzeń przed (mm)</label>
-        <input type="number" class="form-control" formControlName="gapBeforeMm" min="0" max="5000" step="50">
+        <input class="form-control" formControlName="gapBeforeMm" max="5000" min="0" step="50" type="number">
         <span class="form-hint">Dodaje pustą przestrzeń przed tą szafką w aktualnym rzędzie, więc kolejne pozycjonowanie zaczyna się dalej.</span>
       </div>
     </div>
@@ -267,17 +269,17 @@
             <option value="RELATIVE_TO_COUNTERTOP">Od blatu (z odstępem)</option>
           </select>
         </div>
-        <app-form-field class="form-group flex-2" *ngIf="isCountertopMode"
-            label="Odstęp od blatu" unit="mm"
-            hint="Standard 550-600 mm, min. 450 mm (przestrzen robocza)"
-            [errorMessage]="getFieldError('gapFromCountertopMm')">
-          <input type="number" class="form-control" formControlName="gapFromCountertopMm" min="450" step="10">
+        <app-form-field *ngIf="isCountertopMode" [errorMessage]="getFieldError('gapFromCountertopMm')"
+                        class="form-group flex-2" hint="Standard 550-600 mm, min. 450 mm (przestrzen robocza)"
+                        label="Odstęp od blatu"
+                        unit="mm">
+          <input class="form-control" formControlName="gapFromCountertopMm" min="450" step="10" type="number">
         </app-form-field>
-        <app-form-field class="form-group flex-2" *ngIf="visibility.gapFromAnchorMm && !isCountertopMode"
-            label="Min. odległość od słupka" unit="mm"
-            hint="Minimalny wymagany odstęp między wierzchołkiem słupka/lodówki a dołem szafki. Tylko walidacja — nie zmienia pozycji (0–500 mm)."
-            [errorMessage]="getFieldError('gapFromAnchorMm')">
-          <input type="number" class="form-control" formControlName="gapFromAnchorMm" min="0" max="500" step="5">
+        <app-form-field *ngIf="visibility.gapFromAnchorMm && !isCountertopMode" [errorMessage]="getFieldError('gapFromAnchorMm')"
+                        class="form-group flex-2" hint="Minimalny wymagany odstęp między wierzchołkiem słupka/lodówki a dołem szafki. Tylko walidacja — nie zmienia pozycji (0–500 mm)."
+                        label="Min. odległość od słupka"
+                        unit="mm">
+          <input class="form-control" formControlName="gapFromAnchorMm" max="500" min="0" step="5" type="number">
         </app-form-field>
       </div>
       <div class="positioning-info">
@@ -301,7 +303,7 @@
     <!-- Dolny wieniec na podlodze -->
     <div *ngIf="visibility.bottomWreathOnFloor" class="config-field">
       <label class="form-label enclosure-checkbox-label">
-        <input type="checkbox" formControlName="bottomWreathOnFloor" class="enclosure-checkbox" />
+        <input class="enclosure-checkbox" formControlName="bottomWreathOnFloor" type="checkbox"/>
         Dolny wieniec na podlodze
         <span class="form-hint">(boki oparte na wiencu dolnym)</span>
       </label>
@@ -310,7 +312,7 @@
     <!-- Blokada szafek wiszacych powyzej (TALL_CABINET, BASE_FRIDGE i inne) -->
     <div *ngIf="visibility.blockUpperAbove" class="config-field">
       <label class="form-label enclosure-checkbox-label">
-        <input type="checkbox" formControlName="blockUpperAbove" class="enclosure-checkbox" />
+        <input class="enclosure-checkbox" formControlName="blockUpperAbove" type="checkbox"/>
         Brak szafki wiszącej powyżej
         <span class="form-hint">(blokuje umieszczenie wiszących nad tym elementem)</span>
       </label>
@@ -326,22 +328,22 @@
 
     <!-- Sekcja segmentow (TALL_CABINET, BASE_FRIDGE) -->
     <app-cabinet-segments-section
+      (addSegment)="addSegment()"
+      (closeSegmentPopup)="closeSegmentPopup()"
+      (removeSelectedSegment)="removeSegment(selectedSegmentIndex)"
+      (reorderSegments)="onSegmentsReordered()"
+      (selectSegment)="selectSegment($event)"
       *ngIf="visibility.segments"
+      [activeSegmentTypeOptions]="activeSegmentTypeOptions"
       [form]="form"
-      [segmentsArray]="segmentsArray"
-      [isFridgeCabinet]="isFridgeCabinet"
-      [netCabinetHeight]="netCabinetHeight"
       [fridgeSectionHeight]="fridgeSectionVisualHeight"
       [fridgeUpperSectionsHeightSum]="fridgeUpperSectionsHeightSum"
-      [selectedSegmentIndex]="selectedSegmentIndex"
-      [selectedSegmentForm]="selectedSegmentForm"
-      [activeSegmentTypeOptions]="activeSegmentTypeOptions"
+      [isFridgeCabinet]="isFridgeCabinet"
+      [netCabinetHeight]="netCabinetHeight"
       [segmentHeightError]="segmentHeightError"
-      (addSegment)="addSegment()"
-      (selectSegment)="selectSegment($event)"
-      (reorderSegments)="onSegmentsReordered()"
-      (closeSegmentPopup)="closeSegmentPopup()"
-      (removeSelectedSegment)="removeSegment(selectedSegmentIndex)">
+      [segmentsArray]="segmentsArray"
+      [selectedSegmentForm]="selectedSegmentForm"
+      [selectedSegmentIndex]="selectedSegmentIndex">
     </app-cabinet-segments-section>
 
     <!-- Szafka zlewowa (BASE_SINK) -->
@@ -359,7 +361,7 @@
       <div class="form-row">
         <div class="form-group flex-2">
           <label class="form-label" for="drainerFrontType">Typ frontu ociekacza</label>
-          <select id="drainerFrontType" class="form-control" formControlName="drainerFrontType">
+          <select class="form-control" formControlName="drainerFrontType" id="drainerFrontType">
             <option value="OPEN">Otwarta (bez frontu)</option>
             <option value="ONE_DOOR">1 drzwi</option>
             <option value="TWO_DOORS">2 drzwi</option>
@@ -373,28 +375,31 @@
     <app-oven-form *ngIf="visibility.ovenHeightType" [form]="form"></app-oven-form>
 
     <!-- Szafka na lodówkę (BASE_FRIDGE / BASE_FRIDGE_FREESTANDING) -->
-    <app-fridge-form *ngIf="visibility.fridgeSectionType || visibility.fridgeFreestandingType" [form]="form"></app-fridge-form>
+    <app-fridge-form *ngIf="visibility.fridgeSectionType || visibility.fridgeFreestandingType"
+                     [form]="form"></app-fridge-form>
 
     <!-- Opcje frontu szafki wiszacej (UPPER_ONE_DOOR / UPPER_LIFT_UP / UPPER_TWO_DOOR) -->
     <div *ngIf="visibility.liftUp || visibility.extendedFront || visibility.liftMechanismType" class="sink-section">
       <h4 class="section-title">Opcje frontu</h4>
 
       <!-- Mechanizm podnośnika klapy (UPPER_LIFT_UP) -->
-      <div class="form-row" *ngIf="visibility.liftMechanismType">
+      <div *ngIf="visibility.liftMechanismType" class="form-row">
         <div class="form-group flex-2">
           <label class="form-label">Mechanizm podnośnika</label>
           <select class="form-control" formControlName="liftMechanismType">
-            <option *ngFor="let opt of liftMechanismTypes(); trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
+            <option *ngFor="let opt of liftMechanismTypes(); trackBy: trackByValue" [value]="opt.value">{{ opt.label
+              }}
+            </option>
           </select>
           <span class="form-hint">Podnośnik gazowy (GTV) oraz Aventos HK top / HK-S / HF top są dostępne (realny dobór mechanizmu wg wagi frontu i wymiarów; ceny katalogowe orientacyjne). Aventos HF top to front składany z 2 skrzydeł &mdash; domyślnie symetryczny, opcjonalnie asymetryczny (pole „Wysokość górnego frontu").</span>
         </div>
       </div>
 
       <!-- Aventos: zezwolenie na trzeci mechanizm dla zbyt ciężkiego frontu (HK-S / HF top) -->
-      <div class="form-row" *ngIf="visibility.allowThirdLiftMechanism">
+      <div *ngIf="visibility.allowThirdLiftMechanism" class="form-row">
         <div class="form-group flex-2">
           <label class="form-label enclosure-checkbox-label">
-            <input type="checkbox" formControlName="allowThirdLiftMechanism" class="enclosure-checkbox">
+            <input class="enclosure-checkbox" formControlName="allowThirdLiftMechanism" type="checkbox">
             Zezwól na trzeci mechanizm Aventos (cięższy front)
           </label>
           <span class="form-hint">Dotyczy Aventos HK-S / HF top. Gdy front jest zbyt ciężki dla pojedynczej pary mechanizmów, dobór próbuje trzeciego mechanizmu (siła LF / 1.5). Gdy trzeci mechanizm jest realnie potrzebny, w wycenie pojawia się dodatkowy, oznaczony wiersz mechanizmu (dodatkowy hardware do dokupienia). Domyślnie wyłączone (zbyt ciężki front kończy się błędem).</span>
@@ -402,20 +407,22 @@
       </div>
 
       <!-- Aventos HF top: fronty asymetryczne (TKH) — nominalna wysokość górnego frontu -->
-      <div class="form-row" *ngIf="visibility.hfUpperFrontHeightMm">
+      <div *ngIf="visibility.hfUpperFrontHeightMm" class="form-row">
         <div class="form-group flex-2">
           <label class="form-label">Wysokość górnego frontu (mm)</label>
-          <input type="number" class="form-control" formControlName="hfUpperFrontHeightMm" min="1" [max]="form.get('height')?.value || 1200">
-          <span class="form-error" *ngIf="form.get('hfUpperFrontHeightMm')?.touched && form.get('hfUpperFrontHeightMm')?.errors?.['message']">{{ form.get('hfUpperFrontHeightMm')?.errors?.['message'] }}</span>
+          <input [max]="form.get('height')?.value || 1200" class="form-control" formControlName="hfUpperFrontHeightMm" min="1"
+                 type="number">
+          <span *ngIf="form.get('hfUpperFrontHeightMm')?.touched && form.get('hfUpperFrontHeightMm')?.errors?.['message']"
+                class="form-error">{{ form.get('hfUpperFrontHeightMm')?.errors?.['message'] }}</span>
           <span class="form-hint">Pole opcjonalne (puste = front symetryczny, skrzydła równej wysokości). Dla frontu asymetrycznego dobór liczy TKH = 2 &times; wysokość górnego frontu + szczelina. Zalecenie Blum: większy front u góry (wysokość górnego frontu &ge; połowy frontu całkowitego).</span>
         </div>
       </div>
 
       <!-- Klapa lift-up -->
-      <div class="form-row" *ngIf="visibility.liftUp">
+      <div *ngIf="visibility.liftUp" class="form-row">
         <div class="form-group flex-2">
           <label class="form-label enclosure-checkbox-label">
-            <input type="checkbox" formControlName="isLiftUp" class="enclosure-checkbox">
+            <input class="enclosure-checkbox" formControlName="isLiftUp" type="checkbox">
             Klapa lift-up (zamiast drzwi obrotowych)
           </label>
           <span class="form-hint">Front unoszony ku gorze (mechanizm gazowy). Zamiast zawiasow standardowych.</span>
@@ -423,10 +430,10 @@
       </div>
 
       <!-- Przedluzony front -->
-      <div class="form-row" *ngIf="visibility.extendedFront">
+      <div *ngIf="visibility.extendedFront" class="form-row">
         <div class="form-group flex-2">
           <label class="form-label enclosure-checkbox-label">
-            <input type="checkbox" formControlName="isFrontExtended" class="enclosure-checkbox">
+            <input class="enclosure-checkbox" formControlName="isFrontExtended" type="checkbox">
             Przedluzony front (wychodzi ponad korpus)
           </label>
           <span class="form-hint">Front wysunięty ponad górny wieniec (wg ustawień technicznych, domyślnie 23 mm). Stosowane przy szafkach do sufitu.</span>
@@ -470,23 +477,24 @@
   <!-- Przyciski -->
   <div class="form-actions">
     <!-- Wrapper ze tooltipem: disabled <button> nie odbiera zdarzen hover, wiec title trzymamy na <span>. -->
-    <span class="btn-tooltip-wrapper"
+    <span [attr.aria-label]="addDisabledReason"
           [attr.title]="addDisabledReason"
-          [attr.aria-label]="addDisabledReason">
-      <button type="button" class="btn btn-primary" (click)="calculate()"
-              [disabled]="isAddDisabled">
+          class="btn-tooltip-wrapper">
+      <button (click)="calculate()" [disabled]="isAddDisabled" class="btn btn-primary"
+              type="button">
         <span *ngIf="loading" class="spinner-btn"></span>
-        <mat-icon *ngIf="!loading" class="form-action-icon" aria-hidden="true">{{ isEditMode ? 'save' : 'add_box' }}</mat-icon>
+        <mat-icon *ngIf="!loading" aria-hidden="true"
+                  class="form-action-icon">{{ isEditMode ? 'save' : 'add_box' }}</mat-icon>
         {{ isEditMode ? 'Zapisz' : 'Dodaj szafke' }}
       </button>
     </span>
     <button
-      *ngIf="isEditMode"
-      type="button"
-      class="btn btn-secondary"
       (click)="onCancel()"
-      [disabled]="loading">
-      <mat-icon class="form-action-icon" aria-hidden="true">close</mat-icon>
+      *ngIf="isEditMode"
+      [disabled]="loading"
+      class="btn btn-secondary"
+      type="button">
+      <mat-icon aria-hidden="true" class="form-action-icon">close</mat-icon>
       Anuluj
     </button>
   </div>

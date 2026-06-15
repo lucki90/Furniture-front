@@ -94,7 +94,7 @@
 
     <section class="auth-card auth-card--login">
       <div class="auth-card-brand">
-        <img class="auth-brand-logo" src="assets/furnitio-logo-white-tight.png" alt="Furnitio" />
+        <img alt="Furnitio" class="auth-brand-logo" src="assets/furnitio-logo-white-tight.png"/>
       </div>
 
       <div class="auth-header">
@@ -114,27 +114,27 @@
         <div class="form-group">
           <label for="email">Email</label>
           <input
-            id="email"
-            type="email"
             [(ngModel)]="email"
-            name="email"
-            class="form-control"
-            placeholder="twoj@email.com"
+            [disabled]="isLoading"
             autocomplete="email"
-            [disabled]="isLoading" />
+            class="form-control"
+            id="email"
+            name="email"
+            placeholder="twoj@email.com"
+            type="email"/>
         </div>
 
         <div class="form-group">
           <label for="password">Haslo</label>
           <input
-            id="password"
-            type="password"
             [(ngModel)]="password"
-            name="password"
-            class="form-control"
-            placeholder="Wprowadz haslo"
+            [disabled]="isLoading"
             autocomplete="current-password"
-            [disabled]="isLoading" />
+            class="form-control"
+            id="password"
+            name="password"
+            placeholder="Wprowadz haslo"
+            type="password"/>
         </div>
 
         <div *ngIf="errorMessage" class="auth-error" role="alert">
@@ -142,10 +142,10 @@
           <span>{{ errorMessage }}</span>
         </div>
 
-        <button type="submit" class="btn btn-primary auth-submit" [disabled]="isLoading">
+        <button [disabled]="isLoading" class="btn btn-primary auth-submit" type="submit">
           <span *ngIf="isLoading" class="spinner-btn"></span>
           <ng-container *ngIf="!isLoading">
-            <mat-icon class="workflow-action-icon" aria-hidden="true">login</mat-icon>
+            <mat-icon aria-hidden="true" class="workflow-action-icon">login</mat-icon>
           </ng-container>
           {{ isLoading ? 'Logowanie...' : 'Zaloguj sie' }}
         </button>

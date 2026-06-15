@@ -1,84 +1,84 @@
 <div class="floor-plan-container">
-  <svg class="floor-plan-svg" [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight">
+  <svg [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight" class="floor-plan-svg">
     <defs>
-      <pattern id="grid-minor" width="16" height="16" patternUnits="userSpaceOnUse">
+      <pattern height="16" id="grid-minor" patternUnits="userSpaceOnUse" width="16">
         <path d="M 16 0 L 0 0 0 16" fill="none" stroke="#e9eef5" stroke-width="0.55"/>
       </pattern>
-      <pattern id="grid-major" width="64" height="64" patternUnits="userSpaceOnUse">
+      <pattern height="64" id="grid-major" patternUnits="userSpaceOnUse" width="64">
         <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#d6deea" stroke-width="0.85"/>
       </pattern>
     </defs>
-    <rect width="100%" height="100%" class="floor-plan-bg"/>
+    <rect class="floor-plan-bg" height="100%" width="100%"/>
     <rect
+      [attr.height]="svgHeight - sceneInset * 2"
+      [attr.width]="svgWidth - sceneInset * 2"
       [attr.x]="sceneInset"
       [attr.y]="sceneInset"
-      [attr.width]="svgWidth - sceneInset * 2"
-      [attr.height]="svgHeight - sceneInset * 2"
       class="floor-plan-stage"
       rx="7"/>
-    <rect width="100%" height="100%" fill="url(#grid-minor)"/>
-    <rect width="100%" height="100%" fill="url(#grid-major)"/>
+    <rect fill="url(#grid-minor)" height="100%" width="100%"/>
+    <rect fill="url(#grid-major)" height="100%" width="100%"/>
 
     @if (roomGuide(); as room) {
-      <g class="room-outline-group">
-        <rect
-          [attr.x]="room.x"
-          [attr.y]="room.y"
-          [attr.width]="room.width"
-          [attr.height]="room.height"
-          class="room-outline"
-          rx="6"/>
-        <text
-          [attr.x]="room.x + 8"
-          [attr.y]="room.y + 11"
-          class="room-outline-label">
-          {{ room.widthMm }} x {{ room.depthMm }} mm
-        </text>
-      </g>
+    <g class="room-outline-group">
+      <rect
+        [attr.height]="room.height"
+        [attr.width]="room.width"
+        [attr.x]="room.x"
+        [attr.y]="room.y"
+        class="room-outline"
+        rx="6"/>
+      <text
+        [attr.x]="room.x + 8"
+        [attr.y]="room.y + 11"
+        class="room-outline-label">
+        {{ room.widthMm }} x {{ room.depthMm }} mm
+      </text>
+    </g>
     }
 
     @for (pos of wallPositions(); track pos.wall.id) {
-      <g
-        appFloorPlanWallGroup
-        [wallPosition]="pos"
-        [cabinets]="getCabinetsForWall(pos)"
-        [countertops]="getCountertopsForWall(pos)"
-        [selected]="isSelected(pos.wall.id)"
-        [canRemoveWall]="canRemoveWall()"
-        [editingCabinetId]="editingCabinetId"
-        [showCountertop]="showCountertop()"
-        [showUpperCabinets]="showUpperCabinets()"
-        (wallSelected)="onWallClick($event)"
-        (wallRemoved)="onRemoveWall($event)">
-      </g>
+    <g
+      (wallRemoved)="onRemoveWall($event)"
+      (wallSelected)="onWallClick($event)"
+      [cabinets]="getCabinetsForWall(pos)"
+      [canRemoveWall]="canRemoveWall()"
+      [countertops]="getCountertopsForWall(pos)"
+      [editingCabinetId]="editingCabinetId"
+      [selected]="isSelected(pos.wall.id)"
+      [showCountertop]="showCountertop()"
+      [showUpperCabinets]="showUpperCabinets()"
+      [wallPosition]="pos"
+      appFloorPlanWallGroup>
+    </g>
     }
 
     <g
-      appFloorPlanOverlayLayer
+      [cornerCountertops]="cornerCountertopPositions()"
+      [doorArcs]="doorArcData()"
       [showCountertop]="showCountertop()"
       [showDoorArcs]="showDoorArcs()"
-      [cornerCountertops]="cornerCountertopPositions()"
-      [doorArcs]="doorArcData()">
+      appFloorPlanOverlayLayer>
     </g>
   </svg>
 
   <div class="floor-plan-toolbar">
     <label class="fp-toggle">
-      <input type="checkbox" [checked]="showDoorArcs()" (change)="showDoorArcs.set(!showDoorArcs())">
+      <input (change)="showDoorArcs.set(!showDoorArcs())" [checked]="showDoorArcs()" type="checkbox">
       Otwarcie drzwi
     </label>
 
     @if (hasIslandWall()) {
-      <div class="fp-island-controls">
-        <span class="fp-controls-label">Wyspa</span>
-        <div class="fp-nudge-buttons">
-          <button type="button" class="fp-nudge-btn" title="Przesun w lewo" (click)="nudgeIsland(-100, 0)">&larr;</button>
-          <button type="button" class="fp-nudge-btn" title="Przesun do gory" (click)="nudgeIsland(0, 100)">&uarr;</button>
-          <button type="button" class="fp-nudge-btn" title="Przesun w dol" (click)="nudgeIsland(0, -100)">&darr;</button>
-          <button type="button" class="fp-nudge-btn" title="Przesun w prawo" (click)="nudgeIsland(100, 0)">&rarr;</button>
-          <button type="button" class="fp-reset-btn" (click)="resetIslandVisualOffset()">Reset</button>
-        </div>
+    <div class="fp-island-controls">
+      <span class="fp-controls-label">Wyspa</span>
+      <div class="fp-nudge-buttons">
+        <button (click)="nudgeIsland(-100, 0)" class="fp-nudge-btn" title="Przesun w lewo" type="button">&larr;</button>
+        <button (click)="nudgeIsland(0, 100)" class="fp-nudge-btn" title="Przesun do gory" type="button">&uarr;</button>
+        <button (click)="nudgeIsland(0, -100)" class="fp-nudge-btn" title="Przesun w dol" type="button">&darr;</button>
+        <button (click)="nudgeIsland(100, 0)" class="fp-nudge-btn" title="Przesun w prawo" type="button">&rarr;</button>
+        <button (click)="resetIslandVisualOffset()" class="fp-reset-btn" type="button">Reset</button>
       </div>
+    </div>
     }
   </div>
 </div>

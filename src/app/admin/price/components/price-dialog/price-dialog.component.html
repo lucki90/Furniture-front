@@ -4,7 +4,7 @@
   <form [formGroup]="form" class="price-form">
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Nazwa</mat-label>
-      <input matInput formControlName="name" placeholder="np. Plyta HDF 3 mm">
+      <input formControlName="name" matInput placeholder="np. Plyta HDF 3 mm">
       <mat-error *ngIf="form.get('name')?.hasError('maxlength')">
         Maksymalnie 255 znakow
       </mat-error>
@@ -13,10 +13,10 @@
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Opis</mat-label>
       <textarea
-        matInput
         formControlName="description"
-        rows="2"
-        placeholder="Opcjonalny opis pozycji cenowej"></textarea>
+        matInput
+        placeholder="Opcjonalny opis pozycji cenowej"
+        rows="2"></textarea>
     </mat-form-field>
 
     <div class="form-row">
@@ -33,13 +33,14 @@
       <mat-form-field appearance="outline">
         <mat-label>Waluta</mat-label>
         <mat-select formControlName="currency">
-          <mat-option *ngFor="let currency of currencies; trackBy: trackByIndex" [value]="currency">{{ currency }}</mat-option>
+          <mat-option *ngFor="let currency of currencies; trackBy: trackByIndex" [value]="currency">{{ currency }}
+          </mat-option>
         </mat-select>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Cena</mat-label>
-        <input matInput type="number" formControlName="currentPrice" step="0.01" min="0">
+        <input formControlName="currentPrice" matInput min="0" step="0.01" type="number">
         <mat-error *ngIf="form.get('currentPrice')?.hasError('required')">
           Cena jest wymagana
         </mat-error>
@@ -53,31 +54,31 @@
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>URL zrodla ceny</mat-label>
-      <input matInput formControlName="sourceUrl" placeholder="https://example.com/product">
+      <input formControlName="sourceUrl" matInput placeholder="https://example.com/product">
       <mat-hint>Strona, z ktorej bedzie pobierana cena</mat-hint>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Selektor CSS</mat-label>
-      <input matInput formControlName="urlSelector" placeholder=".price-value, #product-price">
+      <input formControlName="urlSelector" matInput placeholder=".price-value, #product-price">
       <mat-hint>Selektor elementu z cena na stronie</mat-hint>
     </mat-form-field>
 
-    <mat-checkbox *ngIf="isEditMode" formControlName="isActive" class="active-checkbox">
+    <mat-checkbox *ngIf="isEditMode" class="active-checkbox" formControlName="isActive">
       Pozycja aktywna
     </mat-checkbox>
   </form>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="onCancel()" [disabled]="saving">Anuluj</button>
+  <button (click)="onCancel()" [disabled]="saving" mat-button type="button">Anuluj</button>
   <button
-    mat-raised-button
-    color="primary"
-    type="button"
     (click)="onSubmit()"
-    [disabled]="saving || form.invalid">
-    <mat-spinner *ngIf="saving" diameter="20" class="button-spinner"></mat-spinner>
+    [disabled]="saving || form.invalid"
+    color="primary"
+    mat-raised-button
+    type="button">
+    <mat-spinner *ngIf="saving" class="button-spinner" diameter="20"></mat-spinner>
     {{ saving ? 'Zapisywanie...' : (isEditMode ? 'Zapisz zmiany' : 'Dodaj cene') }}
   </button>
 </mat-dialog-actions>

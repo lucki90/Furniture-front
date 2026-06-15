@@ -3,16 +3,17 @@
     <div>
       <h2 class="admin-section-title">Warianty plyt</h2>
       <p class="admin-section-subtitle">
-        Importuj CSV i zarzadzaj kombinacjami materialu, grubosci, koloru oraz lakieru dla plyt wykorzystywanych w projektach.
+        Importuj CSV i zarzadzaj kombinacjami materialu, grubosci, koloru oraz lakieru dla plyt wykorzystywanych w
+        projektach.
       </p>
     </div>
 
     <div class="admin-section-actions">
-      <button type="button" class="btn btn-outline btn-sm" (click)="openImportDialog()">
+      <button (click)="openImportDialog()" class="btn btn-outline btn-sm" type="button">
         <mat-icon aria-hidden="true">upload_file</mat-icon>
         Import CSV
       </button>
-      <button type="button" class="btn btn-primary btn-sm" (click)="openCreateDialog()">
+      <button (click)="openCreateDialog()" class="btn btn-primary btn-sm" type="button">
         <mat-icon aria-hidden="true">add</mat-icon>
         Dodaj wariant
       </button>
@@ -23,20 +24,22 @@
     <span class="settings-toolbar-label">Szukaj:</span>
     <mat-form-field appearance="outline" class="variant-filter-field variant-filter-field--search">
       <mat-label>Kod materialu lub koloru</mat-label>
-      <input matInput [(ngModel)]="searchMaterialCode" (keyup.enter)="onSearch()" placeholder="Np. WHITE, OAK, CHIPBOARD...">
+      <input (keyup.enter)="onSearch()" [(ngModel)]="searchMaterialCode" matInput
+             placeholder="Np. WHITE, OAK, CHIPBOARD...">
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
     <span class="settings-toolbar-label">Status:</span>
     <mat-form-field appearance="outline" class="variant-filter-field variant-filter-field--status">
       <mat-label>Widocznosc</mat-label>
-      <mat-select [(ngModel)]="activeOnly" (selectionChange)="onSearch()">
+      <mat-select (selectionChange)="onSearch()" [(ngModel)]="activeOnly">
         <mat-option [value]="false">Wszystkie</mat-option>
         <mat-option [value]="true">Tylko aktywne</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <button type="button" class="btn btn-secondary btn-sm" (click)="onSearch()" matTooltip="Wyszukaj z aktualnymi filtrami">
+    <button (click)="onSearch()" class="btn btn-secondary btn-sm" matTooltip="Wyszukaj z aktualnymi filtrami"
+            type="button">
       <mat-icon aria-hidden="true">search</mat-icon>
       Szukaj
     </button>
@@ -44,101 +47,102 @@
     <span class="settings-toolbar-count">{{ totalVariantsLabel }}</span>
   </div>
 
-  <div class="admin-table-card" [class.is-loading]="loading()">
+  <div [class.is-loading]="loading()" class="admin-table-card">
     @if (loading()) {
-      <mat-spinner class="admin-table-spinner" diameter="40"></mat-spinner>
+    <mat-spinner class="admin-table-spinner" diameter="40"></mat-spinner>
     }
 
     @if (variants().length > 0) {
-      <div class="admin-table-scroll">
-        <table mat-table [dataSource]="variants()" class="variant-table">
-          <ng-container matColumnDef="materialCode">
-            <th mat-header-cell *matHeaderCellDef>Material</th>
-            <td mat-cell *matCellDef="let variant">
-              @if (!variant.materialActive) {
-                <mat-icon class="material-inactive-icon" matTooltip="Material nieaktywny">warning</mat-icon>
+    <div class="admin-table-scroll">
+      <table [dataSource]="variants()" class="variant-table" mat-table>
+        <ng-container matColumnDef="materialCode">
+          <th *matHeaderCellDef mat-header-cell>Material</th>
+          <td *matCellDef="let variant" mat-cell>
+            @if (!variant.materialActive) {
+            <mat-icon class="material-inactive-icon" matTooltip="Material nieaktywny">warning</mat-icon>
+            }
+            {{ getMaterialDisplay(variant) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="thicknessMm">
+          <th *matHeaderCellDef mat-header-cell>Grubosc</th>
+          <td *matCellDef="let variant" mat-cell>{{ variant.thicknessMm }} mm</td>
+        </ng-container>
+
+        <ng-container matColumnDef="colorCode">
+          <th *matHeaderCellDef mat-header-cell>Kolor</th>
+          <td *matCellDef="let variant" mat-cell>
+            <div class="color-cell">
+              @if (variant.colorHex) {
+              <span [style.background-color]="variant.colorHex" class="color-swatch"></span>
               }
-              {{ getMaterialDisplay(variant) }}
-            </td>
-          </ng-container>
+              <span class="color-name">{{ getColorDisplay(variant) }}</span>
+            </div>
+          </td>
+        </ng-container>
 
-          <ng-container matColumnDef="thicknessMm">
-            <th mat-header-cell *matHeaderCellDef>Grubosc</th>
-            <td mat-cell *matCellDef="let variant">{{ variant.thicknessMm }} mm</td>
-          </ng-container>
+        <ng-container matColumnDef="varnished">
+          <th *matHeaderCellDef mat-header-cell>Lakier</th>
+          <td *matCellDef="let variant" class="icon-state-cell" mat-cell>
+            <mat-icon
+              [attr.aria-label]="variant.varnished ? 'Lakierowany' : 'Bez lakieru'"
+              [color]="variant.varnished ? 'primary' : 'warn'">
+              {{ variant.varnished ? 'check' : 'close' }}
+            </mat-icon>
+          </td>
+        </ng-container>
 
-          <ng-container matColumnDef="colorCode">
-            <th mat-header-cell *matHeaderCellDef>Kolor</th>
-            <td mat-cell *matCellDef="let variant">
-              <div class="color-cell">
-                @if (variant.colorHex) {
-                  <span class="color-swatch" [style.background-color]="variant.colorHex"></span>
-                }
-                <span class="color-name">{{ getColorDisplay(variant) }}</span>
-              </div>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="currentPrice">
+          <th *matHeaderCellDef mat-header-cell>Cena</th>
+          <td *matCellDef="let variant" class="price-cell" mat-cell>
+            {{ variant.currentPrice ? (variant.currentPrice | number:'1.2-2') + ' PLN' : '-' }}
+          </td>
+        </ng-container>
 
-          <ng-container matColumnDef="varnished">
-            <th mat-header-cell *matHeaderCellDef>Lakier</th>
-            <td mat-cell *matCellDef="let variant" class="icon-state-cell">
-              <mat-icon
-                [color]="variant.varnished ? 'primary' : 'warn'"
-                [attr.aria-label]="variant.varnished ? 'Lakierowany' : 'Bez lakieru'">
-                {{ variant.varnished ? 'check' : 'close' }}
-              </mat-icon>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="active">
+          <th *matHeaderCellDef mat-header-cell>Status</th>
+          <td *matCellDef="let variant" mat-cell>
+            <mat-chip [class.active]="variant.active" [class.inactive]="!variant.active">
+              {{ variant.active ? 'Aktywny' : 'Nieaktywny' }}
+            </mat-chip>
+          </td>
+        </ng-container>
 
-          <ng-container matColumnDef="currentPrice">
-            <th mat-header-cell *matHeaderCellDef>Cena</th>
-            <td mat-cell *matCellDef="let variant" class="price-cell">
-              {{ variant.currentPrice ? (variant.currentPrice | number:'1.2-2') + ' PLN' : '-' }}
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="actions">
+          <th *matHeaderCellDef mat-header-cell>Akcje</th>
+          <td *matCellDef="let variant" class="actions-cell" mat-cell>
+            <button (click)="openEditDialog(variant)" color="primary" mat-icon-button matTooltip="Edytuj" type="button">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button (click)="onDelete(variant)" color="warn" mat-icon-button matTooltip="Usun" type="button">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
 
-          <ng-container matColumnDef="active">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let variant">
-              <mat-chip [class.active]="variant.active" [class.inactive]="!variant.active">
-                {{ variant.active ? 'Aktywny' : 'Nieaktywny' }}
-              </mat-chip>
-            </td>
-          </ng-container>
+        <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+        <tr *matRowDef="let row; columns: displayedColumns;" [class.material-inactive-row]="!row.materialActive"
+            mat-row></tr>
+      </table>
+    </div>
 
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Akcje</th>
-            <td mat-cell *matCellDef="let variant" class="actions-cell">
-              <button mat-icon-button color="primary" type="button" (click)="openEditDialog(variant)" matTooltip="Edytuj">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" type="button" (click)="onDelete(variant)" matTooltip="Usun">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.material-inactive-row]="!row.materialActive"></tr>
-        </table>
-      </div>
-
-      <mat-paginator
-        [length]="totalElements()"
-        [pageSize]="pageSize()"
-        [pageIndex]="pageIndex()"
-        [pageSizeOptions]="[10, 20, 50]"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
+    <mat-paginator
+      (page)="onPageChange($event)"
+      [length]="totalElements()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 20, 50]"
+      [pageSize]="pageSize()"
+      showFirstLastButtons>
+    </mat-paginator>
     } @else if (!loading()) {
-      <div class="empty-state">
-        <mat-icon aria-hidden="true">inventory_2</mat-icon>
-        <p>Brak wariantow plyt</p>
-        <button type="button" class="btn btn-outline btn-sm" (click)="openCreateDialog()">
-          Dodaj pierwszy wariant
-        </button>
-      </div>
+    <div class="empty-state">
+      <mat-icon aria-hidden="true">inventory_2</mat-icon>
+      <p>Brak wariantow plyt</p>
+      <button (click)="openCreateDialog()" class="btn btn-outline btn-sm" type="button">
+        Dodaj pierwszy wariant
+      </button>
+    </div>
     }
   </div>
 </section>

@@ -8,7 +8,7 @@
     </div>
 
     <div class="admin-section-actions">
-      <button type="button" class="btn btn-primary btn-sm" (click)="openCreateDialog()">
+      <button (click)="openCreateDialog()" class="btn btn-primary btn-sm" type="button">
         <mat-icon aria-hidden="true">add</mat-icon>
         Dodaj wariant
       </button>
@@ -19,20 +19,21 @@
     <span class="settings-toolbar-label">Szukaj:</span>
     <mat-form-field appearance="outline" class="variant-filter-field variant-filter-field--search">
       <mat-label>Kod komponentu lub modelu</mat-label>
-      <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Np. HINGE, SLIDE, TIP-ON...">
+      <input (keyup.enter)="onSearch()" [(ngModel)]="searchQuery" matInput placeholder="Np. HINGE, SLIDE, TIP-ON...">
       <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
 
     <span class="settings-toolbar-label">Status:</span>
     <mat-form-field appearance="outline" class="variant-filter-field variant-filter-field--status">
       <mat-label>Widocznosc</mat-label>
-      <mat-select [(ngModel)]="activeOnly" (selectionChange)="onActiveFilterChange()">
+      <mat-select (selectionChange)="onActiveFilterChange()" [(ngModel)]="activeOnly">
         <mat-option [value]="false">Wszystkie</mat-option>
         <mat-option [value]="true">Tylko aktywne</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <button type="button" class="btn btn-secondary btn-sm" (click)="onSearch()" matTooltip="Wyszukaj z aktualnymi filtrami">
+    <button (click)="onSearch()" class="btn btn-secondary btn-sm" matTooltip="Wyszukaj z aktualnymi filtrami"
+            type="button">
       <mat-icon aria-hidden="true">search</mat-icon>
       Szukaj
     </button>
@@ -40,85 +41,86 @@
     <span class="settings-toolbar-count">{{ totalVariantsLabel }}</span>
   </div>
 
-  <div class="admin-table-card" [class.is-loading]="loading()">
+  <div [class.is-loading]="loading()" class="admin-table-card">
     @if (loading()) {
-      <mat-spinner class="admin-table-spinner" diameter="40"></mat-spinner>
+    <mat-spinner class="admin-table-spinner" diameter="40"></mat-spinner>
     }
 
     @if (variants().length > 0) {
-      <div class="admin-table-scroll">
-        <table mat-table [dataSource]="variants()" class="variant-table">
-          <ng-container matColumnDef="componentCode">
-            <th mat-header-cell *matHeaderCellDef>Komponent</th>
-            <td mat-cell *matCellDef="let variant">{{ variant.componentCode }}</td>
-          </ng-container>
+    <div class="admin-table-scroll">
+      <table [dataSource]="variants()" class="variant-table" mat-table>
+        <ng-container matColumnDef="componentCode">
+          <th *matHeaderCellDef mat-header-cell>Komponent</th>
+          <td *matCellDef="let variant" mat-cell>{{ variant.componentCode }}</td>
+        </ng-container>
 
-          <ng-container matColumnDef="componentCategory">
-            <th mat-header-cell *matHeaderCellDef>Kategoria</th>
-            <td mat-cell *matCellDef="let variant">{{ variant.componentCategory }}</td>
-          </ng-container>
+        <ng-container matColumnDef="componentCategory">
+          <th *matHeaderCellDef mat-header-cell>Kategoria</th>
+          <td *matCellDef="let variant" mat-cell>{{ variant.componentCategory }}</td>
+        </ng-container>
 
-          <ng-container matColumnDef="modelCode">
-            <th mat-header-cell *matHeaderCellDef>Model</th>
-            <td mat-cell *matCellDef="let variant">{{ variant.modelCode }}</td>
-          </ng-container>
+        <ng-container matColumnDef="modelCode">
+          <th *matHeaderCellDef mat-header-cell>Model</th>
+          <td *matCellDef="let variant" mat-cell>{{ variant.modelCode }}</td>
+        </ng-container>
 
-          <ng-container matColumnDef="additionalInfo">
-            <th mat-header-cell *matHeaderCellDef>Dodatkowe info</th>
-            <td mat-cell *matCellDef="let variant" class="additional-info-cell" [matTooltip]="variant.additionalInfo || ''">
-              {{ variant.additionalInfo || '-' }}
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="additionalInfo">
+          <th *matHeaderCellDef mat-header-cell>Dodatkowe info</th>
+          <td *matCellDef="let variant" [matTooltip]="variant.additionalInfo || ''" class="additional-info-cell"
+              mat-cell>
+            {{ variant.additionalInfo || '-' }}
+          </td>
+        </ng-container>
 
-          <ng-container matColumnDef="currentPrice">
-            <th mat-header-cell *matHeaderCellDef>Cena</th>
-            <td mat-cell *matCellDef="let variant" class="price-cell">
-              {{ variant.currentPrice ? (variant.currentPrice | number:'1.2-2') + ' PLN' : '-' }}
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="currentPrice">
+          <th *matHeaderCellDef mat-header-cell>Cena</th>
+          <td *matCellDef="let variant" class="price-cell" mat-cell>
+            {{ variant.currentPrice ? (variant.currentPrice | number:'1.2-2') + ' PLN' : '-' }}
+          </td>
+        </ng-container>
 
-          <ng-container matColumnDef="active">
-            <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef="let variant">
-              <mat-chip [class.active]="variant.active" [class.inactive]="!variant.active">
-                {{ variant.active ? 'Aktywny' : 'Nieaktywny' }}
-              </mat-chip>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="active">
+          <th *matHeaderCellDef mat-header-cell>Status</th>
+          <td *matCellDef="let variant" mat-cell>
+            <mat-chip [class.active]="variant.active" [class.inactive]="!variant.active">
+              {{ variant.active ? 'Aktywny' : 'Nieaktywny' }}
+            </mat-chip>
+          </td>
+        </ng-container>
 
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Akcje</th>
-            <td mat-cell *matCellDef="let variant" class="actions-cell">
-              <button mat-icon-button color="primary" type="button" (click)="openEditDialog(variant)" matTooltip="Edytuj">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" type="button" (click)="onDelete(variant)" matTooltip="Usun">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="actions">
+          <th *matHeaderCellDef mat-header-cell>Akcje</th>
+          <td *matCellDef="let variant" class="actions-cell" mat-cell>
+            <button (click)="openEditDialog(variant)" color="primary" mat-icon-button matTooltip="Edytuj" type="button">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button (click)="onDelete(variant)" color="warn" mat-icon-button matTooltip="Usun" type="button">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      </div>
+        <tr *matHeaderRowDef="displayedColumns" mat-header-row></tr>
+        <tr *matRowDef="let row; columns: displayedColumns;" mat-row></tr>
+      </table>
+    </div>
 
-      <mat-paginator
-        [length]="totalElements()"
-        [pageSize]="pageSize()"
-        [pageIndex]="pageIndex()"
-        [pageSizeOptions]="[5, 10, 25, 50]"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
+    <mat-paginator
+      (page)="onPageChange($event)"
+      [length]="totalElements()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      [pageSize]="pageSize()"
+      showFirstLastButtons>
+    </mat-paginator>
     } @else if (!loading()) {
-      <div class="empty-state">
-        <mat-icon aria-hidden="true">inventory_2</mat-icon>
-        <p>Brak wariantow komponentow</p>
-        <button type="button" class="btn btn-outline btn-sm" (click)="openCreateDialog()">
-          Dodaj pierwszy wariant
-        </button>
-      </div>
+    <div class="empty-state">
+      <mat-icon aria-hidden="true">inventory_2</mat-icon>
+      <p>Brak wariantow komponentow</p>
+      <button (click)="openCreateDialog()" class="btn btn-outline btn-sm" type="button">
+        Dodaj pierwszy wariant
+      </button>
+    </div>
     }
   </div>
 </section>

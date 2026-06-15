@@ -1,85 +1,87 @@
-<div class="corner-section" [formGroup]="form">
+<div [formGroup]="form" class="corner-section">
 
   <!-- ═════════════════ STICKY PODGLĄD SCHEMATYCZNY (widok z góry) ═════════════════ -->
   <div class="corner-preview-sticky">
     <span class="corner-preview-label">Podgląd narożnika (z góry) — aktualizuje się na żywo</span>
-    <svg class="corner-preview-svg" viewBox="0 0 220 160" aria-label="Podgląd narożnika">
+    <svg aria-label="Podgląd narożnika" class="corner-preview-svg" viewBox="0 0 220 160">
       <defs>
-        <pattern id="cp-hatch" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="7" class="cp-hatch-line" />
+        <pattern height="7" id="cp-hatch" patternTransform="rotate(45)" patternUnits="userSpaceOnUse" width="7">
+          <line class="cp-hatch-line" x1="0" x2="0" y1="0" y2="7"/>
         </pattern>
       </defs>
 
       <!-- ── Rodzina L (Type A): wielokąt L z dwoma frontami ── -->
       <g *ngIf="!isCornerTypeB">
-        <line [attr.x1]="previewCx - 4" [attr.y1]="previewLCy - 4"
-              [attr.x2]="previewCx + previewLArmA + 6" [attr.y2]="previewLCy - 4"
-              class="cp-wall" />
-        <line [attr.x1]="previewCx - 4" [attr.y1]="previewLCy - 4"
-              [attr.x2]="previewCx - 4" [attr.y2]="previewLCy + previewLArmB + 6"
-              class="cp-wall" />
-        <polygon [attr.points]="previewLPolygon" class="cp-body" />
+        <line [attr.x1]="previewCx - 4" [attr.x2]="previewCx + previewLArmA + 6"
+              [attr.y1]="previewLCy - 4" [attr.y2]="previewLCy - 4"
+              class="cp-wall"/>
+        <line [attr.x1]="previewCx - 4" [attr.x2]="previewCx - 4"
+              [attr.y1]="previewLCy - 4" [attr.y2]="previewLCy + previewLArmB + 6"
+              class="cp-wall"/>
+        <polygon [attr.points]="previewLPolygon" class="cp-body"/>
         <!-- front na ramieniu poziomym -->
-        <line [attr.x1]="previewCx + previewLBand" [attr.y1]="previewLCy + previewLBand + 1"
-              [attr.x2]="previewCx + previewLArmA" [attr.y2]="previewLCy + previewLBand + 1"
-              class="cp-front" />
+        <line [attr.x1]="previewCx + previewLBand" [attr.x2]="previewCx + previewLArmA"
+              [attr.y1]="previewLCy + previewLBand + 1" [attr.y2]="previewLCy + previewLBand + 1"
+              class="cp-front"/>
         <!-- front na ramieniu pionowym (ślepy → przerywany) -->
-        <line [attr.x1]="previewCx + previewLBand + 1" [attr.y1]="previewLCy + previewLBand"
-              [attr.x2]="previewCx + previewLBand + 1" [attr.y2]="previewLCy + previewLArmB"
-              class="cp-front" [class.cp-front-blind]="previewLBlindArm" />
+        <line [attr.x1]="previewCx + previewLBand + 1" [attr.x2]="previewCx + previewLBand + 1"
+              [attr.y1]="previewLCy + previewLBand" [attr.y2]="previewLCy + previewLArmB"
+              [class.cp-front-blind]="previewLBlindArm" class="cp-front"/>
         <ng-container *ngTemplateOutlet="glyph"></ng-container>
       </g>
 
       <!-- ── Rodzina Ślepy (Type B): korpus + front uchylny + ślepa część ── -->
       <g *ngIf="isCornerTypeB">
-        <line [attr.x1]="previewCx - 4" [attr.y1]="previewBlindCy - 4"
-              [attr.x2]="previewCx + previewBlindBodyW + 6" [attr.y2]="previewBlindCy - 4"
-              class="cp-wall" />
-        <line [attr.x1]="previewCx - 4" [attr.y1]="previewBlindCy - 4"
-              [attr.x2]="previewCx - 4" [attr.y2]="previewBlindCy + previewBlindH + 6"
-              class="cp-wall" />
+        <line [attr.x1]="previewCx - 4" [attr.x2]="previewCx + previewBlindBodyW + 6"
+              [attr.y1]="previewBlindCy - 4" [attr.y2]="previewBlindCy - 4"
+              class="cp-wall"/>
+        <line [attr.x1]="previewCx - 4" [attr.x2]="previewCx - 4"
+              [attr.y1]="previewBlindCy - 4" [attr.y2]="previewBlindCy + previewBlindH + 6"
+              class="cp-wall"/>
         <!-- korpus -->
-        <rect [attr.x]="previewCx" [attr.y]="previewBlindCy"
-              [attr.width]="previewBlindBodyW" [attr.height]="previewBlindH" class="cp-body" />
+        <rect [attr.height]="previewBlindH" [attr.width]="previewBlindBodyW"
+              [attr.x]="previewCx" [attr.y]="previewBlindCy" class="cp-body"/>
         <!-- ślepa (zasłonięta) część -->
-        <rect [attr.x]="previewBlindHiddenX" [attr.y]="previewBlindCy"
-              [attr.width]="previewBlindHiddenW" [attr.height]="previewBlindH"
-              fill="url(#cp-hatch)" stroke="none" />
+        <rect [attr.height]="previewBlindH" [attr.width]="previewBlindHiddenW"
+              [attr.x]="previewBlindHiddenX" [attr.y]="previewBlindCy"
+              fill="url(#cp-hatch)" stroke="none"/>
         <!-- pasek blendy narożnikowej -->
-        <rect *ngIf="previewBlindXb > 2" [attr.x]="previewBlindStripX" [attr.y]="previewBlindCy"
-              [attr.width]="previewBlindXb" [attr.height]="previewBlindH" class="cp-strip" stroke="none" />
+        <rect *ngIf="previewBlindXb > 2" [attr.height]="previewBlindH" [attr.width]="previewBlindXb"
+              [attr.x]="previewBlindStripX" [attr.y]="previewBlindCy" class="cp-strip" stroke="none"/>
         <!-- aktywny front uchylny -->
-        <rect [attr.x]="previewBlindFrontX" [attr.y]="previewBlindCy"
-              [attr.width]="previewBlindFy" [attr.height]="previewBlindH" class="cp-front-fill" />
-        <line [attr.x1]="previewBlindHingeX" [attr.y1]="previewBlindCy + 3"
-              [attr.x2]="previewBlindHingeX" [attr.y2]="previewBlindCy + previewBlindH - 3" class="cp-front" />
+        <rect [attr.height]="previewBlindH" [attr.width]="previewBlindFy"
+              [attr.x]="previewBlindFrontX" [attr.y]="previewBlindCy" class="cp-front-fill"/>
+        <line [attr.x1]="previewBlindHingeX" [attr.x2]="previewBlindHingeX"
+              [attr.y1]="previewBlindCy + 3" [attr.y2]="previewBlindCy + previewBlindH - 3" class="cp-front"/>
         <ng-container *ngTemplateOutlet="glyph"></ng-container>
         <text [attr.x]="previewBlindHiddenLabelX" [attr.y]="previewBlindCy + previewBlindH / 2 + 3"
-              class="cp-hidden-text" text-anchor="middle">ślepa część</text>
+              class="cp-hidden-text" text-anchor="middle">ślepa część
+        </text>
       </g>
 
       <!-- ── Glif mechanizmu (półki / karuzela / fasolka) ── -->
       <ng-template #glyph>
         <ng-container [ngSwitch]="previewGlyph">
           <g *ngSwitchCase="'carousel'" class="cp-glyph">
-            <circle [attr.cx]="previewGlyphCx" [attr.cy]="previewGlyphCy" r="15" fill="none" stroke-width="1.6" />
-            <circle [attr.cx]="previewGlyphCx" [attr.cy]="previewGlyphCy" r="2" class="cp-glyph-fill" />
-            <path [attr.d]="'M ' + (previewGlyphCx + 15) + ' ' + previewGlyphCy + ' A 15 15 0 0 1 ' + previewGlyphCx + ' ' + (previewGlyphCy + 15)"
-                  fill="none" stroke-width="2.2" />
+            <circle [attr.cx]="previewGlyphCx" [attr.cy]="previewGlyphCy" fill="none" r="15" stroke-width="1.6"/>
+            <circle [attr.cx]="previewGlyphCx" [attr.cy]="previewGlyphCy" class="cp-glyph-fill" r="2"/>
+            <path
+              [attr.d]="'M ' + (previewGlyphCx + 15) + ' ' + previewGlyphCy + ' A 15 15 0 0 1 ' + previewGlyphCx + ' ' + (previewGlyphCy + 15)"
+              fill="none" stroke-width="2.2"/>
             <path [attr.d]="'M ' + previewGlyphCx + ' ' + (previewGlyphCy + 15) + ' l 4 -4 m -4 4 l 4 4'"
-                  fill="none" stroke-width="1.8" stroke-linecap="round" />
+                  fill="none" stroke-linecap="round" stroke-width="1.8"/>
           </g>
           <g *ngSwitchCase="'bean'" class="cp-glyph" fill="none" stroke-width="1.8">
-            <ellipse [attr.cx]="previewGlyphCx - 5" [attr.cy]="previewGlyphCy" rx="7" ry="12"
-                     [attr.transform]="'rotate(-20 ' + (previewGlyphCx - 5) + ' ' + previewGlyphCy + ')'" />
-            <ellipse [attr.cx]="previewGlyphCx + 9" [attr.cy]="previewGlyphCy + 2" rx="6" ry="10"
-                     [attr.transform]="'rotate(-20 ' + (previewGlyphCx + 9) + ' ' + (previewGlyphCy + 2) + ')'" />
+            <ellipse [attr.cx]="previewGlyphCx - 5" [attr.cy]="previewGlyphCy" [attr.transform]="'rotate(-20 ' + (previewGlyphCx - 5) + ' ' + previewGlyphCy + ')'" rx="7"
+                     ry="12"/>
+            <ellipse [attr.cx]="previewGlyphCx + 9" [attr.cy]="previewGlyphCy + 2" [attr.transform]="'rotate(-20 ' + (previewGlyphCx + 9) + ' ' + (previewGlyphCy + 2) + ')'" rx="6"
+                     ry="10"/>
           </g>
-          <g *ngSwitchDefault class="cp-glyph" stroke-width="1.8" stroke-linecap="round">
-            <line [attr.x1]="previewGlyphCx - 14" [attr.y1]="previewGlyphCy - 6"
-                  [attr.x2]="previewGlyphCx + 14" [attr.y2]="previewGlyphCy - 6" />
-            <line [attr.x1]="previewGlyphCx - 14" [attr.y1]="previewGlyphCy + 4"
-                  [attr.x2]="previewGlyphCx + 14" [attr.y2]="previewGlyphCy + 4" />
+          <g *ngSwitchDefault class="cp-glyph" stroke-linecap="round" stroke-width="1.8">
+            <line [attr.x1]="previewGlyphCx - 14" [attr.x2]="previewGlyphCx + 14"
+                  [attr.y1]="previewGlyphCy - 6" [attr.y2]="previewGlyphCy - 6"/>
+            <line [attr.x1]="previewGlyphCx - 14" [attr.x2]="previewGlyphCx + 14"
+                  [attr.y1]="previewGlyphCy + 4" [attr.y2]="previewGlyphCy + 4"/>
           </g>
         </ng-container>
       </ng-template>
@@ -92,8 +94,8 @@
   </div>
 
   <!-- ═════════════════ OSTRZEŻENIA WALIDACJI (inline) ═════════════════ -->
-  <div class="corner-warnings" *ngIf="cornerWarnings.length > 0">
-    <div class="corner-warning-bar" *ngFor="let w of cornerWarnings; trackBy: trackByString">
+  <div *ngIf="cornerWarnings.length > 0" class="corner-warnings">
+    <div *ngFor="let w of cornerWarnings; trackBy: trackByString" class="corner-warning-bar">
       <span class="corner-warning-icon">⚠</span><span>{{ w }}</span>
     </div>
   </div>
@@ -104,11 +106,11 @@
     <span class="step-title">Rodzaj narożnika</span>
   </div>
   <div class="family-grid">
-    <button type="button" class="family-card" [class.selected]="isFamilySelected('L')"
-            (click)="selectFamily('L')">
+    <button (click)="selectFamily('L')" [class.selected]="isFamilySelected('L')" class="family-card"
+            type="button">
       <div class="family-card-top">
-        <svg class="family-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <polygon points="5,5 27,5 27,14 14,14 14,27 5,27" stroke-width="1.8" stroke-linejoin="round" />
+        <svg aria-hidden="true" class="family-icon" fill="none" viewBox="0 0 32 32">
+          <polygon points="5,5 27,5 27,14 14,14 14,27 5,27" stroke-linejoin="round" stroke-width="1.8"/>
         </svg>
         <span class="family-badge">Type A</span>
       </div>
@@ -118,13 +120,13 @@
 
     <!-- Type B: ślepy narożnik istnieje w wariancie dolnym i wiszącym (BLIND_CORNER). -->
     <!-- Magic Corner / Le Mans pozostają dolne — filtr w `mechanismCards` (krok ②) ukrywa je dla górnego. -->
-    <button type="button" class="family-card"
-            [class.selected]="isFamilySelected('BLIND')"
-            (click)="selectFamily('BLIND')">
+    <button (click)="selectFamily('BLIND')" [class.selected]="isFamilySelected('BLIND')"
+            class="family-card"
+            type="button">
       <div class="family-card-top">
-        <svg class="family-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-          <rect x="5" y="9" width="22" height="14" stroke-width="1.8" />
-          <rect x="5" y="9" width="7" height="14" class="family-icon-shade" stroke-width="1.8" />
+        <svg aria-hidden="true" class="family-icon" fill="none" viewBox="0 0 32 32">
+          <rect height="14" stroke-width="1.8" width="22" x="5" y="9"/>
+          <rect class="family-icon-shade" height="14" stroke-width="1.8" width="7" x="5" y="9"/>
         </svg>
         <span class="family-badge">Type B</span>
       </div>
@@ -140,24 +142,25 @@
     <span class="step-hint">{{ mechanismCards.length }} dostępnych</span>
   </div>
   <div class="mech-list">
-    <button type="button" class="mech-card" *ngFor="let m of mechanismCards; trackBy: trackByValue"
-            [class.selected]="m.selected" (click)="selectMechanism(m.value)">
+    <button (click)="selectMechanism(m.value)" *ngFor="let m of mechanismCards; trackBy: trackByValue" [class.selected]="m.selected"
+            class="mech-card" type="button">
       <span class="mech-icon-tile">
-        <svg class="mech-icon" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <svg aria-hidden="true" class="mech-icon" fill="none" viewBox="0 0 40 40">
           <ng-container [ngSwitch]="m.glyph">
             <g *ngSwitchCase="'carousel'">
-              <circle cx="20" cy="20" r="15" fill="none" stroke="currentColor" stroke-width="1.6" />
-              <circle cx="20" cy="20" r="2" fill="currentColor" />
-              <path d="M 35 20 A 15 15 0 0 1 20 35" fill="none" stroke="currentColor" stroke-width="2.2" />
-              <path d="M 20 35 l 4 -4 m -4 4 l 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              <circle cx="20" cy="20" fill="none" r="15" stroke="currentColor" stroke-width="1.6"/>
+              <circle cx="20" cy="20" fill="currentColor" r="2"/>
+              <path d="M 35 20 A 15 15 0 0 1 20 35" fill="none" stroke="currentColor" stroke-width="2.2"/>
+              <path d="M 20 35 l 4 -4 m -4 4 l 4 4" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-width="1.8"/>
             </g>
             <g *ngSwitchCase="'bean'" fill="none" stroke="currentColor" stroke-width="1.8">
-              <ellipse cx="15" cy="20" rx="7" ry="12" transform="rotate(-20 15 20)" />
-              <ellipse cx="29" cy="22" rx="6" ry="10" transform="rotate(-20 29 22)" />
+              <ellipse cx="15" cy="20" rx="7" ry="12" transform="rotate(-20 15 20)"/>
+              <ellipse cx="29" cy="22" rx="6" ry="10" transform="rotate(-20 29 22)"/>
             </g>
-            <g *ngSwitchDefault stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-              <line x1="6" y1="14" x2="34" y2="14" />
-              <line x1="6" y1="24" x2="34" y2="24" />
+            <g *ngSwitchDefault stroke="currentColor" stroke-linecap="round" stroke-width="1.8">
+              <line x1="6" x2="34" y1="14" y2="14"/>
+              <line x1="6" x2="34" y1="24" y2="24"/>
             </g>
           </ng-container>
         </svg>
@@ -169,7 +172,7 @@
         </span>
         <span class="mech-card-desc">{{ m.desc }}</span>
       </span>
-      <span class="mech-card-check" *ngIf="m.selected">✓</span>
+      <span *ngIf="m.selected" class="mech-card-check">✓</span>
     </button>
   </div>
 
@@ -188,9 +191,10 @@
   </div>
 
   <!-- Type A: układ drzwi + konstrukcja wieńca (dwie kolumny) -->
-  <div class="form-row construction-row" *ngIf="showCornerOpeningType || showWreathConstruction || showCornerShelfQuantity">
+  <div *ngIf="showCornerOpeningType || showWreathConstruction || showCornerShelfQuantity"
+       class="form-row construction-row">
     <!-- Type A: układ drzwi narożnika -->
-    <div class="form-group" *ngIf="showCornerOpeningType">
+    <div *ngIf="showCornerOpeningType" class="form-group">
       <label class="form-label">Układ drzwi narożnika</label>
       <select class="form-control" formControlName="cornerOpeningType">
         <option value="TWO_DOORS">2 drzwi (jedna na każde ramię)</option>
@@ -201,23 +205,26 @@
     </div>
 
     <!-- Type A: konstrukcja wieńca/półek -->
-    <div class="form-group" *ngIf="showWreathConstruction">
+    <div *ngIf="showWreathConstruction" class="form-group">
       <label class="form-label">
         Konstrukcja wieńca/półek
-        <a class="help-icon" href="javascript:void(0)" [attr.title]="currentWreathConstructionTooltip">❓</a>
+        <a [attr.title]="currentWreathConstructionTooltip" class="help-icon" href="javascript:void(0)">❓</a>
       </label>
       <select class="form-control" formControlName="wreathConstructionType">
-        <option *ngFor="let opt of wreathConstructionOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label }}</option>
+        <option *ngFor="let opt of wreathConstructionOptions; trackBy: trackByValue" [value]="opt.value">{{ opt.label
+          }}
+        </option>
       </select>
       <span class="form-hint">Wybór wpływa na liczbę i kształt płyt w BOM. Domyślnie: 2 prostokąty (taniej).</span>
     </div>
 
     <!-- Liczba półek (FIXED_SHELVES / BLIND_CORNER) -->
-    <div class="form-group" *ngIf="showCornerShelfQuantity">
+    <div *ngIf="showCornerShelfQuantity" class="form-group">
       <label class="form-label">Liczba półek</label>
-      <input type="number" class="form-control" formControlName="cornerShelfQuantity"
-             [min]="cornerConstraints.shelfMin" [max]="cornerConstraints.shelfMax">
-      <span class="form-error" *ngIf="getFieldError('cornerShelfQuantity')">{{ getFieldError('cornerShelfQuantity') }}</span>
+      <input [max]="cornerConstraints.shelfMax" [min]="cornerConstraints.shelfMin" class="form-control"
+             formControlName="cornerShelfQuantity" type="number">
+      <span *ngIf="getFieldError('cornerShelfQuantity')"
+            class="form-error">{{ getFieldError('cornerShelfQuantity') }}</span>
     </div>
   </div>
 
@@ -227,12 +234,12 @@
       <div class="form-group">
         <label class="form-label">Szerokość frontu uchylnego (Y)</label>
         <div class="input-with-unit">
-          <input type="number" class="form-control" formControlName="cornerFrontUchylnyWidthMm"
-                 [attr.min]="currentFrontUchylnyMin" max="600" step="1">
+          <input [attr.min]="currentFrontUchylnyMin" class="form-control" formControlName="cornerFrontUchylnyWidthMm"
+                 max="600" step="1" type="number">
           <span class="unit">mm</span>
         </div>
-        <span class="form-error" *ngIf="getFieldError('cornerFrontUchylnyWidthMm')">{{ getFieldError('cornerFrontUchylnyWidthMm') }}</span>
-        <span class="form-hint" *ngIf="!getFieldError('cornerFrontUchylnyWidthMm')">{{ frontUchylnyHint }}</span>
+        <span *ngIf="getFieldError('cornerFrontUchylnyWidthMm')" class="form-error">{{ getFieldError('cornerFrontUchylnyWidthMm') }}</span>
+        <span *ngIf="!getFieldError('cornerFrontUchylnyWidthMm')" class="form-hint">{{ frontUchylnyHint }}</span>
       </div>
 
       <div class="form-group">
@@ -248,7 +255,8 @@
       <div class="form-group">
         <label class="form-label">Strona narożnika</label>
         <select class="form-control" formControlName="cornerHandedness">
-          <option *ngFor="let h of cornerHandednessOptions; trackBy: trackByValue" [value]="h.value">{{ h.label }}</option>
+          <option *ngFor="let h of cornerHandednessOptions; trackBy: trackByValue" [value]="h.value">{{ h.label }}
+          </option>
         </select>
         <span class="form-hint">Po której stronie znajduje się aktywny front uchylny (lewy / prawy narożnik).</span>
       </div>

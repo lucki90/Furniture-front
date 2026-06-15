@@ -4,8 +4,8 @@
   </div>
 
   <ng-container *ngIf="cabinets.length > 0">
-    <div class="cabinet-strip-group" *ngFor="let group of groupedCabinets; trackBy: trackBySide">
-      <div class="cabinet-strip-side-label" *ngIf="wallType === 'ISLAND'">
+    <div *ngFor="let group of groupedCabinets; trackBy: trackBySide" class="cabinet-strip-group">
+      <div *ngIf="wallType === 'ISLAND'" class="cabinet-strip-side-label">
         Strona {{ group.side }}
         <span class="cabinet-strip-count">{{ group.cabinets.length }}</span>
       </div>
@@ -13,16 +13,16 @@
       <div class="cabinet-strip" role="list">
         <div
           *ngFor="let cabinet of group.cabinets; let i = index; trackBy: trackByCabinetId"
-          class="cabinet-card"
-          role="listitem"
           [class.editing]="isEditing(cabinet.id)"
-          [style.--card-accent]="cabinetMetaById[cabinet.id].color"
           [style.--card-accent-bg]="cabinetMetaById[cabinet.id].bg"
-          [title]="(cabinet.type | cabinetTypeName) + ' | ' + cabinet.width + 'x' + cabinet.height + 'x' + cabinet.depth + ' mm'">
+          [style.--card-accent]="cabinetMetaById[cabinet.id].color"
+          [title]="(cabinet.type | cabinetTypeName) + ' | ' + cabinet.width + 'x' + cabinet.height + 'x' + cabinet.depth + ' mm'"
+          class="cabinet-card"
+          role="listitem">
 
           <div class="cabinet-card-header">
             <span class="cabinet-card-num">{{ i + 1 }}</span>
-            <span class="cabinet-card-dot" aria-hidden="true"></span>
+            <span aria-hidden="true" class="cabinet-card-dot"></span>
             <span class="cabinet-card-label">{{ cabinet.name || (cabinet.type | cabinetTypeName) }}</span>
           </div>
 
@@ -33,39 +33,39 @@
           </div>
 
           <div class="cabinet-card-footer">
-            <span class="cabinet-card-price" *ngIf="cabinetTotalCost(cabinet) !== null">
+            <span *ngIf="cabinetTotalCost(cabinet) !== null" class="cabinet-card-price">
               {{ cabinetTotalCost(cabinet) | number:'1.0-0' }} zł
             </span>
-            <span class="cabinet-card-price cabinet-card-price--empty" *ngIf="cabinetTotalCost(cabinet) === null">
+            <span *ngIf="cabinetTotalCost(cabinet) === null" class="cabinet-card-price cabinet-card-price--empty">
               -
             </span>
 
             <div class="cabinet-card-actions">
               <button
-                type="button"
-                class="cabinet-card-btn cabinet-card-btn--edit"
                 (click)="onEdit(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
+                aria-label="Edytuj szafke"
+                class="cabinet-card-btn cabinet-card-btn--edit"
                 title="Edytuj szafke"
-                aria-label="Edytuj szafke">
+                type="button">
                 <mat-icon aria-hidden="true">edit</mat-icon>
               </button>
               <button
-                type="button"
-                class="cabinet-card-btn cabinet-card-btn--clone"
                 (click)="onClone(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
+                aria-label="Kopiuj szafke"
+                class="cabinet-card-btn cabinet-card-btn--clone"
                 title="Kopiuj szafke"
-                aria-label="Kopiuj szafke">
+                type="button">
                 <mat-icon aria-hidden="true">content_copy</mat-icon>
               </button>
               <button
-                type="button"
-                class="cabinet-card-btn cabinet-card-btn--remove"
                 (click)="onRemove(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
+                aria-label="Usun szafke"
+                class="cabinet-card-btn cabinet-card-btn--remove"
                 title="Usun szafke"
-                aria-label="Usun szafke">
+                type="button">
                 <mat-icon aria-hidden="true">close</mat-icon>
               </button>
             </div>

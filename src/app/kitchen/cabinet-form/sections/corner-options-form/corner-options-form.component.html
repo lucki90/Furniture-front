@@ -1,6 +1,6 @@
 <!-- Zaawansowane parametry narożnika — przeniesione z zakładki "Podstawowe" (UX 2026-06-01).
      Zawsze widoczne (bez zwijania). -->
-<div class="sink-section" [formGroup]="form" *ngIf="hasCornerOptions">
+<div *ngIf="hasCornerOptions" [formGroup]="form" class="sink-section">
   <h4 class="section-title">Zaawansowane — narożnik</h4>
 
   <!-- Parametry systemu (Magic Corner / Le Mans) -->
@@ -8,50 +8,51 @@
        wszystkich Type B, więc nie jest już tutaj (UX 2026-06-01). -->
   <ng-container *ngIf="showSystemParams">
     <div class="form-row">
-      <app-form-field class="form-group" label="Linia systemu"
-          [hint]="cornerSystemLineHint"
-          [errorMessage]="getFieldError('cornerSystemLine')">
+      <app-form-field [errorMessage]="getFieldError('cornerSystemLine')" [hint]="cornerSystemLineHint"
+                      class="form-group"
+                      label="Linia systemu">
         <select class="form-control" formControlName="cornerSystemLine">
           <option [ngValue]="null">— niesprecyzowane —</option>
-          <option *ngFor="let l of cornerSystemLineOptions; trackBy: trackByValue" [value]="l.value">{{ l.label }}</option>
+          <option *ngFor="let l of cornerSystemLineOptions; trackBy: trackByValue" [value]="l.value">{{ l.label }}
+          </option>
         </select>
       </app-form-field>
     </div>
 
     <div class="form-row">
-      <app-form-field class="form-group" label="Kąt otwarcia" unit="°"
-          hint="Le Mans ≥ 85°, Magic Corner ≤ 90° (Comfort) / ≤ 75° (Standard)"
-          [errorMessage]="getFieldError('cornerOpeningAngleDeg')">
-        <input type="number" class="form-control" formControlName="cornerOpeningAngleDeg" min="0" max="180" step="1">
+      <app-form-field [errorMessage]="getFieldError('cornerOpeningAngleDeg')" class="form-group" hint="Le Mans ≥ 85°, Magic Corner ≤ 90° (Comfort) / ≤ 75° (Standard)"
+                      label="Kąt otwarcia"
+                      unit="°">
+        <input class="form-control" formControlName="cornerOpeningAngleDeg" max="180" min="0" step="1" type="number">
       </app-form-field>
 
-      <app-form-field class="form-group" label="Grubość frontu" unit="mm"
-          hint="Le Mans wymaga 16–19 mm. Wiążąca jest grubość frontu z materiałów (BOM) — to pole służy tylko gdy materiał nie jest ustawiony."
-          [errorMessage]="getFieldError('cornerFrontThicknessMm')">
-        <input type="number" class="form-control" formControlName="cornerFrontThicknessMm" min="10" max="25" step="1">
+      <app-form-field [errorMessage]="getFieldError('cornerFrontThicknessMm')" class="form-group" hint="Le Mans wymaga 16–19 mm. Wiążąca jest grubość frontu z materiałów (BOM) — to pole służy tylko gdy materiał nie jest ustawiony."
+                      label="Grubość frontu"
+                      unit="mm">
+        <input class="form-control" formControlName="cornerFrontThicknessMm" max="25" min="10" step="1" type="number">
       </app-form-field>
     </div>
 
-    <p class="info-text" *ngIf="systemConstraintNote">ℹ {{ systemConstraintNote }}</p>
-    <p class="warning-text" *ngIf="magicStandard730Warning">⚠ {{ magicStandard730Warning }}</p>
+    <p *ngIf="systemConstraintNote" class="info-text">ℹ {{ systemConstraintNote }}</p>
+    <p *ngIf="magicStandard730Warning" class="warning-text">⚠ {{ magicStandard730Warning }}</p>
   </ng-container>
 
   <!-- Optymalizacja kosztu frontu ślepego (Type B) -->
   <ng-container *ngIf="isCornerTypeB">
     <div class="form-row">
       <label class="form-check">
-        <input type="checkbox" formControlName="blindPanelSplitEnabled">
+        <input formControlName="blindPanelSplitEnabled" type="checkbox">
         <span>Podziel front ślepy na FS1 + FS2 (oszczędność drogiego materiału)</span>
-        <a class="help-icon" href="javascript:void(0)" [attr.title]="blindSplitTooltip">❓</a>
+        <a [attr.title]="blindSplitTooltip" class="help-icon" href="javascript:void(0)">❓</a>
       </label>
     </div>
 
-    <div class="form-row" *ngIf="form.get('blindPanelSplitEnabled')?.value">
-      <app-form-field class="form-group" label="Szerokość widocznej części (FS1)" unit="mm"
-          hint="Domyślnie 150 mm (z czego ~50 mm widoczne jako blenda)"
-          [errorMessage]="getFieldError('blindPanelVisibleWidthMm')">
-        <input type="number" class="form-control" formControlName="blindPanelVisibleWidthMm"
-               [attr.min]="currentBlindPanelVisibleWidthMin" max="600" step="1">
+    <div *ngIf="form.get('blindPanelSplitEnabled')?.value" class="form-row">
+      <app-form-field [errorMessage]="getFieldError('blindPanelVisibleWidthMm')" class="form-group" hint="Domyślnie 150 mm (z czego ~50 mm widoczne jako blenda)"
+                      label="Szerokość widocznej części (FS1)"
+                      unit="mm">
+        <input [attr.min]="currentBlindPanelVisibleWidthMin" class="form-control" formControlName="blindPanelVisibleWidthMm"
+               max="600" step="1" type="number">
       </app-form-field>
     </div>
   </ng-container>

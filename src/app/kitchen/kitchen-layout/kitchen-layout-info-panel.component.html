@@ -1,21 +1,21 @@
-<div class="warnings-panel" *ngIf="isWorkspaceGapViolation || !fitsOnWall || cooktopGapWarning || sideFillerWarning">
-  <div class="warning-item" *ngIf="isWorkspaceGapViolation">
-    <mat-icon class="warning-icon" aria-hidden="true">warning_amber</mat-icon>
+<div *ngIf="isWorkspaceGapViolation || !fitsOnWall || cooktopGapWarning || sideFillerWarning" class="warnings-panel">
+  <div *ngIf="isWorkspaceGapViolation" class="warning-item">
+    <mat-icon aria-hidden="true" class="warning-icon">warning_amber</mat-icon>
     Przestrzen robocza zbyt mala: <strong>{{ gapMm }} mm</strong>
     (wymagane min. 450 mm). Zmniejsz wysokosc szafek wiszacych lub podnies ich pozycje.
   </div>
-  <div class="warning-item warning-item--danger" *ngIf="cooktopGapWarning as warning">
-    <mat-icon class="warning-icon" aria-hidden="true">local_fire_department</mat-icon>
+  <div *ngIf="cooktopGapWarning as warning" class="warning-item warning-item--danger">
+    <mat-icon aria-hidden="true" class="warning-icon">local_fire_department</mat-icon>
     <strong>Norma bezpieczenstwa:</strong> {{ warning.message }}.
     Podnies szafki wiszace lub zmniejsz ich wysokosc.
   </div>
-  <div class="warning-item" *ngIf="!fitsOnWall">
-    <mat-icon class="warning-icon" aria-hidden="true">warning_amber</mat-icon>
+  <div *ngIf="!fitsOnWall" class="warning-item">
+    <mat-icon aria-hidden="true" class="warning-icon">warning_amber</mat-icon>
     Szafki nie mieszcza sie na scianie ({{ wallLength }} mm).
     Sprawdz szerokosci w strefie dolnej i gornej.
   </div>
-  <div class="warning-item" *ngIf="sideFillerWarning as warning">
-    <mat-icon class="warning-icon" aria-hidden="true">straighten</mat-icon>
+  <div *ngIf="sideFillerWarning as warning" class="warning-item">
+    <mat-icon aria-hidden="true" class="warning-icon">straighten</mat-icon>
     {{ warning.message }}
   </div>
 </div>

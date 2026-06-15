@@ -15,6 +15,30 @@ import {
 } from '../../model/corner-cabinet.model';
 
 /**
+ * Wartości patchowane do formularza przez {@link CornerCabinetPreparer#applyDefaultValues}.
+ * Pola wspólne są zawsze ustawiane; pola opcjonalne dokładane warunkowo (Type B / wiszący ślepy narożnik).
+ */
+interface CornerPatchValues {
+  cornerWidthA: number;
+  cornerWidthB: number;
+  height: number;
+  depth: number;
+  cornerMechanism: CornerMechanismType;
+  width: number;
+  shelfQuantity: number;
+  drawerQuantity: number;
+  drawerModel: string | null;
+  cornerFrontUchylnyWidthMm?: number;
+  cornerShelfQuantity?: number;
+  isUpperCorner?: boolean;
+  cornerOpeningType?: CornerOpeningType;
+  positioningMode?: string;
+  gapFromCountertopMm?: number;
+  isFrontExtended?: boolean;
+  isLiftUp?: boolean;
+}
+
+/**
  * Preparer dla szafki narożnej (CORNER_CABINET).
  *
  * Obsługuje dwa fizycznie różne typy narożników:
@@ -118,8 +142,7 @@ export class CornerCabinetPreparer implements KitchenCabinetPreparer {
     // Domyślna szerokość: wiszący ślepy 800 (w zakresie 660–960), dolny ślepy 1000, górny Type A 700, dolny Type A 900.
     const defaultCornerWidthA = upperBlind ? 800 : (typeB ? 1000 : (isUpperTypeA ? 700 : 900));
 
-    // TODO R.9: `patch: any` — rozważ typowany interfejs CornerPatchValues zamiast any
-    const patch: any = {
+    const patch: CornerPatchValues = {
       cornerWidthA: defaultCornerWidthA,
       cornerWidthB: isUpperTypeA ? 700 : 900,
       height: 720,

@@ -1,54 +1,54 @@
-<div class="projects-drawer-shell" [class.projects-drawer-shell--open]="open" [attr.aria-hidden]="!open">
+<div [attr.aria-hidden]="!open" [class.projects-drawer-shell--open]="open" class="projects-drawer-shell">
   <button
-    type="button"
-    class="projects-drawer-backdrop"
+    (click)="requestClose()"
     aria-label="Zamknij panel projektow"
-    (click)="requestClose()"></button>
+    class="projects-drawer-backdrop"
+    type="button"></button>
 
   <aside
-    id="projects-drawer"
-    class="projects-drawer"
-    role="dialog"
+    aria-label="Panel projektow"
     aria-modal="true"
-    aria-label="Panel projektow">
+    class="projects-drawer"
+    id="projects-drawer"
+    role="dialog">
     <header class="projects-drawer__header">
       <div class="projects-drawer__heading">
         <div>
           <p class="projects-drawer__eyebrow">Workspace</p>
           <h2>Projekty</h2>
         </div>
-        <button type="button" class="drawer-close-btn" aria-label="Zamknij" (click)="requestClose()">&times;</button>
+        <button (click)="requestClose()" aria-label="Zamknij" class="drawer-close-btn" type="button">&times;</button>
       </div>
 
       <div class="projects-drawer__toolbar">
         <button
-          type="button"
-          class="btn btn-primary drawer-new-btn"
+          (click)="requestCreateProject()"
           [disabled]="isTransitioning || openingProjectId !== null"
-          (click)="requestCreateProject()">
+          class="btn btn-primary drawer-new-btn"
+          type="button">
           + Nowy projekt
         </button>
 
         <label class="drawer-search">
-          <span class="drawer-search__icon" aria-hidden="true">&#8981;</span>
+          <span aria-hidden="true" class="drawer-search__icon">&#8981;</span>
           <input
             #searchInput
-            type="search"
+            (ngModelChange)="onSearchChange()"
+            [(ngModel)]="searchQuery"
             class="form-control form-control--compact"
             placeholder="Szukaj projektu..."
-            [(ngModel)]="searchQuery"
-            (ngModelChange)="onSearchChange()">
+            type="search">
         </label>
       </div>
 
       <div class="drawer-filters">
         <button
+          (click)="selectStatus(filter.value)"
           *ngFor="let filter of statusFilters"
-          type="button"
-          class="drawer-filter-chip"
-          [class.drawer-filter-chip--active]="isStatusActive(filter.value)"
           [attr.aria-pressed]="isStatusActive(filter.value)"
-          (click)="selectStatus(filter.value)">
+          [class.drawer-filter-chip--active]="isStatusActive(filter.value)"
+          class="drawer-filter-chip"
+          type="button">
           {{ filter.label }}
         </button>
       </div>
@@ -62,41 +62,42 @@
 
       <div *ngIf="!loading && error" class="drawer-state drawer-state--error">
         <p>{{ error }}</p>
-        <button type="button" class="btn btn-outline" (click)="loadProjects()">Sproboj ponownie</button>
+        <button (click)="loadProjects()" class="btn btn-outline" type="button">Sproboj ponownie</button>
       </div>
 
       <div *ngIf="!loading && !error && projects.length === 0" class="drawer-state drawer-state--empty">
         <p>Nie masz jeszcze zadnego projektu.</p>
         <button
-          type="button"
-          class="btn btn-primary"
+          (click)="requestCreateProject()"
           [disabled]="isTransitioning || openingProjectId !== null"
-          (click)="requestCreateProject()">
+          class="btn btn-primary"
+          type="button">
           Utworz pierwszy projekt
         </button>
       </div>
 
-      <div *ngIf="!loading && !error && projects.length > 0 && visibleProjects.length === 0" class="drawer-state drawer-state--empty">
+      <div *ngIf="!loading && !error && projects.length > 0 && visibleProjects.length === 0"
+           class="drawer-state drawer-state--empty">
         <p>Brak projektow pasujacych do wyszukiwania lub filtra.</p>
-        <button type="button" class="btn btn-outline" (click)="resetFilters()">Resetuj filtry</button>
+        <button (click)="resetFilters()" class="btn btn-outline" type="button">Resetuj filtry</button>
       </div>
 
       <div *ngIf="!loading && !error && visibleProjects.length > 0" class="drawer-projects-list">
         <article
           *ngFor="let project of visibleProjects; trackBy: trackByProjectId"
-          class="drawer-project-card"
-          [class.drawer-project-card--current]="isCurrentProject(project.id)">
+          [class.drawer-project-card--current]="isCurrentProject(project.id)"
+          class="drawer-project-card">
           <div class="drawer-project-card__header">
             <div class="drawer-project-card__title-wrap">
               <h3>{{ project.name }}</h3>
-              <span class="drawer-project-current" *ngIf="isCurrentProject(project.id)">Aktualny</span>
+              <span *ngIf="isCurrentProject(project.id)" class="drawer-project-current">Aktualny</span>
             </div>
 
             <span
-              class="drawer-project-status"
               [style.background-color]="getStatusColor(project.status) + '18'"
+              [style.border-color]="getStatusColor(project.status) + '40'"
               [style.color]="getStatusColor(project.status)"
-              [style.border-color]="getStatusColor(project.status) + '40'">
+              class="drawer-project-status">
               {{ getStatusLabel(project.status) }}
             </span>
           </div>
@@ -117,30 +118,30 @@
 
           <div class="drawer-project-actions">
             <button
-              type="button"
-              class="btn btn-primary btn-sm drawer-project-actions__open"
+              (click)="requestOpenProject(project.id)"
               [disabled]="isCurrentProject(project.id) || isTransitioning || openingProjectId !== null"
-              (click)="requestOpenProject(project.id)">
+              class="btn btn-primary btn-sm drawer-project-actions__open"
+              type="button">
               {{
-                isCurrentProject(project.id)
-                  ? 'Aktualny'
-                  : (openingProjectId === project.id ? 'Otwieram...' : 'Otworz')
+              isCurrentProject(project.id)
+              ? 'Aktualny'
+              : (openingProjectId === project.id ? 'Otwieram...' : 'Otworz')
               }}
             </button>
 
             <button
-              type="button"
-              class="btn btn-outline btn-sm"
+              (click)="cloneProject(project.id)"
               [disabled]="isTransitioning || cloningProjectId === project.id || deletingProjectId !== null"
-              (click)="cloneProject(project.id)">
+              class="btn btn-outline btn-sm"
+              type="button">
               {{ cloningProjectId === project.id ? 'Klonuje...' : 'Klonuj' }}
             </button>
 
             <button
-              type="button"
-              class="btn btn-outline-danger btn-sm"
+              (click)="confirmDelete(project)"
               [disabled]="isTransitioning || isCurrentProject(project.id) || deletingProjectId === project.id || cloningProjectId !== null"
-              (click)="confirmDelete(project)">
+              class="btn btn-outline-danger btn-sm"
+              type="button">
               {{ deletingProjectId === project.id ? 'Usuwam...' : 'Usun' }}
             </button>
           </div>
@@ -150,7 +151,7 @@
 
     <footer class="projects-drawer__footer">
       <span class="projects-drawer__count">{{ projectsCountLabel }}</span>
-      <button type="button" class="btn btn-outline" (click)="requestClose()">Zamknij</button>
+      <button (click)="requestClose()" class="btn btn-outline" type="button">Zamknij</button>
     </footer>
   </aside>
 </div>

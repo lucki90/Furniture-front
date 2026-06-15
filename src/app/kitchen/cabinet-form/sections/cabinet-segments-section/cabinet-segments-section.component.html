@@ -4,30 +4,30 @@
   </app-cabinet-section-header>
 
   <app-cabinet-section-header *ngIf="isFridgeCabinet" title="Sekcje nad lodowka">
-    <span class="segment-count" *ngIf="segmentsArray.length > 0">({{ segmentsArray.length }})</span>
-    <span class="form-hint" *ngIf="segmentsArray.length === 0"> - opcjonalne</span>
+    <span *ngIf="segmentsArray.length > 0" class="segment-count">({{ segmentsArray.length }})</span>
+    <span *ngIf="segmentsArray.length === 0" class="form-hint"> - opcjonalne</span>
   </app-cabinet-section-header>
 
   <div *ngIf="isFridgeCabinet" class="fridge-section-info">
     Sekcja lodowki: <strong>{{ fridgeSectionHeight }}mm</strong>
-    <span class="form-hint" *ngIf="segmentsArray.length > 0">
+    <span *ngIf="segmentsArray.length > 0" class="form-hint">
       ({{ form.get('height')?.value }}mm - {{ fridgeUpperSectionsHeightSum }}mm sekcji gornych)
     </span>
   </div>
 
-  <div class="segments-visualizer-wrapper" *ngIf="segmentsArray.length > 0 || isFridgeCabinet">
+  <div *ngIf="segmentsArray.length > 0 || isFridgeCabinet" class="segments-visualizer-wrapper">
     <app-segment-visualizer
-      [segmentsArray]="segmentsArray"
-      [netHeight]="netCabinetHeight"
-      [fridgeSectionHeight]="fridgeSectionHeight"
-      [selectedIndex]="selectedSegmentIndex"
+      (orderChanged)="reorderSegments.emit()"
       (segmentSelected)="selectSegment.emit($event)"
-      (orderChanged)="reorderSegments.emit()">
+      [fridgeSectionHeight]="fridgeSectionHeight"
+      [netHeight]="netCabinetHeight"
+      [segmentsArray]="segmentsArray"
+      [selectedIndex]="selectedSegmentIndex">
     </app-segment-visualizer>
-    <p class="visualizer-hint" *ngIf="segmentsArray.length > 0">Kliknij segment, aby edytowac</p>
+    <p *ngIf="segmentsArray.length > 0" class="visualizer-hint">Kliknij segment, aby edytowac</p>
   </div>
 
-  <button type="button" class="btn-add-segment" (click)="addSegment.emit()">
+  <button (click)="addSegment.emit()" class="btn-add-segment" type="button">
     <ng-container *ngIf="isFridgeCabinet">+ Dodaj sekcje nad lodowka</ng-container>
     <ng-container *ngIf="!isFridgeCabinet">+ Dodaj segment</ng-container>
   </button>
@@ -37,23 +37,23 @@
   </div>
 </div>
 
-<div *ngIf="selectedSegmentIndex >= 0" class="segment-popup-backdrop" (click)="closeSegmentPopup.emit()">
-  <div class="segment-popup" (click)="$event.stopPropagation()">
+<div (click)="closeSegmentPopup.emit()" *ngIf="selectedSegmentIndex >= 0" class="segment-popup-backdrop">
+  <div (click)="$event.stopPropagation()" class="segment-popup">
     <div class="segment-popup-header">
       <h4 *ngIf="!isFridgeCabinet" class="segment-popup-title">Edycja segmentu {{ selectedSegmentIndex + 1 }}</h4>
       <h4 *ngIf="isFridgeCabinet" class="segment-popup-title">Edycja sekcji {{ selectedSegmentIndex + 1 }}</h4>
-      <button type="button" class="btn-close-popup" (click)="closeSegmentPopup.emit()" title="Zamknij">x</button>
+      <button (click)="closeSegmentPopup.emit()" class="btn-close-popup" title="Zamknij" type="button">x</button>
     </div>
     <app-segment-form
+      (remove)="removeSelectedSegment.emit()"
       *ngIf="selectedSegmentForm"
+      [cabinetWidthMm]="form.get('width')?.value ?? null"
       [segmentForm]="selectedSegmentForm"
       [segmentIndex]="selectedSegmentIndex"
-      [segmentTypeOptions]="activeSegmentTypeOptions"
-      [cabinetWidthMm]="form.get('width')?.value ?? null"
-      (remove)="removeSelectedSegment.emit()">
+      [segmentTypeOptions]="activeSegmentTypeOptions">
     </app-segment-form>
     <div class="segment-popup-footer">
-      <button type="button" class="btn-popup-done" (click)="closeSegmentPopup.emit()">
+      <button (click)="closeSegmentPopup.emit()" class="btn-popup-done" type="button">
         Gotowe
       </button>
     </div>

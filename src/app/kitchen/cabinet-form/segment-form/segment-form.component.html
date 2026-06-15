@@ -1,7 +1,7 @@
-<div class="segment-form" [formGroup]="segmentForm">
+<div [formGroup]="segmentForm" class="segment-form">
   <div class="segment-header">
     <span class="segment-number">Segment {{ segmentIndex + 1 }}</span>
-    <button type="button" class="btn-remove" (click)="onRemove()" title="Usuń segment">
+    <button (click)="onRemove()" class="btn-remove" title="Usuń segment" type="button">
       &times;
     </button>
   </div>
@@ -18,10 +18,10 @@
     </div>
 
     <!-- Wysokość segmentu -->
-    <app-form-field class="form-group" label="Wysokość" unit="mm"
-        [errorMessage]="getFieldError('height')">
-      <input type="number" class="form-control" formControlName="height"
-             [min]="constraints.SEGMENT_MIN_HEIGHT">
+    <app-form-field [errorMessage]="getFieldError('height')" class="form-group" label="Wysokość"
+                    unit="mm">
+      <input [min]="constraints.SEGMENT_MIN_HEIGHT" class="form-control" formControlName="height"
+             type="number">
     </app-form-field>
 
     <!-- Informacja dla wnęk AGD (OVEN / MICROWAVE) -->
@@ -45,7 +45,7 @@
         </select>
       </div>
       <!-- Komunikat ostrzegawczy: szerokosc slupka odbiega od standardowych szerokosci piekarnikow -->
-      <div class="form-hint" *ngIf="ovenCabinetWidthWarning"
+      <div *ngIf="ovenCabinetWidthWarning" class="form-hint"
            style="margin-top: 4px; color: #b85c00; font-size: 0.85em;">
         <strong>Uwaga:</strong> {{ ovenCabinetWidthWarning }}
       </div>
@@ -55,10 +55,11 @@
     <ng-container *ngIf="showDrawerOptions">
       <div class="form-group">
         <label class="form-label">Ilość szuflad</label>
-        <input type="number" class="form-control" formControlName="drawerQuantity"
-               [min]="constraints.SEGMENT_DRAWER_MIN"
-               [max]="constraints.SEGMENT_DRAWER_MAX">
-        <span class="form-error" *ngIf="segmentForm.get('drawerQuantity')?.touched && segmentForm.get('drawerQuantity')?.errors">
+        <input [max]="constraints.SEGMENT_DRAWER_MAX" [min]="constraints.SEGMENT_DRAWER_MIN" class="form-control"
+               formControlName="drawerQuantity"
+               type="number">
+        <span *ngIf="segmentForm.get('drawerQuantity')?.touched && segmentForm.get('drawerQuantity')?.errors"
+              class="form-error">
           <ng-container *ngIf="segmentForm.get('drawerQuantity')?.errors?.['min']">
             Min: {{ constraints.SEGMENT_DRAWER_MIN }}
           </ng-container>
@@ -94,9 +95,10 @@
     <ng-container *ngIf="showShelfQuantity">
       <div class="form-group">
         <label class="form-label">Półki wewnątrz</label>
-        <input type="number" class="form-control" formControlName="shelfQuantity"
-               min="0" [max]="constraints.SEGMENT_SHELF_MAX">
-        <span class="form-error" *ngIf="segmentForm.get('shelfQuantity')?.touched && segmentForm.get('shelfQuantity')?.errors">
+        <input [max]="constraints.SEGMENT_SHELF_MAX" class="form-control" formControlName="shelfQuantity"
+               min="0" type="number">
+        <span *ngIf="segmentForm.get('shelfQuantity')?.touched && segmentForm.get('shelfQuantity')?.errors"
+              class="form-error">
           <ng-container *ngIf="segmentForm.get('shelfQuantity')?.errors?.['max']">
             Max: {{ constraints.SEGMENT_SHELF_MAX }}
           </ng-container>

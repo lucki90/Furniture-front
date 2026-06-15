@@ -1,4 +1,4 @@
-<div class="sink-section" [formGroup]="form">
+<div [formGroup]="form" class="sink-section">
   <app-cabinet-section-header title="Konfiguracja szafki zlewowej"></app-cabinet-section-header>
 
   <!-- Typ frontu -->
@@ -6,38 +6,42 @@
     <div class="form-group flex-2">
       <label class="form-label">Typ frontu</label>
       <select class="form-control" formControlName="sinkFrontType">
-        <option *ngFor="let o of dictionaryService.data().sinkFrontTypes; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
+        <option *ngFor="let o of dictionaryService.data().sinkFrontTypes; trackBy: trackByCode" [value]="o.code">{{
+          o.label }}
+        </option>
       </select>
     </div>
-    <app-form-field class="form-group flex-2" label="Szerokość wnętrza korpusu" unit="mm"
-        hint="= szerokość − 2 × 18 mm boku">
-      <input type="text" class="form-control" [value]="innerCabinetWidth" readonly>
+    <app-form-field class="form-group flex-2" hint="= szerokość − 2 × 18 mm boku" label="Szerokość wnętrza korpusu"
+                    unit="mm">
+      <input [value]="innerCabinetWidth" class="form-control" readonly type="text">
     </app-form-field>
   </div>
 
   <!-- Blenda maskująca (apron) -->
-  <div class="form-row" *ngIf="showSinkApron">
+  <div *ngIf="showSinkApron" class="form-row">
     <div class="form-group flex-2">
       <label class="form-label enclosure-checkbox-label">
-        <input type="checkbox" formControlName="sinkApronEnabled" class="enclosure-checkbox"/>
+        <input class="enclosure-checkbox" formControlName="sinkApronEnabled" type="checkbox"/>
         Blenda maskująca (apron)
         <span class="form-hint">fałszywy front nad zlewem</span>
       </label>
     </div>
-    <app-form-field class="form-group flex-2" *ngIf="showSinkApronHeight && isSinkApronEnabled"
-        label="Wysokość blendy" unit="mm"
-        hint="80–200 mm (domyślnie 150)"
-        [errorMessage]="getFieldError('sinkApronHeightMm')">
-      <input type="number" class="form-control" formControlName="sinkApronHeightMm" min="80" max="200" step="10">
+    <app-form-field *ngIf="showSinkApronHeight && isSinkApronEnabled" [errorMessage]="getFieldError('sinkApronHeightMm')"
+                    class="form-group flex-2" hint="80–200 mm (domyślnie 150)"
+                    label="Wysokość blendy"
+                    unit="mm">
+      <input class="form-control" formControlName="sinkApronHeightMm" max="200" min="80" step="10" type="number">
     </app-form-field>
   </div>
 
   <!-- System szuflad (widoczny gdy frontType=DRAWER) -->
-  <div class="form-row" *ngIf="showSinkDrawerModel">
+  <div *ngIf="showSinkDrawerModel" class="form-row">
     <div class="form-group flex-2">
       <label class="form-label">System szuflad</label>
       <select class="form-control" formControlName="sinkDrawerModel">
-        <option *ngFor="let o of dictionaryService.data().drawerModels; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
+        <option *ngFor="let o of dictionaryService.data().drawerModels; trackBy: trackByCode" [value]="o.code">{{
+          o.label }}
+        </option>
       </select>
     </div>
   </div>

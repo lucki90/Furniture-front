@@ -1,46 +1,47 @@
 <!-- Wymiary szafki narożnej — w zakładce "Podstawowe" (Iteracja 3 + poprawka 2026-05-24) -->
-<div class="corner-dimensions" [formGroup]="form">
+<div [formGroup]="form" class="corner-dimensions">
 
   <!-- Wiersz 1: Szerokości (A — Type A i B; B tylko Type A) -->
   <div class="form-row">
-    <app-form-field class="form-group" [label]="showWidthB ? 'Szerokość A (ściana główna)' : 'Szerokość (wzdłuż ściany)'" unit="mm"
-        [hint]="showWidthB ? 'Długość zabudowy wzdłuż ściany głównej — mierzona od narożnika do końca szafki' : 'Całkowita szerokość szafki ślepej mierzona wzdłuż ściany'"
-        [errorMessage]="getFieldError('cornerWidthA')">
-      <input type="number" class="form-control" formControlName="cornerWidthA"
-             [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
-             [step]="cornerConstraints.widthStep">
+    <app-form-field [errorMessage]="getFieldError('cornerWidthA')"
+                    [hint]="showWidthB ? 'Długość zabudowy wzdłuż ściany głównej — mierzona od narożnika do końca szafki' : 'Całkowita szerokość szafki ślepej mierzona wzdłuż ściany'" [label]="showWidthB ? 'Szerokość A (ściana główna)' : 'Szerokość (wzdłuż ściany)'"
+                    class="form-group"
+                    unit="mm">
+      <input [max]="cornerConstraints.widthMax" [min]="cornerConstraints.widthMin" [step]="cornerConstraints.widthStep"
+             class="form-control" formControlName="cornerWidthA"
+             type="number">
     </app-form-field>
 
-    <app-form-field class="form-group" *ngIf="showWidthB" label="Szerokość B (ściana boczna)" unit="mm"
-        hint="Długość zabudowy wzdłuż ściany bocznej — mierzona od narożnika"
-        [errorMessage]="getFieldError('cornerWidthB')">
-      <input type="number" class="form-control" formControlName="cornerWidthB"
-             [min]="cornerConstraints.widthMin" [max]="cornerConstraints.widthMax"
-             [step]="cornerConstraints.widthStep">
+    <app-form-field *ngIf="showWidthB" [errorMessage]="getFieldError('cornerWidthB')" class="form-group" hint="Długość zabudowy wzdłuż ściany bocznej — mierzona od narożnika"
+                    label="Szerokość B (ściana boczna)"
+                    unit="mm">
+      <input [max]="cornerConstraints.widthMax" [min]="cornerConstraints.widthMin" [step]="cornerConstraints.widthStep"
+             class="form-control" formControlName="cornerWidthB"
+             type="number">
     </app-form-field>
   </div>
 
   <!-- Wiersz 2: Wysokość + Głębokość -->
   <div class="form-row">
-    <app-form-field class="form-group" label="Wysokość" unit="mm"
-        [hint]="isUpperCorner ? '600–900 mm (wisząca)' : '680–760 mm (dolna)'"
-        [errorMessage]="getFieldError('height')">
-      <input type="number" class="form-control" formControlName="height">
+    <app-form-field [errorMessage]="getFieldError('height')" [hint]="isUpperCorner ? '600–900 mm (wisząca)' : '680–760 mm (dolna)'" class="form-group"
+                    label="Wysokość"
+                    unit="mm">
+      <input class="form-control" formControlName="height" type="number">
     </app-form-field>
 
-    <app-form-field class="form-group" label="Głębokość" unit="mm"
-        [hint]="depthHint"
-        [errorMessage]="getFieldError('depth')">
-      <input type="number" class="form-control" formControlName="depth"
-             [readonly]="isDepthReadonly" [attr.aria-readonly]="isDepthReadonly">
+    <app-form-field [errorMessage]="getFieldError('depth')" [hint]="depthHint" class="form-group"
+                    label="Głębokość"
+                    unit="mm">
+      <input [attr.aria-readonly]="isDepthReadonly" [readonly]="isDepthReadonly" class="form-control"
+             formControlName="depth" type="number">
     </app-form-field>
   </div>
 
   <!-- Sugerowana szerokość (Type B) — link pod wymiarami z tooltipem -->
-  <div class="form-row suggested-row" *ngIf="suggestedBlindCornerWidth as suggested">
-    <a class="suggested-link" href="javascript:void(0)"
-       (click)="applySuggestedWidth()"
-       [attr.title]="suggested.tooltipText">
+  <div *ngIf="suggestedBlindCornerWidth as suggested" class="form-row suggested-row">
+    <a (click)="applySuggestedWidth()" [attr.title]="suggested.tooltipText"
+       class="suggested-link"
+       href="javascript:void(0)">
       💡 Sugerowana szerokość A: <strong>{{ suggested.value }} mm</strong>
       <span class="suggested-apply">(kliknij, aby zastosować)</span>
     </a>

@@ -1,4 +1,4 @@
-<aside class="front-context-panel" #panelEl>
+<aside #panelEl class="front-context-panel">
   <section class="context-card context-card--switcher">
     <header class="context-card-header">
       <div>
@@ -9,16 +9,16 @@
 
     <div class="wall-card-list">
       <button
-        type="button"
-        class="wall-card"
+        (click)="onWallCardClick(card.id)"
         *ngFor="let card of wallCards(); trackBy: trackByWallId"
         [class.active]="card.isActive"
-        (click)="onWallCardClick(card.id)">
+        class="wall-card"
+        type="button">
         <div class="wall-card-top">
           <strong class="wall-card-title">{{ card.label }}</strong>
           <div class="wall-card-statuses">
-            <span class="wall-card-active" *ngIf="card.isActive">Aktywna</span>
-            <span class="wall-card-fit" [class.wall-card-fit--error]="!card.fits">
+            <span *ngIf="card.isActive" class="wall-card-active">Aktywna</span>
+            <span [class.wall-card-fit--error]="!card.fits" class="wall-card-fit">
               {{ card.fits ? 'OK' : '!' }}
             </span>
           </div>
@@ -26,14 +26,14 @@
 
         <app-mini-wall-preview
           [cabinets]="card.previewCabinets"
-          [wallType]="card.type"
-          [wallWidthMm]="card.widthMm"
-          [wallHeightMm]="card.heightMm"
-          [plinthHeightMm]="card.plinthHeightMm"
-          [plinthEnabled]="card.plinthEnabled"
           [countertopThicknessMm]="card.countertopThicknessMm"
+          [fillerWidthMm]="card.fillerWidthMm"
+          [plinthEnabled]="card.plinthEnabled"
+          [plinthHeightMm]="card.plinthHeightMm"
           [upperFillerHeightMm]="card.upperFillerHeightMm"
-          [fillerWidthMm]="card.fillerWidthMm">
+          [wallHeightMm]="card.heightMm"
+          [wallType]="card.type"
+          [wallWidthMm]="card.widthMm">
         </app-mini-wall-preview>
 
         <div class="wall-card-meta">
@@ -43,12 +43,12 @@
       </button>
     </div>
 
-    <button type="button" class="add-wall-button" (click)="addWallRequested.emit()">
+    <button (click)="addWallRequested.emit()" class="add-wall-button" type="button">
       + Dodaj sciane
     </button>
   </section>
 
-  <section class="context-card context-card--details" #detailsCardEl>
+  <section #detailsCardEl class="context-card context-card--details">
     <ng-container *ngIf="showInspector() && selectedCabinetValue() as cabinet; else wallSummary">
       <header class="context-card-header context-card-header--details">
         <div class="context-header-main">
@@ -60,7 +60,7 @@
             <div class="context-subheading">{{ cabinet.type | cabinetTypeName }}</div>
           </div>
         </div>
-        <button type="button" class="icon-close-btn" (click)="onClearSelection()">x</button>
+        <button (click)="onClearSelection()" class="icon-close-btn" type="button">x</button>
       </header>
 
       <div class="inspector-scroll">
@@ -80,7 +80,7 @@
         </div>
 
         <div class="details-list">
-          <div class="details-row" *ngFor="let row of cabinetPropertyRows(cabinet, selectedCabinetPositionValue())">
+          <div *ngFor="let row of cabinetPropertyRows(cabinet, selectedCabinetPositionValue())" class="details-row">
             <span class="details-label">{{ row.label }}</span>
             <span class="details-value">{{ row.value }}</span>
           </div>
@@ -92,9 +92,15 @@
         </div>
 
         <div class="inspector-actions">
-          <button type="button" class="btn btn-primary" [disabled]="isEditingCabinetValue()" (click)="onEditSelectedCabinet()">Edytuj</button>
-          <button type="button" class="btn btn-secondary" [disabled]="isEditingCabinetValue()" (click)="onCloneSelectedCabinet()">Duplikuj</button>
-          <button type="button" class="btn btn-danger" [disabled]="isEditingCabinetValue()" (click)="onRemoveSelectedCabinet()">Usun</button>
+          <button (click)="onEditSelectedCabinet()" [disabled]="isEditingCabinetValue()" class="btn btn-primary"
+                  type="button">Edytuj
+          </button>
+          <button (click)="onCloneSelectedCabinet()" [disabled]="isEditingCabinetValue()" class="btn btn-secondary"
+                  type="button">Duplikuj
+          </button>
+          <button (click)="onRemoveSelectedCabinet()" [disabled]="isEditingCabinetValue()" class="btn btn-danger"
+                  type="button">Usun
+          </button>
         </div>
       </div>
     </ng-container>
@@ -127,7 +133,7 @@
         </div>
 
         <div class="details-list">
-          <div class="details-row" *ngFor="let row of summaryRows()">
+          <div *ngFor="let row of summaryRows()" class="details-row">
             <span class="details-label">{{ row.label }}</span>
             <span class="details-value">{{ row.value }}</span>
           </div>

@@ -1,26 +1,26 @@
 @if (visible) {
-  <div class="dropdown-container" [id]="id">
-    @if (label) {
-      <label [for]="id + '-select'" class="dropdown-label">{{ label }}</label>
-    }
+<div [id]="id" class="dropdown-container">
+  @if (label) {
+  <label [for]="id + '-select'" class="dropdown-label">{{ label }}</label>
+  }
 
-    <select
-      [id]="id + '-select'"
-      [disabled]="disabled"
-      [(ngModel)]="value"
-      (ngModelChange)="onSelectionChange($event)"
-      [class.error]="hasError"
-      class="dropdown-select form-control"
-    >
-      @for (option of options; track option.value) {
-        <option [value]="option.value">
-          {{ translations[option.label] || option.label }}
-        </option>
-      }
-    </select>
-
-    @if (hasError) {
-      <p class="dropdown-error">{{ errorMessage }}</p>
+  <select
+    (ngModelChange)="onSelectionChange($event)"
+    [(ngModel)]="value"
+    [class.error]="hasError"
+    [disabled]="disabled"
+    [id]="id + '-select'"
+    class="dropdown-select form-control"
+  >
+    @for (option of options; track option.value) {
+    <option [value]="option.value">
+      {{ translations[option.label] || option.label }}
+    </option>
     }
-  </div>
+  </select>
+
+  @if (hasError) {
+  <p class="dropdown-error">{{ errorMessage }}</p>
+  }
+</div>
 }

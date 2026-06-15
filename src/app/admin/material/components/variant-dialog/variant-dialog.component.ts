@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { EMPTY, Observable, debounceTime, distinctUntilChanged, forkJoin, of, switchMap } from 'rxjs';
+import { EMPTY, Observable, catchError, debounceTime, distinctUntilChanged, forkJoin, map, of, switchMap } from 'rxjs';
 import { MaterialAdminService } from '../../service/material-admin.service';
 import { ApiErrorHandler } from '../../../../core/error/api-error-handler.service';
 import { TranslationService } from '../../../../translation/translation.service';
@@ -133,13 +133,17 @@ export class VariantDialogComponent implements OnInit {
     const ctrl = this.form?.get('translationKey');
     if (!ctrl) return;
 
-    // TODO(CODEX): Ten pipeline nie ma obsługi błędów dla forkJoin(). Jeden błąd backendu może przerwać cały stream valueChanges, zostawić translationLoading=true i wyłączyć dalsze odświeżanie preview tłumaczeń aż do zamknięcia dialogu.
+    // catchError jest WEWNĄTRZ switchMap — błąd backendu kończy tylko bieżące zapytanie preview
+    // (resetuje loading i stan tłumaczeń), a strumień valueChanges żyje dalej i odświeża kolejne klucze.
     ctrl.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef),
       debounceTime(500),
       distinctUntilChanged(),
       switchMap((key: string) => {
         if (!key || key.length < 3) {
+          // switchMap mógł właśnie anulować trwające zapytanie (loading=true) — zresetuj spinner,
+          // inaczej zostałby włączony na stałe po skróceniu klucza poniżej progu.
+          this.translationLoading.set(false);
           this.translationPl.set('');
           this.translationEn.set('');
           this.translationKeyExists.set(null);
@@ -150,13 +154,21 @@ export class VariantDialogComponent implements OnInit {
         return forkJoin({
           plMap: this.translationService.getByCategory(category, 'pl'),
           enMap: this.translationService.getByCategory(category, 'en'),
-          key: Promise.resolve(key)
-        });
+        }).pipe(
+          map(({ plMap, enMap }) => ({ plMap, enMap, key })),
+          catchError(() => {
+            this.translationLoading.set(false);
+            this.translationPl.set('');
+            this.translationEn.set('');
+            this.translationKeyExists.set(null);
+            return EMPTY;
+          }),
+        );
       })
-    ).subscribe(({ plMap, enMap, key }) => {
+    ).subscribe(({ plMap, enMap, key: resolvedKey }) => {
       this.translationLoading.set(false);
-      const plVal = plMap[key] ?? '';
-      const enVal = enMap[key] ?? '';
+      const plVal = plMap[resolvedKey] ?? '';
+      const enVal = enMap[resolvedKey] ?? '';
       this.translationPl.set(plVal);
       this.translationEn.set(enVal);
       this.translationKeyExists.set(!!(plVal || enVal));

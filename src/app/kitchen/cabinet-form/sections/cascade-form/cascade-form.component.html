@@ -1,4 +1,4 @@
-<div class="cascade-section" [formGroup]="form">
+<div [formGroup]="form" class="cascade-section">
   <app-cabinet-section-header title="Segmenty kaskadowe"></app-cabinet-section-header>
   <div class="cascade-info">
     <strong>Info:</strong> Szafka kaskadowa sklada sie z 2 segmentow o roznych glebokosciach.
@@ -10,26 +10,26 @@
   <!-- Segment dolny (płytszy, bliżej blatu) -->
   <div class="cascade-segment-card">
     <div class="cascade-segment-header lower-header">
-      <mat-icon class="cascade-segment-icon" aria-hidden="true">south</mat-icon>
+      <mat-icon aria-hidden="true" class="cascade-segment-icon">south</mat-icon>
       <span class="cascade-segment-title">Segment dolny - plytszy</span>
       <span class="cascade-segment-badge">bliżej blatu roboczego</span>
     </div>
     <div class="cascade-segment-body">
       <div class="form-row">
-        <app-form-field class="form-group" label="Wysokość" unit="mm" hint="100–900 mm"
-            [errorMessage]="getFieldError('cascadeLowerHeight')">
-          <input type="number" class="form-control" formControlName="cascadeLowerHeight" min="100" max="900" step="10">
+        <app-form-field [errorMessage]="getFieldError('cascadeLowerHeight')" class="form-group" hint="100–900 mm" label="Wysokość"
+                        unit="mm">
+          <input class="form-control" formControlName="cascadeLowerHeight" max="900" min="100" step="10" type="number">
         </app-form-field>
-        <app-form-field class="form-group" label="Głębokość" unit="mm" hint="250–400 mm"
-            [errorMessage]="getFieldError('cascadeLowerDepth')">
-          <input type="number" class="form-control" formControlName="cascadeLowerDepth" min="250" max="400" step="10">
+        <app-form-field [errorMessage]="getFieldError('cascadeLowerDepth')" class="form-group" hint="250–400 mm" label="Głębokość"
+                        unit="mm">
+          <input class="form-control" formControlName="cascadeLowerDepth" max="400" min="250" step="10" type="number">
         </app-form-field>
       </div>
       <!-- Opcje frontu segmentu dolnego -->
       <div class="form-row">
         <div class="form-group flex-2">
           <label class="form-label enclosure-checkbox-label">
-            <input type="checkbox" formControlName="cascadeLowerIsLiftUp" class="enclosure-checkbox">
+            <input class="enclosure-checkbox" formControlName="cascadeLowerIsLiftUp" type="checkbox">
             Klapa lift-up (otwieranie do góry)
           </label>
           <span class="form-hint">Front unoszony ku górze — siłowniki gazowe zamiast zawiasów.</span>
@@ -38,7 +38,7 @@
       <div class="form-row">
         <div class="form-group flex-2">
           <label class="form-label enclosure-checkbox-label">
-            <input type="checkbox" formControlName="cascadeLowerIsFrontExtended" class="enclosure-checkbox">
+            <input class="enclosure-checkbox" formControlName="cascadeLowerIsFrontExtended" type="checkbox">
             Przedłużony front (wychodzi ponad korpus)
           </label>
           <span class="form-hint">Front wysunięty ponad górny wieniec segmentu (wg ustawień technicznych, domyślnie 23 mm).</span>
@@ -50,26 +50,26 @@
   <!-- Segment górny (głębszy, bliżej sufitu) -->
   <div class="cascade-segment-card">
     <div class="cascade-segment-header upper-header">
-      <mat-icon class="cascade-segment-icon" aria-hidden="true">north</mat-icon>
+      <mat-icon aria-hidden="true" class="cascade-segment-icon">north</mat-icon>
       <span class="cascade-segment-title">Segment gorny - glebszy</span>
       <span class="cascade-segment-badge">blizej sufitu | decyduje o glebokosci kalkulacji</span>
     </div>
     <div class="cascade-segment-body">
       <div class="form-row">
-        <app-form-field class="form-group" label="Wysokość" unit="mm" hint="100–900 mm"
-            [errorMessage]="getFieldError('cascadeUpperHeight')">
-          <input type="number" class="form-control" formControlName="cascadeUpperHeight" min="100" max="900" step="10">
+        <app-form-field [errorMessage]="getFieldError('cascadeUpperHeight')" class="form-group" hint="100–900 mm" label="Wysokość"
+                        unit="mm">
+          <input class="form-control" formControlName="cascadeUpperHeight" max="900" min="100" step="10" type="number">
         </app-form-field>
-        <app-form-field class="form-group" label="Głębokość" unit="mm" hint="300–560 mm (więcej niż dolny)"
-            [errorMessage]="getFieldError('cascadeUpperDepth')">
-          <input type="number" class="form-control" formControlName="cascadeUpperDepth" min="300" max="560" step="10">
+        <app-form-field [errorMessage]="getFieldError('cascadeUpperDepth')" class="form-group" hint="300–560 mm (więcej niż dolny)" label="Głębokość"
+                        unit="mm">
+          <input class="form-control" formControlName="cascadeUpperDepth" max="560" min="300" step="10" type="number">
         </app-form-field>
       </div>
       <!-- Opcja frontu segmentu górnego -->
       <div class="form-row">
         <div class="form-group flex-2">
           <label class="form-label enclosure-checkbox-label">
-            <input type="checkbox" formControlName="cascadeUpperIsLiftUp" class="enclosure-checkbox">
+            <input class="enclosure-checkbox" formControlName="cascadeUpperIsLiftUp" type="checkbox">
             Klapa lift-up (otwieranie do góry)
           </label>
           <span class="form-hint">Front unoszony ku górze — siłowniki gazowe zamiast zawiasów.</span>
@@ -80,7 +80,7 @@
 
   <!-- Błąd głębokości -->
   <div *ngIf="cascadeDepthError" class="segments-error">
-    <mat-icon class="segments-error-icon" aria-hidden="true">warning_amber</mat-icon>
+    <mat-icon aria-hidden="true" class="segments-error-icon">warning_amber</mat-icon>
     {{ cascadeDepthError }}
   </div>
 </div>

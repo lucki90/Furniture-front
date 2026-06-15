@@ -1,7 +1,7 @@
 <div class="picker-dialog">
   <div class="picker-header">
     <span class="picker-title">Wybierz typ szafki</span>
-    <button class="picker-close" type="button" (click)="close()" title="Zamknij" aria-label="Zamknij">
+    <button (click)="close()" aria-label="Zamknij" class="picker-close" title="Zamknij" type="button">
       <mat-icon aria-hidden="true">close</mat-icon>
     </button>
   </div>
@@ -10,223 +10,223 @@
     <div *ngFor="let group of groups; trackBy: trackByIndex" class="picker-group">
       <h3 class="group-title">{{ group.title }}</h3>
       <div class="type-grid">
-        <button *ngFor="let card of group.types; trackBy: trackByType"
-                class="type-card"
-                (click)="select(card)"
-                [title]="card.label">
+        <button (click)="select(card)"
+                *ngFor="let card of group.types; trackBy: trackByType"
+                [title]="card.label"
+                class="type-card">
 
           <!-- SVG thumbnails -->
           <svg class="type-svg" viewBox="0 0 44 56" xmlns="http://www.w3.org/2000/svg">
 
             <!-- BASE_TWO_DOOR -->
             <ng-container *ngIf="card.svgTemplate === 'base-two-door'">
-              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body"/>
-              <rect x="3" y="9" width="19" height="36" rx="0.5" class="svg-front"/>
-              <rect x="23" y="9" width="19" height="36" rx="0.5" class="svg-front"/>
-              <line x1="12" y1="27" x2="12" y2="31" class="svg-handle"/>
-              <line x1="32" y1="27" x2="32" y2="31" class="svg-handle"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body" height="38" rx="1" width="40" x="2" y="8"/>
+              <rect class="svg-front" height="36" rx="0.5" width="19" x="3" y="9"/>
+              <rect class="svg-front" height="36" rx="0.5" width="19" x="23" y="9"/>
+              <line class="svg-handle" x1="12" x2="12" y1="27" y2="31"/>
+              <line class="svg-handle" x1="32" x2="32" y1="27" y2="31"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
             <!-- BASE_ONE_DOOR -->
             <ng-container *ngIf="card.svgTemplate === 'base-one-door'">
-              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body"/>
-              <rect x="3" y="9" width="38" height="36" rx="0.5" class="svg-front"/>
-              <line x1="22" y1="26" x2="22" y2="30" class="svg-handle"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body" height="38" rx="1" width="40" x="2" y="8"/>
+              <rect class="svg-front" height="36" rx="0.5" width="38" x="3" y="9"/>
+              <line class="svg-handle" x1="22" x2="22" y1="26" y2="30"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
             <!-- BASE_OPEN -->
             <ng-container *ngIf="card.svgTemplate === 'base-open'">
-              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body" stroke-dasharray="3 2"/>
-              <line x1="4" y1="21" x2="40" y2="21" class="svg-shelf-line"/>
-              <line x1="4" y1="34" x2="40" y2="34" class="svg-shelf-line"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body" height="38" rx="1" stroke-dasharray="3 2" width="40" x="2" y="8"/>
+              <line class="svg-shelf-line" x1="4" x2="40" y1="21" y2="21"/>
+              <line class="svg-shelf-line" x1="4" x2="40" y1="34" y2="34"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
             <!-- BASE_WITH_DRAWERS -->
             <ng-container *ngIf="card.svgTemplate === 'base-drawers'">
-              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body"/>
-              <rect x="3" y="9" width="38" height="11" rx="0.5" class="svg-front"/>
-              <rect x="3" y="21" width="38" height="12" rx="0.5" class="svg-front"/>
-              <rect x="3" y="34" width="38" height="12" rx="0.5" class="svg-front"/>
-              <line x1="17" y1="15" x2="27" y2="15" class="svg-handle-h"/>
-              <line x1="17" y1="27" x2="27" y2="27" class="svg-handle-h"/>
-              <line x1="17" y1="40" x2="27" y2="40" class="svg-handle-h"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body" height="38" rx="1" width="40" x="2" y="8"/>
+              <rect class="svg-front" height="11" rx="0.5" width="38" x="3" y="9"/>
+              <rect class="svg-front" height="12" rx="0.5" width="38" x="3" y="21"/>
+              <rect class="svg-front" height="12" rx="0.5" width="38" x="3" y="34"/>
+              <line class="svg-handle-h" x1="17" x2="27" y1="15" y2="15"/>
+              <line class="svg-handle-h" x1="17" x2="27" y1="27" y2="27"/>
+              <line class="svg-handle-h" x1="17" x2="27" y1="40" y2="40"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
             <!-- BASE_CARGO -->
             <ng-container *ngIf="card.svgTemplate === 'base-cargo'">
-              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body"/>
-              <rect x="3" y="9" width="38" height="36" rx="0.5" class="svg-front"/>
-              <line x1="10" y1="21" x2="34" y2="21" class="svg-dishwasher-line"/>
-              <line x1="10" y1="33" x2="34" y2="33" class="svg-dishwasher-line"/>
-              <line x1="22" y1="22" x2="22" y2="31" class="svg-handle"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body" height="38" rx="1" width="40" x="2" y="8"/>
+              <rect class="svg-front" height="36" rx="0.5" width="38" x="3" y="9"/>
+              <line class="svg-dishwasher-line" x1="10" x2="34" y1="21" y2="21"/>
+              <line class="svg-dishwasher-line" x1="10" x2="34" y1="33" y2="33"/>
+              <line class="svg-handle" x1="22" x2="22" y1="22" y2="31"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
             <!-- BASE_SINK -->
             <ng-container *ngIf="card.svgTemplate === 'base-sink'">
-              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body"/>
-              <rect x="3" y="9" width="19" height="36" rx="0.5" class="svg-front"/>
-              <rect x="23" y="9" width="19" height="36" rx="0.5" class="svg-front"/>
-              <ellipse cx="22" cy="4" rx="7" ry="3" class="svg-sink-bowl"/>
-              <line x1="12" y1="27" x2="12" y2="31" class="svg-handle"/>
-              <line x1="32" y1="27" x2="32" y2="31" class="svg-handle"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body" height="38" rx="1" width="40" x="2" y="8"/>
+              <rect class="svg-front" height="36" rx="0.5" width="19" x="3" y="9"/>
+              <rect class="svg-front" height="36" rx="0.5" width="19" x="23" y="9"/>
+              <ellipse class="svg-sink-bowl" cx="22" cy="4" rx="7" ry="3"/>
+              <line class="svg-handle" x1="12" x2="12" y1="27" y2="31"/>
+              <line class="svg-handle" x1="32" x2="32" y1="27" y2="31"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
             <!-- BASE_COOKTOP -->
             <ng-container *ngIf="card.svgTemplate === 'base-cooktop'">
-              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body"/>
-              <rect x="3" y="9" width="38" height="36" rx="0.5" class="svg-front"/>
-              <circle cx="13" cy="4" r="4" class="svg-burner"/>
-              <circle cx="31" cy="4" r="4" class="svg-burner"/>
-              <circle cx="13" cy="4" r="2" class="svg-burner-inner"/>
-              <circle cx="31" cy="4" r="2" class="svg-burner-inner"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body" height="38" rx="1" width="40" x="2" y="8"/>
+              <rect class="svg-front" height="36" rx="0.5" width="38" x="3" y="9"/>
+              <circle class="svg-burner" cx="13" cy="4" r="4"/>
+              <circle class="svg-burner" cx="31" cy="4" r="4"/>
+              <circle class="svg-burner-inner" cx="13" cy="4" r="2"/>
+              <circle class="svg-burner-inner" cx="31" cy="4" r="2"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
             <!-- BASE_DISHWASHER (front only) -->
             <ng-container *ngIf="card.svgTemplate === 'base-dishwasher'">
-              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body-outline"/>
-              <rect x="3" y="9" width="38" height="36" rx="0.5" class="svg-front"/>
-              <line x1="8" y1="18" x2="36" y2="18" class="svg-dishwasher-line"/>
-              <line x1="8" y1="27" x2="36" y2="27" class="svg-dishwasher-line"/>
-              <line x1="8" y1="36" x2="36" y2="36" class="svg-dishwasher-line"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body-outline" height="38" rx="1" width="40" x="2" y="8"/>
+              <rect class="svg-front" height="36" rx="0.5" width="38" x="3" y="9"/>
+              <line class="svg-dishwasher-line" x1="8" x2="36" y1="18" y2="18"/>
+              <line class="svg-dishwasher-line" x1="8" x2="36" y1="27" y2="27"/>
+              <line class="svg-dishwasher-line" x1="8" x2="36" y1="36" y2="36"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
             <!-- BASE_DISHWASHER_FREESTANDING -->
             <ng-container *ngIf="card.svgTemplate === 'base-dishwasher-free'">
-              <rect x="2" y="8" width="40" height="38" rx="2" class="svg-appliance"/>
-              <line x1="8" y1="18" x2="36" y2="18" class="svg-dishwasher-line"/>
-              <line x1="8" y1="27" x2="36" y2="27" class="svg-dishwasher-line"/>
-              <line x1="8" y1="36" x2="36" y2="36" class="svg-dishwasher-line"/>
+              <rect class="svg-appliance" height="38" rx="2" width="40" x="2" y="8"/>
+              <line class="svg-dishwasher-line" x1="8" x2="36" y1="18" y2="18"/>
+              <line class="svg-dishwasher-line" x1="8" x2="36" y1="27" y2="27"/>
+              <line class="svg-dishwasher-line" x1="8" x2="36" y1="36" y2="36"/>
             </ng-container>
 
             <!-- BASE_OVEN -->
             <ng-container *ngIf="card.svgTemplate === 'base-oven'">
-              <rect x="2" y="8" width="40" height="38" rx="1" class="svg-body"/>
-              <rect x="5" y="10" width="34" height="22" rx="0.5" class="svg-appliance-slot"/>
-              <rect x="8" y="13" width="28" height="16" rx="0.5" class="svg-oven-window"/>
-              <line x1="3" y1="32" x2="41" y2="32" class="svg-separator"/>
-              <rect x="3" y="33" width="38" height="13" rx="0.5" class="svg-front"/>
-              <line x1="17" y1="39" x2="27" y2="39" class="svg-handle-h"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body" height="38" rx="1" width="40" x="2" y="8"/>
+              <rect class="svg-appliance-slot" height="22" rx="0.5" width="34" x="5" y="10"/>
+              <rect class="svg-oven-window" height="16" rx="0.5" width="28" x="8" y="13"/>
+              <line class="svg-separator" x1="3" x2="41" y1="32" y2="32"/>
+              <rect class="svg-front" height="13" rx="0.5" width="38" x="3" y="33"/>
+              <line class="svg-handle-h" x1="17" x2="27" y1="39" y2="39"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
             <!-- BASE_OVEN_FREESTANDING -->
             <ng-container *ngIf="card.svgTemplate === 'base-oven-free'">
-              <rect x="2" y="8" width="40" height="38" rx="2" class="svg-appliance"/>
-              <rect x="6" y="11" width="32" height="20" rx="0.5" class="svg-oven-window"/>
-              <circle cx="10" cy="4" r="3" class="svg-burner"/>
-              <circle cx="22" cy="4" r="3" class="svg-burner"/>
-              <circle cx="34" cy="4" r="3" class="svg-burner"/>
+              <rect class="svg-appliance" height="38" rx="2" width="40" x="2" y="8"/>
+              <rect class="svg-oven-window" height="20" rx="0.5" width="32" x="6" y="11"/>
+              <circle class="svg-burner" cx="10" cy="4" r="3"/>
+              <circle class="svg-burner" cx="22" cy="4" r="3"/>
+              <circle class="svg-burner" cx="34" cy="4" r="3"/>
             </ng-container>
 
             <!-- BASE_FRIDGE (built-in, FULL zone) -->
             <ng-container *ngIf="card.svgTemplate === 'base-fridge'">
-              <rect x="6" y="1" width="32" height="54" rx="1" class="svg-body svg-full"/>
-              <rect x="7" y="2" width="30" height="38" rx="0.5" class="svg-front svg-front-full"/>
-              <rect x="7" y="41" width="30" height="13" rx="0.5" class="svg-front svg-front-full"/>
-              <line x1="22" y1="15" x2="22" y2="25" class="svg-handle"/>
-              <line x1="22" y1="46" x2="22" y2="50" class="svg-handle"/>
+              <rect class="svg-body svg-full" height="54" rx="1" width="32" x="6" y="1"/>
+              <rect class="svg-front svg-front-full" height="38" rx="0.5" width="30" x="7" y="2"/>
+              <rect class="svg-front svg-front-full" height="13" rx="0.5" width="30" x="7" y="41"/>
+              <line class="svg-handle" x1="22" x2="22" y1="15" y2="25"/>
+              <line class="svg-handle" x1="22" x2="22" y1="46" y2="50"/>
             </ng-container>
 
             <!-- BASE_FRIDGE_FREESTANDING -->
             <ng-container *ngIf="card.svgTemplate === 'base-fridge-free'">
-              <rect x="6" y="1" width="32" height="54" rx="2" class="svg-appliance"/>
-              <line x1="6" y1="38" x2="38" y2="38" class="svg-separator"/>
-              <line x1="26" y1="15" x2="26" y2="30" class="svg-handle svg-handle-light"/>
-              <line x1="26" y1="42" x2="26" y2="50" class="svg-handle svg-handle-light"/>
+              <rect class="svg-appliance" height="54" rx="2" width="32" x="6" y="1"/>
+              <line class="svg-separator" x1="6" x2="38" y1="38" y2="38"/>
+              <line class="svg-handle svg-handle-light" x1="26" x2="26" y1="15" y2="30"/>
+              <line class="svg-handle svg-handle-light" x1="26" x2="26" y1="42" y2="50"/>
             </ng-container>
 
             <!-- UPPER_ONE_DOOR -->
             <ng-container *ngIf="card.svgTemplate === 'upper-one-door'">
-              <rect x="2" y="10" width="40" height="38" rx="1" class="svg-body svg-upper"/>
-              <rect x="3" y="11" width="38" height="36" rx="0.5" class="svg-front svg-front-upper"/>
-              <line x1="22" y1="28" x2="22" y2="32" class="svg-handle"/>
+              <rect class="svg-body svg-upper" height="38" rx="1" width="40" x="2" y="10"/>
+              <rect class="svg-front svg-front-upper" height="36" rx="0.5" width="38" x="3" y="11"/>
+              <line class="svg-handle" x1="22" x2="22" y1="28" y2="32"/>
             </ng-container>
 
             <!-- UPPER_LIFT_UP -->
             <ng-container *ngIf="card.svgTemplate === 'upper-lift-up'">
-              <rect x="2" y="16" width="40" height="32" rx="1" class="svg-body svg-upper"/>
-              <polygon points="3,16 41,16 37,6 7,6" class="svg-front svg-front-upper"/>
-              <line x1="22" y1="7" x2="22" y2="11" class="svg-handle"/>
+              <rect class="svg-body svg-upper" height="32" rx="1" width="40" x="2" y="16"/>
+              <polygon class="svg-front svg-front-upper" points="3,16 41,16 37,6 7,6"/>
+              <line class="svg-handle" x1="22" x2="22" y1="7" y2="11"/>
             </ng-container>
 
             <!-- UPPER_TWO_DOOR -->
             <ng-container *ngIf="card.svgTemplate === 'upper-two-door'">
-              <rect x="2" y="10" width="40" height="38" rx="1" class="svg-body svg-upper"/>
-              <rect x="3" y="11" width="19" height="36" rx="0.5" class="svg-front svg-front-upper"/>
-              <rect x="23" y="11" width="19" height="36" rx="0.5" class="svg-front svg-front-upper"/>
-              <line x1="12" y1="29" x2="12" y2="33" class="svg-handle"/>
-              <line x1="32" y1="29" x2="32" y2="33" class="svg-handle"/>
+              <rect class="svg-body svg-upper" height="38" rx="1" width="40" x="2" y="10"/>
+              <rect class="svg-front svg-front-upper" height="36" rx="0.5" width="19" x="3" y="11"/>
+              <rect class="svg-front svg-front-upper" height="36" rx="0.5" width="19" x="23" y="11"/>
+              <line class="svg-handle" x1="12" x2="12" y1="29" y2="33"/>
+              <line class="svg-handle" x1="32" x2="32" y1="29" y2="33"/>
             </ng-container>
 
             <!-- UPPER_OPEN_SHELF -->
             <ng-container *ngIf="card.svgTemplate === 'upper-open'">
-              <rect x="2" y="10" width="40" height="38" rx="1" class="svg-body svg-upper" stroke-dasharray="3 2"/>
-              <line x1="2" y1="29" x2="42" y2="29" class="svg-shelf-line"/>
+              <rect class="svg-body svg-upper" height="38" rx="1" stroke-dasharray="3 2" width="40" x="2" y="10"/>
+              <line class="svg-shelf-line" x1="2" x2="42" y1="29" y2="29"/>
             </ng-container>
 
             <!-- UPPER_CASCADE -->
             <ng-container *ngIf="card.svgTemplate === 'upper-cascade'">
-              <rect x="2" y="20" width="40" height="28" rx="1" class="svg-body svg-upper"/>
-              <rect x="2" y="10" width="22" height="10" rx="1" class="svg-body svg-upper"/>
-              <rect x="3" y="21" width="38" height="26" rx="0.5" class="svg-front svg-front-upper"/>
+              <rect class="svg-body svg-upper" height="28" rx="1" width="40" x="2" y="20"/>
+              <rect class="svg-body svg-upper" height="10" rx="1" width="22" x="2" y="10"/>
+              <rect class="svg-front svg-front-upper" height="26" rx="0.5" width="38" x="3" y="21"/>
             </ng-container>
 
             <!-- UPPER_HOOD -->
             <ng-container *ngIf="card.svgTemplate === 'upper-hood'">
-              <rect x="2" y="10" width="40" height="38" rx="1" class="svg-body svg-upper"/>
-              <rect x="3" y="11" width="38" height="36" rx="0.5" class="svg-front svg-front-upper"/>
-              <line x1="8" y1="22" x2="36" y2="22" class="svg-dishwasher-line"/>
-              <line x1="8" y1="30" x2="36" y2="30" class="svg-dishwasher-line"/>
-              <line x1="8" y1="38" x2="36" y2="38" class="svg-dishwasher-line"/>
+              <rect class="svg-body svg-upper" height="38" rx="1" width="40" x="2" y="10"/>
+              <rect class="svg-front svg-front-upper" height="36" rx="0.5" width="38" x="3" y="11"/>
+              <line class="svg-dishwasher-line" x1="8" x2="36" y1="22" y2="22"/>
+              <line class="svg-dishwasher-line" x1="8" x2="36" y1="30" y2="30"/>
+              <line class="svg-dishwasher-line" x1="8" x2="36" y1="38" y2="38"/>
             </ng-container>
 
             <!-- UPPER_DRAINER -->
             <ng-container *ngIf="card.svgTemplate === 'upper-drainer'">
-              <rect x="2" y="10" width="40" height="38" rx="1" class="svg-body svg-upper"/>
-              <line x1="10" y1="12" x2="10" y2="47" class="svg-drainer-line"/>
-              <line x1="17" y1="12" x2="17" y2="47" class="svg-drainer-line"/>
-              <line x1="24" y1="12" x2="24" y2="47" class="svg-drainer-line"/>
-              <line x1="31" y1="12" x2="31" y2="47" class="svg-drainer-line"/>
+              <rect class="svg-body svg-upper" height="38" rx="1" width="40" x="2" y="10"/>
+              <line class="svg-drainer-line" x1="10" x2="10" y1="12" y2="47"/>
+              <line class="svg-drainer-line" x1="17" x2="17" y1="12" y2="47"/>
+              <line class="svg-drainer-line" x1="24" x2="24" y1="12" y2="47"/>
+              <line class="svg-drainer-line" x1="31" x2="31" y1="12" y2="47"/>
             </ng-container>
 
             <!-- TALL_CABINET -->
             <ng-container *ngIf="card.svgTemplate === 'tall'">
-              <rect x="8" y="1" width="28" height="54" rx="1" class="svg-body svg-full"/>
-              <rect x="9" y="2" width="26" height="17" rx="0.5" class="svg-front svg-front-full"/>
-              <line x1="9" y1="19" x2="35" y2="19" class="svg-separator"/>
-              <rect x="9" y="20" width="26" height="17" rx="0.5" class="svg-front svg-front-full"/>
-              <line x1="9" y1="37" x2="35" y2="37" class="svg-separator"/>
-              <rect x="9" y="38" width="26" height="15" rx="0.5" class="svg-front svg-front-full"/>
-              <line x1="22" y1="10" x2="22" y2="14" class="svg-handle"/>
-              <line x1="22" y1="28" x2="22" y2="32" class="svg-handle"/>
+              <rect class="svg-body svg-full" height="54" rx="1" width="28" x="8" y="1"/>
+              <rect class="svg-front svg-front-full" height="17" rx="0.5" width="26" x="9" y="2"/>
+              <line class="svg-separator" x1="9" x2="35" y1="19" y2="19"/>
+              <rect class="svg-front svg-front-full" height="17" rx="0.5" width="26" x="9" y="20"/>
+              <line class="svg-separator" x1="9" x2="35" y1="37" y2="37"/>
+              <rect class="svg-front svg-front-full" height="15" rx="0.5" width="26" x="9" y="38"/>
+              <line class="svg-handle" x1="22" x2="22" y1="10" y2="14"/>
+              <line class="svg-handle" x1="22" x2="22" y1="28" y2="32"/>
             </ng-container>
 
             <!-- PANTRY_PASSAGE -->
             <ng-container *ngIf="card.svgTemplate === 'passage'">
-              <rect x="6" y="1" width="32" height="54" rx="1" class="svg-body svg-full"/>
-              <rect x="7" y="2" width="14" height="52" rx="0.5" class="svg-front svg-front-full"/>
-              <rect x="23" y="2" width="14" height="52" rx="0.5" class="svg-front svg-front-full"/>
-              <line x1="14" y1="24" x2="14" y2="32" class="svg-handle"/>
-              <line x1="30" y1="24" x2="30" y2="32" class="svg-handle"/>
+              <rect class="svg-body svg-full" height="54" rx="1" width="32" x="6" y="1"/>
+              <rect class="svg-front svg-front-full" height="52" rx="0.5" width="14" x="7" y="2"/>
+              <rect class="svg-front svg-front-full" height="52" rx="0.5" width="14" x="23" y="2"/>
+              <line class="svg-handle" x1="14" x2="14" y1="24" y2="32"/>
+              <line class="svg-handle" x1="30" x2="30" y1="24" y2="32"/>
             </ng-container>
 
             <!-- CORNER_CABINET -->
             <ng-container *ngIf="card.svgTemplate === 'corner'">
-              <rect x="2" y="8" width="22" height="38" rx="1" class="svg-body"/>
-              <rect x="24" y="8" width="18" height="38" rx="1" class="svg-body"/>
-              <rect x="3" y="9" width="20" height="36" rx="0.5" class="svg-front"/>
-              <rect x="25" y="9" width="16" height="36" rx="0.5" class="svg-front"/>
-              <line x1="13" y1="27" x2="13" y2="31" class="svg-handle"/>
-              <line x1="33" y1="27" x2="33" y2="31" class="svg-handle"/>
-              <rect x="2" y="46" width="40" height="4" rx="0.5" class="svg-plinth"/>
+              <rect class="svg-body" height="38" rx="1" width="22" x="2" y="8"/>
+              <rect class="svg-body" height="38" rx="1" width="18" x="24" y="8"/>
+              <rect class="svg-front" height="36" rx="0.5" width="20" x="3" y="9"/>
+              <rect class="svg-front" height="36" rx="0.5" width="16" x="25" y="9"/>
+              <line class="svg-handle" x1="13" x2="13" y1="27" y2="31"/>
+              <line class="svg-handle" x1="33" x2="33" y1="27" y2="31"/>
+              <rect class="svg-plinth" height="4" rx="0.5" width="40" x="2" y="46"/>
             </ng-container>
 
           </svg>

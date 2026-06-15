@@ -16,11 +16,11 @@
       <div class="app-page-summary">
         <span class="app-page-summary-chip">Wszystkie: {{ allProjectsCountLabel }}</span>
         <span class="app-page-summary-chip">Na liscie: {{ visibleProjectsCountLabel }}</span>
-        <span class="app-page-summary-chip" *ngIf="hasActiveFilters">Filtry: {{ activeStatusesCountLabel }}</span>
+        <span *ngIf="hasActiveFilters" class="app-page-summary-chip">Filtry: {{ activeStatusesCountLabel }}</span>
       </div>
 
-      <button type="button" class="btn btn-outline" (click)="loadProjects()">Odswiez</button>
-      <button type="button" class="btn btn-primary" (click)="createNewProject()">Nowy projekt</button>
+      <button (click)="loadProjects()" class="btn btn-outline" type="button">Odswiez</button>
+      <button (click)="createNewProject()" class="btn btn-primary" type="button">Nowy projekt</button>
     </div>
   </header>
 
@@ -43,15 +43,15 @@
           <div class="flow-stack">
             <ng-container *ngFor="let step of flowSteps; trackBy: trackByFlowStepStatus; let last = last">
               <button
-                type="button"
-                class="flow-step"
-                [class.flow-step--selected]="isFilterActive(step.status)"
-                [attr.aria-pressed]="isFilterActive(step.status)"
-                [style.background-color]="step.color + (isFilterActive(step.status) ? '22' : '10')"
-                [style.color]="step.color"
-                [style.border-color]="isFilterActive(step.status) ? step.color : (step.color + '2c')"
                 (click)="toggleStatusFilter(step.status)"
-                [title]="'Filtruj: ' + step.label">
+                [attr.aria-pressed]="isFilterActive(step.status)"
+                [class.flow-step--selected]="isFilterActive(step.status)"
+                [style.background-color]="step.color + (isFilterActive(step.status) ? '22' : '10')"
+                [style.border-color]="isFilterActive(step.status) ? step.color : (step.color + '2c')"
+                [style.color]="step.color"
+                [title]="'Filtruj: ' + step.label"
+                class="flow-step"
+                type="button">
                 <span class="flow-step__index">{{ step.num }}</span>
                 <span class="flow-step__content">
                   <span class="flow-step__label">{{ step.label }}</span>
@@ -59,18 +59,18 @@
                 </span>
                 <span class="flow-step__count">{{ countByStatus(step.status) }}</span>
               </button>
-              <span *ngIf="!last" class="flow-step__connector" aria-hidden="true"></span>
+              <span *ngIf="!last" aria-hidden="true" class="flow-step__connector"></span>
             </ng-container>
 
             <button
-              type="button"
-              class="flow-step flow-step--cancelled"
-              [class.flow-step--selected]="isFilterActive('CANCELLED')"
+              (click)="toggleStatusFilter('CANCELLED')"
               [attr.aria-pressed]="isFilterActive('CANCELLED')"
+              [class.flow-step--selected]="isFilterActive('CANCELLED')"
               [style.background-color]="isFilterActive('CANCELLED') ? cancelledFlowStepStyles.activeBackground : cancelledFlowStepStyles.idleBackground"
               [style.border-color]="isFilterActive('CANCELLED') ? cancelledFlowStepStyles.color : cancelledFlowStepStyles.idleBorder"
-              (click)="toggleStatusFilter('CANCELLED')"
-              title="Filtruj: Anulowany">
+              class="flow-step flow-step--cancelled"
+              title="Filtruj: Anulowany"
+              type="button">
               <span class="flow-step__index">X</span>
               <span class="flow-step__content">
                 <span class="flow-step__label">Anulowany</span>
@@ -98,156 +98,159 @@
         </header>
 
         <div class="projects-panel__body">
-        <div *ngIf="projects.length > 0" class="settings-toolbar settings-toolbar--filters projects-toolbar">
-          <div class="projects-toolbar__summary">
-            <span class="settings-toolbar-label">Widok</span>
-            <strong>{{ visibleProjectsCountLabel }}</strong>
-            <span class="projects-toolbar__summary-sep">z</span>
-            <span>{{ allProjectsCountLabel }}</span>
-          </div>
-
-          <div class="projects-toolbar__sort">
-            <span class="settings-toolbar-label">Sortuj</span>
-            <button
-              type="button"
-              class="sort-chip"
-              [class.sort-chip--active]="sortField === 'updatedAt'"
-              [attr.aria-pressed]="sortField === 'updatedAt'"
-              (click)="setSortField('updatedAt')">
-              Modyfikacja{{ getSortIcon('updatedAt') }}
-            </button>
-            <button
-              type="button"
-              class="sort-chip"
-              [class.sort-chip--active]="sortField === 'createdAt'"
-              [attr.aria-pressed]="sortField === 'createdAt'"
-              (click)="setSortField('createdAt')">
-              Utworzenie{{ getSortIcon('createdAt') }}
-            </button>
-            <button
-              type="button"
-              class="sort-chip"
-              [class.sort-chip--active]="sortField === 'totalCost'"
-              [attr.aria-pressed]="sortField === 'totalCost'"
-              (click)="setSortField('totalCost')">
-              Koszt{{ getSortIcon('totalCost') }}
-            </button>
-            <button
-              type="button"
-              class="sort-chip"
-              [class.sort-chip--active]="sortField === 'status'"
-              [attr.aria-pressed]="sortField === 'status'"
-              (click)="setSortField('status')">
-              Etap{{ getSortIcon('status') }}
-            </button>
-          </div>
-
-          <button type="button" *ngIf="hasActiveFilters" class="btn btn-outline btn-sm projects-toolbar__clear" (click)="clearFilters()">
-            Wyczysc filtry
-          </button>
-        </div>
-
-        <div *ngIf="loading" class="projects-state projects-state--loading">
-          <div class="spinner"></div>
-          <p>Wczytywanie projektow...</p>
-        </div>
-
-        <div *ngIf="!loading && error" class="projects-state projects-state--error">
-          <p>{{ error }}</p>
-          <button type="button" class="btn btn-outline" (click)="loadProjects()">Sproboj ponownie</button>
-        </div>
-
-        <div *ngIf="!loading && !error && projects.length === 0" class="projects-state projects-state--empty">
-          <div class="projects-state__icon" aria-hidden="true">&#128193;</div>
-          <h3>Brak projektow</h3>
-          <p>Nie masz jeszcze zadnych zapisanych projektow kuchni.</p>
-          <button type="button" class="btn btn-primary" (click)="createNewProject()">Utworz pierwszy projekt</button>
-        </div>
-
-        <div *ngIf="!loading && !error && projects.length > 0 && filteredAndSortedProjects.length === 0" class="projects-state projects-state--empty">
-          <div class="projects-state__icon" aria-hidden="true">&#128269;</div>
-          <h3>Brak wynikow</h3>
-          <p>Brak projektow pasujacych do wybranych filtrow.</p>
-          <button type="button" class="btn btn-outline" (click)="clearFilters()">Resetuj filtry</button>
-        </div>
-
-        <div *ngIf="!loading && !error && filteredAndSortedProjects.length > 0" class="projects-grid">
-          <article
-            *ngFor="let project of filteredAndSortedProjects; trackBy: trackById"
-            class="project-card"
-            [class.project-card--current]="isCurrentProject(project.id)"
-            [class.project-card--deleting]="deletingProjectId === project.id">
-
-            <div *ngIf="deletingProjectId === project.id" class="project-card__overlay">
-              <p>Czy na pewno chcesz usunac projekt "{{ project.name }}"?</p>
-              <div class="project-card__overlay-actions">
-                <button type="button" class="btn btn-danger btn-sm" (click)="deleteProject(project.id)">Usun</button>
-                <button type="button" class="btn btn-secondary btn-sm" (click)="cancelDelete()">Anuluj</button>
-              </div>
+          <div *ngIf="projects.length > 0" class="settings-toolbar settings-toolbar--filters projects-toolbar">
+            <div class="projects-toolbar__summary">
+              <span class="settings-toolbar-label">Widok</span>
+              <strong>{{ visibleProjectsCountLabel }}</strong>
+              <span class="projects-toolbar__summary-sep">z</span>
+              <span>{{ allProjectsCountLabel }}</span>
             </div>
 
-            <div class="project-card__header">
-              <div class="project-card__title-wrap">
-                <div class="project-card__title-row">
-                  <h3>{{ project.name }}</h3>
-                  <span class="project-card__current" *ngIf="isCurrentProject(project.id)">Aktualny</span>
+            <div class="projects-toolbar__sort">
+              <span class="settings-toolbar-label">Sortuj</span>
+              <button
+                (click)="setSortField('updatedAt')"
+                [attr.aria-pressed]="sortField === 'updatedAt'"
+                [class.sort-chip--active]="sortField === 'updatedAt'"
+                class="sort-chip"
+                type="button">
+                Modyfikacja{{ getSortIcon('updatedAt') }}
+              </button>
+              <button
+                (click)="setSortField('createdAt')"
+                [attr.aria-pressed]="sortField === 'createdAt'"
+                [class.sort-chip--active]="sortField === 'createdAt'"
+                class="sort-chip"
+                type="button">
+                Utworzenie{{ getSortIcon('createdAt') }}
+              </button>
+              <button
+                (click)="setSortField('totalCost')"
+                [attr.aria-pressed]="sortField === 'totalCost'"
+                [class.sort-chip--active]="sortField === 'totalCost'"
+                class="sort-chip"
+                type="button">
+                Koszt{{ getSortIcon('totalCost') }}
+              </button>
+              <button
+                (click)="setSortField('status')"
+                [attr.aria-pressed]="sortField === 'status'"
+                [class.sort-chip--active]="sortField === 'status'"
+                class="sort-chip"
+                type="button">
+                Etap{{ getSortIcon('status') }}
+              </button>
+            </div>
+
+            <button (click)="clearFilters()" *ngIf="hasActiveFilters" class="btn btn-outline btn-sm projects-toolbar__clear"
+                    type="button">
+              Wyczysc filtry
+            </button>
+          </div>
+
+          <div *ngIf="loading" class="projects-state projects-state--loading">
+            <div class="spinner"></div>
+            <p>Wczytywanie projektow...</p>
+          </div>
+
+          <div *ngIf="!loading && error" class="projects-state projects-state--error">
+            <p>{{ error }}</p>
+            <button (click)="loadProjects()" class="btn btn-outline" type="button">Sproboj ponownie</button>
+          </div>
+
+          <div *ngIf="!loading && !error && projects.length === 0" class="projects-state projects-state--empty">
+            <div aria-hidden="true" class="projects-state__icon">&#128193;</div>
+            <h3>Brak projektow</h3>
+            <p>Nie masz jeszcze zadnych zapisanych projektow kuchni.</p>
+            <button (click)="createNewProject()" class="btn btn-primary" type="button">Utworz pierwszy projekt</button>
+          </div>
+
+          <div *ngIf="!loading && !error && projects.length > 0 && filteredAndSortedProjects.length === 0"
+               class="projects-state projects-state--empty">
+            <div aria-hidden="true" class="projects-state__icon">&#128269;</div>
+            <h3>Brak wynikow</h3>
+            <p>Brak projektow pasujacych do wybranych filtrow.</p>
+            <button (click)="clearFilters()" class="btn btn-outline" type="button">Resetuj filtry</button>
+          </div>
+
+          <div *ngIf="!loading && !error && filteredAndSortedProjects.length > 0" class="projects-grid">
+            <article
+              *ngFor="let project of filteredAndSortedProjects; trackBy: trackById"
+              [class.project-card--current]="isCurrentProject(project.id)"
+              [class.project-card--deleting]="deletingProjectId === project.id"
+              class="project-card">
+
+              <div *ngIf="deletingProjectId === project.id" class="project-card__overlay">
+                <p>Czy na pewno chcesz usunac projekt "{{ project.name }}"?</p>
+                <div class="project-card__overlay-actions">
+                  <button (click)="deleteProject(project.id)" class="btn btn-danger btn-sm" type="button">Usun</button>
+                  <button (click)="cancelDelete()" class="btn btn-secondary btn-sm" type="button">Anuluj</button>
                 </div>
-                <p *ngIf="project.description" class="project-card__description">{{ project.description }}</p>
               </div>
 
-              <div class="project-card__badges">
+              <div class="project-card__header">
+                <div class="project-card__title-wrap">
+                  <div class="project-card__title-row">
+                    <h3>{{ project.name }}</h3>
+                    <span *ngIf="isCurrentProject(project.id)" class="project-card__current">Aktualny</span>
+                  </div>
+                  <p *ngIf="project.description" class="project-card__description">{{ project.description }}</p>
+                </div>
+
+                <div class="project-card__badges">
                 <span
-                  class="project-card__status"
                   [style.background-color]="getStatusColor(project.status) + '18'"
+                  [style.border-color]="getStatusColor(project.status) + '40'"
                   [style.color]="getStatusColor(project.status)"
-                  [style.border-color]="getStatusColor(project.status) + '40'">
+                  class="project-card__status">
                   {{ getStatusLabel(project.status) }}
                 </span>
-                <span class="project-card__version">v{{ project.version }}</span>
+                  <span class="project-card__version">v{{ project.version }}</span>
+                </div>
               </div>
-            </div>
 
-            <div class="project-card__meta">
-              <span>Utworzono {{ formatDate(project.createdAt) }}</span>
-              <span *ngIf="project.updatedAt !== project.createdAt">Zmieniono {{ formatDate(project.updatedAt) }}</span>
-            </div>
+              <div class="project-card__meta">
+                <span>Utworzono {{ formatDate(project.createdAt) }}</span>
+                <span
+                  *ngIf="project.updatedAt !== project.createdAt">Zmieniono {{ formatDate(project.updatedAt) }}</span>
+              </div>
 
-            <div class="project-card__stats">
-              <div class="project-card__stat">
-                <span class="project-card__stat-value">{{ wallCountLabel(project.wallCount) }}</span>
+              <div class="project-card__stats">
+                <div class="project-card__stat">
+                  <span class="project-card__stat-value">{{ wallCountLabel(project.wallCount) }}</span>
+                </div>
+                <div class="project-card__stat">
+                  <span class="project-card__stat-value">{{ cabinetCountLabel(project.cabinetCount) }}</span>
+                </div>
+                <div class="project-card__stat project-card__stat--cost">
+                  <span class="project-card__stat-value">{{ formatCost(project.totalCost) }}</span>
+                </div>
               </div>
-              <div class="project-card__stat">
-                <span class="project-card__stat-value">{{ cabinetCountLabel(project.cabinetCount) }}</span>
-              </div>
-              <div class="project-card__stat project-card__stat--cost">
-                <span class="project-card__stat-value">{{ formatCost(project.totalCost) }}</span>
-              </div>
-            </div>
 
-            <div class="project-card__actions">
-              <button
-                type="button"
-                class="btn btn-primary btn-sm project-card__open-btn"
-                [disabled]="isCurrentProject(project.id)"
-                (click)="openProject(project.id)">
-                {{ isCurrentProject(project.id) ? 'Aktualny' : 'Otworz' }}
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline btn-sm"
-                (click)="cloneProject(project.id)"
-                [disabled]="cloningProjectId === project.id">
-                {{ cloningProjectId === project.id ? 'Klonuje...' : 'Klonuj' }}
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-danger btn-sm"
-                (click)="confirmDelete(project.id)">
-                Usun
-              </button>
-            </div>
-          </article>
-        </div>
+              <div class="project-card__actions">
+                <button
+                  (click)="openProject(project.id)"
+                  [disabled]="isCurrentProject(project.id)"
+                  class="btn btn-primary btn-sm project-card__open-btn"
+                  type="button">
+                  {{ isCurrentProject(project.id) ? 'Aktualny' : 'Otworz' }}
+                </button>
+                <button
+                  (click)="cloneProject(project.id)"
+                  [disabled]="cloningProjectId === project.id"
+                  class="btn btn-outline btn-sm"
+                  type="button">
+                  {{ cloningProjectId === project.id ? 'Klonuje...' : 'Klonuj' }}
+                </button>
+                <button
+                  (click)="confirmDelete(project.id)"
+                  class="btn btn-outline-danger btn-sm"
+                  type="button">
+                  Usun
+                </button>
+              </div>
+            </article>
+          </div>
         </div>
       </section>
     </div>

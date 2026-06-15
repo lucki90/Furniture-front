@@ -1,12 +1,14 @@
 <ng-container *ngIf="showCountertop">
   <svg:rect *ngFor="let seg of countertopZoneRects; trackBy: trackByIndex"
+            [attr.height]="counterZoneHeight"
+            [attr.width]="seg.width"
             [attr.x]="seg.x"
             [attr.y]="counterZoneY"
-            [attr.width]="seg.width"
-            [attr.height]="counterZoneHeight"
-            fill="url(#countertopGradient)"
-            class="countertop-rect">
-    <svg:title *ngIf="countertopDimensions">Blat: {{ countertopDimensions.lengthMm }}×{{ countertopDimensions.depthMm }}mm</svg:title>
+            class="countertop-rect"
+            fill="url(#countertopGradient)">
+    <svg:title *ngIf="countertopDimensions">Blat: {{ countertopDimensions.lengthMm }}×{{ countertopDimensions.depthMm
+      }}mm
+    </svg:title>
   </svg:rect>
 
   <svg:text *ngFor="let lbl of countertopSegmentLabels; trackBy: trackByIndex"
@@ -20,10 +22,10 @@
 
 <ng-container *ngIf="showUpperCabinets">
   <svg:rect *ngIf="fillerPosition as filler"
+            [attr.height]="filler.height"
+            [attr.width]="filler.width"
             [attr.x]="filler.x"
             [attr.y]="filler.y"
-            [attr.width]="filler.width"
-            [attr.height]="filler.height"
             class="filler-rect">
     <svg:title>Blenda górna</svg:title>
   </svg:rect>
@@ -41,10 +43,10 @@
 </ng-container>
 
 <svg:rect *ngFor="let plinth of plinthSegments; trackBy: trackByRectX"
+          [attr.height]="plinth.height"
+          [attr.width]="plinth.width"
           [attr.x]="plinth.x"
           [attr.y]="plinth.y"
-          [attr.width]="plinth.width"
-          [attr.height]="plinth.height"
           class="plinth-rect">
   <svg:title>Cokół</svg:title>
 </svg:rect>

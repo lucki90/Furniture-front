@@ -1,41 +1,42 @@
 ﻿<div class="workspace-page-shell alone-cabinet-page">
   <section *ngIf="translationLoading" class="workspace-surface alone-cabinet-loading">
-    <div class="spinner" aria-hidden="true"></div>
+    <div aria-hidden="true" class="spinner"></div>
     <p>Laduje slownik i konfigurator szafki...</p>
   </section>
 
   <ng-container *ngIf="!translationLoading">
     <header class="alone-cabinet-workflow-bar app-page-header">
       <div class="alone-cabinet-workflow-bar__title app-page-title-group">
-        <mat-icon class="alone-cabinet-workflow-bar__icon app-page-title-icon" aria-hidden="true">inventory_2</mat-icon>
+        <mat-icon aria-hidden="true" class="alone-cabinet-workflow-bar__icon app-page-title-icon">inventory_2</mat-icon>
         <div>
           <h1 class="alone-cabinet-page-title app-page-title">Pojedyncza szafka</h1>
-          <p class="app-page-subtitle">Skonfiguruj pojedyncza szafke do szybkiej wyceny, wariantu indywidualnego albo prototypu nowego modulu.</p>
+          <p class="app-page-subtitle">Skonfiguruj pojedyncza szafke do szybkiej wyceny, wariantu indywidualnego albo
+            prototypu nowego modulu.</p>
         </div>
       </div>
 
       <div class="alone-cabinet-workflow-bar__actions app-page-header-actions">
-        <div class="view-toggle" role="tablist" aria-label="Tryb widoku pojedynczej szafki">
+        <div aria-label="Tryb widoku pojedynczej szafki" class="view-toggle" role="tablist">
           <button
-            type="button"
-            role="tab"
-            class="view-toggle-btn"
-            [class.active]="view === 'config'"
+            (click)="setView('config')"
             [attr.aria-selected]="view === 'config'"
-            (click)="setView('config')">
-            <mat-icon class="view-toggle-icon" aria-hidden="true">tune</mat-icon>
+            [class.active]="view === 'config'"
+            class="view-toggle-btn"
+            role="tab"
+            type="button">
+            <mat-icon aria-hidden="true" class="view-toggle-icon">tune</mat-icon>
             Konfiguracja
           </button>
           <button
-            type="button"
-            role="tab"
-            class="view-toggle-btn"
-            [class.active]="view === 'costs'"
+            (click)="setView('costs')"
             [attr.aria-selected]="view === 'costs'"
-            (click)="setView('costs')">
-            <mat-icon class="view-toggle-icon" aria-hidden="true">receipt_long</mat-icon>
+            [class.active]="view === 'costs'"
+            class="view-toggle-btn"
+            role="tab"
+            type="button">
+            <mat-icon aria-hidden="true" class="view-toggle-icon">receipt_long</mat-icon>
             Koszty
-            <span class="view-toggle-dot" *ngIf="response && view !== 'costs'" aria-label="Dostepne wyniki"></span>
+            <span *ngIf="response && view !== 'costs'" aria-label="Dostepne wyniki" class="view-toggle-dot"></span>
           </button>
         </div>
 
@@ -51,672 +52,680 @@
       </div>
 
       <div *ngIf="validationSummaryEntries.length > 0" class="validation-summary alone-cabinet-validation-summary">
-        <mat-icon class="validation-summary-icon" aria-hidden="true">warning_amber</mat-icon>
+        <mat-icon aria-hidden="true" class="validation-summary-icon">warning_amber</mat-icon>
         <div>
           <strong>Popraw dane przed przejsciem dalej:</strong>
           <ul class="validation-error-list">
             <li *ngFor="let err of validationSummaryEntries; trackBy: trackByIndex">{{ err }}</li>
           </ul>
-          <small *ngIf="validationErrorId" class="alone-cabinet-validation-summary__id">ID bledu: {{ validationErrorId }}</small>
+          <small *ngIf="validationErrorId" class="alone-cabinet-validation-summary__id">ID bledu: {{ validationErrorId
+            }}</small>
         </div>
       </div>
 
       <ng-container *ngIf="view === 'config'">
-      <div class="alone-cabinet-workspace">
-      <section class="workspace-surface alone-cabinet-form-panel">
-        <div class="alone-cabinet-panel-header">
-          <div>
-            <h2 class="alone-cabinet-panel-title">Konfiguracja korpusu i frontu</h2>
-            <p class="alone-cabinet-panel-subtitle">
-              Zmieniaj typ, wymiary, materialy i opcje montazowe. Podglad po prawej odswieza sie na zywo.
-            </p>
-          </div>
+        <div class="alone-cabinet-workspace">
+          <section class="workspace-surface alone-cabinet-form-panel">
+            <div class="alone-cabinet-panel-header">
+              <div>
+                <h2 class="alone-cabinet-panel-title">Konfiguracja korpusu i frontu</h2>
+                <p class="alone-cabinet-panel-subtitle">
+                  Zmieniaj typ, wymiary, materialy i opcje montazowe. Podglad po prawej odswieza sie na zywo.
+                </p>
+              </div>
 
-          <div class="alone-cabinet-panel-tools">
-            <span class="workspace-meta-chip workspace-meta-chip--accent">{{ currentRequestDimensionsLabel }}</span>
-          </div>
-        </div>
-
-        <form [formGroup]="form" (ngSubmit)="calculate(false)" class="alone-cabinet-form">
-          <section class="alone-cabinet-form-section">
-            <div class="alone-cabinet-form-section__header">
-              <h3>Tryb i uklad frontu</h3>
-              <span class="alone-cabinet-form-section__note">To steruje reszta widocznych opcji i podgladem.</span>
+              <div class="alone-cabinet-panel-tools">
+                <span class="workspace-meta-chip workspace-meta-chip--accent">{{ currentRequestDimensionsLabel }}</span>
+              </div>
             </div>
 
-            <div class="alone-cabinet-fields-grid alone-cabinet-fields-grid--three">
-              <app-dropdown
-                id="cabinet-type"
-                [label]="translations['UI.cabinetType'] || 'Typ szafki'"
-                formControlName="cabinetType"
-                [options]="cabinetTypes"
-                [errorMessage]="getControlErrorMessage('cabinetType', 'Wybierz typ szafki')"
-                [externalErrorMessage]="getFieldError('cabinetType')"
-                [translations]="translations"
-                [visible]="true">
-              </app-dropdown>
+            <form (ngSubmit)="calculate(false)" [formGroup]="form" class="alone-cabinet-form">
+              <section class="alone-cabinet-form-section">
+                <div class="alone-cabinet-form-section__header">
+                  <h3>Tryb i uklad frontu</h3>
+                  <span class="alone-cabinet-form-section__note">To steruje reszta widocznych opcji i podgladem.</span>
+                </div>
 
-              <app-dropdown
-                id="opening-type"
-                [label]="translations['UI.openingType'] || 'Typ otwierania'"
-                formControlName="openingType"
-                [options]="openingTypes"
-                [errorMessage]="getControlErrorMessage('openingType', 'Wybierz typ otwierania')"
-                [externalErrorMessage]="getFieldError('openingType')"
-                [translations]="translations"
-                [visible]="true">
-              </app-dropdown>
+                <div class="alone-cabinet-fields-grid alone-cabinet-fields-grid--three">
+                  <app-dropdown
+                    [errorMessage]="getControlErrorMessage('cabinetType', 'Wybierz typ szafki')"
+                    [externalErrorMessage]="getFieldError('cabinetType')"
+                    [label]="translations['UI.cabinetType'] || 'Typ szafki'"
+                    [options]="cabinetTypes"
+                    [translations]="translations"
+                    [visible]="true"
+                    formControlName="cabinetType"
+                    id="cabinet-type">
+                  </app-dropdown>
 
-              <app-dropdown
-                id="front-type"
-                [label]="translations['UI.frontType'] || 'Uklad frontu'"
-                formControlName="frontType"
-                [options]="frontTypes"
-                [errorMessage]="getControlErrorMessage('frontType', 'Wybierz uklad frontu')"
-                [externalErrorMessage]="getFieldError('frontType')"
-                [translations]="translations"
-                [visible]="true">
-              </app-dropdown>
-            </div>
-          </section>
+                  <app-dropdown
+                    [errorMessage]="getControlErrorMessage('openingType', 'Wybierz typ otwierania')"
+                    [externalErrorMessage]="getFieldError('openingType')"
+                    [label]="translations['UI.openingType'] || 'Typ otwierania'"
+                    [options]="openingTypes"
+                    [translations]="translations"
+                    [visible]="true"
+                    formControlName="openingType"
+                    id="opening-type">
+                  </app-dropdown>
 
-          <section class="alone-cabinet-form-section">
-            <div class="alone-cabinet-form-section__header">
-              <h3>Wymiary i wyposazenie</h3>
-              <span class="alone-cabinet-form-section__note">Zakresy sa walidowane zgodnie z obecna logika legacy.</span>
-            </div>
+                  <app-dropdown
+                    [errorMessage]="getControlErrorMessage('frontType', 'Wybierz uklad frontu')"
+                    [externalErrorMessage]="getFieldError('frontType')"
+                    [label]="translations['UI.frontType'] || 'Uklad frontu'"
+                    [options]="frontTypes"
+                    [translations]="translations"
+                    [visible]="true"
+                    formControlName="frontType"
+                    id="front-type">
+                  </app-dropdown>
+                </div>
+              </section>
 
-            <div class="alone-cabinet-fields-grid alone-cabinet-fields-grid--three">
-              <app-numeric-input
-                id="height"
-                [label]="translations['UI.height'] || 'Wysokosc'"
-                formControlName="height"
-                [min]="50"
-                [max]="2600"
-                [step]="1"
-                [externalErrorMessage]="getFieldError('height')"
-                [errorMessage]="translations['ERROR.INVALID_HEIGHT'] || 'Nieprawidlowa wysokosc'">
-              </app-numeric-input>
+              <section class="alone-cabinet-form-section">
+                <div class="alone-cabinet-form-section__header">
+                  <h3>Wymiary i wyposazenie</h3>
+                  <span
+                    class="alone-cabinet-form-section__note">Zakresy sa walidowane zgodnie z obecna logika legacy.</span>
+                </div>
 
-              <app-numeric-input
-                id="width"
-                [label]="translations['UI.width'] || 'Szerokosc'"
-                formControlName="width"
-                [min]="50"
-                [max]="1000"
-                [step]="1"
-                [externalErrorMessage]="getFieldError('width')"
-                [errorMessage]="translations['ERROR.INVALID_WIDTH'] || 'Nieprawidlowa szerokosc'">
-              </app-numeric-input>
+                <div class="alone-cabinet-fields-grid alone-cabinet-fields-grid--three">
+                  <app-numeric-input
+                    [errorMessage]="translations['ERROR.INVALID_HEIGHT'] || 'Nieprawidlowa wysokosc'"
+                    [externalErrorMessage]="getFieldError('height')"
+                    [label]="translations['UI.height'] || 'Wysokosc'"
+                    [max]="2600"
+                    [min]="50"
+                    [step]="1"
+                    formControlName="height"
+                    id="height">
+                  </app-numeric-input>
 
-              <app-numeric-input
-                id="depth"
-                [label]="translations['UI.depth'] || 'Glebokosc'"
-                formControlName="depth"
-                [min]="50"
-                [max]="1000"
-                [step]="1"
-                [externalErrorMessage]="getFieldError('depth')"
-                [errorMessage]="translations['ERROR.INVALID_DEPTH'] || 'Nieprawidlowa glebokosc'">
-              </app-numeric-input>
+                  <app-numeric-input
+                    [errorMessage]="translations['ERROR.INVALID_WIDTH'] || 'Nieprawidlowa szerokosc'"
+                    [externalErrorMessage]="getFieldError('width')"
+                    [label]="translations['UI.width'] || 'Szerokosc'"
+                    [max]="1000"
+                    [min]="50"
+                    [step]="1"
+                    formControlName="width"
+                    id="width">
+                  </app-numeric-input>
 
-              <app-numeric-input
-                id="shelfQuantity"
-                [label]="translations['UI.shelfQuantity'] || 'Liczba polek'"
-                formControlName="shelfQuantity"
-                [min]="0"
-                [max]="20"
-                [step]="1"
-                [externalErrorMessage]="getFieldError('shelfQuantity')"
-                [errorMessage]="translations['ERROR.INVALID_SHELF_QUANTITY'] || 'Nieprawidlowa liczba polek'">
-              </app-numeric-input>
+                  <app-numeric-input
+                    [errorMessage]="translations['ERROR.INVALID_DEPTH'] || 'Nieprawidlowa glebokosc'"
+                    [externalErrorMessage]="getFieldError('depth')"
+                    [label]="translations['UI.depth'] || 'Glebokosc'"
+                    [max]="1000"
+                    [min]="50"
+                    [step]="1"
+                    formControlName="depth"
+                    id="depth">
+                  </app-numeric-input>
 
-              <app-numeric-input
-                id="drawer-quantity"
-                [label]="translations['UI.drawerQuantity'] || 'Liczba szuflad'"
-                formControlName="drawerQuantity"
-                [min]="1"
-                [max]="10"
-                [step]="1"
-                [externalErrorMessage]="getFieldError('drawerQuantity')"
-                [errorMessage]="getControlErrorMessage('drawerQuantity', translations['ERROR.INVALID_DRAWER_QUANTITY'] || 'Nieprawidlowa liczba szuflad')">
-              </app-numeric-input>
+                  <app-numeric-input
+                    [errorMessage]="translations['ERROR.INVALID_SHELF_QUANTITY'] || 'Nieprawidlowa liczba polek'"
+                    [externalErrorMessage]="getFieldError('shelfQuantity')"
+                    [label]="translations['UI.shelfQuantity'] || 'Liczba polek'"
+                    [max]="20"
+                    [min]="0"
+                    [step]="1"
+                    formControlName="shelfQuantity"
+                    id="shelfQuantity">
+                  </app-numeric-input>
 
-              <app-dropdown
-                id="drawer-model"
-                [label]="translations['UI.drawerModel'] || 'Model szuflady'"
-                formControlName="drawerModel"
-                [options]="drawerModels"
-                [errorMessage]="getControlErrorMessage('drawerModel', 'Wybierz model szuflady')"
-                [externalErrorMessage]="getFieldError('drawerModel')"
-                [translations]="translations"
-                [visible]="true">
-              </app-dropdown>
-            </div>
-          </section>
+                  <app-numeric-input
+                    [errorMessage]="getControlErrorMessage('drawerQuantity', translations['ERROR.INVALID_DRAWER_QUANTITY'] || 'Nieprawidlowa liczba szuflad')"
+                    [externalErrorMessage]="getFieldError('drawerQuantity')"
+                    [label]="translations['UI.drawerQuantity'] || 'Liczba szuflad'"
+                    [max]="10"
+                    [min]="1"
+                    [step]="1"
+                    formControlName="drawerQuantity"
+                    id="drawer-quantity">
+                  </app-numeric-input>
 
-          <section class="alone-cabinet-form-section">
-            <div class="alone-cabinet-form-section__header">
-              <h3>Konstrukcja i montaz</h3>
-              <span class="alone-cabinet-form-section__note">Opcje montazowe, plecy, blat i sposob zawieszenia.</span>
-            </div>
+                  <app-dropdown
+                    [errorMessage]="getControlErrorMessage('drawerModel', 'Wybierz model szuflady')"
+                    [externalErrorMessage]="getFieldError('drawerModel')"
+                    [label]="translations['UI.drawerModel'] || 'Model szuflady'"
+                    [options]="drawerModels"
+                    [translations]="translations"
+                    [visible]="true"
+                    formControlName="drawerModel"
+                    id="drawer-model">
+                  </app-dropdown>
+                </div>
+              </section>
 
-            <div class="alone-cabinet-radio-grid">
-              <app-radio-button
-                [id]="'drawer-base-hdf'"
-                formControlName="drawerBaseHdf"
-                [title]="translations['UI.isDrawerBaseHdf'] || 'Dno szuflady'"
-                [externalErrorMessage]="getFieldError('drawerBaseHdf')"
-                [options]="[
+              <section class="alone-cabinet-form-section">
+                <div class="alone-cabinet-form-section__header">
+                  <h3>Konstrukcja i montaz</h3>
+                  <span
+                    class="alone-cabinet-form-section__note">Opcje montazowe, plecy, blat i sposob zawieszenia.</span>
+                </div>
+
+                <div class="alone-cabinet-radio-grid">
+                  <app-radio-button
+                    [externalErrorMessage]="getFieldError('drawerBaseHdf')"
+                    [id]="'drawer-base-hdf'"
+                    [options]="[
                   { value: true, label: translations['UI.drawerBaseHdf'] || 'Dno HDF', tooltip: translations['UI.shouldAddDrawerBaseHdfTooltip'] },
                   { value: false, label: translations['UI.noDrawerBaseHdf'] || 'Bez dna HDF', tooltip: translations['UI.shouldAddDrawerBaseHdfTooltip'] }
-                ]">
-              </app-radio-button>
+                ]"
+                    [title]="translations['UI.isDrawerBaseHdf'] || 'Dno szuflady'"
+                    formControlName="drawerBaseHdf">
+                  </app-radio-button>
 
-              <app-radio-button
-                [id]="'hdf-backs'"
-                formControlName="needBacks"
-                [title]="translations['UI.shouldAddBack'] || 'Plecy'"
-                [externalErrorMessage]="getFieldError('needBacks')"
-                [options]="[
+                  <app-radio-button
+                    [externalErrorMessage]="getFieldError('needBacks')"
+                    [id]="'hdf-backs'"
+                    [options]="[
                   { value: true, label: translations['UI.hdfBacks'] || 'Dodaj plecy HDF', tooltip: translations['UI.shouldAddBack'] },
                   { value: false, label: translations['UI.noBacks'] || 'Bez plecow', tooltip: translations['UI.shouldAddBack'] }
-                ]">
-              </app-radio-button>
+                ]"
+                    [title]="translations['UI.shouldAddBack'] || 'Plecy'"
+                    formControlName="needBacks">
+                  </app-radio-button>
 
-              <app-radio-button
-                [id]="'backs-in-groove'"
-                formControlName="isBackInGroove"
-                [title]="'Mocowanie plecow'"
-                [externalErrorMessage]="getFieldError('isBackInGroove')"
-                [options]="[
+                  <app-radio-button
+                    [externalErrorMessage]="getFieldError('isBackInGroove')"
+                    [id]="'backs-in-groove'"
+                    [options]="[
                   { value: true, label: translations['UI.backInGroove'] || 'We wpuscie' },
                   { value: false, label: translations['UI.backNotInGroove'] || 'Bez wpustu' }
-                ]">
-              </app-radio-button>
+                ]"
+                    [title]="'Mocowanie plecow'"
+                    formControlName="isBackInGroove">
+                  </app-radio-button>
 
-              <app-radio-button
-                [id]="'is-hanging'"
-                formControlName="isHanging"
-                [title]="'Typ ustawienia'"
-                [externalErrorMessage]="getFieldError('isHanging')"
-                [options]="[
+                  <app-radio-button
+                    [externalErrorMessage]="getFieldError('isHanging')"
+                    [id]="'is-hanging'"
+                    [options]="[
                   { value: true, label: translations['UI.isHanging'] || 'Wiszaca' },
                   { value: false, label: translations['UI.isStanding'] || 'Stojaca' }
-                ]">
-              </app-radio-button>
+                ]"
+                    [title]="'Typ ustawienia'"
+                    formControlName="isHanging">
+                  </app-radio-button>
 
-              <app-radio-button
-                [id]="'is-hanging-on-rail'"
-                formControlName="isHangingOnRail"
-                [title]="'Mocowanie wiszace'"
-                [externalErrorMessage]="getFieldError('isHangingOnRail')"
-                [options]="[
+                  <app-radio-button
+                    [externalErrorMessage]="getFieldError('isHangingOnRail')"
+                    [id]="'is-hanging-on-rail'"
+                    [options]="[
                   { value: true, label: translations['UI.isHangingOnRail'] || 'Na szynie' },
                   { value: false, label: translations['UI.isHangingOnHooks'] || 'Na zawieszkach' }
-                ]">
-              </app-radio-button>
+                ]"
+                    [title]="'Mocowanie wiszace'"
+                    formControlName="isHangingOnRail">
+                  </app-radio-button>
 
-              <app-radio-button
-                [id]="'is-on-feet'"
-                formControlName="isStandingOnFeet"
-                [title]="'Podparcie dolne'"
-                [externalErrorMessage]="getFieldError('isStandingOnFeet')"
-                [options]="[
+                  <app-radio-button
+                    [externalErrorMessage]="getFieldError('isStandingOnFeet')"
+                    [id]="'is-on-feet'"
+                    [options]="[
                   { value: true, label: translations['UI.isOnFeet'] || 'Na nozkach' },
                   { value: false, label: translations['UI.isNotOnFeet'] || 'Bez nozek' }
-                ]">
-              </app-radio-button>
+                ]"
+                    [title]="'Podparcie dolne'"
+                    formControlName="isStandingOnFeet">
+                  </app-radio-button>
 
-              <app-radio-button
-                [id]="'is-front-extended'"
-                formControlName="isFrontExtended"
-                [title]="'Przedluzenie frontu'"
-                [externalErrorMessage]="getFieldError('isFrontExtended')"
-                [options]="[
+                  <app-radio-button
+                    [externalErrorMessage]="getFieldError('isFrontExtended')"
+                    [id]="'is-front-extended'"
+                    [options]="[
                   { value: true, label: translations['UI.isFrontExtended'] || 'Front przedluzony' },
                   { value: false, label: translations['UI.isFrontNotExtended'] || 'Front standardowy' }
-                ]">
-              </app-radio-button>
+                ]"
+                    [title]="'Przedluzenie frontu'"
+                    formControlName="isFrontExtended">
+                  </app-radio-button>
 
-              <app-radio-button
-                [id]="'is-covered-with-counter-top'"
-                formControlName="isCoveredWithCounterTop"
-                [title]="'Gorna plyta / blat'"
-                [externalErrorMessage]="getFieldError('isCoveredWithCounterTop')"
-                [options]="[
+                  <app-radio-button
+                    [externalErrorMessage]="getFieldError('isCoveredWithCounterTop')"
+                    [id]="'is-covered-with-counter-top'"
+                    [options]="[
                   { value: false, label: translations['UI.cabinetWithFullTopWreath'] || 'Pelny wieniec gorny' },
                   { value: true, label: translations['UI.isCoveredWithCounterTop'] || 'Pod blat' }
-                ]">
-              </app-radio-button>
+                ]"
+                    [title]="'Gorna plyta / blat'"
+                    formControlName="isCoveredWithCounterTop">
+                  </app-radio-button>
 
-              <app-radio-button
-                [id]="'front-with-veneer-or-varnished'"
-                formControlName="varnishedFront"
-                [title]="translations['UI.frontWithVeneerOrVarnished'] || 'Wykonczenie frontu'"
-                [externalErrorMessage]="getFieldError('varnishedFront')"
-                [options]="[
+                  <app-radio-button
+                    [externalErrorMessage]="getFieldError('varnishedFront')"
+                    [id]="'front-with-veneer-or-varnished'"
+                    [options]="[
                   { value: false, label: translations['UI.frontWithVeneer'] || 'Front z okleina' },
                   { value: true, label: translations['UI.varnishedFront'] || 'Front lakierowany' }
-                ]">
-              </app-radio-button>
-            </div>
-          </section>
-
-          <section class="alone-cabinet-form-section">
-            <div class="alone-cabinet-form-section__header">
-              <h3>Materialy i kolory</h3>
-              <span class="alone-cabinet-form-section__note">Korpus i front sa trzymane w jednym miejscu, zeby latwiej porownac warianty.</span>
-            </div>
-
-            <div class="alone-cabinet-materials-grid">
-              <div class="alone-cabinet-material-column">
-                <h4>Korpus</h4>
-
-                <app-dropdown
-                  id="box-material"
-                  [label]="translations['UI.materialBox'] || 'Material korpusu'"
-                  formControlName="boxMaterial"
-                  [options]="materials"
-                  [errorMessage]="getControlErrorMessage('boxMaterial', 'Wybierz material korpusu')"
-                  [externalErrorMessage]="getFieldError('boxMaterial')"
-                  [translations]="translations"
-                  [visible]="true">
-                </app-dropdown>
-
-                <app-dropdown
-                  id="box-board-thickness"
-                  [label]="translations['UI.boxBoardThickness'] || 'Grubosc plyty korpusu'"
-                  formControlName="boxBoardThickness"
-                  [options]="thicknesses"
-                  [errorMessage]="getControlErrorMessage('boxBoardThickness', 'Wybierz grubosc korpusu')"
-                  [externalErrorMessage]="getFieldError('boxBoardThickness')"
-                  [translations]="translations"
-                  [visible]="true">
-                </app-dropdown>
-
-                <app-dropdown
-                  id="box-color"
-                  [label]="translations['UI.colorBox'] || 'Kolor korpusu'"
-                  formControlName="boxColor"
-                  [options]="colors"
-                  [errorMessage]="getControlErrorMessage('boxColor', 'Wybierz kolor korpusu')"
-                  [externalErrorMessage]="getFieldError('boxColor')"
-                  [translations]="translations"
-                  [visible]="true">
-                </app-dropdown>
-
-                <app-dropdown
-                  id="box-veneer-color"
-                  [label]="translations['UI.boxVeneerColor'] || 'Kolor okleiny korpusu'"
-                  formControlName="boxVeneerColor"
-                  [options]="colors"
-                  [errorMessage]="getControlErrorMessage('boxVeneerColor', 'Wybierz kolor okleiny korpusu')"
-                  [externalErrorMessage]="getFieldError('boxVeneerColor')"
-                  [translations]="translations"
-                  [visible]="true">
-                </app-dropdown>
-              </div>
-
-              <div class="alone-cabinet-material-column">
-                <h4>Front</h4>
-
-                <app-dropdown
-                  id="front-material"
-                  [label]="translations['UI.materialFront'] || 'Material frontu'"
-                  formControlName="frontMaterial"
-                  [options]="materials"
-                  [errorMessage]="getControlErrorMessage('frontMaterial', 'Wybierz material frontu')"
-                  [externalErrorMessage]="getFieldError('frontMaterial')"
-                  [translations]="translations"
-                  [visible]="true">
-                </app-dropdown>
-
-                <app-dropdown
-                  id="front-board-thickness"
-                  [label]="translations['UI.frontBoardThickness'] || 'Grubosc frontu'"
-                  formControlName="frontBoardThickness"
-                  [options]="thicknesses"
-                  [errorMessage]="getControlErrorMessage('frontBoardThickness', 'Wybierz grubosc frontu')"
-                  [externalErrorMessage]="getFieldError('frontBoardThickness')"
-                  [translations]="translations"
-                  [visible]="true">
-                </app-dropdown>
-
-                <app-dropdown
-                  id="front-color"
-                  [label]="translations['UI.colorFront'] || 'Kolor frontu'"
-                  formControlName="frontColor"
-                  [options]="colors"
-                  [errorMessage]="getControlErrorMessage('frontColor', 'Wybierz kolor frontu')"
-                  [externalErrorMessage]="getFieldError('frontColor')"
-                  [translations]="translations"
-                  [visible]="true">
-                </app-dropdown>
-
-                <app-dropdown
-                  id="front-veneer-color"
-                  [label]="translations['UI.frontVeneerColor'] || 'Kolor okleiny frontu'"
-                  formControlName="frontVeneerColor"
-                  [options]="colors"
-                  [errorMessage]="getControlErrorMessage('frontVeneerColor', 'Wybierz kolor okleiny frontu')"
-                  [externalErrorMessage]="getFieldError('frontVeneerColor')"
-                  [translations]="translations"
-                  [visible]="true">
-                </app-dropdown>
-              </div>
-            </div>
-          </section>
-
-        </form>
-      </section>
-
-      <aside class="workspace-surface alone-cabinet-preview-panel">
-        <div class="alone-cabinet-panel-header alone-cabinet-panel-header--preview">
-          <div>
-            <h2 class="alone-cabinet-panel-title">{{ translations['UI.responseContainerTitle'] || 'Podglad szafki' }}</h2>
-            <p class="alone-cabinet-panel-subtitle">
-              Ten panel ma zostac baza pod przyszle rysowanie polek, plyt i niestandardowych przelotow.
-            </p>
-          </div>
-        </div>
-
-        <div class="alone-cabinet-preview-chips">
-          <span class="workspace-meta-chip workspace-meta-chip--accent">{{ selectedCabinetTypeLabel }}</span>
-          <span class="workspace-meta-chip">{{ cabinetPlacementLabel }}</span>
-          <span class="workspace-meta-chip">{{ selectedFrontTypeLabel }}</span>
-          <span class="workspace-meta-chip workspace-meta-chip--success" *ngIf="response">{{ response.summaryCosts | number:'1.2-2' }} PLN</span>
-        </div>
-
-        <div class="alone-cabinet-visual-surface">
-          <app-cabinet-visualization
-            [width]="form.get('width')?.value"
-            [height]="form.get('height')?.value"
-            [shelfQuantity]="form.get('shelfQuantity')?.value"
-            [frontType]="form.get('frontType')?.value"
-            [drawerQuantity]="form.get('drawerQuantity')?.value">
-          </app-cabinet-visualization>
-        </div>
-
-        <section class="alone-cabinet-side-section">
-          <div class="alone-cabinet-side-section__header">
-            <div>
-              <h3>Seria robocza</h3>
-              <p>Zbieraj kilka konfiguracji i wysylaj je jednym requestem.</p>
-            </div>
-            <span class="workspace-meta-chip">{{ preparedRequestsLabel }}</span>
-          </div>
-
-          <ng-container *ngIf="hasPreparedRequests; else emptyPreparedRequests">
-            <ul class="alone-cabinet-request-list">
-              <li *ngFor="let request of multiRequests; index as i; trackBy: trackByPreparedRequest" class="alone-cabinet-request-item">
-                <div>
-                  <strong>#{{ i + 1 }}</strong>
-                  <span>{{ describePreparedRequest(request) }}</span>
+                ]"
+                    [title]="translations['UI.frontWithVeneerOrVarnished'] || 'Wykonczenie frontu'"
+                    formControlName="varnishedFront">
+                  </app-radio-button>
                 </div>
-                <button type="button" class="btn btn-secondary btn-sm" (click)="removeRequest(i)">
-                  Usun
-                </button>
-              </li>
-            </ul>
+              </section>
 
-            <div class="alone-cabinet-side-actions">
-              <button type="button" class="btn btn-success" (click)="calculate(true)" [disabled]="loading">
-                <span *ngIf="loading" class="spinner-btn" aria-hidden="true"></span>
-                Oblicz serie
-              </button>
-            </div>
-          </ng-container>
+              <section class="alone-cabinet-form-section">
+                <div class="alone-cabinet-form-section__header">
+                  <h3>Materialy i kolory</h3>
+                  <span class="alone-cabinet-form-section__note">Korpus i front sa trzymane w jednym miejscu, zeby latwiej porownac warianty.</span>
+                </div>
 
-          <ng-template #emptyPreparedRequests>
-            <div class="alone-cabinet-empty-note">
-              Dodaj pierwsza konfiguracje z formularza, aby zbudowac mala serie lub porownac kilka wariantow.
-            </div>
-          </ng-template>
-        </section>
+                <div class="alone-cabinet-materials-grid">
+                  <div class="alone-cabinet-material-column">
+                    <h4>Korpus</h4>
 
-        <section class="alone-cabinet-side-section" *ngIf="response">
-          <div class="alone-cabinet-side-section__header">
-            <div>
-              <h3>Ostatni wynik</h3>
-              <p>Podglad kosztow i szybki eksport formatek do Excela.</p>
-            </div>
-          </div>
+                    <app-dropdown
+                      [errorMessage]="getControlErrorMessage('boxMaterial', 'Wybierz material korpusu')"
+                      [externalErrorMessage]="getFieldError('boxMaterial')"
+                      [label]="translations['UI.materialBox'] || 'Material korpusu'"
+                      [options]="materials"
+                      [translations]="translations"
+                      [visible]="true"
+                      formControlName="boxMaterial"
+                      id="box-material">
+                    </app-dropdown>
 
-          <div class="alone-cabinet-side-metrics">
-            <div class="alone-cabinet-side-metric">
-              <span class="alone-cabinet-side-metric__label">Calkowity koszt</span>
-              <strong>{{ response.summaryCosts | number:'1.2-2' }} PLN</strong>
-            </div>
-            <div class="alone-cabinet-side-metric">
-              <span class="alone-cabinet-side-metric__label">Formatki</span>
-              <strong>{{ totalBoardPieces }}</strong>
-            </div>
-            <div class="alone-cabinet-side-metric">
-              <span class="alone-cabinet-side-metric__label">Komponenty</span>
-              <strong>{{ totalComponentPieces }}</strong>
-            </div>
-            <div class="alone-cabinet-side-metric">
-              <span class="alone-cabinet-side-metric__label">Prace</span>
-              <strong>{{ totalJobUnits }}</strong>
-            </div>
-          </div>
+                    <app-dropdown
+                      [errorMessage]="getControlErrorMessage('boxBoardThickness', 'Wybierz grubosc korpusu')"
+                      [externalErrorMessage]="getFieldError('boxBoardThickness')"
+                      [label]="translations['UI.boxBoardThickness'] || 'Grubosc plyty korpusu'"
+                      [options]="thicknesses"
+                      [translations]="translations"
+                      [visible]="true"
+                      formControlName="boxBoardThickness"
+                      id="box-board-thickness">
+                    </app-dropdown>
 
-          <app-print-doc [response]="prepareDocPrintRequest()"></app-print-doc>
-        </section>
-      </aside>
-    </div>
-    </ng-container>
+                    <app-dropdown
+                      [errorMessage]="getControlErrorMessage('boxColor', 'Wybierz kolor korpusu')"
+                      [externalErrorMessage]="getFieldError('boxColor')"
+                      [label]="translations['UI.colorBox'] || 'Kolor korpusu'"
+                      [options]="colors"
+                      [translations]="translations"
+                      [visible]="true"
+                      formControlName="boxColor"
+                      id="box-color">
+                    </app-dropdown>
+
+                    <app-dropdown
+                      [errorMessage]="getControlErrorMessage('boxVeneerColor', 'Wybierz kolor okleiny korpusu')"
+                      [externalErrorMessage]="getFieldError('boxVeneerColor')"
+                      [label]="translations['UI.boxVeneerColor'] || 'Kolor okleiny korpusu'"
+                      [options]="colors"
+                      [translations]="translations"
+                      [visible]="true"
+                      formControlName="boxVeneerColor"
+                      id="box-veneer-color">
+                    </app-dropdown>
+                  </div>
+
+                  <div class="alone-cabinet-material-column">
+                    <h4>Front</h4>
+
+                    <app-dropdown
+                      [errorMessage]="getControlErrorMessage('frontMaterial', 'Wybierz material frontu')"
+                      [externalErrorMessage]="getFieldError('frontMaterial')"
+                      [label]="translations['UI.materialFront'] || 'Material frontu'"
+                      [options]="materials"
+                      [translations]="translations"
+                      [visible]="true"
+                      formControlName="frontMaterial"
+                      id="front-material">
+                    </app-dropdown>
+
+                    <app-dropdown
+                      [errorMessage]="getControlErrorMessage('frontBoardThickness', 'Wybierz grubosc frontu')"
+                      [externalErrorMessage]="getFieldError('frontBoardThickness')"
+                      [label]="translations['UI.frontBoardThickness'] || 'Grubosc frontu'"
+                      [options]="thicknesses"
+                      [translations]="translations"
+                      [visible]="true"
+                      formControlName="frontBoardThickness"
+                      id="front-board-thickness">
+                    </app-dropdown>
+
+                    <app-dropdown
+                      [errorMessage]="getControlErrorMessage('frontColor', 'Wybierz kolor frontu')"
+                      [externalErrorMessage]="getFieldError('frontColor')"
+                      [label]="translations['UI.colorFront'] || 'Kolor frontu'"
+                      [options]="colors"
+                      [translations]="translations"
+                      [visible]="true"
+                      formControlName="frontColor"
+                      id="front-color">
+                    </app-dropdown>
+
+                    <app-dropdown
+                      [errorMessage]="getControlErrorMessage('frontVeneerColor', 'Wybierz kolor okleiny frontu')"
+                      [externalErrorMessage]="getFieldError('frontVeneerColor')"
+                      [label]="translations['UI.frontVeneerColor'] || 'Kolor okleiny frontu'"
+                      [options]="colors"
+                      [translations]="translations"
+                      [visible]="true"
+                      formControlName="frontVeneerColor"
+                      id="front-veneer-color">
+                    </app-dropdown>
+                  </div>
+                </div>
+              </section>
+
+            </form>
+          </section>
+
+          <aside class="workspace-surface alone-cabinet-preview-panel">
+            <div class="alone-cabinet-panel-header alone-cabinet-panel-header--preview">
+              <div>
+                <h2 class="alone-cabinet-panel-title">{{ translations['UI.responseContainerTitle'] || 'Podglad szafki'
+                  }}</h2>
+                <p class="alone-cabinet-panel-subtitle">
+                  Ten panel ma zostac baza pod przyszle rysowanie polek, plyt i niestandardowych przelotow.
+                </p>
+              </div>
+            </div>
+
+            <div class="alone-cabinet-preview-chips">
+              <span class="workspace-meta-chip workspace-meta-chip--accent">{{ selectedCabinetTypeLabel }}</span>
+              <span class="workspace-meta-chip">{{ cabinetPlacementLabel }}</span>
+              <span class="workspace-meta-chip">{{ selectedFrontTypeLabel }}</span>
+              <span *ngIf="response" class="workspace-meta-chip workspace-meta-chip--success">{{ response.summaryCosts | number:'1.2-2' }} PLN</span>
+            </div>
+
+            <div class="alone-cabinet-visual-surface">
+              <app-cabinet-visualization
+                [drawerQuantity]="form.get('drawerQuantity')?.value"
+                [frontType]="form.get('frontType')?.value"
+                [height]="form.get('height')?.value"
+                [shelfQuantity]="form.get('shelfQuantity')?.value"
+                [width]="form.get('width')?.value">
+              </app-cabinet-visualization>
+            </div>
+
+            <section class="alone-cabinet-side-section">
+              <div class="alone-cabinet-side-section__header">
+                <div>
+                  <h3>Seria robocza</h3>
+                  <p>Zbieraj kilka konfiguracji i wysylaj je jednym requestem.</p>
+                </div>
+                <span class="workspace-meta-chip">{{ preparedRequestsLabel }}</span>
+              </div>
+
+              <ng-container *ngIf="hasPreparedRequests; else emptyPreparedRequests">
+                <ul class="alone-cabinet-request-list">
+                  <li *ngFor="let request of multiRequests; index as i; trackBy: trackByPreparedRequest"
+                      class="alone-cabinet-request-item">
+                    <div>
+                      <strong>#{{ i + 1 }}</strong>
+                      <span>{{ describePreparedRequest(request) }}</span>
+                    </div>
+                    <button (click)="removeRequest(i)" class="btn btn-secondary btn-sm" type="button">
+                      Usun
+                    </button>
+                  </li>
+                </ul>
+
+                <div class="alone-cabinet-side-actions">
+                  <button (click)="calculate(true)" [disabled]="loading" class="btn btn-success" type="button">
+                    <span *ngIf="loading" aria-hidden="true" class="spinner-btn"></span>
+                    Oblicz serie
+                  </button>
+                </div>
+              </ng-container>
+
+              <ng-template #emptyPreparedRequests>
+                <div class="alone-cabinet-empty-note">
+                  Dodaj pierwsza konfiguracje z formularza, aby zbudowac mala serie lub porownac kilka wariantow.
+                </div>
+              </ng-template>
+            </section>
+
+            <section *ngIf="response" class="alone-cabinet-side-section">
+              <div class="alone-cabinet-side-section__header">
+                <div>
+                  <h3>Ostatni wynik</h3>
+                  <p>Podglad kosztow i szybki eksport formatek do Excela.</p>
+                </div>
+              </div>
+
+              <div class="alone-cabinet-side-metrics">
+                <div class="alone-cabinet-side-metric">
+                  <span class="alone-cabinet-side-metric__label">Calkowity koszt</span>
+                  <strong>{{ response.summaryCosts | number:'1.2-2' }} PLN</strong>
+                </div>
+                <div class="alone-cabinet-side-metric">
+                  <span class="alone-cabinet-side-metric__label">Formatki</span>
+                  <strong>{{ totalBoardPieces }}</strong>
+                </div>
+                <div class="alone-cabinet-side-metric">
+                  <span class="alone-cabinet-side-metric__label">Komponenty</span>
+                  <strong>{{ totalComponentPieces }}</strong>
+                </div>
+                <div class="alone-cabinet-side-metric">
+                  <span class="alone-cabinet-side-metric__label">Prace</span>
+                  <strong>{{ totalJobUnits }}</strong>
+                </div>
+              </div>
+
+              <app-print-doc [response]="prepareDocPrintRequest()"></app-print-doc>
+            </section>
+          </aside>
+        </div>
+      </ng-container>
 
       <ng-container *ngIf="view === 'costs'">
-    <section *ngIf="response; else emptyCostsView" class="alone-cabinet-results">
-      <div class="workspace-section-header">
-        <div>
-          <h2 class="workspace-section-title">Rozpiska materialowa i kosztowa</h2>
-          <p class="workspace-section-subtitle">
-            Szczegolowy podzial na plyty, komponenty i robocizne dla ostatnio policzonej konfiguracji.
-          </p>
-        </div>
-        <app-print-doc [response]="prepareDocPrintRequest()"></app-print-doc>
-      </div>
-
-      <div class="alone-cabinet-summary-grid">
-        <article class="alone-cabinet-summary-card alone-cabinet-summary-card--primary">
-          <span class="alone-cabinet-summary-card__label">Calkowity koszt</span>
-          <strong>{{ response.summaryCosts | number:'1.2-2' }} PLN</strong>
-        </article>
-
-        <article class="alone-cabinet-summary-card">
-          <span class="alone-cabinet-summary-card__label">Plyty</span>
-          <strong>{{ response.boardTotalCost | number:'1.2-2' }} PLN</strong>
-          <small>{{ response.boards.length }} pozycji / {{ totalBoardPieces }} szt.</small>
-        </article>
-
-        <article class="alone-cabinet-summary-card">
-          <span class="alone-cabinet-summary-card__label">Komponenty</span>
-          <strong>{{ response.componentTotalCost | number:'1.2-2' }} PLN</strong>
-          <small>{{ response.components.length }} pozycji / {{ totalComponentPieces }} szt.</small>
-        </article>
-
-        <article class="alone-cabinet-summary-card">
-          <span class="alone-cabinet-summary-card__label">Robocizna</span>
-          <strong>{{ response.jobTotalCost | number:'1.2-2' }} PLN</strong>
-          <small>{{ response.jobs.length }} pozycji / {{ totalJobUnits }} j.</small>
-        </article>
-      </div>
-
-      <div class="alone-cabinet-result-stack">
-        <section class="workspace-table-card alone-cabinet-result-card">
-          <div class="alone-cabinet-result-card__header">
+        <section *ngIf="response; else emptyCostsView" class="alone-cabinet-results">
+          <div class="workspace-section-header">
             <div>
-              <h3>Lista plyt</h3>
-              <p>Formatki, wymiary i ceny jednostkowe.</p>
+              <h2 class="workspace-section-title">Rozpiska materialowa i kosztowa</h2>
+              <p class="workspace-section-subtitle">
+                Szczegolowy podzial na plyty, komponenty i robocizne dla ostatnio policzonej konfiguracji.
+              </p>
             </div>
-            <span class="workspace-meta-chip">{{ response.boards.length }} pozycji</span>
+            <app-print-doc [response]="prepareDocPrintRequest()"></app-print-doc>
           </div>
 
-          <div class="workspace-table-scroll">
-            <table class="alone-cabinet-result-table">
-              <thead>
-                <tr>
-                  <th>Lp.</th>
-                  <th>Plyta</th>
-                  <th>Ilosc</th>
-                  <th>Dlugosc</th>
-                  <th>Okleina X</th>
-                  <th>Szerokosc</th>
-                  <th>Okleina Y</th>
-                  <th>Grubosc</th>
-                  <th>Cena jedn.</th>
-                  <th>Suma</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let board of response.boards; index as i; trackBy: trackByIndex">
-                  <td>{{ i + 1 }}</td>
-                  <td>{{ translations['BOARD_NAME.' + board.boardName] || board.boardName }}</td>
-                  <td>{{ board.quantity }}</td>
-                  <td>{{ board.sideX }}</td>
-                  <td>{{ board.veneerX ?? '0' }}</td>
-                  <td>{{ board.sideY }}</td>
-                  <td>{{ board.veneerY ?? '0' }}</td>
-                  <td>{{ board.boardThickness }}</td>
-                  <td>{{ board.priceEntry.price | number:'1.2-2' }} PLN</td>
-                  <td>{{ board.totalPrice | number:'1.2-2' }} PLN</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="8"></td>
-                  <td class="alone-cabinet-result-table__total-label">Koszt plyt</td>
-                  <td>{{ response.boardTotalCost | number:'1.2-2' }} PLN</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </section>
+          <div class="alone-cabinet-summary-grid">
+            <article class="alone-cabinet-summary-card alone-cabinet-summary-card--primary">
+              <span class="alone-cabinet-summary-card__label">Calkowity koszt</span>
+              <strong>{{ response.summaryCosts | number:'1.2-2' }} PLN</strong>
+            </article>
 
-        <section class="workspace-table-card alone-cabinet-result-card">
-          <div class="alone-cabinet-result-card__header">
-            <div>
-              <h3>Komponenty i akcesoria</h3>
-              <p>Elementy dodatkowe potrzebne do kompletacji korpusu.</p>
-            </div>
-            <span class="workspace-meta-chip">{{ response.components.length }} pozycji</span>
+            <article class="alone-cabinet-summary-card">
+              <span class="alone-cabinet-summary-card__label">Plyty</span>
+              <strong>{{ response.boardTotalCost | number:'1.2-2' }} PLN</strong>
+              <small>{{ response.boards.length }} pozycji / {{ totalBoardPieces }} szt.</small>
+            </article>
+
+            <article class="alone-cabinet-summary-card">
+              <span class="alone-cabinet-summary-card__label">Komponenty</span>
+              <strong>{{ response.componentTotalCost | number:'1.2-2' }} PLN</strong>
+              <small>{{ response.components.length }} pozycji / {{ totalComponentPieces }} szt.</small>
+            </article>
+
+            <article class="alone-cabinet-summary-card">
+              <span class="alone-cabinet-summary-card__label">Robocizna</span>
+              <strong>{{ response.jobTotalCost | number:'1.2-2' }} PLN</strong>
+              <small>{{ response.jobs.length }} pozycji / {{ totalJobUnits }} j.</small>
+            </article>
           </div>
 
-          <div class="workspace-table-scroll">
-            <table class="alone-cabinet-result-table">
-              <thead>
-                <tr>
-                  <th>Lp.</th>
-                  <th>Kategoria</th>
-                  <th>Model</th>
-                  <th>Ilosc</th>
-                  <th>Cena jedn.</th>
-                  <th>Suma</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let component of response.components; index as i; trackBy: trackByIndex">
-                  <td>{{ i + 1 }}</td>
-                  <td>
-                    {{ translations['COMPONENT_CATEGORY.' + component.category] || component.category }}
-                    {{
+          <div class="alone-cabinet-result-stack">
+            <section class="workspace-table-card alone-cabinet-result-card">
+              <div class="alone-cabinet-result-card__header">
+                <div>
+                  <h3>Lista plyt</h3>
+                  <p>Formatki, wymiary i ceny jednostkowe.</p>
+                </div>
+                <span class="workspace-meta-chip">{{ response.boards.length }} pozycji</span>
+              </div>
+
+              <div class="workspace-table-scroll">
+                <table class="alone-cabinet-result-table">
+                  <thead>
+                  <tr>
+                    <th>Lp.</th>
+                    <th>Plyta</th>
+                    <th>Ilosc</th>
+                    <th>Dlugosc</th>
+                    <th>Okleina X</th>
+                    <th>Szerokosc</th>
+                    <th>Okleina Y</th>
+                    <th>Grubosc</th>
+                    <th>Cena jedn.</th>
+                    <th>Suma</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr *ngFor="let board of response.boards; index as i; trackBy: trackByIndex">
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ translations['BOARD_NAME.' + board.boardName] || board.boardName }}</td>
+                    <td>{{ board.quantity }}</td>
+                    <td>{{ board.sideX }}</td>
+                    <td>{{ board.veneerX ?? '0' }}</td>
+                    <td>{{ board.sideY }}</td>
+                    <td>{{ board.veneerY ?? '0' }}</td>
+                    <td>{{ board.boardThickness }}</td>
+                    <td>{{ board.priceEntry.price | number:'1.2-2' }} PLN</td>
+                    <td>{{ board.totalPrice | number:'1.2-2' }} PLN</td>
+                  </tr>
+                  </tbody>
+                  <tfoot>
+                  <tr>
+                    <td colspan="8"></td>
+                    <td class="alone-cabinet-result-table__total-label">Koszt plyt</td>
+                    <td>{{ response.boardTotalCost | number:'1.2-2' }} PLN</td>
+                  </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </section>
+
+            <section class="workspace-table-card alone-cabinet-result-card">
+              <div class="alone-cabinet-result-card__header">
+                <div>
+                  <h3>Komponenty i akcesoria</h3>
+                  <p>Elementy dodatkowe potrzebne do kompletacji korpusu.</p>
+                </div>
+                <span class="workspace-meta-chip">{{ response.components.length }} pozycji</span>
+              </div>
+
+              <div class="workspace-table-scroll">
+                <table class="alone-cabinet-result-table">
+                  <thead>
+                  <tr>
+                    <th>Lp.</th>
+                    <th>Kategoria</th>
+                    <th>Model</th>
+                    <th>Ilosc</th>
+                    <th>Cena jedn.</th>
+                    <th>Suma</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr *ngFor="let component of response.components; index as i; trackBy: trackByIndex">
+                    <td>{{ i + 1 }}</td>
+                    <td>
+                      {{ translations['COMPONENT_CATEGORY.' + component.category] || component.category }}
+                      {{
                       component.additionalInfo !== null && component.additionalInfo.length > 0
-                        ? ' ' + component.additionalInfo[0]
-                        : ''
-                    }}
-                  </td>
-                  <td>
-                    {{
+                      ? ' ' + component.additionalInfo[0]
+                      : ''
+                      }}
+                    </td>
+                    <td>
+                      {{
                       component.category === 'SHEET_WASTE'
-                        ? (translations[component.model] || component.model)
-                        : (translations[component.translationKey] || component.translationKey || component.model)
-                    }}
-                    {{
+                      ? (translations[component.model] || component.model)
+                      : (translations[component.translationKey] || component.translationKey || component.model)
+                      }}
+                      {{
                       component.additionalInfo !== null && component.additionalInfo.length > 1
-                        ? ' ' + (translations['COLOR.COLOR'] || 'Kolor') + ' ' + (translations[component.additionalInfo[1]] || component.additionalInfo[1])
-                        : ''
-                    }}
-                  </td>
-                  <td>
-                    {{ component.quantity }}
-                    {{ translations[component.priceEntry.unit] || component.priceEntry.unit }}
-                  </td>
-                  <td>{{ component.priceEntry.price | number:'1.2-2' }} PLN</td>
-                  <td>{{ component.totalPrice | number:'1.2-2' }} PLN</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="4"></td>
-                  <td class="alone-cabinet-result-table__total-label">Koszt komponentow</td>
-                  <td>{{ response.componentTotalCost | number:'1.2-2' }} PLN</td>
-                </tr>
-              </tfoot>
-            </table>
+                      ? ' ' + (translations['COLOR.COLOR'] || 'Kolor') + ' ' +
+                      (translations[component.additionalInfo[1]] || component.additionalInfo[1])
+                      : ''
+                      }}
+                    </td>
+                    <td>
+                      {{ component.quantity }}
+                      {{ translations[component.priceEntry.unit] || component.priceEntry.unit }}
+                    </td>
+                    <td>{{ component.priceEntry.price | number:'1.2-2' }} PLN</td>
+                    <td>{{ component.totalPrice | number:'1.2-2' }} PLN</td>
+                  </tr>
+                  </tbody>
+                  <tfoot>
+                  <tr>
+                    <td colspan="4"></td>
+                    <td class="alone-cabinet-result-table__total-label">Koszt komponentow</td>
+                    <td>{{ response.componentTotalCost | number:'1.2-2' }} PLN</td>
+                  </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </section>
+
+            <section class="workspace-table-card alone-cabinet-result-card">
+              <div class="alone-cabinet-result-card__header">
+                <div>
+                  <h3>Robocizna</h3>
+                  <p>Operacje produkcyjne i montazowe doliczone do konfiguracji.</p>
+                </div>
+                <span class="workspace-meta-chip">{{ response.jobs.length }} pozycji</span>
+              </div>
+
+              <div class="workspace-table-scroll">
+                <table class="alone-cabinet-result-table">
+                  <thead>
+                  <tr>
+                    <th>Lp.</th>
+                    <th>Nazwa</th>
+                    <th>Typ</th>
+                    <th>Ilosc</th>
+                    <th>Jednostka</th>
+                    <th>Cena jedn.</th>
+                    <th>Suma</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr *ngFor="let job of response.jobs; index as i; trackBy: trackByIndex">
+                    <td>{{ i + 1 }}</td>
+                    <td [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)"
+                        class="alone-cabinet-result-table__tooltip">
+                      {{ translations['JOB_CATEGORY.' + job.category] || job.category }}
+                    </td>
+                    <td>{{ translations[job.translationKey] || job.translationKey }}</td>
+                    <td>{{ job.quantity }}</td>
+                    <td>{{ translations[job.priceEntry.unit] || job.priceEntry.unit }}</td>
+                    <td>{{ job.priceEntry.price | number:'1.2-2' }} PLN</td>
+                    <td>{{ job.totalPrice | number:'1.2-2' }} PLN</td>
+                  </tr>
+                  </tbody>
+                  <tfoot>
+                  <tr>
+                    <td colspan="5"></td>
+                    <td class="alone-cabinet-result-table__total-label">Koszt prac</td>
+                    <td>{{ response.jobTotalCost | number:'1.2-2' }} PLN</td>
+                  </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </section>
           </div>
         </section>
 
-        <section class="workspace-table-card alone-cabinet-result-card">
-          <div class="alone-cabinet-result-card__header">
-            <div>
-              <h3>Robocizna</h3>
-              <p>Operacje produkcyjne i montazowe doliczone do konfiguracji.</p>
-            </div>
-            <span class="workspace-meta-chip">{{ response.jobs.length }} pozycji</span>
-          </div>
-
-          <div class="workspace-table-scroll">
-            <table class="alone-cabinet-result-table">
-              <thead>
-                <tr>
-                  <th>Lp.</th>
-                  <th>Nazwa</th>
-                  <th>Typ</th>
-                  <th>Ilosc</th>
-                  <th>Jednostka</th>
-                  <th>Cena jedn.</th>
-                  <th>Suma</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let job of response.jobs; index as i; trackBy: trackByIndex">
-                  <td>{{ i + 1 }}</td>
-                  <td class="alone-cabinet-result-table__tooltip" [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)">
-                    {{ translations['JOB_CATEGORY.' + job.category] || job.category }}
-                  </td>
-                  <td>{{ translations[job.translationKey] || job.translationKey }}</td>
-                  <td>{{ job.quantity }}</td>
-                  <td>{{ translations[job.priceEntry.unit] || job.priceEntry.unit }}</td>
-                  <td>{{ job.priceEntry.price | number:'1.2-2' }} PLN</td>
-                  <td>{{ job.totalPrice | number:'1.2-2' }} PLN</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="5"></td>
-                  <td class="alone-cabinet-result-table__total-label">Koszt prac</td>
-                  <td>{{ response.jobTotalCost | number:'1.2-2' }} PLN</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </section>
-      </div>
-    </section>
-
-    <ng-template #emptyCostsView>
-      <section class="workspace-surface alone-cabinet-costs-empty">
-        <mat-icon class="alone-cabinet-costs-empty__icon" aria-hidden="true">request_quote</mat-icon>
-        <h2>Brak wynikow kosztowych</h2>
-        <p>Najpierw oblicz pojedyncza szafke albo serie, a tutaj dostaniesz rozpiske plyt, komponentow i robocizny.</p>
-        <button type="button" class="btn btn-primary" (click)="setView('config')">
-          Wroc do konfiguracji
-        </button>
-      </section>
-    </ng-template>
+        <ng-template #emptyCostsView>
+          <section class="workspace-surface alone-cabinet-costs-empty">
+            <mat-icon aria-hidden="true" class="alone-cabinet-costs-empty__icon">request_quote</mat-icon>
+            <h2>Brak wynikow kosztowych</h2>
+            <p>Najpierw oblicz pojedyncza szafke albo serie, a tutaj dostaniesz rozpiske plyt, komponentow i
+              robocizny.</p>
+            <button (click)="setView('config')" class="btn btn-primary" type="button">
+              Wroc do konfiguracji
+            </button>
+          </section>
+        </ng-template>
       </ng-container>
     </div>
 
@@ -734,57 +743,58 @@
           <span class="footer-stat-label">Tryb</span>
           <span class="footer-stat-value">{{ view === 'config' ? 'Konfiguracja' : 'Koszty' }}</span>
         </div>
-        <div class="footer-stat" *ngIf="response">
+        <div *ngIf="response" class="footer-stat">
           <span class="footer-stat-label">Lacznie</span>
-          <span class="footer-stat-value footer-stat-value--accent">{{ response.summaryCosts | number:'1.2-2' }} PLN</span>
+          <span
+            class="footer-stat-value footer-stat-value--accent">{{ response.summaryCosts | number:'1.2-2' }} PLN</span>
         </div>
       </div>
 
       <div class="footer-actions">
         <div class="footer-actions-aux">
           <button
-            *ngIf="hasPreparedRequests"
-            class="btn-footer btn-footer-secondary"
-            type="button"
             (click)="calculate(true)"
-            [disabled]="loading">
-            <mat-icon class="btn-footer-icon" aria-hidden="true">calculate</mat-icon>
+            *ngIf="hasPreparedRequests"
+            [disabled]="loading"
+            class="btn-footer btn-footer-secondary"
+            type="button">
+            <mat-icon aria-hidden="true" class="btn-footer-icon">calculate</mat-icon>
             <span class="btn-footer-text">{{ loading ? 'Wyliczam serie...' : 'Oblicz serie' }}</span>
           </button>
           <button
-            *ngIf="response"
-            class="btn-footer btn-footer-secondary"
-            type="button"
             (click)="setView('costs')"
-            [disabled]="view === 'costs'">
-            <mat-icon class="btn-footer-icon" aria-hidden="true">receipt_long</mat-icon>
+            *ngIf="response"
+            [disabled]="view === 'costs'"
+            class="btn-footer btn-footer-secondary"
+            type="button">
+            <mat-icon aria-hidden="true" class="btn-footer-icon">receipt_long</mat-icon>
             <span class="btn-footer-text">Pokaz koszty</span>
           </button>
         </div>
 
         <div class="workflow-actions">
           <button
-            class="btn workflow-action-btn workflow-action-btn--clear"
-            type="button"
             (click)="resetWorkspace()"
-            [disabled]="loading">
-            <mat-icon class="workflow-action-icon" aria-hidden="true">delete</mat-icon>
+            [disabled]="loading"
+            class="btn workflow-action-btn workflow-action-btn--clear"
+            type="button">
+            <mat-icon aria-hidden="true" class="workflow-action-icon">delete</mat-icon>
             Wyczysc
           </button>
           <button
-            class="btn workflow-action-btn workflow-action-btn--calculate"
-            type="button"
             (click)="addRequest()"
-            [disabled]="loading || !formValid">
-            <mat-icon class="workflow-action-icon" aria-hidden="true">playlist_add</mat-icon>
+            [disabled]="loading || !formValid"
+            class="btn workflow-action-btn workflow-action-btn--calculate"
+            type="button">
+            <mat-icon aria-hidden="true" class="workflow-action-icon">playlist_add</mat-icon>
             Dodaj do serii
           </button>
           <button
-            class="btn workflow-action-btn workflow-action-btn--save"
-            type="button"
             (click)="calculate(false)"
-            [disabled]="loading || !formValid">
-            <mat-icon class="workflow-action-icon" aria-hidden="true">calculate</mat-icon>
+            [disabled]="loading || !formValid"
+            class="btn workflow-action-btn workflow-action-btn--save"
+            type="button">
+            <mat-icon aria-hidden="true" class="workflow-action-icon">calculate</mat-icon>
             {{ loading ? 'Wyliczam...' : 'Oblicz' }}
           </button>
         </div>

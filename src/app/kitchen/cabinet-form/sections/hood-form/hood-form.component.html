@@ -1,4 +1,4 @@
-<div class="sink-section" [formGroup]="form">
+<div [formGroup]="form" class="sink-section">
   <app-cabinet-section-header title="Konfiguracja szafki na okap"></app-cabinet-section-header>
 
   <!-- Typ frontu okapu -->
@@ -6,7 +6,9 @@
     <div class="form-group flex-2">
       <label class="form-label">Typ frontu</label>
       <select class="form-control" formControlName="hoodFrontType">
-        <option *ngFor="let o of dictionaryService.data().hoodFrontTypes; trackBy: trackByCode" [value]="o.code">{{ o.label }}</option>
+        <option *ngFor="let o of dictionaryService.data().hoodFrontTypes; trackBy: trackByCode" [value]="o.code">{{
+          o.label }}
+        </option>
       </select>
     </div>
   </div>
@@ -15,7 +17,7 @@
   <div class="form-row">
     <div class="form-group flex-2">
       <label class="form-label enclosure-checkbox-label">
-        <input type="checkbox" formControlName="hoodScreenEnabled" class="enclosure-checkbox">
+        <input class="enclosure-checkbox" formControlName="hoodScreenEnabled" type="checkbox">
         Blenda wewnętrzna (maskuje mechanizm okapu)
       </label>
       <span class="form-hint">Panel poziomy w przedniej części szafki, zasłaniający sterowanie okapu</span>
@@ -23,13 +25,13 @@
   </div>
 
   <!-- Wysokość blendy — widoczna gdy blenda włączona -->
-  <div class="form-row" *ngIf="showHoodScreenHeight">
+  <div *ngIf="showHoodScreenHeight" class="form-row">
     <div class="form-group flex-1">
       <label class="form-label">Wysokość blendy wewnętrznej (mm)</label>
-      <input type="number" class="form-control" formControlName="hoodScreenHeightMm"
-             min="50" max="200" step="10">
+      <input class="form-control" formControlName="hoodScreenHeightMm" max="200"
+             min="50" step="10" type="number">
       <span class="form-hint">50–200mm (domyślnie 100mm)</span>
-      <span class="form-error" *ngIf="form.get('hoodScreenHeightMm')?.errors?.['outOfRange']">
+      <span *ngIf="form.get('hoodScreenHeightMm')?.errors?.['outOfRange']" class="form-error">
         Wysokość blendy musi mieścić się w zakresie 50–200mm
       </span>
     </div>
