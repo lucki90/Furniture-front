@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { ToastService } from '../../core/error/toast.service';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
+import { BodyScrollLockService } from '../../shared/dom/body-scroll-lock.service';
 import { KitchenProjectDetailResponse, KitchenProjectListResponse, WallDetailResponse } from '../model/kitchen-project.model';
 import { KitchenService } from '../service/kitchen.service';
 import { KitchenProjectsDrawerComponent } from './kitchen-projects-drawer.component';
@@ -61,19 +62,22 @@ describe('KitchenProjectsDrawerComponent', () => {
   let fixture: ComponentFixture<KitchenProjectsDrawerComponent>;
   let component: KitchenProjectsDrawerComponent;
   let kitchenService: jasmine.SpyObj<KitchenService>;
+  let bodyScrollLock: jasmine.SpyObj<BodyScrollLockService>;
 
   beforeEach(async () => {
     kitchenService = jasmine.createSpyObj<KitchenService>('KitchenService', ['getProjects', 'cloneProject', 'deleteProject']);
     kitchenService.getProjects.and.returnValue(of(PROJECTS));
     kitchenService.cloneProject.and.returnValue(of(CLONED));
     kitchenService.deleteProject.and.returnValue(of(void 0));
+    bodyScrollLock = jasmine.createSpyObj<BodyScrollLockService>('BodyScrollLockService', ['lock', 'unlock']);
 
     await TestBed.configureTestingModule({
       imports: [KitchenProjectsDrawerComponent],
       providers: [
         { provide: KitchenService, useValue: kitchenService },
         { provide: ConfirmDialogService, useValue: jasmine.createSpyObj('ConfirmDialogService', ['confirm']) },
-        { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success']) }
+        { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success']) },
+        { provide: BodyScrollLockService, useValue: bodyScrollLock }
       ]
     }).compileComponents();
 
@@ -87,6 +91,17 @@ describe('KitchenProjectsDrawerComponent', () => {
 
     expect(kitchenService.getProjects).toHaveBeenCalled();
     expect(component.visibleProjects.length).toBe(2);
+    expect(bodyScrollLock.lock).toHaveBeenCalled();
+  });
+
+  it('releases body scroll lock when drawer closes', () => {
+    fixture.componentRef.setInput('open', true);
+    fixture.detectChanges();
+
+    fixture.componentRef.setInput('open', false);
+    fixture.detectChanges();
+
+    expect(bodyScrollLock.unlock).toHaveBeenCalled();
   });
 
   it('filters visible projects by search query', () => {

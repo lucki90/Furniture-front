@@ -2,6 +2,7 @@ import { CanActivateFn } from '@angular/router';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { ToastService } from '../error/toast.service';
 
 /**
  * Guard that requires authentication. Redirects to /login if not logged in.
@@ -20,17 +21,23 @@ export const authGuard: CanActivateFn = () => {
 };
 
 /**
- * Guard that requires ADMIN role. Redirects to / if not admin.
+ * Guard that requires ADMIN role.
  */
-// TODO(CODEX): Redirect na '/' dla użytkownika bez roli ADMIN jest mylący, bo root i tak przekierowuje na ekran logowania. Użytkownik zalogowany, ale bez uprawnień, wygląda wtedy jakby utracił sesję zamiast dostać czytelny komunikat o braku dostępu.
 export const adminGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const toast = inject(ToastService);
 
   if (authService.isAdmin()) {
     return true;
   }
 
-  router.navigate(['/']);
+  if (authService.isLoggedIn()) {
+    toast.warning('Nie masz uprawnień administratora do tej sekcji.');
+    router.navigate(['/kitchen']);
+  } else {
+    router.navigate(['/login']);
+  }
+
   return false;
 };

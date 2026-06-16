@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 
 const STORAGE_KEY = 'app-language';
 const SUPPORTED_LANGS = ['pl', 'en'] as const;
@@ -10,7 +11,8 @@ export type AppLanguage = (typeof SUPPORTED_LANGS)[number];
  */
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
-  // TODO(CODEX): Serwis zakłada środowisko przeglądarkowe już podczas inicjalizacji (localStorage + navigator w detectInitialLanguage). Dzisiaj aplikacja działa w przeglądarce, ale to utrudni SSR, testy izolowane i ewentualne uruchamianie poza browserem. Jeśli projekt będzie rozwijany, warto osłonić te zależności albo wstrzyknąć adapter storage/platform.
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly _lang = signal<AppLanguage>(this.detectInitialLanguage());
 
   /** Aktywny język jako readonly signal */
@@ -24,17 +26,42 @@ export class LanguageService {
 
   setLanguage(lang: AppLanguage): void {
     this._lang.set(lang);
-    localStorage.setItem(STORAGE_KEY, lang);
+    this.saveLanguage(lang);
   }
 
   private detectInitialLanguage(): AppLanguage {
     // 1. Zapisany wcześniej wybór użytkownika
-    const stored = localStorage.getItem(STORAGE_KEY) as AppLanguage | null;
+    const stored = this.readStoredLanguage();
     if (stored && (SUPPORTED_LANGS as readonly string[]).includes(stored)) {
       return stored;
+    }
+    if (!this.isBrowser) {
+      return 'pl';
     }
     // 2. Wykrywanie z przeglądarki
     const browserLang = (navigator.language || '').toLowerCase();
     return browserLang.startsWith('pl') ? 'pl' : 'en';
+  }
+
+  private readStoredLanguage(): AppLanguage | null {
+    if (!this.isBrowser) {
+      return null;
+    }
+    try {
+      return localStorage.getItem(STORAGE_KEY) as AppLanguage | null;
+    } catch {
+      return null;
+    }
+  }
+
+  private saveLanguage(lang: AppLanguage): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch {
+      // Storage bywa niedostępny w trybach prywatności; język nadal zmienia się w pamięci.
+    }
   }
 }

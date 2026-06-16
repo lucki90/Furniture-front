@@ -14,22 +14,22 @@ export class SettingsService {
   constructor(private readonly http: HttpClient) {}
 
   /**
-   * Returns global settings for the current user.
+   * Zwraca globalne ustawienia aktualnego użytkownika.
    */
   getSettings(): Observable<UserSettings> {
     return this.http.get<UserSettings>(this.apiUrl);
   }
 
   /**
-   * Updates global settings for the current user.
+   * Aktualizuje globalne ustawienia aktualnego użytkownika.
    */
   updateSettings(settings: UserSettings): Observable<UserSettings> {
     return this.http.put<UserSettings>(this.apiUrl, settings);
   }
 
   /**
-   * Returns available option values for settings dropdowns (plinth heights, countertop thicknesses etc.).
-   * Frontend uses this instead of hardcoded arrays.
+   * Zwraca dostępne wartości dla dropdownów ustawień (cokoły, grubości blatów itd.).
+   * Frontend używa tego zamiast tablic hardcoded.
    */
   getOptions(): Observable<SettingsOptions> {
     return this.http.get<SettingsOptions>(`${this.apiUrl}/options`);
@@ -38,8 +38,8 @@ export class SettingsService {
   // ── Logo firmy ─────────────────────────────────────────────────────────────
 
   /**
-   * Uploads a company logo (PNG or JPEG, max 500 KB).
-   * Backend stores it as BYTEA and renders it in the PDF offer header.
+   * Przesyła logo firmy (PNG lub JPEG, max 500 KB).
+   * Backend zapisuje je jako BYTEA i renderuje w nagłówku oferty PDF.
    */
   uploadLogo(file: File): Observable<void> {
     const formData = new FormData();
@@ -48,15 +48,22 @@ export class SettingsService {
   }
 
   /**
-   * Removes the company logo from user settings.
+   * Usuwa logo firmy z ustawień użytkownika.
    */
   deleteLogo(): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/logo`);
   }
 
   /**
-   * Returns the URL for fetching the current company logo image.
-   * Use in <img [src]="..."> — GET /settings/logo returns bytes with correct Content-Type.
+   * Pobiera aktualne logo firmy przez HttpClient, żeby auth i obsługa błędów zostały scentralizowane.
+   */
+  getLogo(): Observable<Blob> {
+    return this.http.get(this.getLogoUrl(), { responseType: 'blob' });
+  }
+
+  /**
+   * Zwraca URL do aktualnego logo firmy.
+   * GET /settings/logo zwraca bajty z poprawnym Content-Type.
    */
   getLogoUrl(): string {
     return `${this.apiUrl}/logo`;

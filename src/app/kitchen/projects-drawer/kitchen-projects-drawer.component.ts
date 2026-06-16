@@ -1,4 +1,4 @@
-import { DOCUMENT, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   Component,
   ElementRef,
@@ -8,7 +8,6 @@ import {
   OnChanges,
   OnDestroy,
   Output,
-  Renderer2,
   SimpleChanges,
   ViewChild,
   inject
@@ -25,6 +24,7 @@ import {
   getStatusLabel
 } from '../model/kitchen-project.model';
 import { KitchenService } from '../service/kitchen.service';
+import { BodyScrollLockService } from '../../shared/dom/body-scroll-lock.service';
 
 interface StatusFilterVm {
   value: ProjectStatus | null;
@@ -44,8 +44,7 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
   private readonly kitchenService = inject(KitchenService);
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly toast = inject(ToastService);
-  private readonly renderer = inject(Renderer2);
-  private readonly document = inject(DOCUMENT);
+  private readonly bodyScrollLock = inject(BodyScrollLockService);
 
   @Input() open = false;
   @Input() currentProjectId: number | null = null;
@@ -292,14 +291,12 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
     };
   }
 
-  // TODO(CODEX): If more overlays start locking body scroll, replace this simple set/remove pattern
-  // with a shared lock counter or previous-value restore to avoid releasing another overlay's lock.
   private lockBodyScroll(): void {
-    this.renderer.setStyle(this.document.body, 'overflow', 'hidden');
+    this.bodyScrollLock.lock();
   }
 
   private unlockBodyScroll(): void {
-    this.renderer.removeStyle(this.document.body, 'overflow');
+    this.bodyScrollLock.unlock();
   }
 
   private pluralize(count: number, singular: string, paucal: string, plural: string): string {

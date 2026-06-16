@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Observable, of, throwError, Subject } from 'rxjs';
@@ -37,14 +37,18 @@ describe('VariantDialogComponent — podgląd tłumaczenia (FE-14)', () => {
     fixture.detectChanges();
   }
 
-  it('resetuje stan i przeżywa błąd backendu, a kolejny klucz nadal odświeża podgląd', fakeAsync(() => {
+  function waitForDebounce(): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, 550));
+  }
+
+  it('resetuje stan i przeżywa błąd backendu, a kolejny klucz nadal odświeża podgląd', async () => {
     setup();
 
     // 1) Błąd backendu dla pierwszego klucza — catchError WEWNĄTRZ switchMap kończy tylko bieżące zapytanie.
     translationService.getByCategory.and.returnValue(throwError(() => new Error('boom')));
     component.translationLoading.set(true);
     component.form.get('translationKey')?.setValue('HINGE.SOFT');
-    tick(500); // debounceTime
+    await waitForDebounce();
 
     expect(component.translationLoading()).toBeFalse();
     expect(component.translationPl()).toBe('');
@@ -56,28 +60,28 @@ describe('VariantDialogComponent — podgląd tłumaczenia (FE-14)', () => {
       of(lang === 'en' ? { 'HINGE.QUIET': 'Quiet hinge' } : { 'HINGE.QUIET': 'Zawias cichy' })
     );
     component.form.get('translationKey')?.setValue('HINGE.QUIET');
-    tick(500);
+    await waitForDebounce();
 
     expect(component.translationPl()).toBe('Zawias cichy');
     expect(component.translationEn()).toBe('Quiet hinge');
     expect(component.translationKeyExists()).toBeTrue();
     expect(component.translationLoading()).toBeFalse();
-  }));
+  });
 
-  it('resetuje spinner gdy skrócony klucz anuluje trwające zapytanie', fakeAsync(() => {
+  it('resetuje spinner gdy skrócony klucz anuluje trwające zapytanie', async () => {
     setup();
 
     // 1) Poprawny klucz uruchamia zapytanie, które jeszcze nie odpowiedziało (pending) — loading=true.
     const pending = new Subject<{ [k: string]: string }>();
     translationService.getByCategory.and.returnValue(pending.asObservable());
     component.form.get('translationKey')?.setValue('HINGE.QUIET');
-    tick(500); // debounceTime → switchMap → translationLoading=true, forkJoin czeka na odpowiedź
+    await waitForDebounce();
 
     expect(component.translationLoading()).toBeTrue();
 
     // 2) Skrócenie klucza poniżej progu: switchMap anuluje pending forkJoin i wchodzi w gałąź EMPTY.
     component.form.get('translationKey')?.setValue('HI');
-    tick(500);
+    await waitForDebounce();
 
     expect(component.translationLoading()).toBeFalse();
     expect(component.translationPl()).toBe('');
@@ -85,5 +89,5 @@ describe('VariantDialogComponent — podgląd tłumaczenia (FE-14)', () => {
     expect(component.translationKeyExists()).toBeNull();
 
     pending.complete();
-  }));
+  });
 });
