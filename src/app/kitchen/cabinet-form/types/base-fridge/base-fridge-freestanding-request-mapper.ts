@@ -1,4 +1,4 @@
-import { MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { CabinetCalculateRequest, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
 import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
 /**
@@ -7,7 +7,7 @@ import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/a
  */
 export class BaseFridgeFreestandingRequestMapper extends AbstractCabinetRequestMapper {
 
-  map(form: any, materialDefaults: MaterialDefaults): any {
+  map(form: any, materialDefaults: MaterialDefaults): CabinetCalculateRequest {
     return {
       lang: 'pl',
       kitchenCabinetType: 'BASE_FRIDGE_FREESTANDING',

@@ -14,6 +14,7 @@ import {
   UpdateKitchenProjectRequest
 } from '../model/kitchen-project.model';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
+import { CabinetCalculateRequest } from '../cabinet-form/type-config/request-mapper/kitchen-cabinet-request-mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -30,7 +31,7 @@ export class KitchenService {
   constructor(private readonly http: HttpClient) {
   }
 
-  calculateCabinet(data: unknown): Observable<CabinetResponse> {
+  calculateCabinet(data: CabinetCalculateRequest): Observable<CabinetResponse> {
     return this.http.post<CabinetResponse>(this.addKitchenCabinet, data);
   }
 

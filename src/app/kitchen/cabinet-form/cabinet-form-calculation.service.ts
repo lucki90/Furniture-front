@@ -3,7 +3,7 @@ import { map, Observable } from 'rxjs';
 import { CabinetCalculatedEvent, CabinetFormData } from '../model/kitchen-state.model';
 import { KitchenService } from '../service/kitchen.service';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
-import { MaterialDefaults } from './type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { CabinetCalculateRequest, MaterialDefaults } from './type-config/request-mapper/kitchen-cabinet-request-mapper';
 import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenStateService } from '../service/kitchen-state.service';
 
@@ -38,7 +38,7 @@ export class CabinetFormCalculationService {
     );
   }
 
-  private attachPantryPassagePlinth(request: Record<string, unknown>): Record<string, unknown> {
+  private attachPantryPassagePlinth(request: CabinetCalculateRequest): CabinetCalculateRequest {
     const wallPlinth = this.stateService.getPlinthConfig(this.stateService.selectedWall()?.id ?? '');
     if (wallPlinth?.enabled === false) {
       return {

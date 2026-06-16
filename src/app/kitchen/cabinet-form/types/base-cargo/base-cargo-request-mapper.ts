@@ -1,8 +1,8 @@
 import { AbstractCabinetRequestMapper } from '../../type-config/request-mapper/abstract-cabinet-request-mapper';
-import { MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { CabinetCalculateRequest, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
 
 export class BaseCargoRequestMapper extends AbstractCabinetRequestMapper {
-  map(form: any, materialDefaults: MaterialDefaults): any {
+  map(form: any, materialDefaults: MaterialDefaults): CabinetCalculateRequest {
     const isDrawersVariant = form.cargoVariant === 'DRAWERS';
     const drawerQuantity = form.drawerQuantity ?? 3;
 

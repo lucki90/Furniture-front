@@ -1,9 +1,9 @@
-import { MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { CabinetCalculateRequest, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
 import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
 export class BaseWithDrawersRequestMapper extends AbstractCabinetRequestMapper {
 
-  map(form: any, materialDefaults: MaterialDefaults): any {
+  map(form: any, materialDefaults: MaterialDefaults): CabinetCalculateRequest {
     return {
       lang: 'pl',
       kitchenCabinetType: 'BASE_WITH_DRAWERS',
@@ -38,12 +38,12 @@ export class BaseWithDrawersRequestMapper extends AbstractCabinetRequestMapper {
     };
   }
 
-  private buildDrawerFrontDetails(form: any): Array<{ height: number }> | null {
+  private buildDrawerFrontDetails(form: any): Array<{ height: number; name: null }> | null {
     if (form.drawerLayoutType !== 'CUSTOM') return null;
     const heights: Array<number | undefined> = form.drawerCustomHeightsMm ?? [];
     if (!Array.isArray(heights) || heights.length === 0) return null;
     return heights
       .filter((h): h is number => typeof h === 'number' && h > 0)
-      .map(h => ({ height: h }));
+      .map(h => ({ height: h, name: null }));
   }
 }

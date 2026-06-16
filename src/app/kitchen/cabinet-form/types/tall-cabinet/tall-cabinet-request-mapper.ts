@@ -1,5 +1,5 @@
 import { FormArray, FormGroup } from "@angular/forms";
-import { MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { CabinetCalculateRequest, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
 import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 import { mapSegmentToRequest, SegmentFormData, SegmentRequest } from "../../model/segment.model";
 
@@ -9,7 +9,7 @@ import { mapSegmentToRequest, SegmentFormData, SegmentRequest } from "../../mode
  */
 export class TallCabinetRequestMapper extends AbstractCabinetRequestMapper {
 
-  map(form: any, materialDefaults: MaterialDefaults): any {
+  map(form: any, materialDefaults: MaterialDefaults): CabinetCalculateRequest {
     // Mapuj segmenty z FormArray
     const segments = this.mapSegments(form.segments);
 

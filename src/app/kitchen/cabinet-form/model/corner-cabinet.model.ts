@@ -253,7 +253,7 @@ export interface CornerCabinetFormData {
  */
 export interface CornerCabinetRequest {
   widthA: number;
-  widthB?: number;              // null for Type B (no widthB)
+  widthB?: number | null;       // null for Type B (no widthB)
   mechanism: CornerMechanismType;
   shelfQuantity?: number;
   upperCabinet: boolean;
@@ -263,20 +263,20 @@ export interface CornerCabinetRequest {
   cornerHandleType?: CornerHandleType;    // Type B: typ uchwytu — steruje blendą narożnikową
   /** FS1 — Iteracja 2 [B1]: szerokość widocznej części frontu ślepego (materiał frontu, ~150mm).
    *  Null = brak splitu (cały front ślepy z materiału frontu, jak przed Iteracją 2). */
-  blindPanelVisibleWidthMm?: number;
+  blindPanelVisibleWidthMm?: number | null;
   /** Iter.4 [A2 opcja C]: Type A — sposób konstrukcji wieńca/półek (2 prostokąty vs L-CNC).
    *  Default null = SPLIT_RECTANGLES (kompatybilność wsteczna). Wartość propagowana do BE bez UI dropdown
    *  (UI w Iteracji 5 razem z UX-TOOLBAR + Excel/BOM obsługą kształtu L). */
-  wreathConstructionType?: CornerWreathConstructionType;
+  wreathConstructionType?: CornerWreathConstructionType | null;
   /** Iter.6 (Faza 1): strona aktywnego frontu/mechanizmu dla jednostronnych Type B (Le Mans, Magic Corner).
    *  Null = niesprecyzowane / symetryczne. */
-  handedness?: CornerHandedness;
+  handedness?: CornerHandedness | null;
   /** Iter.6 (Faza 1): wymagany/maks. kąt otwarcia frontu w stopniach (Le Mans ≥85°, Magic ≤90°/≤75°). */
-  openingAngleDeg?: number;
+  openingAngleDeg?: number | null;
   /** Iter.6 (Faza 1): grubość frontu w mm — Le Mans wymaga 16–19 mm. */
-  frontThicknessMm?: number;
+  frontThicknessMm?: number | null;
   /** Iter.6 (Faza 1): linia systemu (rodzina szerokości frontu / Y-min) dla Magic Corner / Le Mans. */
-  systemLine?: CornerSystemLine;
+  systemLine?: CornerSystemLine | null;
 }
 
 /** Domyślna szerokość widocznej części frontu ślepego (FS1) — książka str. 169. */

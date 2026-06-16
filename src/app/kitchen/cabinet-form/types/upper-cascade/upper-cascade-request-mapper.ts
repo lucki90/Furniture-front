@@ -1,4 +1,4 @@
-import { MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { CabinetCalculateRequest, MaterialDefaults } from '../../type-config/request-mapper/kitchen-cabinet-request-mapper';
 import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 
 /**
@@ -14,7 +14,7 @@ import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/a
  */
 export class UpperCascadeRequestMapper extends AbstractCabinetRequestMapper {
 
-  map(form: any, materialDefaults: MaterialDefaults): any {
+  map(form: any, materialDefaults: MaterialDefaults): CabinetCalculateRequest {
     const lowerHeight = form.cascadeLowerHeight ?? 400;
     const lowerDepth = form.cascadeLowerDepth ?? 300;
     const upperHeight = form.cascadeUpperHeight ?? 320;

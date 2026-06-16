@@ -1,4 +1,4 @@
-import { MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
+import { CabinetCalculateRequest, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
 import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
 import {
   CornerHandedness,
@@ -17,7 +17,7 @@ import {
  */
 export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
 
-  map(form: any, materialDefaults: MaterialDefaults): any {
+  map(form: any, materialDefaults: MaterialDefaults): CabinetCalculateRequest {
     const mechanism = (form.cornerMechanism ?? CornerMechanismType.FIXED_SHELVES) as CornerMechanismType;
     const typeB = isBlindType(mechanism);
 
@@ -26,7 +26,7 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
 
   // ==================== TYPE A (L-SHAPED) ====================
 
-  private mapTypeA(form: any, mechanism: CornerMechanismType, materialDefaults: MaterialDefaults): any {
+  private mapTypeA(form: any, mechanism: CornerMechanismType, materialDefaults: MaterialDefaults): CabinetCalculateRequest {
     const isUpper = form.isUpperCorner ?? false;
     const openingType = (form.cornerOpeningType ?? CornerOpeningType.TWO_DOORS) as CornerOpeningType;
 
@@ -86,7 +86,7 @@ export class CornerCabinetRequestMapper extends AbstractCabinetRequestMapper {
 
   // ==================== TYPE B (BLIND/RECTANGULAR) ====================
 
-  private mapTypeB(form: any, mechanism: CornerMechanismType, materialDefaults: MaterialDefaults): any {
+  private mapTypeB(form: any, mechanism: CornerMechanismType, materialDefaults: MaterialDefaults): CabinetCalculateRequest {
     const blindPanelSplitEnabled = form.blindPanelSplitEnabled ?? form.blindPanelVisibleWidthMm != null;
     // Iter.6 (Faza 1): pola systemowe (handedness/angle/thickness/line) mają znaczenie tylko dla
     // jednostronnych systemów Type B (Magic Corner, Le Mans); dla BLIND_CORNER zostają null.
