@@ -21,8 +21,8 @@ export class ProjectDetailsAggregatorService {
   private readonly pricingWarningsCollector = new ProjectDetailsPricingWarningsCollector();
   private readonly wallAggregator = new ProjectDetailsWallAggregator(this.accumulator);
 
-  // TODO(CODEX): Agregator BOM urosl do krytycznej warstwy transformacji projektu i zawiera coraz wiecej regul domenowych, fallbackow i wyjatkow (blaty, cokoly, blendy, odpady, uwagi technologiczne). To dobry kandydat do rozbicia na mniejsze etapy/pure helpers, bo kazda nowa regula produkcyjna bedzie teraz zwiekszac ryzyko regresji w eksporcie i szczegolach projektu.
-  // TODO(CODEX): Jest tu tez sporo logiki, ktora wyglada bardziej na odpowiedzialnosc backendu niz frontu: frontend sam buduje zagregowany BOM, dopisuje technologiczne remarks, sklada etykiety produkcyjne typu "Blenda gorna", "lewa/prawa", wylicza fallbacki dla cokolow i decyduje co jest odpadem. Im wiecej takich regul bedzie tutaj, tym trudniej utrzymac zgodnosc z kalkulacja i eksportami po stronie serwera.
+  // TODO(CODEX): Agregator BOM urósł do krytycznej warstwy transformacji projektu i zawiera coraz więcej reguł domenowych, fallbacków i wyjątków (blaty, cokoły, blendy, odpady, uwagi technologiczne). To dobry kandydat do rozbicia na mniejsze etapy/pure helpers, bo każda nowa reguła produkcyjna będzie teraz zwiększać ryzyko regresji w eksporcie i szczegółach projektu.
+  // TODO(CODEX): Jest tu też sporo logiki, która wygląda bardziej na odpowiedzialność backendu niż frontu: frontend sam buduje zagregowany BOM, dopisuje technologiczne remarks, składa etykiety produkcyjne typu "Blenda górna", "lewa/prawa", wylicza fallbacki dla cokołów i decyduje co jest odpadem. Im więcej takich reguł będzie tutaj, tym trudniej utrzymać zgodność z kalkulacją i eksportami po stronie serwera.
   aggregate(response: MultiWallCalculateResponse, frontendWalls: WallWithCabinets[], bomTranslations?: Record<string, string>) {
     const state = this.createAggregationState(bomTranslations);
 

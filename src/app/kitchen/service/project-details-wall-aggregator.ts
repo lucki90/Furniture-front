@@ -26,7 +26,6 @@ export class ProjectDetailsWallAggregator {
   }
 
   aggregateCornerCountertops(cornerCountertops: CornerCountertopResponse[] | null | undefined, maps: AggregationMaps): void {
-    // TODO(CODEX): W tej agregacji do BOM wpada materialCost i komponenty naroznika, ale jointCost nie jest nigdzie zapisany jako osobna praca ani skladnik kosztu. Jesli backend zwroci totalCost > materialCost, frontendowe BOM/excel przestana zgadzac sie z kosztami projektu zwracanymi przez API.
     if (!cornerCountertops) return;
 
     for (const corner of cornerCountertops) {
@@ -34,9 +33,9 @@ export class ProjectDetailsWallAggregator {
         continue;
       }
 
-      const label = `Blat narożny [Śc.${corner.wallAIndex + 1}-${corner.wallBIndex + 1}]`;
+      const wallLabel = `Śc.${corner.wallAIndex + 1}-${corner.wallBIndex + 1}`;
       this.accumulator.addBoard(maps.boards, {
-        material: label,
+        material: `Blat narożny [${wallLabel}]`,
         thickness: corner.thicknessMm,
         width: corner.cornerWidthMm,
         height: corner.cornerDepthMm,
@@ -44,6 +43,8 @@ export class ProjectDetailsWallAggregator {
         unitCost: corner.materialCost,
         totalCost: corner.materialCost
       });
+
+      this.addOptionalJob(maps.jobs, `CORNER_COUNTERTOP_JOINT_${wallLabel}`, 'COUNTERTOP', corner.jointCost);
 
       this.aggregateNullableComponents(corner.components, maps.components);
     }

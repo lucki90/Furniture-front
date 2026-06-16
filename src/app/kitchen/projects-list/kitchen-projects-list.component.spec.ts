@@ -89,7 +89,7 @@ describe('KitchenProjectsListComponent - klonowanie i przejscia projektu', () =>
 
     component.cloneProject(1);
 
-    expect(component.error).toBe('Nie udalo sie sklonowac projektu');
+    expect(component.error).toBe('Nie udało się sklonować projektu');
     expect(component.cloningProjectId).toBeNull();
   });
 

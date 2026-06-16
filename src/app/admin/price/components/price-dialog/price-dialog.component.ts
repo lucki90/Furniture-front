@@ -40,10 +40,10 @@ export interface PriceDialogData {
   ]
 })
 export class PriceDialogComponent implements OnInit {
-  // TODO(CODEX): Ten dialog nadal korzysta z legacy Material form stack i lokalnego flow bledow.
-  // Wizualnie jest juz czytelniejszy, ale przy kolejnym passie warto spiac go z nowszym shared
-  // language formularzy/toolbars tak, aby ekran admin price nie odstawal od kitchen/settings
-  // nie tylko shell'em, ale tez detalem samych dialogow.
+  // TODO(CODEX): Ten dialog nadal korzysta z legacy Material form stack i lokalnego flow błędów.
+  // Wizualnie jest już czytelniejszy, ale przy kolejnym passie warto spiąć go z nowszym shared
+  // language formularzy/toolbars tak, aby ekran admin price nie odstawał od kitchen/settings
+  // nie tylko shell'em, ale też detalem samych dialogów.
 
   form!: FormGroup;
   saving = false;

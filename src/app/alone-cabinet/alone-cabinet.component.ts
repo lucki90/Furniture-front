@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, effect, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, finalize, retry, takeUntil, throttleTime } from 'rxjs/operators';
+import { catchError, finalize, takeUntil } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
 
 import { AloneCabinetService } from './service/alone-cabinet.service';
@@ -468,16 +468,11 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     };
   }
 
-  // TODO(CODEX): Ten flow requestow wyglada na legacy i jest technicznie niespojny: pojedynczy request HTTP
-  // ma jednoczesnie retry(2) i throttleTime(3000), a obsluga bledow miesza lokalny stan z ogolnym pipeline.
-  // Warto go pozniej uproscic i ujednolicic z nowszym stylem requestow w aplikacji.
   private calculateCabinet(): void {
     const requestBody = this.prepareRequestBody();
     this.cabinetService
       .calculateCabinet(requestBody)
       .pipe(
-        retry(2),
-        throttleTime(3000),
         takeUntil(this.destroy$),
         finalize(() => (this.loading = false))
       )
@@ -497,8 +492,6 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     this.cabinetService
       .calculateMany(this.multiRequests)
       .pipe(
-        retry(2),
-        throttleTime(3000),
         takeUntil(this.destroy$),
         finalize(() => (this.loading = false))
       )

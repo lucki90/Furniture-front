@@ -66,9 +66,9 @@ export class PriceListComponent implements OnInit {
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly destroyRef = inject(DestroyRef);
 
-  // TODO(CODEX): Ekran cennika admina nadal korzysta z legacy mat-table + lokalnego flow filtrow
-  // i paginacji, zamiast ze wspolnych prymitywow tabel/toolbars z materials/settings. Jesli ten
-  // obszar bedzie dalej rozwijany, warto wydzielic wspolny shell CRUD dla ekranow administracyjnych.
+  // TODO(CODEX): Ekran cennika admina nadal korzysta z legacy mat-table + lokalnego flow filtrów
+  // i paginacji, zamiast ze wspólnych prymitywów tabel/toolbars z materials/settings. Jeśli ten
+  // obszar będzie dalej rozwijany, warto wydzielić wspólny shell CRUD dla ekranów administracyjnych.
 
   ngOnInit(): void {
     this.loadPrices();

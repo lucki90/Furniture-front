@@ -28,7 +28,7 @@ export class ProjectRequestBuilderService {
     this.wallCabinetsBuilder = new ProjectWallCabinetsBuilder(this.addonsBuilder, this.geometryService);
   }
 
-  // TODO(CODEX): Ten builder robi duzo sensownej roboty, ale nadal zawiera wiedze domenowa o pozycjonowaniu i mapowaniu requestow projektu. To miejsce jest krytyczne dla zgodnosci frontend-backend, wiec warto dalej uszczelniac typy wejscia/wyjscia i pilnowac, zeby nowe wyjatki per typ szafki trafialy do mniejszych builderow zamiast wracac do jednej duzej klasy.
+  // TODO(CODEX): Ten builder robi dużo sensownej roboty, ale nadal zawiera wiedzę domenową o pozycjonowaniu i mapowaniu requestów projektu. To miejsce jest krytyczne dla zgodności frontend-backend, więc warto dalej uszczelniać typy wejścia/wyjścia i pilnować, żeby nowe wyjątki per typ szafki trafiały do mniejszych builderów zamiast wracać do jednej dużej klasy.
   enclosureOuterWidthMm(cab: KitchenCabinet, side: 'left' | 'right', fillerWidthMm: number): number {
     return this.addonsBuilder.enclosureOuterWidthMm(cab, side, fillerWidthMm);
   }
@@ -59,10 +59,10 @@ export class ProjectRequestBuilderService {
     });
   }
 
-  // TODO(CODEX): Faza 13.6 domknela klasyczny U-shape (jedno L_CORNER_LEFT + jedno L_CORNER_RIGHT),
-  // ale ta auto-detekcja nadal zaklada najwyzej jedno polaczenie dla kazdej sciany LEFT/RIGHT.
-  // Przy bardziej niestandardowych ukladach wielosciennych warto docelowo oprzec to o jawny model
-  // polaczen w UI zamiast o heurystyke "najblizszej" sciany poziomej.
+  // TODO(CODEX): Faza 13.6 domknęła klasyczny U-shape (jedno L_CORNER_LEFT + jedno L_CORNER_RIGHT),
+  // ale ta auto-detekcja nadal zakłada najwyżej jedno połączenie dla każdej ściany LEFT/RIGHT.
+  // Przy bardziej niestandardowych układach wielościennych warto docelowo oprzeć to o jawny model
+  // połączeń w UI zamiast o heurystykę "najbliższej" ściany poziomej.
   buildConnections(walls: WallWithCabinets[]): WallConnectionRequest[] {
     return this.wallConnectionBuilder.buildConnections(walls);
   }

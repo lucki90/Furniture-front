@@ -22,14 +22,14 @@ describe('CabinetFormValidationErrorsService', () => {
   });
 
   it('returns dimension errors for visible width/height/depth fields', () => {
-    form.get('width')?.setErrors({ widthStep: { message: 'Szerokosc musi byc wielokrotnoscia 100 mm' } });
+    form.get('width')?.setErrors({ widthStep: { message: 'Szerokość musi być wielokrotnością 100 mm' } });
     form.get('height')?.setErrors({ min: { min: 720 } });
     form.get('depth')?.setErrors({ max: { max: 600 } });
 
     expect(service.getValidationErrors(form, visibility, null)).toEqual([
-      'Szerokosc musi byc wielokrotnoscia 100 mm',
-      'Wysokosc: min 720 mm',
-      'Glebokosc: max 600 mm'
+      'Szerokość musi być wielokrotnością 100 mm',
+      'Wysokość: min 720 mm',
+      'Głębokość: max 600 mm'
     ]);
   });
 
@@ -41,9 +41,9 @@ describe('CabinetFormValidationErrorsService', () => {
     form.get('cornerWidthB')?.setErrors({ max: { max: 1200 } });
 
     expect(service.getValidationErrors(form, visibility, null)).toEqual([
-      'Wysokosc frontu zamrazarki jest wymagana',
-      'Szerokosc A: min 900 mm',
-      'Szerokosc B: max 1200 mm'
+      'Wysokość frontu zamrażarki jest wymagana',
+      'Szerokość A: min 900 mm',
+      'Szerokość B: max 1200 mm'
     ]);
   });
 
@@ -62,8 +62,8 @@ describe('CabinetFormValidationErrorsService', () => {
 
     expect(service.getValidationErrors(form, visibility, 'Dodaj co najmniej jeden segment.')).toEqual([
       'Dodaj co najmniej jeden segment.',
-      'Segment 1: wysokosc poza zakresem (min 100 mm)',
-      'Segment 1: nieprawidlowa liczba szuflad'
+      'Segment 1: wysokość poza zakresem (min 100 mm)',
+      'Segment 1: nieprawidłowa liczba szuflad'
     ]);
   });
 
@@ -103,7 +103,7 @@ describe('CabinetFormValidationErrorsService', () => {
 
       const errors = service.getValidationErrors(form, cornerVisibility(), null);
 
-      expect(errors.some(e => e.startsWith('Szerokosc frontu uchylnego'))).toBeTrue();
+      expect(errors.some(e => e.startsWith('Szerokość frontu uchylnego'))).toBeTrue();
     });
 
     it('surfaces a required mechanism error when mechanism is missing', () => {
@@ -113,7 +113,7 @@ describe('CabinetFormValidationErrorsService', () => {
 
       const errors = service.getValidationErrors(form, cornerVisibility(), null);
 
-      expect(errors).toContain('Wybierz system organizacji wewnetrznej');
+      expect(errors).toContain('Wybierz system organizacji wewnętrznej');
     });
 
     it('returns no corner errors for a fully valid Type B corner', () => {

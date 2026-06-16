@@ -218,7 +218,7 @@ export class KitchenCabinetStateFactory {
     }
   }
 
-  // TODO(CODEX): Ten factory nadal musi zgadywac brakujace pola type-specific, bo backend nie persystuje wszystkich ustawien szafek. To oznacza, ze po loadProject czesc konfiguracji wraca jako frontendowe fallbacki zamiast wiernych danych z zapisu.
+  // TODO(CODEX): Ten factory nadal musi zgadywać brakujące pola type-specific, bo backend nie persystuje wszystkich ustawień szafek. To oznacza, że po loadProject część konfiguracji wraca jako frontendowe fallbacki zamiast wiernych danych z zapisu.
   fromPlacementResponse(cabResp: CabinetPlacementResponse, fallbackId: string): KitchenCabinet {
     const effectiveWidth = cabResp.cabinetType === KitchenCabinetType.CORNER_CABINET && cabResp.cornerWidthA
       ? cabResp.cornerWidthA

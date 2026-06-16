@@ -26,11 +26,6 @@ import { PriceImportResultResponse } from '../../model/price-entry.model';
   ]
 })
 export class PriceImportDialogComponent {
-  // TODO(CODEX): Import cen ma juz czystszy wording i shell dialogu, ale sam flow nadal jest
-  // mocno lokalny: walidacja rozszerzen, progress i komunikaty bledow zyja tylko tutaj.
-  // Przy dalszym porzadkowaniu admin/price warto ujednolicic to z globalnym feedbackiem / upload
-  // patterns, zeby ten ekran nie odstawal zachowaniem od nowszych modulow.
-
   selectedFile: File | null = null;
   importing = false;
   importResult: PriceImportResultResponse | null = null;
@@ -52,7 +47,7 @@ export class PriceImportDialogComponent {
       const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
 
       if (!validExtensions.includes(extension)) {
-        this.error = 'Nieobslugiwany format pliku. Dozwolone: CSV, XLSX, XLS';
+        this.error = 'Nieobsługiwany format pliku. Dozwolone: CSV, XLSX, XLS';
         this.selectedFile = null;
         return;
       }
@@ -78,7 +73,7 @@ export class PriceImportDialogComponent {
       const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
 
       if (!validExtensions.includes(extension)) {
-        this.error = 'Nieobslugiwany format pliku. Dozwolone: CSV, XLSX, XLS';
+        this.error = 'Nieobsługiwany format pliku. Dozwolone: CSV, XLSX, XLS';
         this.selectedFile = null;
         return;
       }
@@ -102,7 +97,7 @@ export class PriceImportDialogComponent {
       },
       error: (err) => {
         this.importing = false;
-        this.error = err.error?.message || 'Blad podczas importu pliku';
+        this.error = err.error?.message || 'Błąd podczas importu pliku';
         console.error('Import error:', err);
       }
     });

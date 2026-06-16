@@ -36,9 +36,9 @@ import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.mode
   providedIn: 'root'
 })
 export class KitchenStateService {
-  // TODO(CODEX): To nadal jest centralna fasada dla zbyt wielu odpowiedzialnosci feature'a kitchen.
-  // Po wydzieleniu geometry/mapowania/store kolejnym krokiem powinno byc przeniesienie legacy request
-  // building i pozostalych helperow layoutu do wezszych serwisow, zeby KitchenStateService zostal cienkim API dla UI.
+  // TODO(CODEX): To nadal jest centralna fasada dla zbyt wielu odpowiedzialności feature'a kitchen.
+  // Po wydzieleniu geometry/mapowania/store kolejnym krokiem powinno być przeniesienie legacy request
+  // building i pozostałych helperów layoutu do węższych serwisów, żeby KitchenStateService został cienkim API dla UI.
   private requestBuilder = inject(ProjectRequestBuilderService);
   private settingsService = inject(ProjectSettingsService);
   private metadataService = inject(ProjectMetadataService);
@@ -455,8 +455,8 @@ export class KitchenStateService {
     });
 
     // TODO(CODEX): buildProjectRequest to nadal legacy flow ze sztywnymi materialRequest defaults na froncie.
-    // Jesli ten endpoint jest jeszcze uzywany, materialy i domyslne parametry powinny pochodzic z backendu
-    // albo przynajmniej z jednego wspolnego mappera ustawien, bo inaczej request latwo rozjedzie sie z reszta kitchen.
+    // Jeśli ten endpoint jest jeszcze używany, materiały i domyślne parametry powinny pochodzić z backendu
+    // albo przynajmniej z jednego wspólnego mappera ustawień, bo inaczej request łatwo rozjedzie się z resztą kitchen.
     return {
       wall: {
         length: selectedWall?.widthMm ?? 3600,

@@ -39,9 +39,6 @@ const CANCELLED_FLOW_STEP = {
   imports: [CommonModule, MatIconModule]
 })
 export class KitchenProjectsListComponent implements OnInit {
-  // TODO(CODEX): This list screen still mixes loading data, delete/clone/open actions,
-  // filter/sort workflow and presentation logic in one smart component. If this route
-  // keeps evolving, extract a small facade for data/actions and simplify error handling.
   private readonly kitchenService = inject(KitchenService);
   private readonly projectTransitionGuard = inject(KitchenProjectTransitionGuardService);
   private readonly stateService = inject(KitchenStateService);
@@ -65,11 +62,11 @@ export class KitchenProjectsListComponent implements OnInit {
 
   readonly flowSteps: Array<{ status: ProjectStatus; num: number; label: string; color: string }> = [
     { status: 'DRAFT', num: 1, label: 'Szkic', color: '#6b7280' },
-    { status: 'OFFER_SENT', num: 2, label: 'Oferta wyslana', color: '#2563eb' },
+    { status: 'OFFER_SENT', num: 2, label: 'Oferta wysłana', color: '#2563eb' },
     { status: 'ACCEPTED', num: 3, label: 'Zaakceptowany', color: '#16a34a' },
     { status: 'IN_PRODUCTION', num: 4, label: 'W produkcji', color: '#ea580c' },
-    { status: 'IN_INSTALLATION', num: 5, label: 'W montazu', color: '#7c3aed' },
-    { status: 'COMPLETED', num: 6, label: 'Zakonczony', color: '#065f46' }
+    { status: 'IN_INSTALLATION', num: 5, label: 'W montażu', color: '#7c3aed' },
+    { status: 'COMPLETED', num: 6, label: 'Zakończony', color: '#065f46' }
   ];
 
   ngOnInit(): void {
@@ -88,7 +85,7 @@ export class KitchenProjectsListComponent implements OnInit {
       },
       error: err => {
         console.error('Error loading projects:', err);
-        this.error = 'Nie udalo sie wczytac listy projektow';
+        this.error = 'Nie udało się wczytać listy projektów';
         this.loading = false;
       }
     });
@@ -108,7 +105,7 @@ export class KitchenProjectsListComponent implements OnInit {
           },
           error: err => {
             console.error('Error loading project:', err);
-            this.error = 'Nie udalo sie wczytac projektu';
+            this.error = 'Nie udało się wczytać projektu';
             this.loading = false;
           }
         });
@@ -133,7 +130,7 @@ export class KitchenProjectsListComponent implements OnInit {
       },
       error: err => {
         console.error('Error deleting project:', err);
-        this.error = 'Nie udalo sie usunac projektu';
+        this.error = 'Nie udało się usunąć projektu';
         this.deletingProjectId = null;
       }
     });
@@ -156,7 +153,7 @@ export class KitchenProjectsListComponent implements OnInit {
           },
           error: err => {
             console.error('Error cloning project:', err);
-            this.error = 'Nie udalo sie sklonowac projektu';
+            this.error = 'Nie udało się sklonować projektu';
             this.cloningProjectId = null;
           }
         });
@@ -200,7 +197,7 @@ export class KitchenProjectsListComponent implements OnInit {
   }
 
   get activeStatusesCountLabel(): string {
-    return this.pluralize(this.activeStatusFilters.size, 'aktywny filtr', 'aktywne filtry', 'aktywnych filtrow');
+    return this.pluralize(this.activeStatusFilters.size, 'aktywny filtr', 'aktywne filtry', 'aktywnych filtrów');
   }
 
   clearFilters(): void {
@@ -264,11 +261,11 @@ export class KitchenProjectsListComponent implements OnInit {
   }
 
   projectCountLabel(count: number): string {
-    return this.pluralize(count, 'projekt', 'projekty', 'projektow');
+    return this.pluralize(count, 'projekt', 'projekty', 'projektów');
   }
 
   wallCountLabel(count: number): string {
-    return this.pluralize(count, 'sciana', 'sciany', 'scian');
+    return this.pluralize(count, 'ściana', 'ściany', 'ścian');
   }
 
   cabinetCountLabel(count: number): string {

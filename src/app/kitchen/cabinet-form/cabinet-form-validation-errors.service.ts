@@ -5,9 +5,6 @@ import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visib
 @Injectable({ providedIn: 'root' })
 export class CabinetFormValidationErrorsService {
 
-  // TODO(CODEX): Validation messages are still hardcoded on the frontend and only in Polish.
-  // This makes i18n and future rule changes harder; they should eventually move to a proper
-  // translation layer, and some domain-specific messages should be aligned with backend rules.
   getValidationErrors(
     form: FormGroup,
     visibility: CabinetFormVisibility,
@@ -36,24 +33,24 @@ export class CabinetFormValidationErrorsService {
 
   private collectDimensionsErrors(form: FormGroup, errors: string[]): void {
     this.pushDimensionError(errors, form.get('width'), {
-      required: 'Szerokosc jest wymagana',
-      minLabel: 'Szerokosc',
-      maxLabel: 'Szerokosc',
+      required: 'Szerokość jest wymagana',
+      minLabel: 'Szerokość',
+      maxLabel: 'Szerokość',
       fallback: null
     });
 
     this.pushDimensionError(errors, form.get('height'), {
       required: null,
-      minLabel: 'Wysokosc',
-      maxLabel: 'Wysokosc',
-      fallback: 'Wysokosc: nieprawidlowa wartosc'
+      minLabel: 'Wysokość',
+      maxLabel: 'Wysokość',
+      fallback: 'Wysokość: nieprawidłowa wartość'
     });
 
     this.pushDimensionError(errors, form.get('depth'), {
       required: null,
-      minLabel: 'Glebokosc',
-      maxLabel: 'Glebokosc',
-      fallback: 'Glebokosc: nieprawidlowa wartosc'
+      minLabel: 'Głębokość',
+      maxLabel: 'Głębokość',
+      fallback: 'Głębokość: nieprawidłowa wartość'
     });
   }
 
@@ -64,35 +61,35 @@ export class CabinetFormValidationErrorsService {
     }
 
     if (control.errors?.['min']) {
-      errors.push(`Front zamrazarki: min ${control.errors['min'].min} mm`);
+      errors.push(`Front zamrażarki: min ${control.errors['min'].min} mm`);
       return;
     }
 
     if (control.errors?.['max']) {
-      errors.push(`Front zamrazarki: max ${control.errors['max'].max} mm`);
+      errors.push(`Front zamrażarki: max ${control.errors['max'].max} mm`);
       return;
     }
 
     if (control.errors?.['required']) {
-      errors.push('Wysokosc frontu zamrazarki jest wymagana');
+      errors.push('Wysokość frontu zamrażarki jest wymagana');
     }
   }
 
   private collectCornerErrors(form: FormGroup, errors: string[]): void {
-    this.pushRangeError(errors, form.get('cornerWidthA'), 'Szerokosc A');
-    this.pushRangeError(errors, form.get('cornerWidthB'), 'Szerokosc B');
-    this.pushRangeError(errors, form.get('height'), 'Wysokosc');
-    this.pushRangeError(errors, form.get('depth'), 'Glebokosc');
-    this.pushRangeError(errors, form.get('cornerShelfQuantity'), 'Liczba polek');
+    this.pushRangeError(errors, form.get('cornerWidthA'), 'Szerokość A');
+    this.pushRangeError(errors, form.get('cornerWidthB'), 'Szerokość B');
+    this.pushRangeError(errors, form.get('height'), 'Wysokość');
+    this.pushRangeError(errors, form.get('depth'), 'Głębokość');
+    this.pushRangeError(errors, form.get('cornerShelfQuantity'), 'Liczba półek');
 
     // Type B — front uchylny, parametry systemu, panel ślepy.
-    this.pushRangeError(errors, form.get('cornerFrontUchylnyWidthMm'), 'Szerokosc frontu uchylnego');
-    this.pushRangeError(errors, form.get('cornerOpeningAngleDeg'), 'Kat otwarcia');
-    this.pushRangeError(errors, form.get('blindPanelVisibleWidthMm'), 'Szerokosc widocznej czesci frontu slepego');
+    this.pushRangeError(errors, form.get('cornerFrontUchylnyWidthMm'), 'Szerokość frontu uchylnego');
+    this.pushRangeError(errors, form.get('cornerOpeningAngleDeg'), 'Kąt otwarcia');
+    this.pushRangeError(errors, form.get('blindPanelVisibleWidthMm'), 'Szerokość widocznej części frontu ślepego');
 
     const mechanism = form.get('cornerMechanism');
     if (mechanism?.invalid && mechanism.errors?.['required']) {
-      errors.push('Wybierz system organizacji wewnetrznej');
+      errors.push('Wybierz system organizacji wewnętrznej');
     }
   }
 
@@ -118,11 +115,11 @@ export class CabinetFormValidationErrorsService {
       if (heightControl?.invalid) {
         const minValue = heightControl.errors?.['min']?.min;
         const minSuffix = typeof minValue === 'number' ? ` (min ${minValue} mm)` : '';
-        errors.push(`Segment ${index + 1}: wysokosc poza zakresem${minSuffix}`);
+        errors.push(`Segment ${index + 1}: wysokość poza zakresem${minSuffix}`);
       }
 
       if (drawerQuantityControl?.invalid) {
-        errors.push(`Segment ${index + 1}: nieprawidlowa liczba szuflad`);
+        errors.push(`Segment ${index + 1}: nieprawidłowa liczba szuflad`);
       }
     });
   }
@@ -187,7 +184,7 @@ export class CabinetFormValidationErrorsService {
     }
 
     if (control.errors?.['required']) {
-      errors.push(`${label}: wartosc wymagana`);
+      errors.push(`${label}: wartość wymagana`);
     }
   }
 }

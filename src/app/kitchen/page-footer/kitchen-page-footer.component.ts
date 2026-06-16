@@ -27,8 +27,8 @@ export class KitchenPageFooterComponent {
   @Output() clearAll = new EventEmitter<void>();
   @Output() downloadExcel = new EventEmitter<void>();
 
-  // TODO(CODEX): Footer nadal jest wizualnie czescia kitchen-page workflow,
-  // ale ma juz wlasny kontrakt. Jesli pozniej pojawi sie realny eksport PDF
-  // i instrukcja, warto nie dopinac ich tutaj "na szybko", tylko wydzielic
-  // osobny export-actions component albo zasilic footer pelnym modelem akcji.
+  // TODO(CODEX): Footer nadal jest wizualnie częścią kitchen-page workflow,
+  // ale ma już własny kontrakt. Jeśli później pojawi się realny eksport PDF
+  // i instrukcja, warto nie dopinać ich tutaj "na szybko", tylko wydzielić
+  // osobny export-actions component albo zasilić footer pełnym modelem akcji.
 }

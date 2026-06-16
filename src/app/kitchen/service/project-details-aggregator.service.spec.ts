@@ -467,6 +467,52 @@ describe('ProjectDetailsAggregatorService', () => {
         totalCost: 14
       })
     ]);
+    expect(result.jobs).toEqual([
+      jasmine.objectContaining({
+        name: 'CORNER_COUNTERTOP_JOINT_Śc.1-2',
+        type: 'COUNTERTOP',
+        quantity: 1,
+        totalCost: 25
+      })
+    ]);
+  });
+
+  it('should not add a corner countertop joint job when jointCost is zero or missing', () => {
+    const response = {
+      walls: [],
+      totalWasteCost: 0,
+      globalWasteComponents: [],
+      cornerCountertops: [
+        {
+          wallAIndex: 0,
+          wallBIndex: 1,
+          cornerWidthMm: 600,
+          cornerDepthMm: 620,
+          thicknessMm: 38,
+          materialCost: 150,
+          jointCost: 0,
+          totalCost: 150,
+          components: [],
+          pricingComplete: true
+        },
+        {
+          wallAIndex: 1,
+          wallBIndex: 2,
+          cornerWidthMm: 600,
+          cornerDepthMm: 620,
+          thicknessMm: 38,
+          materialCost: 150,
+          jointCost: null,
+          totalCost: 150,
+          components: [],
+          pricingComplete: true
+        }
+      ]
+    } as unknown as MultiWallCalculateResponse;
+
+    const result = service.aggregate(response, [] as WallWithCabinets[]);
+
+    expect(result.jobs.some(job => job.name.startsWith('CORNER_COUNTERTOP_JOINT_'))).toBe(false);
   });
 
   it('should collect pricing warnings from wall and corner countertop responses', () => {

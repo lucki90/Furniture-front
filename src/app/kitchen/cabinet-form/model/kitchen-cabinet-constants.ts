@@ -263,17 +263,13 @@ export const ProjectSettingsConstraints = {
 } as const;
 
 /**
- * Typy otwarcia szafki (uchwyt, click, frezowany, brak).
+ * Zamknięty zbiór wartości typów otwarcia szafki (kontrakt z backendem, parytet z OpeningModelEnum).
+ * Etykiety dropdownu pochodzą z backendowego słownika (`DictionaryService.data().openingTypes`),
+ * tak jak pozostałe słowniki — tutaj trzymamy tylko kody jako kontrakt typu.
  */
-// TODO(CODEX): To kolejny słownik domenowy trzymany lokalnie na froncie. Jeśli oferta okuć/typów otwarcia ma się zmieniać albo zależeć od konfiguracji firmy, te opcje powinny być dostarczane z backendu razem z innymi słownikami zamiast być zakodowane w aplikacji.
-export const OPENING_TYPES = [
-  { value: 'HANDLE', label: 'Uchwyt' },
-  { value: 'CLICK', label: 'Click (TIP-ON)' },
-  { value: 'MILLED', label: 'Frezowany' },
-  { value: 'NONE', label: 'Brak' }
-] as const;
+export const OPENING_TYPE_VALUES = ['HANDLE', 'CLICK', 'MILLED', 'NONE'] as const;
 
-export type OpeningType = typeof OPENING_TYPES[number]['value'];
+export type OpeningType = typeof OPENING_TYPE_VALUES[number];
 
 /**
  * Wartości (kontrakt enuma) mechanizmu podnośnika klapy dla szafki otwieranej do góry (UPPER_LIFT_UP).
