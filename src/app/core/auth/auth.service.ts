@@ -15,6 +15,7 @@ export class AuthService {
 
   private readonly baseUrl = `${environment.apiUrl}/auth`;
   private readonly _currentUser = signal<UserInfo | null>(null);
+  private storageInitialized = false;
 
   readonly isLoggedIn = computed(() => this._currentUser() !== null);
   readonly isAdmin = computed(() => this._currentUser()?.role === 'ADMIN');
@@ -27,9 +28,14 @@ export class AuthService {
   ) {}
 
   /**
-   * Attempt to restore session from localStorage on app init.
+   * Próbuje odtworzyć sesję z localStorage.
    */
   initFromStorage(): void {
+    if (this.storageInitialized) {
+      return;
+    }
+    this.storageInitialized = true;
+
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
     const userJson = localStorage.getItem(USER_KEY);
     if (token && userJson) {
@@ -65,7 +71,8 @@ export class AuthService {
   logout(): void {
     this.clearStorage();
     this._currentUser.set(null);
-    // Clear kitchen state so the next user doesn't see previous user's cabinets
+    this.storageInitialized = false;
+    // Czyścimy stan kuchni, żeby kolejny użytkownik nie widział szafek poprzedniej sesji.
     this.kitchenStateService.clearAll();
     this.router.navigate(['/login']);
   }

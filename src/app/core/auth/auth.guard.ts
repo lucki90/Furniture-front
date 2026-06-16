@@ -5,12 +5,13 @@ import { AuthService } from './auth.service';
 import { ToastService } from '../error/toast.service';
 
 /**
- * Guard that requires authentication. Redirects to /login if not logged in.
+ * Guard wymagający zalogowanego użytkownika. Przy braku sesji przekierowuje na /login.
  */
-// TODO(CODEX): Guard opiera się na synchronicznym isLoggedIn(), ale sesja jest odtwarzana dopiero później w AppComponent.ngOnInit(). Przy refreshu lub wejściu bezpośrednio na chronioną trasę można błędnie wyrzucić zalogowanego użytkownika na /login zanim stan auth zostanie zainicjalizowany.
 export const authGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
+
+  authService.initFromStorage();
 
   if (authService.isLoggedIn()) {
     return true;
@@ -21,12 +22,14 @@ export const authGuard: CanActivateFn = () => {
 };
 
 /**
- * Guard that requires ADMIN role.
+ * Guard wymagający roli ADMIN.
  */
 export const adminGuard: CanActivateFn = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const toast = inject(ToastService);
+
+  authService.initFromStorage();
 
   if (authService.isAdmin()) {
     return true;

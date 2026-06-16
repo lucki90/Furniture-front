@@ -10,7 +10,7 @@ describe('auth guards', () => {
   let toast: jasmine.SpyObj<ToastService>;
 
   beforeEach(() => {
-    authService = jasmine.createSpyObj<AuthService>('AuthService', ['isLoggedIn', 'isAdmin']);
+    authService = jasmine.createSpyObj<AuthService>('AuthService', ['initFromStorage', 'isLoggedIn', 'isAdmin']);
     router = jasmine.createSpyObj<Router>('Router', ['navigate']);
     toast = jasmine.createSpyObj<ToastService>('ToastService', ['warning']);
 
@@ -28,6 +28,7 @@ describe('auth guards', () => {
 
     const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
 
+    expect(authService.initFromStorage).toHaveBeenCalledBefore(authService.isLoggedIn);
     expect(result).toBeTrue();
     expect(router.navigate).not.toHaveBeenCalled();
   });
@@ -37,6 +38,7 @@ describe('auth guards', () => {
 
     const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
 
+    expect(authService.initFromStorage).toHaveBeenCalledBefore(authService.isLoggedIn);
     expect(result).toBeFalse();
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
@@ -46,6 +48,7 @@ describe('auth guards', () => {
 
     const result = TestBed.runInInjectionContext(() => adminGuard({} as never, {} as never));
 
+    expect(authService.initFromStorage).toHaveBeenCalledBefore(authService.isAdmin);
     expect(result).toBeTrue();
     expect(toast.warning).not.toHaveBeenCalled();
     expect(router.navigate).not.toHaveBeenCalled();

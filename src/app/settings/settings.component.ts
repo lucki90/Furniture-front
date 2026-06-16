@@ -5,7 +5,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { SettingsService } from './settings.service';
 import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
-import { SettingsOptions, UserSettings } from './settings.model';
+import { SettingsOptions, UpdateUserSettingsRequest } from './settings.model';
 import { FormFieldComponent } from '../shared/form-field/form-field.component';
 import { BoardPrice } from './board-price.service';
 import { ComponentPriceService, ComponentPrice } from './component-price.service';
@@ -334,7 +334,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     this.savedSuccess = false;
     this.error = null;
 
-    const request: UserSettings = {
+    const request: UpdateUserSettingsRequest = {
       defaultPlinthHeightMm: this.plinthHeightMm,
       defaultCountertopThicknessMm: this.countertopThicknessMm,
       defaultUpperFillerHeightMm: this.upperFillerHeightMm,
@@ -380,8 +380,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       ...(this.companyInfoSection?.getCompanyData() ?? { offerValidityDays: 14 })
     };
 
-    // TODO(CODEX): `request as any` maskuje niedopasowanie typów między formularzem a kontraktem API. To osłabia TypeScript dokładnie w miejscu, które zapisuje globalne ustawienia aplikacji. Warto doprowadzić model `UserSettings` i składanie requestu do pełnej zgodności bez obchodzenia typowania.
-    this.settingsService.updateSettings(request as any).subscribe({
+    this.settingsService.updateSettings(request).subscribe({
       next: (updated) => {
         // Zaktualizuj globalne defaults — nowe projekty od razu dostaną nowe wartości
         this.kitchenStateService.setGlobalDefaults({

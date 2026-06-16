@@ -64,6 +64,8 @@ export interface UserSettings {
   offerValidityDays: number;
 }
 
+export type UpdateUserSettingsRequest = Omit<UserSettings, 'antaroTandemboxDrawerThicknessMm'>;
+
 /** Available option values returned by GET /settings/options. */
 export interface SettingsOptions {
   plinthHeights: number[];

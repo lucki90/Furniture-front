@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { SettingsOptions, UserSettings } from './settings.model';
+import { SettingsOptions, UpdateUserSettingsRequest, UserSettings } from './settings.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -23,7 +23,7 @@ export class SettingsService {
   /**
    * Aktualizuje globalne ustawienia aktualnego użytkownika.
    */
-  updateSettings(settings: UserSettings): Observable<UserSettings> {
+  updateSettings(settings: UpdateUserSettingsRequest): Observable<UserSettings> {
     return this.http.put<UserSettings>(this.apiUrl, settings);
   }
 
