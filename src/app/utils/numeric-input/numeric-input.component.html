@@ -10,13 +10,13 @@
     (input)="onInputChange($event)"
     [appMaxLengthForNumber]="10"
     [class.error]="hasError"
-    [disabled]="_isDisabled"
+    [disabled]="isDisabled"
     [id]="id + '-input'"
     [maxDecimalPlaces]="2"
     [max]="max"
     [min]="min"
     [step]="step"
-    [value]="value"
+    [value]="value ?? ''"
     class="numeric-input-field"
     type="number"
   />
@@ -25,12 +25,12 @@
     <span class="range-label">{{ min }}</span>
     <input
       (input)="onInputChange($event)"
-      [disabled]="_isDisabled"
+      [disabled]="isDisabled"
       [id]="id + '-range'"
       [max]="max"
       [min]="min"
       [step]="step"
-      [value]="value"
+      [value]="rangeValue"
       class="numeric-input-range"
       type="range"
     />

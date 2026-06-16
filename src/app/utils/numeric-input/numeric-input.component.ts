@@ -23,12 +23,13 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
   @Input() errorMessage: string = '';
   @Input() externalErrorMessage: string | null = null;
 
-  @Output() valueChange = new EventEmitter<number>();
-  _isDisabled = false;
-  private _value: number = 0;
+  @Output() valueChange = new EventEmitter<number | null>();
 
-  onChange: (value: number) => void = () => undefined;
-  onTouch: () => void = () => undefined;
+  private _isDisabled = false;
+  private _value: number | null = 0;
+
+  private onChange: (value: number | null) => void = () => undefined;
+  private onTouch: () => void = () => undefined;
 
   ngOnInit(): void {
     if (!this.id) {
@@ -37,42 +38,45 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
   }
 
   @Input()
-  // TODO(CODEX): Komponent miesza kilka kanałów zmiany stanu naraz (`@Input value`, CVA, `valueChange`,
-  // input number i range). To zwiększa ryzyko zapętleń i rozjazdów wartości. Jeśli ma być kontrolką
-  // formularzową, lepiej oprzeć go wyłącznie o poprawny ControlValueAccessor i jeden spójny przepływ danych.
-  set value(val: number) {
+  set value(val: number | null) {
     if (!this._isDisabled) {
-      this._value = val;
-      this.onChange(val);
-      this.valueChange.emit(val);
+      this.setInternalValue(val);
     }
   }
 
-  get value(): number {
+  get value(): number | null {
     return this._value;
   }
 
-  writeValue(value: number): void {
-    this._value = value;
+  get rangeValue(): number {
+    return this._value ?? this.min;
   }
 
-  registerOnChange(fn: any): void {
+  get isDisabled(): boolean {
+    return this._isDisabled;
+  }
+
+  writeValue(value: number | null): void {
+    this.setInternalValue(value);
+  }
+
+  registerOnChange(fn: (value: number | null) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouch = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this._isDisabled = isDisabled;
   }
 
   onInputChange(rawEvent: Event): void {
     const inputElement = rawEvent.target as HTMLInputElement;
-    const value = inputElement?.valueAsNumber;
+    const value = Number.isNaN(inputElement?.valueAsNumber) ? null : inputElement.valueAsNumber;
 
-    if (!this._isDisabled && !Number.isNaN(value)) {
-      this._value = value;
-      this.onChange(value);
-      this.onTouch();
-    }
+    this.commitUserValue(value);
   }
 
   isValid(): boolean {
@@ -91,7 +95,18 @@ export class NumericInputComponent implements ControlValueAccessor, OnInit {
     return this.externalErrorMessage || this.errorMessage;
   }
 
-  setDisabledState(isDisabled: boolean): void {
-    this._isDisabled = isDisabled;
+  private setInternalValue(value: number | null): void {
+    this._value = value;
+  }
+
+  private commitUserValue(value: number | null): void {
+    if (this._isDisabled) {
+      return;
+    }
+
+    this.setInternalValue(value);
+    this.onChange(value);
+    this.valueChange.emit(value);
+    this.onTouch();
   }
 }

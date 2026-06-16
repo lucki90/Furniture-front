@@ -1,6 +1,11 @@
 import { Component, forwardRef, Input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
+export interface DropdownOption<T = unknown> {
+  value: T;
+  label: string;
+}
+
 @Component({
   selector: 'app-dropdown',
   templateUrl: './dropdown.component.html',
@@ -16,17 +21,17 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 })
 export class DropdownComponent implements ControlValueAccessor {
   @Input() id: string = '';
-  @Input() options: { value: any; label: string }[] = [];
+  @Input() options: DropdownOption[] = [];
   @Input() label: string = '';
-  @Input() errorMessage: string = 'To pole wymaga poprawnej wartosci.';
+  @Input() errorMessage: string = 'To pole wymaga poprawnej wartości.';
   @Input() externalErrorMessage: string | null = null;
   @Input() visible: boolean = true;
   @Input() translations: { [key: string]: string } = {};
 
-  value: any = null;
+  value: unknown = null;
   disabled = false;
 
-  private onChange: (value: any) => void = () => undefined;
+  private onChange: (value: unknown) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
   ngOnInit(): void {
@@ -35,24 +40,35 @@ export class DropdownComponent implements ControlValueAccessor {
     }
   }
 
-  // TODO(CODEX): Ten CVA jest podejrzany i warto go uwaznie poprawic: korzysta rownoczesnie z `[(ngModel)]`
-  // w template oraz z wlasnego ControlValueAccessor. Takie mieszanie dwoch modeli formularzy latwo rodzi
-  // subtelne bugi synchronizacji.
-  onSelectionChange(value: any): void {
-    this.value = value;
+  onSelectionChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const selectedIndex = Number(select.value);
+    if (!Number.isInteger(selectedIndex) || selectedIndex < 0 || selectedIndex >= this.options.length) {
+      return;
+    }
+
+    this.value = this.options[selectedIndex].value;
     this.onChange(this.value);
     this.onTouched();
   }
 
-  writeValue(value: any): void {
+  markAsTouched(): void {
+    this.onTouched();
+  }
+
+  isSelected(optionValue: unknown): boolean {
+    return Object.is(optionValue, this.value);
+  }
+
+  writeValue(value: unknown): void {
     this.value = value;
   }
 
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: (value: unknown) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
 

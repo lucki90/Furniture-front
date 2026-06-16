@@ -5,22 +5,22 @@
   }
 
   <select
-    (ngModelChange)="onSelectionChange($event)"
-    [(ngModel)]="value"
+    (blur)="markAsTouched()"
+    (change)="onSelectionChange($event)"
     [class.error]="hasError"
     [disabled]="disabled"
     [id]="id + '-select'"
     class="dropdown-select form-control"
   >
-    @for (option of options; track option.value) {
-    <option [value]="option.value">
+    @for (option of options; track option.value; let i = $index) {
+    <option [selected]="isSelected(option.value)" [value]="i">
       {{ translations[option.label] || option.label }}
     </option>
     }
   </select>
 
   @if (hasError) {
-  <p class="dropdown-error">{{ errorMessage }}</p>
+  <p class="dropdown-error">{{ displayedErrorMessage }}</p>
   }
 </div>
 }
