@@ -54,7 +54,7 @@ export interface DoorArcData {
  * Jeśli front nie ma `hingesSide` (np. typ OPEN lub szuflada), zwraca null.
  *
  * @param front         DisplayFront z danymi frontu (x, y, width, height, hingesSide)
- * @param openingAngle  Kąt otwarcia w stopniach — zawsze 90 (pełne otwarcie zawiasów)
+ * @param openingAngle  Kąt otwarcia w stopniach — wartości spoza zakresu są ograniczane do 0..90
  */
 export function calculateDoorArc(
   front: DisplayFront,
@@ -68,13 +68,19 @@ export function calculateDoorArc(
   const { x, y, height } = front;
 
   // Punkt startu łuku (dolny narożnik po stronie WOLNEJ — naprzeciwko zawiasów)
-  // i punkt końca łuku (dolny narożnik po stronie ZAWIASÓW przesunięty o r w górę)
+  // i punkt końca łuku wyznaczany po okręgu według kąta otwarcia.
   let startX: number, startY: number;
   let endX: number, endY: number;
   let cx: number, cy: number;  // centrum łuku (dolny narożnik po stronie zawiasów)
   let sweepFlag: 0 | 1;        // SVG arc: 0=counter-clockwise, 1=clockwise
 
   const bottomY = y + height;
+  const normalizedAngle = Number.isFinite(openingAngle)
+    ? Math.max(0, Math.min(90, openingAngle))
+    : 90;
+  const angleRad = normalizedAngle * Math.PI / 180;
+  const horizontalReach = r * Math.cos(angleRad);
+  const verticalReach = r * Math.sin(angleRad);
 
   if (front.hingesSide === 'LEFT') {
     // Zawias po lewej → centrum = dolny-lewy narożnik
@@ -82,8 +88,8 @@ export function calculateDoorArc(
     cy = bottomY;
     startX = x + r;   // prawy dolny narożnik (wolna krawędź)
     startY = bottomY;
-    endX = x;
-    endY = bottomY - r; // r mm powyżej centrum
+    endX = cx + horizontalReach;
+    endY = cy - verticalReach;
     sweepFlag = 0;       // łuk idzie w górę (counter-clockwise w SVG)
   } else {
     // Zawias po prawej → centrum = dolny-prawy narożnik
@@ -91,14 +97,10 @@ export function calculateDoorArc(
     cy = bottomY;
     startX = x;          // lewy dolny narożnik (wolna krawędź)
     startY = bottomY;
-    endX = x + r;
-    endY = bottomY - r;
+    endX = cx - horizontalReach;
+    endY = cy - verticalReach;
     sweepFlag = 1;        // łuk idzie w górę (clockwise w SVG)
   }
-
-  // Ograniczamy kąt do 90° (pełne otwarcie = ćwierćokrąg)
-  // TODO: przy openingAngle < 90° — interpoluj endX/endY po okręgu (nie potrzebne w 13.2)
-  const _ = openingAngle; // reserved for future partial-angle support
 
   const pathD = `M ${startX.toFixed(1)},${startY.toFixed(1)} `
     + `A ${r.toFixed(1)},${r.toFixed(1)} 0 0 ${sweepFlag} `
@@ -107,12 +109,12 @@ export function calculateDoorArc(
 
   // Bounding box łuku — prostokąt obejmujący całą strefę otwarcia
   const bbX = front.hingesSide === 'LEFT' ? x : x;
-  const bbY = bottomY - r;
+  const bbY = bottomY - verticalReach;
   const arcBoundingBox: Rect = {
     x: bbX,
     y: bbY,
     width: r,
-    height: r
+    height: verticalReach
   };
 
   return {

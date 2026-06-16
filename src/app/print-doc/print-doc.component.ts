@@ -1,6 +1,7 @@
-import {Component, Input} from '@angular/core';
-import {PrintDocService} from './service/print-doc.service';
+import { Component, Input } from '@angular/core';
+import { PrintDocService } from './service/print-doc.service';
 import { PrintDocRequest } from '../alone-cabinet/model/cabinet-form.model';
+import { ToastService } from '../core/error/toast.service';
 
 @Component({
   selector: 'app-print-doc',
@@ -9,29 +10,22 @@ import { PrintDocRequest } from '../alone-cabinet/model/cabinet-form.model';
   standalone: false
 })
 export class PrintDocComponent {
-  @Input() response: PrintDocRequest[] | null = null; // Dane do wysłania w payloadzie
+  @Input() response: PrintDocRequest[] | null = null;
 
-  constructor(private printDocService: PrintDocService) {
+  constructor(
+    private printDocService: PrintDocService,
+    private toast: ToastService
+  ) {
   }
 
-  // Metoda do pobierania pliku Excel
-  // TODO(CODEX): To wygląda jak legacy-owy, bardzo wąski wrapper używany tylko przez alone-cabinet. Metoda ignoruje przekazany argument i operuje na this.response, a przy błędzie loguje tylko do konsoli bez żadnej informacji dla użytkownika. Warto uprościć API komponentu albo włączyć go w nowszy, wspólny mechanizm eksportu plików.
-  downloadExcel(response: PrintDocRequest[] | null) {
-    if (response && this.response) {
-      this.printDocService.downloadExcel(this.response).subscribe({
-        next: (response) => {
-          // Tworzenie linku do pobrania pliku
-          const url = window.URL.createObjectURL(response);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'szafka.xlsx';
-          a.click();
-          window.URL.revokeObjectURL(url);
-        },
-        error: (err) => {
-          console.error('Błąd podczas pobierania Excela:', err);
-        }
-      });
+  downloadExcel(): void {
+    if (!this.response?.length) {
+      return;
     }
+
+    this.printDocService.downloadExcel(this.response).subscribe({
+      next: () => this.toast.success('Plik Excel został pobrany.'),
+      error: () => this.toast.error('Błąd podczas pobierania pliku Excel.')
+    });
   }
 }

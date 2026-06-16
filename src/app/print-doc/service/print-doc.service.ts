@@ -1,28 +1,34 @@
-import {Injectable} from '@angular/core';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {Observable} from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { PrintDocRequest } from '../../alone-cabinet/model/cabinet-form.model';
+import { ExcelRowRequest, ExcelService } from '../../kitchen/service/excel.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PrintDocService {
 
-  private excelUrl = `${environment.apiUrl}/download/excel`;
-
-  constructor(private http: HttpClient) {
-
+  constructor(private excelService: ExcelService) {
   }
 
-  // Metoda do pobierania pliku Excel
-  // TODO(CODEX): Ten serwis dubluje odpowiedzialność z kitchen/service/excel.service.ts i jest dodatkowo związany z modelem z alone-cabinet. To zwiększa koszt utrzymania dwóch ścieżek eksportu do tego samego endpointu. Warto rozważyć wspólny serwis eksportu albo jasne odseparowanie przypadków użycia.
-  downloadExcel(data: PrintDocRequest[]): Observable<Blob> {
+  downloadExcel(data: PrintDocRequest[]): Observable<void> {
+    return this.excelService.downloadBoardList(this.mapToExcelRows(data), 'szafka.xlsx');
+  }
 
-    const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-
-    return this.http.post(this.excelUrl, data, {responseType: 'blob'});
+  private mapToExcelRows(data: PrintDocRequest[]): ExcelRowRequest[] {
+    return data.map((row, index): ExcelRowRequest => ({
+      lp: index + 1,
+      quantity: row.quantity,
+      symbol: row.symbol,
+      thickness: row.thickness,
+      length: row.length,
+      lengthVeneer: row.lengthVeneer ?? 0,
+      width: row.width,
+      widthVeneer: row.widthVeneer ?? 0,
+      veneerColor: row.veneerColor ?? '',
+      sticker: row.sticker,
+      remarks: row.remarks ?? '',
+      veneerEdgeLabel: ''
+    }));
   }
 }

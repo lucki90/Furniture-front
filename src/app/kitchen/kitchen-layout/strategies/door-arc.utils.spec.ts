@@ -52,6 +52,41 @@ describe('door-arc.utils', () => {
         height: 30
       });
     });
+
+    it('wyznacza krótszy łuk po okręgu dla lewych zawiasów i kąta poniżej 90°', () => {
+      const arc = calculateDoorArc(buildFront({ hingesSide: 'LEFT' }), 60);
+
+      expect(arc).not.toBeNull();
+      expect(arc!.pathD).toBe('M 40.0,60.0 A 30.0,30.0 0 0 0 25.0,34.0 L 10.0,60.0 Z');
+      expect(arc!.arcBoundingBox.x).toBe(10);
+      expect(arc!.arcBoundingBox.y).toBeCloseTo(34.019, 3);
+      expect(arc!.arcBoundingBox.width).toBe(30);
+      expect(arc!.arcBoundingBox.height).toBeCloseTo(25.981, 3);
+    });
+
+    it('wyznacza krótszy łuk po okręgu dla prawych zawiasów i kąta poniżej 90°', () => {
+      const arc = calculateDoorArc(buildFront({ hingesSide: 'RIGHT' }), 60);
+
+      expect(arc).not.toBeNull();
+      expect(arc!.pathD).toBe('M 10.0,60.0 A 30.0,30.0 0 0 1 25.0,34.0 L 40.0,60.0 Z');
+      expect(arc!.arcBoundingBox.x).toBe(10);
+      expect(arc!.arcBoundingBox.y).toBeCloseTo(34.019, 3);
+      expect(arc!.arcBoundingBox.width).toBe(30);
+      expect(arc!.arcBoundingBox.height).toBeCloseTo(25.981, 3);
+    });
+
+    it('ogranicza kąt otwarcia do maksymalnie 90°', () => {
+      const arc = calculateDoorArc(buildFront({ hingesSide: 'LEFT' }), 135);
+
+      expect(arc).not.toBeNull();
+      expect(arc!.pathD).toBe('M 40.0,60.0 A 30.0,30.0 0 0 0 10.0,30.0 L 10.0,60.0 Z');
+      expect(arc!.arcBoundingBox).toEqual({
+        x: 10,
+        y: 30,
+        width: 30,
+        height: 30
+      });
+    });
   });
 
   describe('detectArcCollisions', () => {
