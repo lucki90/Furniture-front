@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../core/auth/auth.service';
+import { ErrorTranslationService } from '../core/error/error-translation.service';
 
 @Component({
   selector: 'app-register',
@@ -22,12 +23,10 @@ export class RegisterComponent {
   errorMessage = '';
   isLoading = false;
 
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router
-  ) {}
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly errorTranslation = inject(ErrorTranslationService);
 
-  // TODO(CODEX): Rejestracja ma własne, ręczne reguły walidacji i zwraca surowe err.error?.message zamiast korzystać ze spójnego tłumaczenia/obsługi błędów jak login i reszta aplikacji. To grozi niespójnym UX oraz mieszaniem komunikatów backendowych z frontendowymi. Warto ujednolicić ten ekran z login/core error handling.
   onSubmit(): void {
     if (!this.email || !this.password || !this.confirmPassword) {
       this.errorMessage = 'Wypełnij wymagane pola';
@@ -58,8 +57,16 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Błąd rejestracji. Spróbuj ponownie.';
+        this.errorMessage = this.translateRegisterError(err);
       }
     });
+  }
+
+  private translateRegisterError(err: unknown): string {
+    const apiError = this.errorTranslation.extractApiError(err);
+    if (apiError) {
+      return this.errorTranslation.translateApiError(apiError)[0]?.message ?? 'Błąd rejestracji. Spróbuj ponownie.';
+    }
+    return 'Błąd rejestracji. Spróbuj ponownie.';
   }
 }

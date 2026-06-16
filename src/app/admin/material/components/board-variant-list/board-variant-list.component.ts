@@ -93,14 +93,7 @@ export class BoardVariantListComponent implements OnInit {
     });
   }
 
-  /**
-   * Resolve display name: translation -> colorName -> colorCode.
-   *
-   * TODO: Translacja koloru (zmiana jezyka) nie dziala dla istniejacych wariantow z kilku powodow:
-   * 1. Wiele wariantow w DB nie ma translationKey, wiec komponent spada do colorName/colorCode.
-   * 2. Nawet przy ustawionym translationKey musi istniec wpis w tabeli translation dla danego jezyka.
-   * 3. Kategoria pobierania musi pasowac do prefixu klucza, np. BOARD_VARIANT.* albo MATERIAL.*.
-   */
+  // Fallback do colorName/colorCode gdy wariant nie ma translationKey w DB (data-quality issue, nie błąd kodu).
   getColorDisplay(variant: BoardVariantAdminResponse): string {
     const translations = this.translations();
     if (variant.translationKey && translations[variant.translationKey]) {
@@ -133,7 +126,7 @@ export class BoardVariantListComponent implements OnInit {
         this.loading.set(false);
       },
       error: err => {
-        this.toast.error('Blad podczas ladowania wariantow plyt');
+        this.toast.error('Błąd podczas ładowania wariantów płyt');
         this.loading.set(false);
         console.error('Error loading board variants:', err);
       }
@@ -167,7 +160,7 @@ export class BoardVariantListComponent implements OnInit {
     ).subscribe(result => {
       if (result) {
         this.loadVariants();
-        this.toast.success('Import zakonczony pomyslnie');
+        this.toast.success('Import zakończony pomyślnie');
       }
     });
   }
@@ -183,7 +176,7 @@ export class BoardVariantListComponent implements OnInit {
     ).subscribe(result => {
       if (result) {
         this.loadVariants();
-        this.toast.success('Wariant plyty zostal dodany');
+        this.toast.success('Wariant płyty został dodany');
       }
     });
   }
@@ -199,14 +192,14 @@ export class BoardVariantListComponent implements OnInit {
     ).subscribe(result => {
       if (result) {
         this.loadVariants();
-        this.toast.success('Wariant plyty zostal zaktualizowany');
+        this.toast.success('Wariant płyty został zaktualizowany');
       }
     });
   }
 
   onDelete(variant: BoardVariantAdminResponse): void {
     this.confirmDialog.confirm({
-      message: `Czy na pewno chcesz usunac wariant "${variant.materialCode} ${variant.thicknessMm}mm ${variant.colorCode}"?`,
+      message: `Czy na pewno chcesz usunąć wariant "${variant.materialCode} ${variant.thicknessMm}mm ${variant.colorCode}"?`,
       confirmText: 'Tak'
     }).pipe(
       filter(Boolean),
@@ -215,10 +208,10 @@ export class BoardVariantListComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.loadVariants();
-        this.toast.success('Wariant plyty zostal usuniety');
+        this.toast.success('Wariant płyty został usunięty');
       },
       error: err => {
-        this.toast.error('Blad podczas usuwania wariantu');
+        this.toast.error('Błąd podczas usuwania wariantu');
         console.error('Error deleting board variant:', err);
       }
     });

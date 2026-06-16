@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
 import { BoardPriceService, BoardPrice, CreateBoardPrice } from '../board-price.service';
 import { MaterialOption } from '../../admin/material/model/material-variant.model';
+import { ToastService } from '../../core/error/toast.service';
 
 /**
  * Sekcja "Cennik płyt" wydzielona z SettingsComponent (R.2.3).
@@ -38,6 +39,7 @@ export class BoardPricesSectionComponent implements OnInit {
   @Output() boardPricesChanged = new EventEmitter<BoardPrice[]>();
 
   private boardPriceService = inject(BoardPriceService);
+  private toast = inject(ToastService);
 
   // ── State ────────────────────────────────────────────────────────────────────
 
@@ -245,6 +247,7 @@ export class BoardPricesSectionComponent implements OnInit {
       },
       error: () => {
         this.bulkSaving = false;
+        this.toast.error('Błąd podczas aktualizacji cen.');
       }
     });
   }
@@ -266,6 +269,7 @@ export class BoardPricesSectionComponent implements OnInit {
       },
       error: () => {
         this.deactivatingSelected = false;
+        this.toast.error('Błąd podczas dezaktywacji płyt.');
       }
     });
   }
@@ -284,6 +288,7 @@ export class BoardPricesSectionComponent implements OnInit {
       },
       error: () => {
         this.deletingBoardId = null;
+        this.toast.error('Błąd podczas usuwania płyty.');
       }
     });
   }
@@ -359,7 +364,6 @@ export class BoardPricesSectionComponent implements OnInit {
     this.editingBoardId = null;
   }
 
-  // TODO(CODEX): W tej sekcji obsługa błędów jest nierówna: edit, import CSV i pobieranie szablonu w części scenariuszy tylko gaszą loading albo kończą się bez żadnego komunikatu dla użytkownika. To psuje UX i utrudnia diagnostykę, bo część operacji zachowuje się jakby "nic się nie stało". Warto ujednolicić feedback błędów z resztą ustawień/core error handling.
   submitEditBoard(bp: BoardPrice): void {
     this.editBoardSaving = true;
     this.boardPriceService.update(bp.id, {
@@ -375,6 +379,7 @@ export class BoardPricesSectionComponent implements OnInit {
       },
       error: () => {
         this.editBoardSaving = false;
+        this.toast.error('Błąd podczas zapisywania ceny płyty.');
       }
     });
   }
@@ -390,6 +395,9 @@ export class BoardPricesSectionComponent implements OnInit {
         a.download = 'board_prices_template.csv';
         a.click();
         URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.toast.error('Błąd podczas pobierania szablonu CSV.');
       }
     });
   }
@@ -418,6 +426,7 @@ export class BoardPricesSectionComponent implements OnInit {
       },
       error: () => {
         this.csvImporting = false;
+        this.toast.error('Błąd podczas importu CSV.');
         input.value = '';
       }
     });

@@ -24,10 +24,16 @@ export class LoginComponent {
   private readonly router = inject(Router);
   private readonly errorTranslation = inject(ErrorTranslationService);
 
-  // TODO(CODEX): Ten ekran logowania ma bardzo uproszczoną walidację i własny, ręcznie składany flow błędów. Brakuje choćby walidacji formatu email przed requestem i spójności z centralnym podejściem do formularzy/błędów używanym w nowszych częściach aplikacji. Przy dalszym rozwoju warto przenieść to na Reactive Forms i wspólny mechanizm obsługi błędów auth.
+  private readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   onSubmit(): void {
     if (!this.email || !this.password) {
       this.errorMessage = 'Wypełnij wszystkie pola';
+      return;
+    }
+
+    if (!this.EMAIL_REGEX.test(this.email)) {
+      this.errorMessage = 'Podaj prawidłowy adres email';
       return;
     }
 
@@ -48,8 +54,7 @@ export class LoginComponent {
   private translateLoginError(err: unknown): string {
     const apiError = this.errorTranslation.extractApiError(err);
     if (apiError) {
-      const translated = this.errorTranslation.translateApiError(apiError);
-      return translated[0]?.message ?? 'Nieprawidłowy email lub hasło';
+      return this.errorTranslation.translateApiError(apiError)[0]?.message ?? 'Nieprawidłowy email lub hasło';
     }
     return 'Nieprawidłowy email lub hasło';
   }

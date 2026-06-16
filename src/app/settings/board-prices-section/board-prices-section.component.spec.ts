@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { BoardPricesSectionComponent } from './board-prices-section.component';
 import { BoardPriceService, BoardPrice } from '../board-price.service';
+import { ToastService } from '../../core/error/toast.service';
 
 function makeBoardPrice(
   id: number,
@@ -34,16 +35,21 @@ describe('BoardPricesSectionComponent', () => {
   let component: BoardPricesSectionComponent;
   let fixture: ComponentFixture<BoardPricesSectionComponent>;
   let serviceSpy: jasmine.SpyObj<BoardPriceService>;
+  let toastSpy: jasmine.SpyObj<ToastService>;
 
   beforeEach(async () => {
     serviceSpy = jasmine.createSpyObj('BoardPriceService', [
       'list', 'create', 'update', 'deactivate', 'deactivateBulk', 'downloadTemplate', 'importCsv'
     ]);
+    toastSpy = jasmine.createSpyObj('ToastService', ['error', 'success', 'warning']);
     serviceSpy.list.and.returnValue(of([OWN_1, OWN_2, GLOBAL_3]));
 
     await TestBed.configureTestingModule({
       imports: [BoardPricesSectionComponent],
-      providers: [{ provide: BoardPriceService, useValue: serviceSpy }],
+      providers: [
+        { provide: BoardPriceService, useValue: serviceSpy },
+        { provide: ToastService, useValue: toastSpy },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(BoardPricesSectionComponent);
@@ -484,6 +490,54 @@ describe('BoardPricesSectionComponent', () => {
       component.loadBoardPrices();
 
       expect(component.distinctThicknesses).toEqual([18, 22]);
+    });
+  });
+
+  describe('error feedback (toast)', () => {
+    it('shows toast on deleteBoard error', () => {
+      serviceSpy.deactivate.and.returnValue(throwError(() => new Error('err')));
+      component.deleteBoard(OWN_1.id);
+      expect(toastSpy.error).toHaveBeenCalledWith('Błąd podczas usuwania płyty.');
+    });
+
+    it('shows toast on deactivateSelected error', () => {
+      serviceSpy.deactivateBulk.and.returnValue(throwError(() => new Error('err')));
+      component.toggleBoardSelection(OWN_1.id);
+      component.deactivateSelected();
+      expect(toastSpy.error).toHaveBeenCalledWith('Błąd podczas dezaktywacji płyt.');
+    });
+
+    it('shows toast on submitEditBoard error', () => {
+      serviceSpy.update.and.returnValue(throwError(() => new Error('err')));
+      component.startEditBoard(OWN_1);
+      component.submitEditBoard(OWN_1);
+      expect(toastSpy.error).toHaveBeenCalledWith('Błąd podczas zapisywania ceny płyty.');
+    });
+
+    it('shows toast on submitBulkForSelected error', () => {
+      serviceSpy.update.and.returnValue(throwError(() => new Error('err')));
+      component.toggleBoardSelection(OWN_1.id);
+      component.bulkPrice = 50;
+      component.submitBulkForSelected();
+      expect(toastSpy.error).toHaveBeenCalledWith('Błąd podczas aktualizacji cen.');
+    });
+
+    it('shows toast on downloadCsvTemplate error', () => {
+      serviceSpy.downloadTemplate.and.returnValue(throwError(() => new Error('err')));
+      component.downloadCsvTemplate();
+      expect(toastSpy.error).toHaveBeenCalledWith('Błąd podczas pobierania szablonu CSV.');
+    });
+
+    it('shows toast on onCsvFileSelected error', () => {
+      serviceSpy.importCsv.and.returnValue(throwError(() => new Error('err')));
+      const mockFile = new File(['col1,col2\nval1,val2'], 'prices.csv', { type: 'text/csv' });
+      const mockInput = { files: [mockFile], value: '' } as unknown as HTMLInputElement;
+      const mockEvent = { target: mockInput } as unknown as Event;
+
+      component.onCsvFileSelected(mockEvent);
+
+      expect(component.csvImporting).toBeFalse();
+      expect(toastSpy.error).toHaveBeenCalledWith('Błąd podczas importu CSV.');
     });
   });
 });
