@@ -100,7 +100,8 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
           provide: KitchenProjectTransitionGuardService,
           useValue: {
             openSaveProjectDialogAndPersist: jasmine.createSpy('openSaveProjectDialogAndPersist'),
-            confirmUnsavedAndProceed: () => {}
+            confirmUnsavedAndProceed: () => {},
+            isTransitioning: signal(false).asReadonly()
           }
         }
       ]

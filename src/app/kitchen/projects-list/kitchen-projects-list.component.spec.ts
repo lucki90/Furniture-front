@@ -1,3 +1,4 @@
+import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
@@ -38,6 +39,7 @@ describe('KitchenProjectsListComponent - klonowanie i przejscia projektu', () =>
   let fixture: ComponentFixture<KitchenProjectsListComponent>;
   let kitchenService: jasmine.SpyObj<KitchenService>;
   let transitionGuard: jasmine.SpyObj<KitchenProjectTransitionGuardService>;
+  let transitionInProgress: WritableSignal<boolean>;
   let stateService: jasmine.SpyObj<KitchenStateService>;
   let router: Router;
 
@@ -46,6 +48,10 @@ describe('KitchenProjectsListComponent - klonowanie i przejscia projektu', () =>
     transitionGuard = jasmine.createSpyObj('KitchenProjectTransitionGuardService', [
       'confirmUnsavedAndProceed'
     ]);
+    transitionInProgress = signal(false);
+    Object.assign(transitionGuard, {
+      isTransitioning: transitionInProgress.asReadonly()
+    });
     transitionGuard.confirmUnsavedAndProceed.and.callFake((_targetLabel, hooks) => {
       hooks.onProceed();
     });
@@ -82,6 +88,24 @@ describe('KitchenProjectsListComponent - klonowanie i przejscia projektu', () =>
     expect(stateService.loadProject).toHaveBeenCalledWith(CLONED);
     expect(navigate).toHaveBeenCalledWith(['/kitchen'], { queryParams: { projectId: 99 } });
     expect(component.cloningProjectId).toBeNull();
+  });
+
+  it('blokuje akcje zmiany projektu, gdy inny entry-point prowadzi przejście', () => {
+    component.projects = [PROJECT];
+    component.filteredAndSortedProjects = [PROJECT];
+    transitionInProgress.set(true);
+    fixture.detectChanges();
+
+    const buttons = Array.from<HTMLButtonElement>(
+      fixture.nativeElement.querySelectorAll('button')
+    );
+    const newProjectButton = buttons.find(button => button.textContent?.includes('Nowy projekt'));
+    const openButton = buttons.find(button => button.textContent?.includes('Otworz'));
+    const cloneButton = buttons.find(button => button.textContent?.includes('Klonuj'));
+
+    expect(newProjectButton?.disabled).toBeTrue();
+    expect(openButton?.disabled).toBeTrue();
+    expect(cloneButton?.disabled).toBeTrue();
   });
 
   it('po bledzie ustawia komunikat i czysci cloningProjectId', () => {

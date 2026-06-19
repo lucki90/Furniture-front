@@ -18,7 +18,7 @@
     [isChangingStatus]="isChangingStatus"
     [isEditingCabinet]="editingCabinetId !== null"
     [isProjectsDrawerOpen]="isProjectsDrawerOpen"
-    [isSavingProject]="isSavingProject"
+    [isSavingProject]="isSavingProject || projectTransitionInProgress()"
     [projectDisplayName]="currentProjectName() || 'Nowy projekt kuchni'"
     [projectId]="currentProjectId()"
     [projectStatusColor]="currentProjectStatusColor"
@@ -142,7 +142,7 @@
     [editingCabinetId]="editingCabinetId"
     [isCalculatingProject]="isCalculatingProject"
     [isExporting]="isExporting"
-    [isSavingProject]="isSavingProject"
+    [isSavingProject]="isSavingProject || projectTransitionInProgress()"
     [projectResult]="projectResult"
     [totalCabinetCount]="totalCabinetCount()"
     [wallsCount]="walls().length">
@@ -153,7 +153,7 @@
     (createProjectRequested)="createNewProjectFromDrawer()"
     (openProjectRequested)="openProjectFromDrawer($event)"
     [currentProjectId]="currentProjectId()"
-    [isTransitioning]="isSavingProject || openingProjectFromDrawerId !== null"
+    [isTransitioning]="projectTransitionInProgress() || isSavingProject || openingProjectFromDrawerId !== null"
     [open]="isProjectsDrawerOpen"
     [openingProjectId]="openingProjectFromDrawerId">
   </app-kitchen-projects-drawer>

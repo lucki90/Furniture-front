@@ -45,6 +45,7 @@ export class KitchenProjectsListComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly currentProjectId = this.stateService.currentProjectId;
+  readonly projectTransitionInProgress = this.projectTransitionGuard.isTransitioning;
   readonly cancelledFlowStepStyles = CANCELLED_FLOW_STEP;
 
   projects: KitchenProjectListResponse[] = [];

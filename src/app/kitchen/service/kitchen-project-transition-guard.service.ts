@@ -1,5 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { finalize } from 'rxjs/operators';
 import { ApiErrorHandler } from '../../core/error/api-error-handler.service';
 import { ToastService } from '../../core/error/toast.service';
 import { DIALOG_WIDTH } from '../../shared/constants/dialog.constants';
@@ -19,18 +20,23 @@ export interface KitchenProjectTransitionHooks {
 
 @Injectable({ providedIn: 'root' })
 export class KitchenProjectTransitionGuardService {
-  // TODO(CODEX): If more entry points can trigger project transitions in parallel,
-  // promote this local save-state callback pattern to a shared transition lock/signal
-  // so drawers, legacy project list and future overlays can all disable actions consistently.
   private readonly stateService = inject(KitchenStateService);
   private readonly dialog = inject(MatDialog);
   private readonly workflowFacade = inject(KitchenProjectWorkflowFacade);
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ApiErrorHandler);
+  private readonly transitionLocked = signal(false);
+
+  /** Wspólny stan blokady dla wszystkich entry-pointów zmieniających aktualny projekt. */
+  readonly isTransitioning = this.transitionLocked.asReadonly();
 
   confirmUnsavedAndProceed(targetLabel: string, hooks: KitchenProjectTransitionHooks): void {
+    if (!this.acquireTransitionLock()) {
+      return;
+    }
+
     if (!this.stateService.hasUnsavedChanges()) {
-      hooks.onProceed();
+      this.proceedAndRelease(hooks.onProceed);
       return;
     }
 
@@ -41,12 +47,12 @@ export class KitchenProjectTransitionGuardService {
 
     dialogRef.afterClosed().subscribe((decision: UnsavedChangesDecision | undefined) => {
       if (decision === 'discard') {
-        hooks.onProceed();
+        this.proceedAndRelease(hooks.onProceed);
         return;
       }
 
       if (decision === 'save') {
-        this.openSaveProjectDialogAndPersist({
+        this.openSaveProjectDialogAndPersistInternal({
           onSuccess: hooks.onProceed,
           onSavingChange: hooks.onSavingChange,
           onCancel: () => {
@@ -54,11 +60,26 @@ export class KitchenProjectTransitionGuardService {
             this.toast.info('Anulowano zapis - projekt nie został przełączony.');
           }
         });
+        return;
       }
+
+      this.releaseTransitionLock();
     });
   }
 
   openSaveProjectDialogAndPersist(options?: {
+    onSuccess?: () => void;
+    onSavingChange?: (isSaving: boolean) => void;
+    onCancel?: () => void;
+  }): void {
+    if (!this.acquireTransitionLock()) {
+      return;
+    }
+
+    this.openSaveProjectDialogAndPersistInternal(options);
+  }
+
+  private openSaveProjectDialogAndPersistInternal(options?: {
     onSuccess?: () => void;
     onSavingChange?: (isSaving: boolean) => void;
     onCancel?: () => void;
@@ -79,11 +100,21 @@ export class KitchenProjectTransitionGuardService {
 
     dialogRef.afterClosed().subscribe((result: SaveProjectDialogResult | undefined) => {
       if (!result) {
+        this.releaseTransitionLock();
         options?.onCancel?.();
         return;
       }
 
       options?.onSavingChange?.(true);
+      let savingFinished = false;
+      const finishSaving = (): void => {
+        if (savingFinished) {
+          return;
+        }
+        savingFinished = true;
+        options?.onSavingChange?.(false);
+        this.releaseTransitionLock();
+      };
 
       this.workflowFacade.saveProject(this.stateService.currentProjectId(), result, {
         buildCreateRequest: dialogResult => this.stateService.buildMultiWallProjectRequest(
@@ -100,7 +131,9 @@ export class KitchenProjectTransitionGuardService {
           dialogResult.clientPhone,
           dialogResult.clientEmail
         )
-      }).subscribe({
+      }).pipe(
+        finalize(finishSaving)
+      ).subscribe({
         next: ({ projectInfo, successMessage }) => {
           this.stateService.setProjectInfo(
             projectInfo.id,
@@ -114,16 +147,34 @@ export class KitchenProjectTransitionGuardService {
             projectInfo.clientEmail
           );
           this.stateService.markProjectAsClean();
-          options?.onSavingChange?.(false);
           this.toast.success(successMessage);
+          finishSaving();
           options?.onSuccess?.();
         },
         error: err => {
           console.error('Error saving project:', err);
-          options?.onSavingChange?.(false);
+          finishSaving();
           this.errorHandler.handle(err);
         }
       });
     });
+  }
+
+  private acquireTransitionLock(): boolean {
+    if (this.transitionLocked()) {
+      return false;
+    }
+
+    this.transitionLocked.set(true);
+    return true;
+  }
+
+  private releaseTransitionLock(): void {
+    this.transitionLocked.set(false);
+  }
+
+  private proceedAndRelease(onProceed: () => void): void {
+    this.releaseTransitionLock();
+    onProceed();
   }
 }

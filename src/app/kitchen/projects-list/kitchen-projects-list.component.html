@@ -20,7 +20,13 @@
       </div>
 
       <button (click)="loadProjects()" class="btn btn-outline" type="button">Odswiez</button>
-      <button (click)="createNewProject()" class="btn btn-primary" type="button">Nowy projekt</button>
+      <button
+        (click)="createNewProject()"
+        [disabled]="projectTransitionInProgress()"
+        class="btn btn-primary"
+        type="button">
+        Nowy projekt
+      </button>
     </div>
   </header>
 
@@ -162,7 +168,13 @@
             <div aria-hidden="true" class="projects-state__icon">&#128193;</div>
             <h3>Brak projektow</h3>
             <p>Nie masz jeszcze zadnych zapisanych projektow kuchni.</p>
-            <button (click)="createNewProject()" class="btn btn-primary" type="button">Utworz pierwszy projekt</button>
+            <button
+              (click)="createNewProject()"
+              [disabled]="projectTransitionInProgress()"
+              class="btn btn-primary"
+              type="button">
+              Utworz pierwszy projekt
+            </button>
           </div>
 
           <div *ngIf="!loading && !error && projects.length > 0 && filteredAndSortedProjects.length === 0"
@@ -230,14 +242,14 @@
               <div class="project-card__actions">
                 <button
                   (click)="openProject(project.id)"
-                  [disabled]="isCurrentProject(project.id)"
+                  [disabled]="isCurrentProject(project.id) || projectTransitionInProgress()"
                   class="btn btn-primary btn-sm project-card__open-btn"
                   type="button">
                   {{ isCurrentProject(project.id) ? 'Aktualny' : 'Otworz' }}
                 </button>
                 <button
                   (click)="cloneProject(project.id)"
-                  [disabled]="cloningProjectId === project.id"
+                  [disabled]="cloningProjectId === project.id || projectTransitionInProgress()"
                   class="btn btn-outline btn-sm"
                   type="button">
                   {{ cloningProjectId === project.id ? 'Klonuje...' : 'Klonuj' }}

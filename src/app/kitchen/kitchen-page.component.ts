@@ -102,6 +102,8 @@ export class KitchenPageComponent {
   private destroyRef = inject(DestroyRef);
   private projectTransitionGuard = inject(KitchenProjectTransitionGuardService);
 
+  readonly projectTransitionInProgress = this.projectTransitionGuard.isTransitioning;
+
   // Single cabinet calculation result shown in the sidebar detail panel
   // (not the same as projectResult which is a multi-wall aggregation)
   result: CabinetResponse | null = null;
@@ -471,7 +473,7 @@ export class KitchenPageComponent {
   }
 
   createNewProjectFromDrawer(): void {
-    if (this.isSavingProject || this.openingProjectFromDrawerId !== null) {
+    if (this.projectTransitionInProgress() || this.isSavingProject || this.openingProjectFromDrawerId !== null) {
       return;
     }
     this.projectTransitionGuard.confirmUnsavedAndProceed('utwórz nowy projekt', {
@@ -488,7 +490,12 @@ export class KitchenPageComponent {
   }
 
   openProjectFromDrawer(projectId: number): void {
-    if (projectId === this.currentProjectId() || this.isSavingProject || this.openingProjectFromDrawerId !== null) {
+    if (
+      projectId === this.currentProjectId()
+      || this.projectTransitionInProgress()
+      || this.isSavingProject
+      || this.openingProjectFromDrawerId !== null
+    ) {
       return;
     }
 
@@ -719,4 +726,3 @@ export class KitchenPageComponent {
     });
   }
 }
-
