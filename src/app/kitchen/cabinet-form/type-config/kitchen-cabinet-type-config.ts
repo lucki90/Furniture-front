@@ -1,16 +1,12 @@
 import {KitchenCabinetType} from "../model/kitchen-cabinet-type";
-import {BaseTwoDoorCabinetPreparer} from "../types/base-two-doors/base-two-door-cabinet-preparer";
 import {BaseTwoDoorCabinetValidator} from "../types/base-two-doors/base-two-door-cabinet-validator";
-import {BaseOneDoorCabinetPreparer} from "../types/base-one-door/base-one-door-cabinet-preparer";
 import {BaseOneDoorCabinetValidator} from "../types/base-one-door/base-one-door-cabinet-validator";
-import {BaseOneDoorRequestMapper} from "../types/base-one-door/base-one-door-request-mapper";
 import {BaseOpenCabinetPreparer} from "../types/base-open/base-open-cabinet-preparer";
 import {BaseOpenCabinetValidator} from "../types/base-open/base-open-cabinet-validator";
 import {BaseOpenRequestMapper} from "../types/base-open/base-open-request-mapper";
 import {PantryPassageCabinetPreparer} from "../types/pantry-passage/pantry-passage-cabinet-preparer";
 import {PantryPassageCabinetValidator} from "../types/pantry-passage/pantry-passage-cabinet-validator";
 import {PantryPassageRequestMapper} from "../types/pantry-passage/pantry-passage-request-mapper";
-import {BaseTwoDoorRequestMapper} from "../types/base-two-doors/base-two-door-request-mapper";
 import {BaseWithDrawersCabinetPreparer} from "../types/base-with-drawers/base-with-drawers-cabinet-preparer";
 import {BaseWithDrawersCabinetValidator} from "../types/base-with-drawers/base-with-drawers-cabinet-validator";
 import {BaseWithDrawersRequestMapper} from "../types/base-with-drawers/base-with-drawers-request-mapper";
@@ -23,15 +19,11 @@ import {TallCabinetRequestMapper} from "../types/tall-cabinet/tall-cabinet-reque
 import {CornerCabinetPreparer} from "../types/corner-cabinet/corner-cabinet-preparer";
 import {CornerCabinetValidator} from "../types/corner-cabinet/corner-cabinet-validator";
 import {CornerCabinetRequestMapper} from "../types/corner-cabinet/corner-cabinet-request-mapper";
-import {UpperOneDoorCabinetPreparer} from "../types/upper-one-door/upper-one-door-cabinet-preparer";
 import {UpperOneDoorCabinetValidator} from "../types/upper-one-door/upper-one-door-cabinet-validator";
-import {UpperOneDoorRequestMapper} from "../types/upper-one-door/upper-one-door-request-mapper";
 import {UpperLiftUpCabinetPreparer} from "../types/upper-lift-up/upper-lift-up-cabinet-preparer";
 import {UpperLiftUpCabinetValidator} from "../types/upper-lift-up/upper-lift-up-cabinet-validator";
 import {UpperLiftUpRequestMapper} from "../types/upper-lift-up/upper-lift-up-request-mapper";
-import {UpperTwoDoorCabinetPreparer} from "../types/upper-two-door/upper-two-door-cabinet-preparer";
 import {UpperTwoDoorCabinetValidator} from "../types/upper-two-door/upper-two-door-cabinet-validator";
-import {UpperTwoDoorRequestMapper} from "../types/upper-two-door/upper-two-door-request-mapper";
 import {UpperOpenShelfCabinetPreparer} from "../types/upper-open-shelf/upper-open-shelf-cabinet-preparer";
 import {UpperOpenShelfCabinetValidator} from "../types/upper-open-shelf/upper-open-shelf-cabinet-validator";
 import {UpperOpenShelfRequestMapper} from "../types/upper-open-shelf/upper-open-shelf-request-mapper";
@@ -68,12 +60,18 @@ import {BaseFridgeFreestandingRequestMapper} from "../types/base-fridge/base-fri
 import {UpperDrainerCabinetPreparer} from "../types/upper-drainer/upper-drainer-cabinet-preparer";
 import {UpperDrainerCabinetValidator} from "../types/upper-drainer/upper-drainer-cabinet-validator";
 import {UpperDrainerRequestMapper} from "../types/upper-drainer/upper-drainer-request-mapper";
+import {createSimpleDoorPreparer} from "./preparer/cabinet-preparer.utils";
+import {createSimpleDoorRequestMapper} from "./request-mapper/abstract-cabinet-request-mapper";
 
 export const KitchenCabinetTypeConfig = {
   [KitchenCabinetType.BASE_ONE_DOOR]: {
-    preparer: new BaseOneDoorCabinetPreparer(),
+    preparer: createSimpleDoorPreparer({ level: 'BASE', width: 400 }),
     validator: new BaseOneDoorCabinetValidator(),
-    requestMapper: new BaseOneDoorRequestMapper()
+    requestMapper: createSimpleDoorRequestMapper({
+      kitchenCabinetType: 'BASE_ONE_DOOR',
+      frontType: 'ONE_DOOR',
+      level: 'BASE'
+    })
   },
   [KitchenCabinetType.BASE_OPEN]: {
     preparer: new BaseOpenCabinetPreparer(),
@@ -86,9 +84,13 @@ export const KitchenCabinetTypeConfig = {
     requestMapper: new PantryPassageRequestMapper()
   },
   [KitchenCabinetType.BASE_TWO_DOOR]: {
-    preparer: new BaseTwoDoorCabinetPreparer(),
+    preparer: createSimpleDoorPreparer({ level: 'BASE', width: 600 }),
     validator: new BaseTwoDoorCabinetValidator(),
-    requestMapper: new BaseTwoDoorRequestMapper()
+    requestMapper: createSimpleDoorRequestMapper({
+      kitchenCabinetType: 'BASE_TWO_DOOR',
+      frontType: 'TWO_DOORS',
+      level: 'BASE'
+    })
   },
   [KitchenCabinetType.BASE_WITH_DRAWERS]: {
     preparer: new BaseWithDrawersCabinetPreparer(),
@@ -111,9 +113,14 @@ export const KitchenCabinetTypeConfig = {
     requestMapper: new CornerCabinetRequestMapper()
   },
   [KitchenCabinetType.UPPER_ONE_DOOR]: {
-    preparer: new UpperOneDoorCabinetPreparer(),
+    preparer: createSimpleDoorPreparer({ level: 'UPPER', width: 400, resetLiftUp: true }),
     validator: new UpperOneDoorCabinetValidator(),
-    requestMapper: new UpperOneDoorRequestMapper()
+    requestMapper: createSimpleDoorRequestMapper({
+      kitchenCabinetType: 'UPPER_ONE_DOOR',
+      frontType: 'ONE_DOOR',
+      level: 'UPPER',
+      allowLiftUp: true
+    })
   },
   [KitchenCabinetType.UPPER_LIFT_UP]: {
     preparer: new UpperLiftUpCabinetPreparer(),
@@ -121,9 +128,13 @@ export const KitchenCabinetTypeConfig = {
     requestMapper: new UpperLiftUpRequestMapper()
   },
   [KitchenCabinetType.UPPER_TWO_DOOR]: {
-    preparer: new UpperTwoDoorCabinetPreparer(),
+    preparer: createSimpleDoorPreparer({ level: 'UPPER', width: 600 }),
     validator: new UpperTwoDoorCabinetValidator(),
-    requestMapper: new UpperTwoDoorRequestMapper()
+    requestMapper: createSimpleDoorRequestMapper({
+      kitchenCabinetType: 'UPPER_TWO_DOOR',
+      frontType: 'TWO_DOORS',
+      level: 'UPPER'
+    })
   },
   [KitchenCabinetType.UPPER_OPEN_SHELF]: {
     preparer: new UpperOpenShelfCabinetPreparer(),

@@ -1,8 +1,53 @@
-// TODO R.9: Factory function for simple preparers — most preparers differ only in default width
-// (400 vs 600mm) and which extra visibility flags they set. A `createSimplePreparer(defaults)`
-// factory would collapse ~8 near-identical concrete classes into a single parameterised instance.
 import { AbstractControl, FormGroup } from '@angular/forms';
+import { ProjectSettingsConstraints } from '../../model/kitchen-cabinet-constants';
 import { CabinetFormVisibility } from './cabinet-form-visibility';
+import { KitchenCabinetPreparer } from './kitchen-cabinet-preparer';
+
+export interface SimpleDoorPreparerOptions {
+  level: 'BASE' | 'UPPER';
+  width: number;
+  resetLiftUp?: boolean;
+}
+
+/**
+ * Tworzy preparer standardowej szafki drzwiowej.
+ * Warianty jedno- i dwudrzwiowe różnią się wyłącznie szerokością,
+ * natomiast poziom BASE/UPPER określa domyślną głębokość i pozycjonowanie.
+ */
+export function createSimpleDoorPreparer(options: SimpleDoorPreparerOptions): KitchenCabinetPreparer {
+  return {
+    prepare(form: FormGroup, v: CabinetFormVisibility): void {
+      setStandardDoorVisibility(v);
+
+      if (options.level === 'BASE') {
+        setBaseExtraVisibility(v);
+      } else {
+        setUpperExtraVisibility(v, false);
+      }
+
+      form.patchValue({
+        width: options.width,
+        height: 720,
+        depth: options.level === 'BASE' ? 500 : 340,
+        drawerModel: null,
+        drawerQuantity: 0,
+        shelfQuantity: 1,
+        ...(options.level === 'UPPER'
+          ? {
+              positioningMode: 'RELATIVE_TO_CEILING',
+              gapFromCountertopMm: ProjectSettingsConstraints.UPPER_GAP_FROM_COUNTERTOP_DEFAULT,
+              isFrontExtended: false,
+              ...(options.resetLiftUp ? { isLiftUp: false } : {})
+            }
+          : {})
+      });
+
+      setControlEnabled(form.get('drawerQuantity'), false);
+      setControlEnabled(form.get('shelfQuantity'), true);
+      setControlEnabled(form.get('drawerModel'), false);
+    }
+  };
+}
 
 /**
  * Ustawia widoczność pól wspólnych dla wszystkich standardowych szafek
