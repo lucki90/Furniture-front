@@ -121,8 +121,7 @@
 .pre-calc-status-icon,
 .pre-calc-action-icon,
 .warn-banner-icon,
-.summary-strip-status-icon,
-.pricing-action-icon {
+.summary-strip-status-icon {
   width: 14px;
   height: 14px;
   font-size: 14px;
@@ -130,8 +129,7 @@
   flex-shrink: 0;
 }
 
-.pre-calc-action-icon,
-.pricing-action-icon {
+.pre-calc-action-icon {
   margin-right: 2px;
 }
 
@@ -479,30 +477,6 @@
   font-size: 13px;
 }
 
-/* Pricing table — tfoot rows (no sticky needed here since info-content scrolls) */
-.pricing-table {
-  min-width: unset;
-  width: 100%;
-}
-
-.pricing-table tfoot .pricing-sub-row td {
-  padding-top: 8px;
-  border-top: 2px solid var(--border-color);
-}
-
-.pricing-table tfoot .pricing-total-row td {
-  background: var(--accent-color);
-  color: #fff;
-  font-weight: 700;
-  padding: 8px 10px;
-  border-bottom: none;
-}
-
-.pricing-discount {
-  color: var(--error-color);
-  font-weight: 600;
-}
-
 /* ===== Column helpers ===== */
 .col-num {
   text-align: right;
@@ -549,7 +523,6 @@
 }
 
 /* ===== Info panel (right column) ===== */
-/* Flex column so pricing-wrap can use flex:1 to fill height */
 .info-content {
   flex: 1;
   min-height: 0;
@@ -663,137 +636,6 @@
   font-family: var(--font-mono, var(--font-sans));
 }
 
-/* ===== Pricing tab ===== */
-/* Fills info-content height so pricing-editor can expand and buttons sit at bottom */
-.pricing-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.info-loading {
-  padding: 16px;
-  color: var(--text-muted);
-  font-size: 12.5px;
-}
-
-.pricing-manual-note {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: right;
-  padding: 4px 10px 0;
-  margin: 0;
-  flex-shrink: 0;
-}
-
-/* pricing-editor fills remaining space so textarea can grow and buttons end up at the bottom */
-.pricing-editor {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 12px;
-  background: var(--bg-main);
-  border-top: 1px solid var(--border-color);
-}
-
-.pricing-editor-title {
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.pricing-fields {
-  flex-shrink: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.pricing-field label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
-.pricing-field input[type="number"] {
-  width: 100%;
-  padding: 5px 8px;
-  border: 1px solid var(--input-border);
-  border-radius: var(--border-radius-sm);
-  font-size: 12px;
-  font-family: inherit;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  box-sizing: border-box;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.pricing-field input[type="number"]:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(29, 111, 164, 0.12);
-}
-
-/* Textarea fills remaining editor height so pricing-actions end up at the bottom */
-.pricing-notes-field {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 10px;
-}
-
-.pricing-notes-field label {
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--text-muted);
-}
-
-.pricing-notes-field textarea {
-  flex: 1;
-  min-height: 80px;
-  padding: 6px 8px;
-  border: 1px solid var(--input-border);
-  border-radius: var(--border-radius-sm);
-  font-size: 12px;
-  font-family: inherit;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  box-sizing: border-box;
-  resize: none;   /* auto-fills height, no manual resize needed */
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.pricing-notes-field textarea:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(29, 111, 164, 0.12);
-}
-
-.pricing-actions {
-  flex-shrink: 0;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
 /* ===== Responsive ===== */
 @media (max-width: 1100px) {
   .results-grid {
@@ -811,12 +653,6 @@
   .info-content {
     max-height: 480px;
   }
-
-  /* Allow textarea to resize vertically again on mobile */
-  .pricing-notes-field textarea {
-    resize: vertical;
-    min-height: 100px;
-  }
 }
 
 @media (max-width: 700px) {
@@ -824,9 +660,5 @@
     margin-left: 0;
     width: 100%;
     justify-content: flex-start;
-  }
-
-  .pricing-fields {
-    grid-template-columns: 1fr;
   }
 }

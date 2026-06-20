@@ -11,7 +11,6 @@ export interface KitchenPageCalculationViewState {
   aggregatedJobs: AggregatedJob[];
   totalWasteCost: number;
   wasteDetails: AggregatedComponent[];
-  pricing: PricingBreakdown | null;
   pricingWarnings: string[];
 }
 
@@ -31,7 +30,6 @@ export function createEmptyCalculationViewState(): KitchenPageCalculationViewSta
     aggregatedJobs: [],
     totalWasteCost: 0,
     wasteDetails: [],
-    pricing: null,
     pricingWarnings: []
   };
 }
@@ -46,7 +44,6 @@ export function buildCalculationViewState(
     aggregatedJobs: result.aggregation.jobs,
     totalWasteCost: result.aggregation.wasteCost,
     wasteDetails: result.aggregation.wasteDetails,
-    pricing: null,
     pricingWarnings: result.pricingWarnings
   };
 }

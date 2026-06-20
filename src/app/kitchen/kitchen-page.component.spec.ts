@@ -17,6 +17,7 @@ import { ApiErrorHandler } from '../core/error/api-error-handler.service';
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
 import { LanguageService } from '../service/language.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
+import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
 import { EMPTY, of } from 'rxjs';
 
 // Stub dostarcza wszystkie sygnały konsumowane przez KitchenPageComponent.
@@ -183,5 +184,15 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
       sendKey('y', { ctrlKey: true });
       expect(spy).toHaveBeenCalled();
     });
+  });
+
+  it('tworzy osobną instancję serwisu wyceny dla każdej strony kuchni', () => {
+    const firstService = fixture.debugElement.injector.get(KitchenPagePricingService);
+    const secondFixture = TestBed.createComponent(KitchenPageComponent);
+    const secondService = secondFixture.debugElement.injector.get(KitchenPagePricingService);
+
+    expect(secondService).not.toBe(firstService);
+
+    secondFixture.destroy();
   });
 });

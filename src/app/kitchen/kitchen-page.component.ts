@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { AddWallDialogComponent, AddWallDialogData, AddWallDialogResult } from './add-wall-dialog/add-wall-dialog.component';
-import { OfferOptionsDialogComponent } from './offer-options-dialog/offer-options-dialog.component';
 import { KitchenStateService } from './service/kitchen-state.service';
 import { AggregatedBoard, AggregatedComponent, AggregatedJob } from './service/project-details-aggregator.service';
 import { CabinetCalculatedEvent, KitchenCabinet } from './model/kitchen-state.model';
@@ -13,7 +12,6 @@ import { MultiWallCalculateResponse, ProjectStatus, getStatusLabel, getStatusCol
 import { CabinetResponse } from './cabinet-form/model/kitchen-cabinet-form.model';
 import { ToastService } from '../core/error/toast.service';
 import { ApiErrorHandler } from '../core/error/api-error-handler.service';
-import { PricingBreakdown } from './service/project-pricing.service';
 import { LanguageService } from '../service/language.service';
 import {
   calculateAdjustedComponentCost,
@@ -22,7 +20,6 @@ import {
   sumAggregatedComponentsCost,
   sumAggregatedJobsCost
 } from './service/kitchen-project-summary.utils';
-import { KitchenProjectPricingFacade } from './service/kitchen-project-pricing.facade';
 import { KitchenProjectWorkflowFacade } from './service/kitchen-project-workflow.facade';
 import { KitchenProjectExportFacade } from './service/kitchen-project-export.facade';
 import { KitchenProjectStatusFacade } from './service/kitchen-project-status.facade';
@@ -34,7 +31,8 @@ import { KitchenCostsSectionComponent } from './costs-section/kitchen-costs-sect
 import { KitchenPageFooterComponent } from './page-footer/kitchen-page-footer.component';
 import { KitchenProjectsDrawerComponent } from './projects-drawer/kitchen-projects-drawer.component';
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
-import { buildCalculationViewState, buildPricingViewStateFromResult, createEmptyCalculationViewState } from './kitchen-page-view-state';
+import { buildCalculationViewState, createEmptyCalculationViewState } from './kitchen-page-view-state';
+import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
 import { KitchenService } from './service/kitchen.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 
@@ -81,13 +79,13 @@ const MATERIAL_NAMES_PL: Record<string, string> = {
     KitchenCostsSectionComponent,
     KitchenPageFooterComponent,
     KitchenProjectsDrawerComponent
-  ]
+  ],
+  providers: [KitchenPagePricingService]
 })
 export class KitchenPageComponent {
 
-  // TODO(CODEX): This component still coordinates too many screen-level concerns. It is much lighter than before, but project workflow, pricing, export and dialogs can still be separated further into smaller feature services if this screen keeps growing.
   private stateService = inject(KitchenStateService);
-  private pricingFacade = inject(KitchenProjectPricingFacade);
+  protected readonly pricingService = inject(KitchenPagePricingService);
   private projectWorkflowFacade = inject(KitchenProjectWorkflowFacade);
   private projectExportFacade = inject(KitchenProjectExportFacade);
   private projectStatusFacade = inject(KitchenProjectStatusFacade);
@@ -124,22 +122,6 @@ export class KitchenPageComponent {
 
   // Active tab in project details panel
   activeDetailsTab: 'walls' | 'boards' | 'components' | 'jobs' | 'pricing' = 'walls';
-
-  // Wycena projektu
-  pricing: PricingBreakdown | null = null;
-  isPricingLoading = false;
-  isPricingSaving = false;
-  isPdfDownloading = false;
-  private lastOfferOptions: import('./service/project-pricing.service').OfferOptionsRequest = {
-    showCostDetails: true,
-    frontDescription: '',
-    countertopDescription: '',
-    hardwareDescription: 'Blum'
-  };
-  pricingDiscountPct = 0;
-  pricingManualOverrideEnabled = false;
-  pricingManualOverride: number | null = null;
-  pricingOfferNotes = '';
 
   // Aggregated data used by project detail tabs
   aggregatedBoards: AggregatedBoard[] = [];
@@ -564,6 +546,7 @@ export class KitchenPageComponent {
 
     const request = this.stateService.buildMultiWallCalculateRequest();
 
+    this.pricingService.reset();
     this.projectWorkflowFacade.calculateProject(request, this.stateService.walls(), this.bomTranslations).subscribe({
       next: ({ response, aggregation, pricingWarnings }) => {
         Object.assign(this, buildCalculationViewState({ response, aggregation, pricingWarnings }));
@@ -584,6 +567,7 @@ export class KitchenPageComponent {
 
   private resetProjectResult(): void {
     Object.assign(this, createEmptyCalculationViewState());
+    this.pricingService.reset();
     if (this.view === 'costs') {
       this.setView('config');
     }
@@ -602,70 +586,11 @@ export class KitchenPageComponent {
 
   // ============ WYCENA PROJEKTU ============
 
-  loadPricing(): void {
-    const id = this.currentProjectId();
-    if (!id) return;
-    this.isPricingLoading = true;
-    this.pricingFacade.loadPricing(id).subscribe({
-      next: result => {
-        Object.assign(this, buildPricingViewStateFromResult(result));
-        this.isPricingLoading = false;
-      },
-      error: () => {
-        this.isPricingLoading = false;
-      }
-    });
-  }
+  loadPricing(): void { this.pricingService.loadPricing(); }
 
-  savePricing(): void {
-    const id = this.currentProjectId();
-    if (!id) return;
-    this.isPricingSaving = true;
-    this.pricingFacade.savePricing(id, {
-      discountPct: this.pricingDiscountPct,
-      manualOverrideEnabled: this.pricingManualOverrideEnabled,
-      manualOverride: this.pricingManualOverride,
-      offerNotes: this.pricingOfferNotes
-    }).subscribe({
-      next: result => {
-        Object.assign(this, buildPricingViewStateFromResult(result));
-        this.isPricingSaving = false;
-      },
-      error: () => {
-        this.isPricingSaving = false;
-      }
-    });
-  }
+  savePricing(): void { this.pricingService.savePricing(); }
 
-  downloadOfferPdf(): void {
-    const id = this.currentProjectId();
-    if (!id) return;
-
-    // Warn about missing BOM prices, but do not block PDF generation.
-    const priceWarning = this.validateBomPrices();
-    if (priceWarning) {
-      this.toast.warning(priceWarning);
-    }
-
-    const dialogRef = this.dialog.open(OfferOptionsDialogComponent, {
-      width: '480px',
-      data: this.lastOfferOptions
-    });
-    dialogRef.afterClosed().subscribe(options => {
-      if (!options) return; // user cancelled
-      this.lastOfferOptions = options; // persist for next opening
-
-      this.isPdfDownloading = true;
-      this.projectExportFacade.downloadOfferPdf({ projectId: id, options }).subscribe({
-        next: () => {
-          this.isPdfDownloading = false;
-        },
-        error: () => {
-          this.isPdfDownloading = false;
-        }
-      });
-    });
-  }
+  downloadOfferPdf(): void { this.pricingService.downloadOfferPdf(this.validateBomPrices()); }
 
   /** Total project cost with optional waste cost included. */
   get adjustedTotalCost(): number {

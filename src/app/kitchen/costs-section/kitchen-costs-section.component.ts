@@ -5,13 +5,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { AggregatedBoard, AggregatedComponent, AggregatedJob } from '../service/project-details-aggregator.service';
 import { CabinetSummary, MultiWallCalculateResponse, WallCalculationSummary } from '../model/kitchen-project.model';
 import { PricingBreakdown } from '../service/project-pricing.service';
+import { KitchenPricingTabComponent } from './kitchen-pricing-tab.component';
 
 type DetailsTab = 'walls' | 'boards' | 'components' | 'jobs' | 'pricing';
 
 @Component({
   selector: 'app-kitchen-costs-section',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule],
+  imports: [CommonModule, FormsModule, MatIconModule, KitchenPricingTabComponent],
   templateUrl: './kitchen-costs-section.component.html',
   styleUrls: ['./kitchen-costs-section.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -68,11 +69,6 @@ export class KitchenCostsSectionComponent {
   @Output() savePricing = new EventEmitter<void>();
   @Output() downloadOfferPdf = new EventEmitter<void>();
 
-  // TODO(CODEX): Ta sekcja nadal łączy trzy różne odpowiedzialności:
-  // pre-calculation summary, BOM tabs i workflow wyceny/oferty. To już dużo lepiej
-  // niż w KitchenPageComponent, ale przy dalszym rozwoju warto będzie rozdzielić
-  // przynajmniej pricing tab od reszty kosztorysu, żeby zmniejszyć ryzyko regresji.
-
   /** Local state — which BOM sub-tab is active (boards/components/jobs).
    *  Intentionally NOT an @Input; parent owns walls/pricing via activeDetailsTab. */
   bomTab: 'boards' | 'components' | 'jobs' = 'boards';
@@ -106,23 +102,4 @@ export class KitchenCostsSectionComponent {
     this.includeWasteCostChange.emit(value);
   }
 
-  onPricingDiscountPctChange(value: string | number): void {
-    this.pricingDiscountPctChange.emit(Number(value));
-  }
-
-  onPricingManualOverrideEnabledChange(value: boolean): void {
-    this.pricingManualOverrideEnabledChange.emit(value);
-  }
-
-  onPricingManualOverrideChange(value: string | number): void {
-    if (value === '' || value === null) {
-      this.pricingManualOverrideChange.emit(null);
-      return;
-    }
-    this.pricingManualOverrideChange.emit(Number(value));
-  }
-
-  onPricingOfferNotesChange(value: string): void {
-    this.pricingOfferNotesChange.emit(value);
-  }
 }

@@ -295,110 +295,24 @@
             </div>
           </div>
 
-          <!-- Pricing tab — fills info-content height; textarea expands, buttons stick to bottom -->
-          <div *ngIf="activeDetailsTab === 'pricing'" class="pricing-wrap">
-            <div *ngIf="isPricingLoading" class="info-loading">Ładowanie wyceny…</div>
-            <div *ngIf="!isPricingLoading && !pricing" class="info-loading">
-              Kliknij zakładkę Wycena ponownie lub zapisz projekt, aby załadować wycenę.
-            </div>
-
-            <ng-container *ngIf="!isPricingLoading && pricing">
-              <table class="bom-table pricing-table">
-                <thead>
-                <tr>
-                  <th>Kategoria</th>
-                  <th class="col-num">Netto</th>
-                  <th class="col-num">Marża %</th>
-                  <th class="col-num">Marża zł</th>
-                  <th class="col-num">Łącznie</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                  <td>Płyty</td>
-                  <td class="col-num col-mono">{{ pricing.boardsNet.toFixed(2) }} zł</td>
-                  <td class="col-num">{{ pricing.markupMaterialsPct }}%</td>
-                  <td class="col-num col-mono">{{ pricing.boardsMarkupAmount.toFixed(2) }} zł</td>
-                  <td class="col-num col-mono col-bold">{{ pricing.boardsTotal.toFixed(2) }} zł</td>
-                </tr>
-                <tr>
-                  <td>Komponenty</td>
-                  <td class="col-num col-mono">{{ pricing.componentsNet.toFixed(2) }} zł</td>
-                  <td class="col-num">{{ pricing.markupComponentsPct }}%</td>
-                  <td class="col-num col-mono">{{ pricing.componentsMarkupAmount.toFixed(2) }} zł</td>
-                  <td class="col-num col-mono col-bold">{{ pricing.componentsTotal.toFixed(2) }} zł</td>
-                </tr>
-                <tr>
-                  <td>Robocizna</td>
-                  <td class="col-num col-mono">{{ pricing.jobsNet.toFixed(2) }} zł</td>
-                  <td class="col-num">{{ pricing.markupJobsPct }}%</td>
-                  <td class="col-num col-mono">{{ pricing.jobsMarkupAmount.toFixed(2) }} zł</td>
-                  <td class="col-num col-mono col-bold">{{ pricing.jobsTotal.toFixed(2) }} zł</td>
-                </tr>
-                </tbody>
-                <tfoot>
-                <tr class="pricing-sub-row">
-                  <td colspan="4"><strong>Przed rabatem</strong></td>
-                  <td class="col-num col-mono"><strong>{{ pricing.subtotal.toFixed(2) }} zł</strong></td>
-                </tr>
-                <tr>
-                  <td colspan="4">Rabat {{ pricing.discountPct }}%</td>
-                  <td class="col-num col-mono pricing-discount">−{{ pricing.discountAmount.toFixed(2) }} zł</td>
-                </tr>
-                <tr class="pricing-total-row">
-                  <td colspan="4">Cena końcowa</td>
-                  <td class="col-num col-mono">{{ pricing.finalPrice.toFixed(2) }} zł</td>
-                </tr>
-                </tfoot>
-              </table>
-              <p *ngIf="pricing.manualPriceOverride != null" class="pricing-manual-note">
-                * nadpisana ręcznie (kalkulowana: {{ pricing.afterDiscount.toFixed(2) }} zł)
-              </p>
-
-              <!-- pricing-editor fills remaining height so textarea expands and buttons sit at bottom -->
-              <div class="pricing-editor">
-                <div class="pricing-editor-title">Parametry wyceny</div>
-                <div class="pricing-fields">
-                  <div class="pricing-field">
-                    <label>Rabat (%)</label>
-                    <input (ngModelChange)="onPricingDiscountPctChange($event)" [ngModel]="pricingDiscountPct"
-                           max="100" min="0" step="0.5" type="number"/>
-                  </div>
-                  <div class="pricing-field">
-                    <label>
-                      <input (ngModelChange)="onPricingManualOverrideEnabledChange($event)" [ngModel]="pricingManualOverrideEnabled"
-                             type="checkbox"/>
-                      Nadpisz cenę (zł)
-                    </label>
-                    <input (ngModelChange)="onPricingManualOverrideChange($event)" [disabled]="!pricingManualOverrideEnabled"
-                           [ngModel]="pricingManualOverride"
-                           min="0" step="1" type="number"/>
-                  </div>
-                </div>
-                <div class="pricing-notes-field">
-                  <label>Notatki do oferty</label>
-                  <textarea (ngModelChange)="onPricingOfferNotesChange($event)" [ngModel]="pricingOfferNotes"
-                            placeholder="Notatki dla klienta, warunki oferty…"></textarea>
-                </div>
-                <div class="pricing-actions">
-                  <button (click)="savePricing.emit()" [disabled]="isPricingSaving" class="btn btn-primary btn-sm"
-                          type="button">
-                    <mat-icon aria-hidden="true" class="pricing-action-icon">{{ isPricingSaving ? 'autorenew' : 'save'
-                      }}
-                    </mat-icon>
-                    {{ isPricingSaving ? 'Zapisuje...' : 'Zapisz wycene' }}
-                  </button>
-                  <button (click)="downloadOfferPdf.emit()" [disabled]="isPdfDownloading" class="btn btn-secondary btn-sm"
-                          type="button">
-                    <mat-icon aria-hidden="true" class="pricing-action-icon">{{ isPdfDownloading ? 'autorenew' :
-                      'description' }}
-                    </mat-icon>
-                    {{ isPdfDownloading ? 'Generuje PDF...' : 'Pobierz oferte PDF' }}
-                  </button>
-                </div>
-              </div>
-            </ng-container>
-          </div>
+          <!-- Zakładka wyceny — wydzielona do KitchenPricingTabComponent -->
+          <app-kitchen-pricing-tab
+            *ngIf="activeDetailsTab === 'pricing'"
+            [pricing]="pricing"
+            [isPricingLoading]="isPricingLoading"
+            [isPricingSaving]="isPricingSaving"
+            [isPdfDownloading]="isPdfDownloading"
+            [pricingDiscountPct]="pricingDiscountPct"
+            [pricingManualOverrideEnabled]="pricingManualOverrideEnabled"
+            [pricingManualOverride]="pricingManualOverride"
+            [pricingOfferNotes]="pricingOfferNotes"
+            (pricingDiscountPctChange)="pricingDiscountPctChange.emit($event)"
+            (pricingManualOverrideEnabledChange)="pricingManualOverrideEnabledChange.emit($event)"
+            (pricingManualOverrideChange)="pricingManualOverrideChange.emit($event)"
+            (pricingOfferNotesChange)="pricingOfferNotesChange.emit($event)"
+            (savePricing)="savePricing.emit()"
+            (downloadOfferPdf)="downloadOfferPdf.emit()">
+          </app-kitchen-pricing-tab>
 
         </div>
       </div>

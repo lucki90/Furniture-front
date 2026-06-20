@@ -1,4 +1,5 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -40,27 +41,19 @@ export interface PriceDialogData {
   ]
 })
 export class PriceDialogComponent implements OnInit {
-  // TODO(CODEX): Ten dialog nadal korzysta z legacy Material form stack i lokalnego flow błędów.
-  // Wizualnie jest już czytelniejszy, ale przy kolejnym passie warto spiąć go z nowszym shared
-  // language formularzy/toolbars tak, aby ekran admin price nie odstawał od kitchen/settings
-  // nie tylko shell'em, ale też detalem samych dialogów.
+  private readonly fb = inject(FormBuilder);
+  private readonly priceService = inject(PriceAdminService);
+  private readonly errorHandler = inject(ApiErrorHandler);
+  private readonly dialogRef = inject(MatDialogRef<PriceDialogComponent>);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly data = inject<PriceDialogData>(MAT_DIALOG_DATA);
 
   form!: FormGroup;
-  saving = false;
-  isEditMode: boolean;
+  readonly saving = signal(false);
+  readonly isEditMode = this.data.mode === 'edit';
 
-  units = ['m2', 'm', 'piece', 'kg', 'l', 'set'];
-  currencies = ['PLN', 'EUR', 'USD'];
-
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly priceService: PriceAdminService,
-    private readonly errorHandler: ApiErrorHandler,
-    private readonly dialogRef: MatDialogRef<PriceDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: PriceDialogData
-  ) {
-    this.isEditMode = data.mode === 'edit';
-  }
+  readonly units = ['m2', 'm', 'piece', 'kg', 'l', 'set'];
+  readonly currencies = ['PLN', 'EUR', 'USD'];
 
   ngOnInit(): void {
     this.initForm();
@@ -101,7 +94,7 @@ export class PriceDialogComponent implements OnInit {
       return;
     }
 
-    this.saving = true;
+    this.saving.set(true);
 
     if (this.isEditMode) {
       this.updatePrice();
@@ -121,13 +114,15 @@ export class PriceDialogComponent implements OnInit {
       urlSelector: this.form.value.urlSelector || undefined
     };
 
-    this.priceService.create(request).subscribe({
+    this.priceService.create(request).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => {
-        this.saving = false;
+        this.saving.set(false);
         this.dialogRef.close(true);
       },
       error: (err) => {
-        this.saving = false;
+        this.saving.set(false);
         this.errorHandler.handle(err);
       }
     });
@@ -147,13 +142,15 @@ export class PriceDialogComponent implements OnInit {
       isActive: this.form.value.isActive
     };
 
-    this.priceService.update(this.data.price.id, request).subscribe({
+    this.priceService.update(this.data.price.id, request).pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: () => {
-        this.saving = false;
+        this.saving.set(false);
         this.dialogRef.close(true);
       },
       error: (err) => {
-        this.saving = false;
+        this.saving.set(false);
         this.errorHandler.handle(err);
       }
     });
@@ -164,7 +161,7 @@ export class PriceDialogComponent implements OnInit {
   }
 
   get title(): string {
-    return this.isEditMode ? 'Edytuj cene' : 'Dodaj nowa cene';
+    return this.isEditMode ? 'Edytuj cenę' : 'Dodaj nową cenę';
   }
 
   protected trackByIndex = (index: number) => index;

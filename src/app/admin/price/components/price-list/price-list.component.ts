@@ -66,10 +66,6 @@ export class PriceListComponent implements OnInit {
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly destroyRef = inject(DestroyRef);
 
-  // TODO(CODEX): Ekran cennika admina nadal korzysta z legacy mat-table + lokalnego flow filtrów
-  // i paginacji, zamiast ze wspólnych prymitywów tabel/toolbars z materials/settings. Jeśli ten
-  // obszar będzie dalej rozwijany, warto wydzielić wspólny shell CRUD dla ekranów administracyjnych.
-
   ngOnInit(): void {
     this.loadPrices();
   }
@@ -88,7 +84,7 @@ export class PriceListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.toast.error('Blad podczas ladowania cen');
+        this.toast.error('Błąd podczas ładowania cen');
         this.loading.set(false);
         console.error('Error loading prices:', err);
       }
@@ -121,7 +117,7 @@ export class PriceListComponent implements OnInit {
     dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
       if (result) {
         this.loadPrices();
-        this.toast.success('Cena zostala dodana');
+        this.toast.success('Cena została dodana');
       }
     });
   }
@@ -135,14 +131,14 @@ export class PriceListComponent implements OnInit {
     dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
       if (result) {
         this.loadPrices();
-        this.toast.success('Cena zostala zaktualizowana');
+        this.toast.success('Cena została zaktualizowana');
       }
     });
   }
 
   onDelete(price: PriceEntryAdminResponse): void {
     this.confirmDialog.confirm({
-      message: `Czy na pewno chcesz usunac cene "${price.name || price.id}"?`,
+      message: `Czy na pewno chcesz usunąć cenę "${price.name || price.id}"?`,
       confirmText: 'Tak'
     }).pipe(
       filter(Boolean),
@@ -151,10 +147,10 @@ export class PriceListComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.loadPrices();
-        this.toast.success('Cena zostala usunieta');
+        this.toast.success('Cena została usunięta');
       },
       error: (err) => {
-        this.toast.error('Blad podczas usuwania ceny');
+        this.toast.error('Błąd podczas usuwania ceny');
         console.error('Error deleting price:', err);
       }
     });
@@ -175,7 +171,7 @@ export class PriceListComponent implements OnInit {
       },
       error: (err) => {
         this.scrapingInProgress.set(false);
-        this.toast.error('Blad podczas scrapowania');
+        this.toast.error('Błąd podczas scrapowania');
         console.error('Error scraping price:', err);
       }
     });
@@ -183,7 +179,7 @@ export class PriceListComponent implements OnInit {
 
   onScrapeAll(): void {
     this.confirmDialog.confirm({
-      message: 'Czy na pewno chcesz uruchomic scraping dla wszystkich cen? To moze potrwac kilka minut.',
+      message: 'Czy na pewno chcesz uruchomić scraping dla wszystkich cen? To może potrwać kilka minut.',
       confirmText: 'Tak'
     }).pipe(
       filter(Boolean),
@@ -195,12 +191,12 @@ export class PriceListComponent implements OnInit {
     ).subscribe({
       next: (result) => {
         this.scrapingInProgress.set(false);
-        this.toast.success(`Scraping zakonczony: ${result.successfulScrapes}/${result.totalPriceEntries} sukces, ${result.failedScrapes} bledow`);
+        this.toast.success(`Scraping zakończony: ${result.successfulScrapes}/${result.totalPriceEntries} sukcesów, ${result.failedScrapes} błędów`);
         this.loadPrices();
       },
       error: (err) => {
         this.scrapingInProgress.set(false);
-        this.toast.error('Blad podczas scrapowania');
+        this.toast.error('Błąd podczas scrapowania');
         console.error('Error scraping all prices:', err);
       }
     });
