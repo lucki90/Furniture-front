@@ -1,4 +1,5 @@
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { CabinetFormValidationErrorCode } from '../../cabinet-form-validation-error';
 import { PantryPassageCabinetValidator } from './pantry-passage-cabinet-validator';
 
 describe('PantryPassageCabinetValidator', () => {
@@ -46,6 +47,8 @@ describe('PantryPassageCabinetValidator', () => {
     form.get('width')?.setValue(601);
 
     expect(form.get('width')?.valid).toBeFalse();
-    expect(form.get('width')?.errors?.['message']).toContain('powyzej 600 mm');
+    expect(form.get('width')?.errors?.['cabinetValidation']).toEqual({
+      code: CabinetFormValidationErrorCode.PANTRY_ONE_DOOR_TOO_WIDE,
+    });
   });
 });

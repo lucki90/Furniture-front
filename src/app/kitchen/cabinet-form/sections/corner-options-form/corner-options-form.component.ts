@@ -15,7 +15,7 @@ import {
 import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
 import { KitchenCabinetTypeConfig } from '../../type-config/kitchen-cabinet-type-config';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
-import { getFormError } from '../../../../shared/form-error.util';
+import { CabinetFormValidationErrorsService } from '../../cabinet-form-validation-errors.service';
 
 /**
  * Sekcja „Zaawansowane" narożnika (CORNER_CABINET) — zakładka „Opcje".
@@ -41,6 +41,7 @@ export class CornerOptionsFormComponent implements OnInit {
   @Input() form!: FormGroup;
 
   private destroyRef = inject(DestroyRef);
+  private readonly validationErrorsService = inject(CabinetFormValidationErrorsService);
 
   /** Pełna lista linii systemowych (źródło dla filtrowanej listy per mechanizm). */
   private readonly allCornerSystemLineOptions = Object.values(CornerSystemLine).map(value => ({
@@ -153,7 +154,7 @@ export class CornerOptionsFormComponent implements OnInit {
   }
 
   getFieldError(controlName: string): string | null {
-    return getFormError(this.form.get(controlName));
+    return this.validationErrorsService.getControlError(this.form.get(controlName));
   }
 
   private revalidate(): void {

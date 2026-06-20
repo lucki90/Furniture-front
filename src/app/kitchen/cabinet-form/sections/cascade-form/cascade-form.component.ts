@@ -7,7 +7,7 @@ import { merge } from 'rxjs';
 import { UpperCascadeCabinetPreparer } from '../../types/upper-cascade/upper-cascade-cabinet-preparer';
 import { UpperCascadeCabinetValidator } from '../../types/upper-cascade/upper-cascade-cabinet-validator';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
-import { getFormError } from '../../../../shared/form-error.util';
+import { CabinetFormValidationErrorsService } from '../../cabinet-form-validation-errors.service';
 import { SectionHeaderComponent } from '../../shared/section-header.component';
 
 /**
@@ -28,6 +28,7 @@ export class CascadeFormComponent implements OnInit {
   @Input() form!: FormGroup;
 
   private destroyRef = inject(DestroyRef);
+  private readonly validationErrors = inject(CabinetFormValidationErrorsService);
   private cascadeValidator = new UpperCascadeCabinetValidator();
   private cascadePreparer = new UpperCascadeCabinetPreparer();
 
@@ -56,6 +57,6 @@ export class CascadeFormComponent implements OnInit {
   }
 
   getFieldError(controlName: string): string | null {
-    return getFormError(this.form.get(controlName));
+    return this.validationErrors.getControlError(this.form.get(controlName));
   }
 }

@@ -3,7 +3,7 @@ import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
-import { getFormError } from '../../../../shared/form-error.util';
+import { CabinetFormValidationErrorsService } from '../../cabinet-form-validation-errors.service';
 import { DictionaryService } from '../../../service/dictionary.service';
 import { SectionHeaderComponent } from '../../shared/section-header.component';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
@@ -33,6 +33,7 @@ export class SinkFormComponent implements OnInit {
   showSinkDrawerModel = false;
 
   private destroyRef = inject(DestroyRef);
+  private readonly validationErrors = inject(CabinetFormValidationErrorsService);
 
   constructor(readonly dictionaryService: DictionaryService) {}
 
@@ -106,7 +107,7 @@ export class SinkFormComponent implements OnInit {
   }
 
   getFieldError(controlName: string): string | null {
-    return getFormError(this.form.get(controlName));
+    return this.validationErrors.getControlError(this.form.get(controlName));
   }
 
   protected trackByCode = (_: number, item: { code: string }) => item.code;

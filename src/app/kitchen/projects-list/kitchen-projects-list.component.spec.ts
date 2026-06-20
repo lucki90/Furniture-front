@@ -1,10 +1,9 @@
-import { signal, WritableSignal } from '@angular/core';
+import { WritableSignal, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter, Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
-import { KitchenProjectDetailResponse, KitchenProjectListResponse } from '../model/kitchen-project.model';
+import { provideRouter } from '@angular/router';
+import { KitchenProjectListResponse } from '../model/kitchen-project.model';
 import { KitchenProjectTransitionGuardService } from '../service/kitchen-project-transition-guard.service';
-import { KitchenService } from '../service/kitchen.service';
+import { KitchenProjectsActionsService } from '../service/kitchen-projects-actions.service';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { KitchenProjectsListComponent } from './kitchen-projects-list.component';
 
@@ -20,52 +19,58 @@ const PROJECT: KitchenProjectListResponse = {
   updatedAt: '2026-04-28T10:00:00'
 };
 
-const CLONED: KitchenProjectDetailResponse = {
-  id: 99,
-  name: 'Kopia - Test Kitchen',
-  status: 'DRAFT',
-  version: 1,
-  totalCost: 1000,
-  totalBoardsCost: 800,
-  totalComponentsCost: 100,
-  totalJobsCost: 100,
-  walls: [],
-  createdAt: '2026-04-28T10:00:00',
-  updatedAt: '2026-04-28T10:00:00'
-};
-
-describe('KitchenProjectsListComponent - klonowanie i przejscia projektu', () => {
+describe('KitchenProjectsListComponent', () => {
   let component: KitchenProjectsListComponent;
   let fixture: ComponentFixture<KitchenProjectsListComponent>;
-  let kitchenService: jasmine.SpyObj<KitchenService>;
-  let transitionGuard: jasmine.SpyObj<KitchenProjectTransitionGuardService>;
+  let actionsService: {
+    projects: WritableSignal<KitchenProjectListResponse[]>;
+    loading: WritableSignal<boolean>;
+    error: WritableSignal<string | null>;
+    cloningProjectId: WritableSignal<number | null>;
+    deleteConfirmationProjectId: WritableSignal<number | null>;
+    deletingProjectId: WritableSignal<number | null>;
+    loadProjects: jasmine.Spy;
+    openProject: jasmine.Spy;
+    confirmDelete: jasmine.Spy;
+    cancelDelete: jasmine.Spy;
+    deleteProject: jasmine.Spy;
+    cloneProject: jasmine.Spy;
+    createNewProject: jasmine.Spy;
+  };
   let transitionInProgress: WritableSignal<boolean>;
   let stateService: jasmine.SpyObj<KitchenStateService>;
-  let router: Router;
 
   beforeEach(async () => {
-    kitchenService = jasmine.createSpyObj('KitchenService', ['getProjects', 'getProjectById', 'cloneProject']);
-    transitionGuard = jasmine.createSpyObj('KitchenProjectTransitionGuardService', [
+    actionsService = {
+      projects: signal([]),
+      loading: signal(false),
+      error: signal(null),
+      cloningProjectId: signal(null),
+      deleteConfirmationProjectId: signal(null),
+      deletingProjectId: signal(null),
+      loadProjects: jasmine.createSpy('loadProjects'),
+      openProject: jasmine.createSpy('openProject'),
+      confirmDelete: jasmine.createSpy('confirmDelete'),
+      cancelDelete: jasmine.createSpy('cancelDelete'),
+      deleteProject: jasmine.createSpy('deleteProject'),
+      cloneProject: jasmine.createSpy('cloneProject'),
+      createNewProject: jasmine.createSpy('createNewProject'),
+    };
+
+    transitionInProgress = signal(false);
+    const transitionGuard = jasmine.createSpyObj('KitchenProjectTransitionGuardService', [
       'confirmUnsavedAndProceed'
     ]);
-    transitionInProgress = signal(false);
-    Object.assign(transitionGuard, {
-      isTransitioning: transitionInProgress.asReadonly()
-    });
-    transitionGuard.confirmUnsavedAndProceed.and.callFake((_targetLabel, hooks) => {
-      hooks.onProceed();
-    });
+    Object.assign(transitionGuard, { isTransitioning: transitionInProgress.asReadonly() });
+
     stateService = jasmine.createSpyObj('KitchenStateService', ['loadProject', 'clearAll', 'startNewProject']);
-    Object.assign(stateService, {
-      currentProjectId: jasmine.createSpy('currentProjectId').and.returnValue(null)
-    });
-    kitchenService.getProjects.and.returnValue(of([]));
+    Object.assign(stateService, { currentProjectId: signal(null) });
 
     await TestBed.configureTestingModule({
       imports: [KitchenProjectsListComponent],
       providers: [
         provideRouter([]),
-        { provide: KitchenService, useValue: kitchenService },
+        { provide: KitchenProjectsActionsService, useValue: actionsService },
         { provide: KitchenProjectTransitionGuardService, useValue: transitionGuard },
         { provide: KitchenStateService, useValue: stateService }
       ]
@@ -73,93 +78,91 @@ describe('KitchenProjectsListComponent - klonowanie i przejscia projektu', () =>
 
     fixture = TestBed.createComponent(KitchenProjectsListComponent);
     component = fixture.componentInstance;
-    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
-  it('po udanym klonowaniu laduje projekt i nawiguje do niego przez guard', () => {
-    kitchenService.cloneProject.and.returnValue(of(CLONED));
-    const navigate = spyOn(router, 'navigate');
-
-    component.cloneProject(1);
-
-    expect(transitionGuard.confirmUnsavedAndProceed).toHaveBeenCalled();
-    expect(kitchenService.cloneProject).toHaveBeenCalledWith(1);
-    expect(stateService.loadProject).toHaveBeenCalledWith(CLONED);
-    expect(navigate).toHaveBeenCalledWith(['/kitchen'], { queryParams: { projectId: 99 } });
-    expect(component.cloningProjectId).toBeNull();
+  it('deleguje loadProjects do serwisu akcji przy inicjalizacji', () => {
+    expect(actionsService.loadProjects).toHaveBeenCalled();
   });
 
-  it('blokuje akcje zmiany projektu, gdy inny entry-point prowadzi przejście', () => {
-    component.projects = [PROJECT];
-    component.filteredAndSortedProjects = [PROJECT];
+  it('deleguje cloneProject do serwisu akcji', () => {
+    component.cloneProject(1);
+    expect(actionsService.cloneProject).toHaveBeenCalledWith(1);
+  });
+
+  it('deleguje createNewProject do serwisu akcji', () => {
+    component.createNewProject();
+    expect(actionsService.createNewProject).toHaveBeenCalled();
+  });
+
+  it('blokuje przyciski akcji projektu gdy trwa przejście', () => {
+    actionsService.projects.set([PROJECT]);
+    fixture.detectChanges();
     transitionInProgress.set(true);
     fixture.detectChanges();
 
-    const buttons = Array.from<HTMLButtonElement>(
-      fixture.nativeElement.querySelectorAll('button')
-    );
-    const newProjectButton = buttons.find(button => button.textContent?.includes('Nowy projekt'));
-    const openButton = buttons.find(button => button.textContent?.includes('Otworz'));
-    const cloneButton = buttons.find(button => button.textContent?.includes('Klonuj'));
+    const buttons = Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('button'));
+    const newProjectButton = buttons.find(b => b.textContent?.includes('Nowy projekt'));
+    const openButton = buttons.find(b => b.textContent?.includes('Otworz'));
+    const cloneButton = buttons.find(b => b.textContent?.includes('Klonuj'));
 
     expect(newProjectButton?.disabled).toBeTrue();
     expect(openButton?.disabled).toBeTrue();
     expect(cloneButton?.disabled).toBeTrue();
   });
 
-  it('po bledzie ustawia komunikat i czysci cloningProjectId', () => {
-    kitchenService.cloneProject.and.returnValue(throwError(() => new Error('server error')));
-
-    component.cloneProject(1);
-
-    expect(component.error).toBe('Nie udało się sklonować projektu');
-    expect(component.cloningProjectId).toBeNull();
-  });
-
-  it('guard blokuje rownolegle klonowanie gdy inne jest w toku', () => {
-    component.cloningProjectId = 2;
-
-    component.cloneProject(1);
-
-    expect(transitionGuard.confirmUnsavedAndProceed).not.toHaveBeenCalled();
-    expect(kitchenService.cloneProject).not.toHaveBeenCalled();
-  });
-
-  it('ustawia cloningProjectId na czas trwania zadania', () => {
-    let capturedId: unknown = null;
-    kitchenService.cloneProject.and.callFake(() => {
-      capturedId = component.cloningProjectId;
-      return of(CLONED);
-    });
-
-    component.cloneProject(42);
-
-    expect(capturedId).toBe(42);
-    expect(component.cloningProjectId).toBeNull();
-  });
-
   it('przycisk klonowania jest wylaczony gdy cloningProjectId pasuje do projektu', () => {
-    component.projects = [PROJECT];
-    component['updateFilteredList']();
-    component.cloningProjectId = 1;
+    actionsService.projects.set([PROJECT]);
+    fixture.detectChanges();
+    actionsService.cloningProjectId.set(1);
     fixture.detectChanges();
 
-    const cloneButtons = Array.from(
-      fixture.nativeElement.querySelectorAll('button')
-    ) as HTMLButtonElement[];
-    const cloneBtn = cloneButtons.find(button => button.textContent?.includes('Klonuj'));
+    const cloneButtons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+    const cloneBtn = cloneButtons.find(b => b.textContent?.includes('Klonuje'));
     expect(cloneBtn).toBeTruthy();
     expect(cloneBtn?.disabled).toBeTrue();
   });
 
-  it('nowy projekt przechodzi przez guard i startNewProject', () => {
-    const navigate = spyOn(router, 'navigate');
+  it('pokazuje stan usuwania i blokuje odświeżenie podczas requestu DELETE', () => {
+    actionsService.projects.set([PROJECT]);
+    actionsService.deletingProjectId.set(PROJECT.id);
+    fixture.detectChanges();
 
-    component.createNewProject();
+    const buttons = Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('button'));
+    const refreshButton = buttons.find(button => button.textContent?.includes('Odswiez'));
+    const overlay = fixture.nativeElement.querySelector('.project-card__overlay') as HTMLElement;
 
-    expect(transitionGuard.confirmUnsavedAndProceed).toHaveBeenCalled();
-    expect(stateService.startNewProject).toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith(['/kitchen']);
+    expect(refreshButton?.disabled).toBeTrue();
+    expect(overlay.textContent).toContain('Usuwanie projektu');
+    expect(overlay.querySelector('.btn-danger')).toBeNull();
+  });
+
+  it('filtruje projekty po statusie', () => {
+    const projectDraft: KitchenProjectListResponse = { ...PROJECT, id: 1, status: 'DRAFT' };
+    const projectAccepted: KitchenProjectListResponse = { ...PROJECT, id: 2, status: 'ACCEPTED' };
+    actionsService.projects.set([projectDraft, projectAccepted]);
+    fixture.detectChanges();
+
+    expect(component.filteredAndSortedProjects.length).toBe(2);
+
+    component.toggleStatusFilter('DRAFT');
+    expect(component.filteredAndSortedProjects.length).toBe(1);
+    expect(component.filteredAndSortedProjects[0].status).toBe('DRAFT');
+
+    component.clearFilters();
+    expect(component.filteredAndSortedProjects.length).toBe(2);
+  });
+
+  it('sortuje projekty po kosztach', () => {
+    const cheap: KitchenProjectListResponse = { ...PROJECT, id: 1, totalCost: 100 };
+    const expensive: KitchenProjectListResponse = { ...PROJECT, id: 2, totalCost: 999 };
+    actionsService.projects.set([expensive, cheap]);
+    fixture.detectChanges();
+
+    component.setSortField('totalCost');
+    expect(component.filteredAndSortedProjects[0].id).toBe(2);
+
+    component.setSortField('totalCost');
+    expect(component.filteredAndSortedProjects[0].id).toBe(1);
   });
 });

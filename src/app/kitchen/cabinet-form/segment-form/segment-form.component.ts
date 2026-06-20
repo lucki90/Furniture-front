@@ -12,7 +12,7 @@ import {
 } from '../model/segment.model';
 import { KitchenCabinetConstraints } from '../model/kitchen-cabinet-constants';
 import { FormFieldComponent } from '../../../shared/form-field/form-field.component';
-import { getFormError } from '../../../shared/form-error.util';
+import { CabinetFormValidationErrorsService } from '../cabinet-form-validation-errors.service';
 
 /**
  * Komponent formularza pojedynczego segmentu.
@@ -31,6 +31,7 @@ export class SegmentFormComponent implements OnInit {
   @Input() segmentIndex!: number;
 
   private readonly destroyRef = inject(DestroyRef);
+  private readonly validationErrors = inject(CabinetFormValidationErrorsService);
 
   @Output() remove = new EventEmitter<void>();
 
@@ -181,7 +182,7 @@ export class SegmentFormComponent implements OnInit {
   }
 
   getFieldError(controlName: string): string | null {
-    return getFormError(this.segmentForm.get(controlName));
+    return this.validationErrors.getControlError(this.segmentForm.get(controlName));
   }
 
   protected trackByValue = (_: number, item: { value: string }) => item.value;

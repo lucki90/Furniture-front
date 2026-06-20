@@ -14,8 +14,7 @@ export function widthStepValidator(minWidth: number, step: number): ValidatorFn 
         widthStep: {
           requiredStep: step,
           minWidth: minWidth,
-          actualValue: value,
-          message: `Szerokość musi być wielokrotnością ${step}mm od ${minWidth}mm`
+          actualValue: value
         }
       };
     }

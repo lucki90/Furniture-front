@@ -1,35 +1,57 @@
+import { TestBed } from '@angular/core/testing';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { signal } from '@angular/core';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
 import { CabinetFormValidationErrorsService } from './cabinet-form-validation-errors.service';
 import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visibility';
 import { CornerCabinetValidator } from './types/corner-cabinet/corner-cabinet-validator';
 import { CornerMechanismType } from './model/corner-cabinet.model';
+import { LanguageService } from '../../service/language.service';
+import { AppLanguage } from '../../service/language.service';
+import {
+  CabinetFormValidationErrorCode,
+  cabinetFormValidationError,
+} from './cabinet-form-validation-error';
+
+function makeLanguageServiceStub(lang: AppLanguage): Partial<LanguageService> {
+  return { lang: signal(lang).asReadonly() };
+}
 
 describe('CabinetFormValidationErrorsService', () => {
   let service: CabinetFormValidationErrorsService;
   let form: FormGroup;
   let visibility: CabinetFormVisibility;
 
-  beforeEach(() => {
-    service = new CabinetFormValidationErrorsService();
+  function setup(lang: AppLanguage = 'pl'): void {
+    TestBed.configureTestingModule({
+      providers: [
+        CabinetFormValidationErrorsService,
+        { provide: LanguageService, useValue: makeLanguageServiceStub(lang) },
+      ],
+    });
+    service = TestBed.inject(CabinetFormValidationErrorsService);
     form = DefaultKitchenFormFactory.create(new FormBuilder());
     visibility = {
       width: true,
       lowerFrontHeightMm: false,
       cornerWidthA: false,
-      segments: false
+      segments: false,
     } as CabinetFormVisibility;
+  }
+
+  beforeEach(() => {
+    setup('pl');
   });
 
   it('returns dimension errors for visible width/height/depth fields', () => {
-    form.get('width')?.setErrors({ widthStep: { message: 'Szerokość musi być wielokrotnością 100 mm' } });
+    form.get('width')?.setErrors({ widthStep: { requiredStep: 100, minWidth: 400 } });
     form.get('height')?.setErrors({ min: { min: 720 } });
     form.get('depth')?.setErrors({ max: { max: 600 } });
 
     expect(service.getValidationErrors(form, visibility, null)).toEqual([
-      'Szerokość musi być wielokrotnością 100 mm',
+      'Szerokość musi być wielokrotnością 100mm od 400mm',
       'Wysokość: min 720 mm',
-      'Głębokość: max 600 mm'
+      'Głębokość: max 600 mm',
     ]);
   });
 
@@ -43,7 +65,7 @@ describe('CabinetFormValidationErrorsService', () => {
     expect(service.getValidationErrors(form, visibility, null)).toEqual([
       'Wysokość frontu zamrażarki jest wymagana',
       'Szerokość A: min 900 mm',
-      'Szerokość B: max 1200 mm'
+      'Szerokość B: max 1200 mm',
     ]);
   });
 
@@ -53,7 +75,7 @@ describe('CabinetFormValidationErrorsService', () => {
 
     const firstSegment = new FormBuilder().group({
       height: [null, Validators.min(100)],
-      drawerQuantity: [null, Validators.required]
+      drawerQuantity: [null, Validators.required],
     });
     firstSegment.get('height')?.setErrors({ min: { min: 100 } });
     firstSegment.get('drawerQuantity')?.setErrors({ required: true });
@@ -63,7 +85,7 @@ describe('CabinetFormValidationErrorsService', () => {
     expect(service.getValidationErrors(form, visibility, 'Dodaj co najmniej jeden segment.')).toEqual([
       'Dodaj co najmniej jeden segment.',
       'Segment 1: wysokość poza zakresem (min 100 mm)',
-      'Segment 1: nieprawidłowa liczba szuflad'
+      'Segment 1: nieprawidłowa liczba szuflad',
     ]);
   });
 
@@ -76,6 +98,75 @@ describe('CabinetFormValidationErrorsService', () => {
     expect(service.getValidationErrors(form, visibility, null)).toEqual([]);
   });
 
+  describe('English translations', () => {
+    beforeEach(() => {
+      TestBed.resetTestingModule();
+      setup('en');
+    });
+
+    it('returns English dimension labels when lang=en', () => {
+      form.get('height')?.setErrors({ min: { min: 720 } });
+      form.get('depth')?.setErrors({ max: { max: 600 } });
+
+      expect(service.getValidationErrors(form, visibility, null)).toEqual([
+        'Height: min 720 mm',
+        'Depth: max 600 mm',
+      ]);
+    });
+
+    it('returns English lower front required error when lang=en', () => {
+      visibility.lowerFrontHeightMm = true;
+      form.get('lowerFrontHeightMm')?.setErrors({ required: true });
+
+      expect(service.getValidationErrors(form, visibility, null)).toContain(
+        'Freezer front height is required'
+      );
+    });
+
+    it('returns English segment error when lang=en', () => {
+      visibility.width = false;
+      visibility.segments = true;
+
+      const seg = new FormBuilder().group({ height: [null, Validators.min(100)], drawerQuantity: [null] });
+      seg.get('height')?.setErrors({ min: { min: 100 } });
+      form.setControl('segments', new FormBuilder().array([seg]));
+
+      expect(service.getValidationErrors(form, visibility, null)).toContain(
+        'Segment 1: height out of range (min 100 mm)'
+      );
+    });
+
+    it('translates a typed pantry width error in the validation summary', () => {
+      form.get('width')?.setErrors(
+        cabinetFormValidationError(CabinetFormValidationErrorCode.PANTRY_ONE_DOOR_TOO_WIDE)
+      );
+
+      expect(service.getValidationErrors(form, visibility, null)).toContain(
+        'For widths above 600 mm, select the two-door variant.'
+      );
+    });
+
+    it('translates typed HF and Magic Corner errors inline', () => {
+      const hfControl = form.get('hfUpperFrontHeightMm');
+      hfControl?.markAsTouched();
+      hfControl?.setErrors(
+        cabinetFormValidationError(CabinetFormValidationErrorCode.HF_UPPER_FRONT_NOT_POSITIVE)
+      );
+      const systemLineControl = form.get('cornerSystemLine');
+      systemLineControl?.markAsTouched();
+      systemLineControl?.setErrors(
+        cabinetFormValidationError(CabinetFormValidationErrorCode.MAGIC_COMFORT_LINE_400_UNSUPPORTED)
+      );
+
+      expect(service.getControlError(hfControl)).toBe(
+        'Upper front height must be greater than 0 (leave empty for a symmetric front)'
+      );
+      expect(service.getControlError(systemLineControl)).toBe(
+        'Magic Corner Comfort does not support line 400 — select line 450 or higher.'
+      );
+    });
+  });
+
   describe('corner cabinet Type B', () => {
     const cornerValidator = new CornerCabinetValidator();
 
@@ -85,7 +176,7 @@ describe('CabinetFormValidationErrorsService', () => {
         cornerWidthA: true,
         cornerMechanism: true,
         segments: false,
-        lowerFrontHeightMm: false
+        lowerFrontHeightMm: false,
       } as unknown as CabinetFormVisibility;
     }
 
@@ -97,7 +188,7 @@ describe('CabinetFormValidationErrorsService', () => {
         cornerShelfQuantity: 1,
         height: 720,
         depth: 510,
-        cornerFrontUchylnyWidthMm: 100
+        cornerFrontUchylnyWidthMm: 100,
       });
       cornerValidator.validate(form);
 
@@ -124,7 +215,7 @@ describe('CabinetFormValidationErrorsService', () => {
         cornerShelfQuantity: 1,
         height: 720,
         depth: 510,
-        cornerFrontUchylnyWidthMm: 500
+        cornerFrontUchylnyWidthMm: 500,
       });
       cornerValidator.validate(form);
 

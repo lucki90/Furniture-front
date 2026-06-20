@@ -1,6 +1,7 @@
 import { FormArray, FormGroup, Validators } from "@angular/forms";
-import { KitchenCabinetValidator } from "../../type-config/validator/kitchen-cabinet-validator";
+import { CABINET_FORM_MESSAGES } from "../../cabinet-form-validation-messages";
 import { KitchenCabinetConstraints } from "../../model/kitchen-cabinet-constants";
+import { KitchenCabinetValidator } from "../../type-config/validator/kitchen-cabinet-validator";
 
 /**
  * Validator dla szafki typu słupek (TALL_CABINET).
@@ -145,11 +146,11 @@ export class TallCabinetValidator implements KitchenCabinetValidator {
   /**
    * Zwraca błąd walidacji sumy wysokości segmentów.
    */
-  getSegmentsHeightError(form: FormGroup): string | null {
+  getSegmentsHeightError(form: FormGroup, msg: typeof CABINET_FORM_MESSAGES['pl']): string | null {
     const segmentsControl = form.get('segments');
 
     if (!(segmentsControl instanceof FormArray) || segmentsControl.length === 0) {
-      return 'Dodaj co najmniej jeden segment.';
+      return msg.segmentNoneAdded;
     }
 
     const segmentsSum = this.getSegmentsHeightSum(form);
@@ -158,9 +159,9 @@ export class TallCabinetValidator implements KitchenCabinetValidator {
 
     if (Math.abs(difference) > 5) {
       if (difference > 0) {
-        return `Suma wysokości segmentów (${segmentsSum}mm) przekracza wysokość netto szafki (${netHeight}mm) o ${difference}mm.`;
+        return msg.segmentsExceedHeight(segmentsSum, netHeight, difference);
       } else {
-        return `Suma wysokości segmentów (${segmentsSum}mm) jest mniejsza niż wysokość netto szafki (${netHeight}mm) o ${Math.abs(difference)}mm.`;
+        return msg.segmentsBelowHeight(segmentsSum, netHeight, Math.abs(difference));
       }
     }
 

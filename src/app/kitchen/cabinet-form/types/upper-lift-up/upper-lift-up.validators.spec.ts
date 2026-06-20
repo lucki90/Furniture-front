@@ -1,4 +1,5 @@
 import { FormControl, FormGroup } from '@angular/forms';
+import { CabinetFormValidationErrorCode } from '../../cabinet-form-validation-error';
 import { hfUpperFrontHeightValidator } from './upper-lift-up.validators';
 
 function buildGroup(hfValue: number | null, height: number | null): FormGroup {
@@ -19,19 +20,25 @@ describe('hfUpperFrontHeightValidator', () => {
     expect(hfUpperFrontHeightValidator(new FormControl(undefined))).toBeNull();
   });
 
-  it('rejects zero with a message error', () => {
+  it('rejects zero with a typed validation error', () => {
     const group = buildGroup(0, 700);
-    expect(group.get('hfUpperFrontHeightMm')?.errors?.['message']).toContain('większa od 0');
+    expect(group.get('hfUpperFrontHeightMm')?.errors?.['cabinetValidation']).toEqual({
+      code: CabinetFormValidationErrorCode.HF_UPPER_FRONT_NOT_POSITIVE,
+    });
   });
 
   it('rejects negative values', () => {
     const group = buildGroup(-50, 700);
-    expect(group.get('hfUpperFrontHeightMm')?.errors?.['message']).toContain('większa od 0');
+    expect(group.get('hfUpperFrontHeightMm')?.errors?.['cabinetValidation']).toEqual({
+      code: CabinetFormValidationErrorCode.HF_UPPER_FRONT_NOT_POSITIVE,
+    });
   });
 
   it('rejects value greater or equal to cabinet height', () => {
     const group = buildGroup(700, 700);
-    expect(group.get('hfUpperFrontHeightMm')?.errors?.['message']).toContain('mniejsza od wysokości');
+    expect(group.get('hfUpperFrontHeightMm')?.errors?.['cabinetValidation']).toEqual({
+      code: CabinetFormValidationErrorCode.HF_UPPER_FRONT_NOT_BELOW_CABINET,
+    });
   });
 
   it('accepts a positive value below cabinet height', () => {

@@ -1,4 +1,8 @@
 import { AbstractControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {
+  CabinetFormValidationErrorCode,
+  cabinetFormValidationError,
+} from '../../cabinet-form-validation-error';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
 
@@ -42,7 +46,7 @@ export class PantryPassageCabinetValidator implements KitchenCabinetValidator {
         return null;
       }
       if (frontType === 'ONE_DOOR' && width > 600) {
-        return { message: 'Dla szerokosci powyzej 600 mm wybierz wariant dwojga drzwi.' };
+        return cabinetFormValidationError(CabinetFormValidationErrorCode.PANTRY_ONE_DOOR_TOO_WIDE);
       }
       return null;
     };

@@ -19,7 +19,8 @@
         <span *ngIf="hasActiveFilters" class="app-page-summary-chip">Filtry: {{ activeStatusesCountLabel }}</span>
       </div>
 
-      <button (click)="loadProjects()" class="btn btn-outline" type="button">Odswiez</button>
+      <button (click)="loadProjects()" [disabled]="loading || deletingProjectId !== null"
+              class="btn btn-outline" type="button">Odswiez</button>
       <button
         (click)="createNewProject()"
         [disabled]="projectTransitionInProgress()"
@@ -161,7 +162,8 @@
 
           <div *ngIf="!loading && error" class="projects-state projects-state--error">
             <p>{{ error }}</p>
-            <button (click)="loadProjects()" class="btn btn-outline" type="button">Sproboj ponownie</button>
+            <button (click)="loadProjects()" [disabled]="loading || deletingProjectId !== null"
+                    class="btn btn-outline" type="button">Sproboj ponownie</button>
           </div>
 
           <div *ngIf="!loading && !error && projects.length === 0" class="projects-state projects-state--empty">
@@ -189,15 +191,21 @@
             <article
               *ngFor="let project of filteredAndSortedProjects; trackBy: trackById"
               [class.project-card--current]="isCurrentProject(project.id)"
-              [class.project-card--deleting]="deletingProjectId === project.id"
+              [class.project-card--deleting]="deleteConfirmationProjectId === project.id || deletingProjectId === project.id"
               class="project-card">
 
-              <div *ngIf="deletingProjectId === project.id" class="project-card__overlay">
-                <p>Czy na pewno chcesz usunac projekt "{{ project.name }}"?</p>
-                <div class="project-card__overlay-actions">
-                  <button (click)="deleteProject(project.id)" class="btn btn-danger btn-sm" type="button">Usun</button>
-                  <button (click)="cancelDelete()" class="btn btn-secondary btn-sm" type="button">Anuluj</button>
-                </div>
+              <div *ngIf="deleteConfirmationProjectId === project.id || deletingProjectId === project.id"
+                   class="project-card__overlay">
+                <ng-container *ngIf="deletingProjectId === project.id; else deleteConfirmation">
+                  <p>Usuwanie projektu "{{ project.name }}"...</p>
+                </ng-container>
+                <ng-template #deleteConfirmation>
+                  <p>Czy na pewno chcesz usunac projekt "{{ project.name }}"?</p>
+                  <div class="project-card__overlay-actions">
+                    <button (click)="deleteProject(project.id)" class="btn btn-danger btn-sm" type="button">Usun</button>
+                    <button (click)="cancelDelete()" class="btn btn-secondary btn-sm" type="button">Anuluj</button>
+                  </div>
+                </ng-template>
               </div>
 
               <div class="project-card__header">
@@ -256,6 +264,7 @@
                 </button>
                 <button
                   (click)="confirmDelete(project.id)"
+                  [disabled]="deletingProjectId !== null"
                   class="btn btn-outline-danger btn-sm"
                   type="button">
                   Usun

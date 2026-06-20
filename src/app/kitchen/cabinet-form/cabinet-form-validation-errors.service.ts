@@ -1,102 +1,149 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { AbstractControl, FormArray, FormGroup } from '@angular/forms';
+import { LanguageService } from '../../service/language.service';
+import { readCabinetFormValidationError } from './cabinet-form-validation-error';
+import { CABINET_FORM_MESSAGES } from './cabinet-form-validation-messages';
 import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visibility';
 
 @Injectable({ providedIn: 'root' })
 export class CabinetFormValidationErrorsService {
+  private readonly languageService = inject(LanguageService);
+
+  getControlError(control: AbstractControl | null | undefined): string | null {
+    if (!control?.touched || !control.errors) {
+      return null;
+    }
+
+    const msg = CABINET_FORM_MESSAGES[this.languageService.lang()];
+    const customError = readCabinetFormValidationError(control.errors);
+    if (customError) {
+      return msg.customErrors[customError.code];
+    }
+    if (control.errors['required']) {
+      return msg.inlineRequired;
+    }
+    if (control.errors['min']) {
+      return `Min: ${control.errors['min'].min}`;
+    }
+    if (control.errors['max']) {
+      return `Max: ${control.errors['max'].max}`;
+    }
+    if (control.errors['widthStep']) {
+      const error = control.errors['widthStep'];
+      return msg.widthStep(error.requiredStep, error.minWidth);
+    }
+    return msg.inlineInvalid;
+  }
 
   getValidationErrors(
     form: FormGroup,
     visibility: CabinetFormVisibility,
     segmentHeightError: string | null
   ): string[] {
+    const msg = CABINET_FORM_MESSAGES[this.languageService.lang()];
     const errors: string[] = [];
 
     if (visibility.width !== false) {
-      this.collectDimensionsErrors(form, errors);
+      this.collectDimensionsErrors(form, errors, msg);
     }
 
     if (visibility.lowerFrontHeightMm) {
-      this.collectLowerFrontErrors(form, errors);
+      this.collectLowerFrontErrors(form, errors, msg);
     }
 
     if (visibility.cornerWidthA) {
-      this.collectCornerErrors(form, errors);
+      this.collectCornerErrors(form, errors, msg);
     }
 
     if (visibility.segments) {
-      this.collectSegmentErrors(form, segmentHeightError, errors);
+      this.collectSegmentErrors(form, segmentHeightError, errors, msg);
     }
 
     return errors;
   }
 
-  private collectDimensionsErrors(form: FormGroup, errors: string[]): void {
+  private collectDimensionsErrors(
+    form: FormGroup,
+    errors: string[],
+    msg: typeof CABINET_FORM_MESSAGES['pl']
+  ): void {
     this.pushDimensionError(errors, form.get('width'), {
-      required: 'Szerokość jest wymagana',
-      minLabel: 'Szerokość',
-      maxLabel: 'Szerokość',
-      fallback: null
+      required: msg.widthRequired,
+      minLabel: msg.labels.width,
+      maxLabel: msg.labels.width,
+      fallback: null,
+      msg,
     });
 
     this.pushDimensionError(errors, form.get('height'), {
       required: null,
-      minLabel: 'Wysokość',
-      maxLabel: 'Wysokość',
-      fallback: 'Wysokość: nieprawidłowa wartość'
+      minLabel: msg.labels.height,
+      maxLabel: msg.labels.height,
+      fallback: msg.heightFallback,
+      msg,
     });
 
     this.pushDimensionError(errors, form.get('depth'), {
       required: null,
-      minLabel: 'Głębokość',
-      maxLabel: 'Głębokość',
-      fallback: 'Głębokość: nieprawidłowa wartość'
+      minLabel: msg.labels.depth,
+      maxLabel: msg.labels.depth,
+      fallback: msg.depthFallback,
+      msg,
     });
   }
 
-  private collectLowerFrontErrors(form: FormGroup, errors: string[]): void {
+  private collectLowerFrontErrors(
+    form: FormGroup,
+    errors: string[],
+    msg: typeof CABINET_FORM_MESSAGES['pl']
+  ): void {
     const control = form.get('lowerFrontHeightMm');
     if (!control?.invalid) {
       return;
     }
 
     if (control.errors?.['min']) {
-      errors.push(`Front zamrażarki: min ${control.errors['min'].min} mm`);
+      errors.push(msg.lowerFrontMin(control.errors['min'].min));
       return;
     }
 
     if (control.errors?.['max']) {
-      errors.push(`Front zamrażarki: max ${control.errors['max'].max} mm`);
+      errors.push(msg.lowerFrontMax(control.errors['max'].max));
       return;
     }
 
     if (control.errors?.['required']) {
-      errors.push('Wysokość frontu zamrażarki jest wymagana');
+      errors.push(msg.lowerFrontRequired);
     }
   }
 
-  private collectCornerErrors(form: FormGroup, errors: string[]): void {
-    this.pushRangeError(errors, form.get('cornerWidthA'), 'Szerokość A');
-    this.pushRangeError(errors, form.get('cornerWidthB'), 'Szerokość B');
-    this.pushRangeError(errors, form.get('height'), 'Wysokość');
-    this.pushRangeError(errors, form.get('depth'), 'Głębokość');
-    this.pushRangeError(errors, form.get('cornerShelfQuantity'), 'Liczba półek');
+  private collectCornerErrors(
+    form: FormGroup,
+    errors: string[],
+    msg: typeof CABINET_FORM_MESSAGES['pl']
+  ): void {
+    this.pushRangeError(errors, form.get('cornerWidthA'), msg.labels.cornerWidthA, msg);
+    this.pushRangeError(errors, form.get('cornerWidthB'), msg.labels.cornerWidthB, msg);
+    this.pushRangeError(errors, form.get('height'), msg.labels.height, msg);
+    this.pushRangeError(errors, form.get('depth'), msg.labels.depth, msg);
+    this.pushRangeError(errors, form.get('cornerShelfQuantity'), msg.labels.cornerShelfQty, msg);
 
     // Type B — front uchylny, parametry systemu, panel ślepy.
-    this.pushRangeError(errors, form.get('cornerFrontUchylnyWidthMm'), 'Szerokość frontu uchylnego');
-    this.pushRangeError(errors, form.get('cornerOpeningAngleDeg'), 'Kąt otwarcia');
-    this.pushRangeError(errors, form.get('blindPanelVisibleWidthMm'), 'Szerokość widocznej części frontu ślepego');
+    this.pushRangeError(errors, form.get('cornerFrontUchylnyWidthMm'), msg.labels.cornerFrontUchylny, msg);
+    this.pushRangeError(errors, form.get('cornerOpeningAngleDeg'), msg.labels.cornerOpeningAngle, msg);
+    this.pushRangeError(errors, form.get('blindPanelVisibleWidthMm'), msg.labels.blindPanelVisible, msg);
 
     const mechanism = form.get('cornerMechanism');
     if (mechanism?.invalid && mechanism.errors?.['required']) {
-      errors.push('Wybierz system organizacji wewnętrznej');
+      errors.push(msg.mechanismRequired);
     }
   }
 
   private collectSegmentErrors(
     form: FormGroup,
     segmentHeightError: string | null,
-    errors: string[]
+    errors: string[],
+    msg: typeof CABINET_FORM_MESSAGES['pl']
   ): void {
     if (segmentHeightError) {
       errors.push(segmentHeightError);
@@ -114,12 +161,11 @@ export class CabinetFormValidationErrorsService {
 
       if (heightControl?.invalid) {
         const minValue = heightControl.errors?.['min']?.min;
-        const minSuffix = typeof minValue === 'number' ? ` (min ${minValue} mm)` : '';
-        errors.push(`Segment ${index + 1}: wysokość poza zakresem${minSuffix}`);
+        errors.push(msg.segmentHeightError(index + 1, typeof minValue === 'number' ? minValue : undefined));
       }
 
       if (drawerQuantityControl?.invalid) {
-        errors.push(`Segment ${index + 1}: nieprawidłowa liczba szuflad`);
+        errors.push(msg.segmentDrawersError(index + 1));
       }
     });
   }
@@ -132,6 +178,7 @@ export class CabinetFormValidationErrorsService {
       minLabel: string;
       maxLabel: string;
       fallback: string | null;
+      msg: typeof CABINET_FORM_MESSAGES['pl'];
     }
   ): void {
     if (!control?.invalid) {
@@ -139,22 +186,24 @@ export class CabinetFormValidationErrorsService {
     }
 
     if (control.errors?.['widthStep']) {
-      errors.push(control.errors['widthStep'].message);
+      const e = control.errors['widthStep'];
+      errors.push(options.msg.widthStep(e.requiredStep, e.minWidth));
       return;
     }
 
-    if (control.errors?.['message']) {
-      errors.push(control.errors['message']);
+    const customError = readCabinetFormValidationError(control.errors);
+    if (customError) {
+      errors.push(options.msg.customErrors[customError.code]);
       return;
     }
 
     if (control.errors?.['min']) {
-      errors.push(`${options.minLabel}: min ${control.errors['min'].min} mm`);
+      errors.push(options.msg.dimensionMin(options.minLabel, control.errors['min'].min));
       return;
     }
 
     if (control.errors?.['max']) {
-      errors.push(`${options.maxLabel}: max ${control.errors['max'].max} mm`);
+      errors.push(options.msg.dimensionMax(options.maxLabel, control.errors['max'].max));
       return;
     }
 
@@ -168,23 +217,28 @@ export class CabinetFormValidationErrorsService {
     }
   }
 
-  private pushRangeError(errors: string[], control: AbstractControl | null, label: string): void {
+  private pushRangeError(
+    errors: string[],
+    control: AbstractControl | null,
+    label: string,
+    msg: typeof CABINET_FORM_MESSAGES['pl']
+  ): void {
     if (!control?.invalid) {
       return;
     }
 
     if (control.errors?.['min']) {
-      errors.push(`${label}: min ${control.errors['min'].min} mm`);
+      errors.push(msg.dimensionMin(label, control.errors['min'].min));
       return;
     }
 
     if (control.errors?.['max']) {
-      errors.push(`${label}: max ${control.errors['max'].max} mm`);
+      errors.push(msg.dimensionMax(label, control.errors['max'].max));
       return;
     }
 
     if (control.errors?.['required']) {
-      errors.push(`${label}: wartość wymagana`);
+      errors.push(msg.rangeRequired(label));
     }
   }
 }

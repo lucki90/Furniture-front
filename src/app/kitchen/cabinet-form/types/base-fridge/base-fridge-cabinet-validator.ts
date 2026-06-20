@@ -1,6 +1,7 @@
 import { FormArray, FormGroup } from '@angular/forms';
-import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
+import { CABINET_FORM_MESSAGES } from '../../cabinet-form-validation-messages';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
+import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 
 /** Minimalna wysokość sekcji lodówki po odjęciu sekcji górnych (mm). */
 const MIN_FRIDGE_SECTION_HEIGHT_MM = 400;
@@ -86,7 +87,7 @@ export class BaseFridgeCabinetValidator implements KitchenCabinetValidator {
    * Zwraca błąd walidacji sekcji górnych, jeśli przekraczają dopuszczalną wysokość.
    * Zwraca null gdy poprawne, lub string z komunikatem błędu.
    */
-  getUpperSectionsError(form: FormGroup): string | null {
+  getUpperSectionsError(form: FormGroup, msg: typeof CABINET_FORM_MESSAGES['pl']): string | null {
     const segmentsControl = form.get('segments');
     if (!(segmentsControl instanceof FormArray) || segmentsControl.length === 0) {
       return null; // brak sekcji górnych — OK
@@ -96,7 +97,7 @@ export class BaseFridgeCabinetValidator implements KitchenCabinetValidator {
     if (fridgeH < MIN_FRIDGE_SECTION_HEIGHT_MM) {
       const totalH = form.get('height')?.value ?? 0;
       const upperSum = this.getUpperSectionsHeightSum(form);
-      return `Sekcje górne (${upperSum}mm) zbyt wysokie — sekcja lodówki wynosiłaby tylko ${fridgeH}mm (min. ${MIN_FRIDGE_SECTION_HEIGHT_MM}mm). Zmniejsz sekcje lub zwiększ wysokość szafki (${totalH}mm).`;
+      return msg.fridgeSectionsTooHigh(upperSum, fridgeH, MIN_FRIDGE_SECTION_HEIGHT_MM, totalH);
     }
 
     return null;

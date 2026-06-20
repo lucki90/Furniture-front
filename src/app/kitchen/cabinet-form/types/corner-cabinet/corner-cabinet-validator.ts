@@ -1,4 +1,8 @@
 import { AbstractControl, FormGroup, ValidationErrors, Validators } from "@angular/forms";
+import {
+  CabinetFormValidationErrorCode,
+  cabinetFormValidationError,
+} from "../../cabinet-form-validation-error";
 import { KitchenCabinetValidator } from "../../type-config/validator/kitchen-cabinet-validator";
 import {
   CornerMechanismType,
@@ -35,18 +39,14 @@ const LE_MANS_FRONT_THICKNESS_MAX_MM = 19;
  */
 const DEFAULT_FRONT_THICKNESS_MM = 18;
 
-/** Komunikat błędu dla niedozwolonej linii Magic Corner Comfort (mirror backendu). */
-const MAGIC_COMFORT_LINE_400_MSG =
-  'Magic Corner Comfort nie obsługuje linii 400 — wybierz linię 450 lub wyższą.';
-
 /**
  * Custom validator: Magic Corner Comfort nie obsługuje linii LINE_400 (siatka producenta od 450).
- * Zwraca błąd z kluczem `message` (obsługiwany przez {@link getFormError}), aby pole „Linia systemu"
+ * Zwraca typowany kod błędu, aby pole „Linia systemu"
  * pokazało czytelny komunikat inline, gdy do formularza trafi stan legacy / ręcznie wstrzyknięta wartość.
  */
 function magicComfortLineValidator(control: AbstractControl): ValidationErrors | null {
   return control.value === CornerSystemLine.LINE_400
-    ? { message: MAGIC_COMFORT_LINE_400_MSG }
+    ? cabinetFormValidationError(CabinetFormValidationErrorCode.MAGIC_COMFORT_LINE_400_UNSUPPORTED)
     : null;
 }
 

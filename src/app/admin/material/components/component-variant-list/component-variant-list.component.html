@@ -1,9 +1,9 @@
 <section class="admin-section">
   <div class="admin-section-header">
     <div>
-      <h2 class="admin-section-title">Warianty komponentow</h2>
+      <h2 class="admin-section-title">Warianty komponentów</h2>
       <p class="admin-section-subtitle">
-        Zarzadzaj modelami, dodatkowymi opisami i dostepnoscia wariantow komponentow wykorzystywanych w wycenach.
+        Zarządzaj modelami, dodatkowymi opisami i dostępnością wariantów komponentów wykorzystywanych w wycenach.
       </p>
     </div>
 
@@ -25,7 +25,7 @@
 
     <span class="settings-toolbar-label">Status:</span>
     <mat-form-field appearance="outline" class="variant-filter-field variant-filter-field--status">
-      <mat-label>Widocznosc</mat-label>
+      <mat-label>Widoczność</mat-label>
       <mat-select (selectionChange)="onActiveFilterChange()" [(ngModel)]="activeOnly">
         <mat-option [value]="false">Wszystkie</mat-option>
         <mat-option [value]="true">Tylko aktywne</mat-option>
@@ -94,7 +94,7 @@
             <button (click)="openEditDialog(variant)" color="primary" mat-icon-button matTooltip="Edytuj" type="button">
               <mat-icon>edit</mat-icon>
             </button>
-            <button (click)="onDelete(variant)" color="warn" mat-icon-button matTooltip="Usun" type="button">
+            <button (click)="onDelete(variant)" color="warn" mat-icon-button matTooltip="Usuń" type="button">
               <mat-icon>delete</mat-icon>
             </button>
           </td>
@@ -116,7 +116,7 @@
     } @else if (!loading()) {
     <div class="empty-state">
       <mat-icon aria-hidden="true">inventory_2</mat-icon>
-      <p>Brak wariantow komponentow</p>
+      <p>Brak wariantów komponentów</p>
       <button (click)="openCreateDialog()" class="btn btn-outline btn-sm" type="button">
         Dodaj pierwszy wariant
       </button>

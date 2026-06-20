@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
-import { getFormError } from '../../../../shared/form-error.util';
+import { CabinetFormValidationErrorsService } from '../../cabinet-form-validation-errors.service';
 import {
   BASE_CORNER_CONSTRAINTS,
   BLIND_CORNER_CONSTRAINTS,
@@ -36,6 +36,8 @@ import {
 export class CornerDimensionsComponent {
 
   @Input() form!: FormGroup;
+
+  private readonly validationErrors = inject(CabinetFormValidationErrorsService);
 
   /** Czy aktualny mechanizm to Type B (Blind/Rectangular). */
   get isCornerTypeB(): boolean {
@@ -109,6 +111,6 @@ export class CornerDimensionsComponent {
   }
 
   getFieldError(controlName: string): string | null {
-    return getFormError(this.form.get(controlName));
+    return this.validationErrors.getControlError(this.form.get(controlName));
   }
 }

@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
 import {
   KitchenProjectListResponse,
   ProjectStatus,
@@ -9,7 +8,7 @@ import {
   getStatusLabel as getLabel
 } from '../model/kitchen-project.model';
 import { KitchenProjectTransitionGuardService } from '../service/kitchen-project-transition-guard.service';
-import { KitchenService } from '../service/kitchen.service';
+import { KitchenProjectsActionsService } from '../service/kitchen-projects-actions.service';
 import { KitchenStateService } from '../service/kitchen-state.service';
 
 type SortField = 'updatedAt' | 'createdAt' | 'totalCost' | 'status';
@@ -35,31 +34,49 @@ const CANCELLED_FLOW_STEP = {
   selector: 'app-kitchen-projects-list',
   templateUrl: './kitchen-projects-list.component.html',
   styleUrls: ['./kitchen-projects-list.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, MatIconModule]
 })
 export class KitchenProjectsListComponent implements OnInit {
-  private readonly kitchenService = inject(KitchenService);
-  private readonly projectTransitionGuard = inject(KitchenProjectTransitionGuardService);
+  readonly actions = inject(KitchenProjectsActionsService);
   private readonly stateService = inject(KitchenStateService);
-  private readonly router = inject(Router);
+  private readonly transitionGuard = inject(KitchenProjectTransitionGuardService);
 
   readonly currentProjectId = this.stateService.currentProjectId;
-  readonly projectTransitionInProgress = this.projectTransitionGuard.isTransitioning;
+  readonly projectTransitionInProgress = this.transitionGuard.isTransitioning;
   readonly cancelledFlowStepStyles = CANCELLED_FLOW_STEP;
 
-  projects: KitchenProjectListResponse[] = [];
-  filteredAndSortedProjects: KitchenProjectListResponse[] = [];
-  loading = false;
-  error: string | null = null;
+  private readonly _activeStatusFilters = signal<Set<ProjectStatus>>(new Set());
+  private readonly _sortField = signal<SortField>('updatedAt');
+  private readonly _sortDirection = signal<'asc' | 'desc'>('desc');
 
-  deletingProjectId: number | null = null;
-  cloningProjectId: number | null = null;
+  private readonly _filteredAndSortedProjects = computed(() => {
+    const projects = this.actions.projects();
+    const filters = this._activeStatusFilters();
+    const field = this._sortField();
+    const dir = this._sortDirection() === 'asc' ? 1 : -1;
+    let list = filters.size > 0 ? projects.filter(p => filters.has(p.status)) : projects;
+    return [...list].sort((a, b) => {
+      switch (field) {
+        case 'updatedAt': return dir * (new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
+        case 'createdAt': return dir * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        case 'totalCost': return dir * (a.totalCost - b.totalCost);
+        case 'status':    return dir * (STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status));
+        default: return 0;
+      }
+    });
+  });
 
-  activeStatusFilters: Set<ProjectStatus> = new Set();
-
-  sortField: SortField = 'updatedAt';
-  sortDirection: 'asc' | 'desc' = 'desc';
+  get loading() { return this.actions.loading(); }
+  get error() { return this.actions.error(); }
+  get projects() { return this.actions.projects(); }
+  get deleteConfirmationProjectId() { return this.actions.deleteConfirmationProjectId(); }
+  get deletingProjectId() { return this.actions.deletingProjectId(); }
+  get cloningProjectId() { return this.actions.cloningProjectId(); }
+  get filteredAndSortedProjects() { return this._filteredAndSortedProjects(); }
+  get hasActiveFilters() { return this._activeStatusFilters().size > 0; }
+  get sortField() { return this._sortField(); }
 
   readonly flowSteps: Array<{ status: ProjectStatus; num: number; label: string; color: string }> = [
     { status: 'DRAFT', num: 1, label: 'Szkic', color: '#6b7280' },
@@ -71,250 +88,82 @@ export class KitchenProjectsListComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.loadProjects();
+    this.actions.loadProjects();
   }
 
-  loadProjects(): void {
-    this.loading = true;
-    this.error = null;
-
-    this.kitchenService.getProjects().subscribe({
-      next: projects => {
-        this.projects = projects;
-        this.updateFilteredList();
-        this.loading = false;
-      },
-      error: err => {
-        console.error('Error loading projects:', err);
-        this.error = 'Nie udało się wczytać listy projektów';
-        this.loading = false;
-      }
-    });
-  }
-
-  openProject(projectId: number): void {
-    this.projectTransitionGuard.confirmUnsavedAndProceed('otworz inny projekt', {
-      onProceed: () => {
-        this.loading = true;
-
-        this.kitchenService.getProjectById(projectId).subscribe({
-          next: project => {
-            this.stateService.loadProject(project);
-            this.router.navigate(['/kitchen'], {
-              queryParams: { projectId: project.id }
-            });
-          },
-          error: err => {
-            console.error('Error loading project:', err);
-            this.error = 'Nie udało się wczytać projektu';
-            this.loading = false;
-          }
-        });
-      }
-    });
-  }
-
-  confirmDelete(projectId: number): void {
-    this.deletingProjectId = projectId;
-  }
-
-  cancelDelete(): void {
-    this.deletingProjectId = null;
-  }
-
-  deleteProject(projectId: number): void {
-    this.kitchenService.deleteProject(projectId).subscribe({
-      next: () => {
-        this.projects = this.projects.filter(project => project.id !== projectId);
-        this.deletingProjectId = null;
-        this.updateFilteredList();
-      },
-      error: err => {
-        console.error('Error deleting project:', err);
-        this.error = 'Nie udało się usunąć projektu';
-        this.deletingProjectId = null;
-      }
-    });
-  }
-
-  cloneProject(projectId: number): void {
-    if (this.cloningProjectId !== null) {
-      return;
-    }
-
-    this.projectTransitionGuard.confirmUnsavedAndProceed('otworz sklonowany projekt', {
-      onProceed: () => {
-        this.cloningProjectId = projectId;
-
-        this.kitchenService.cloneProject(projectId).subscribe({
-          next: cloned => {
-            this.cloningProjectId = null;
-            this.stateService.loadProject(cloned);
-            this.router.navigate(['/kitchen'], { queryParams: { projectId: cloned.id } });
-          },
-          error: err => {
-            console.error('Error cloning project:', err);
-            this.error = 'Nie udało się sklonować projektu';
-            this.cloningProjectId = null;
-          }
-        });
-      }
-    });
-  }
-
-  createNewProject(): void {
-    this.projectTransitionGuard.confirmUnsavedAndProceed('utworz nowy projekt', {
-      onProceed: () => {
-        this.stateService.startNewProject();
-        this.router.navigate(['/kitchen']);
-      }
-    });
-  }
+  loadProjects(): void { this.actions.loadProjects(); }
+  openProject(id: number): void { this.actions.openProject(id); }
+  confirmDelete(id: number): void { this.actions.confirmDelete(id); }
+  cancelDelete(): void { this.actions.cancelDelete(); }
+  deleteProject(id: number): void { this.actions.deleteProject(id); }
+  cloneProject(id: number): void { this.actions.cloneProject(id); }
+  createNewProject(): void { this.actions.createNewProject(); }
 
   toggleStatusFilter(status: ProjectStatus): void {
-    if (this.activeStatusFilters.has(status)) {
-      this.activeStatusFilters.delete(status);
-    } else {
-      this.activeStatusFilters.add(status);
-    }
-    this.activeStatusFilters = new Set(this.activeStatusFilters);
-    this.updateFilteredList();
+    this._activeStatusFilters.update(current => {
+      const next = new Set(current);
+      if (next.has(status)) { next.delete(status); } else { next.add(status); }
+      return next;
+    });
   }
 
   isFilterActive(status: ProjectStatus): boolean {
-    return this.activeStatusFilters.has(status);
-  }
-
-  get hasActiveFilters(): boolean {
-    return this.activeStatusFilters.size > 0;
-  }
-
-  get visibleProjectsCountLabel(): string {
-    return this.projectCountLabel(this.filteredAndSortedProjects.length);
-  }
-
-  get allProjectsCountLabel(): string {
-    return this.projectCountLabel(this.projects.length);
-  }
-
-  get activeStatusesCountLabel(): string {
-    return this.pluralize(this.activeStatusFilters.size, 'aktywny filtr', 'aktywne filtry', 'aktywnych filtrów');
+    return this._activeStatusFilters().has(status);
   }
 
   clearFilters(): void {
-    this.activeStatusFilters = new Set();
-    this.updateFilteredList();
+    this._activeStatusFilters.set(new Set());
   }
 
   setSortField(field: SortField): void {
-    if (this.sortField === field) {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    if (this._sortField() === field) {
+      this._sortDirection.update(d => d === 'asc' ? 'desc' : 'asc');
     } else {
-      this.sortField = field;
-      this.sortDirection = 'desc';
+      this._sortField.set(field);
+      this._sortDirection.set('desc');
     }
-    this.updateFilteredList();
   }
 
   getSortIcon(field: SortField): string {
-    if (this.sortField !== field) {
-      return '';
-    }
-    return this.sortDirection === 'asc' ? ' \u2191' : ' \u2193';
+    if (this._sortField() !== field) { return ''; }
+    return this._sortDirection() === 'asc' ? ' ↑' : ' ↓';
+  }
+
+  get visibleProjectsCountLabel(): string { return this.projectCountLabel(this._filteredAndSortedProjects().length); }
+  get allProjectsCountLabel(): string { return this.projectCountLabel(this.actions.projects().length); }
+  get activeStatusesCountLabel(): string {
+    return this.pluralize(this._activeStatusFilters().size, 'aktywny filtr', 'aktywne filtry', 'aktywnych filtrów');
   }
 
   countByStatus(status: ProjectStatus): number {
-    return this.projects.filter(project => project.status === status).length;
+    return this.actions.projects().filter(p => p.status === status).length;
   }
 
-  trackById(_index: number, project: KitchenProjectListResponse): number {
-    return project.id;
-  }
-
-  trackByFlowStepStatus(_index: number, step: { status: ProjectStatus }): ProjectStatus {
-    return step.status;
-  }
-
-  getStatusLabel(status: ProjectStatus): string {
-    return getLabel(status);
-  }
-
-  getStatusColor(status: ProjectStatus): string {
-    return getStatusColor(status);
-  }
+  trackById(_index: number, project: KitchenProjectListResponse): number { return project.id; }
+  trackByFlowStepStatus(_index: number, step: { status: ProjectStatus }): ProjectStatus { return step.status; }
+  getStatusLabel(status: ProjectStatus): string { return getLabel(status); }
+  getStatusColor(status: ProjectStatus): string { return getStatusColor(status); }
+  isCurrentProject(projectId: number): boolean { return this.currentProjectId() === projectId; }
 
   formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pl-PL', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString('pl-PL', {
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
   }
 
   formatCost(cost: number): string {
-    return cost.toLocaleString('pl-PL', {
-      style: 'currency',
-      currency: 'PLN'
-    });
+    return cost.toLocaleString('pl-PL', { style: 'currency', currency: 'PLN' });
   }
 
-  projectCountLabel(count: number): string {
-    return this.pluralize(count, 'projekt', 'projekty', 'projektów');
-  }
-
-  wallCountLabel(count: number): string {
-    return this.pluralize(count, 'ściana', 'ściany', 'ścian');
-  }
-
-  cabinetCountLabel(count: number): string {
-    return this.pluralize(count, 'szafka', 'szafki', 'szafek');
-  }
-
-  isCurrentProject(projectId: number): boolean {
-    return this.currentProjectId() === projectId;
-  }
-
-  private updateFilteredList(): void {
-    let list = this.projects;
-
-    if (this.activeStatusFilters.size > 0) {
-      list = list.filter(project => this.activeStatusFilters.has(project.status));
-    }
-
-    const dir = this.sortDirection === 'asc' ? 1 : -1;
-    list = [...list].sort((a, b) => {
-      switch (this.sortField) {
-        case 'updatedAt':
-          return dir * (new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
-        case 'createdAt':
-          return dir * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        case 'totalCost':
-          return dir * (a.totalCost - b.totalCost);
-        case 'status':
-          return dir * (STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status));
-        default:
-          return 0;
-      }
-    });
-
-    this.filteredAndSortedProjects = list;
-  }
+  projectCountLabel(count: number): string { return this.pluralize(count, 'projekt', 'projekty', 'projektów'); }
+  wallCountLabel(count: number): string { return this.pluralize(count, 'ściana', 'ściany', 'ścian'); }
+  cabinetCountLabel(count: number): string { return this.pluralize(count, 'szafka', 'szafki', 'szafek'); }
 
   private pluralize(count: number, singular: string, paucal: string, plural: string): string {
     const mod10 = count % 10;
     const mod100 = count % 100;
-
-    if (count === 1) {
-      return `${count} ${singular}`;
-    }
-
-    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
-      return `${count} ${paucal}`;
-    }
-
+    if (count === 1) { return `${count} ${singular}`; }
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) { return `${count} ${paucal}`; }
     return `${count} ${plural}`;
   }
 }

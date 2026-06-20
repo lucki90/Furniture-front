@@ -1,17 +1,34 @@
+import { signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AppLanguage, LanguageService } from '../../service/language.service';
 import { CabinetSegmentValidationService } from './cabinet-segment-validation.service';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
+
+function makeLanguageStub(lang: AppLanguage): Partial<LanguageService> {
+  return { lang: signal(lang).asReadonly() };
+}
 
 describe('CabinetSegmentValidationService', () => {
   let service: CabinetSegmentValidationService;
   let form: FormGroup;
   let fb: FormBuilder;
 
-  beforeEach(() => {
-    service = new CabinetSegmentValidationService();
+  function setup(lang: AppLanguage = 'pl'): void {
+    TestBed.configureTestingModule({
+      providers: [
+        CabinetSegmentValidationService,
+        { provide: LanguageService, useValue: makeLanguageStub(lang) },
+      ],
+    });
+    service = TestBed.inject(CabinetSegmentValidationService);
     fb = new FormBuilder();
     form = DefaultKitchenFormFactory.create(fb);
+  }
+
+  beforeEach(() => {
+    setup('pl');
   });
 
   it('validates tall cabinet dimensions and segments', () => {
@@ -57,5 +74,19 @@ describe('CabinetSegmentValidationService', () => {
     service.validate(form, KitchenCabinetType.BASE_ONE_DOOR);
 
     expect(service.getSegmentHeightError(form, KitchenCabinetType.BASE_ONE_DOOR)).toBeNull();
+  });
+
+  it('zwraca komunikat po angielsku gdy lang=en', () => {
+    TestBed.resetTestingModule();
+    setup('en');
+
+    form.patchValue({
+      kitchenCabinetType: KitchenCabinetType.TALL_CABINET,
+      height: 2000,
+      depth: 560,
+    });
+    form.setControl('segments', fb.array([]));
+
+    expect(service.getSegmentHeightError(form, KitchenCabinetType.TALL_CABINET)).toBe('Add at least one segment.');
   });
 });

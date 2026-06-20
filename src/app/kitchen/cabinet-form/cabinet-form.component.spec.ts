@@ -341,7 +341,9 @@ describe('CabinetFormComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Wariant drzwi przejscia');
-    expect(component.form.get('width')?.errors?.['message']).toContain('powyzej 600 mm');
+    expect(component.form.get('width')?.errors?.['cabinetValidation']).toEqual({
+      code: 'PANTRY_ONE_DOOR_TOO_WIDE',
+    });
   });
 });
 
@@ -431,6 +433,10 @@ class CabinetFormTypeLifecycleServiceStub {
 class CabinetFormValidationErrorsServiceStub {
   getValidationErrors() {
     return [];
+  }
+
+  getControlError() {
+    return null;
   }
 }
 

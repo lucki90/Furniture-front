@@ -22,7 +22,6 @@ import { CornerFormComponent } from './sections/corner-form/corner-form.componen
 import { CornerOptionsFormComponent } from './sections/corner-options-form/corner-options-form.component';
 import { EnclosureFormComponent } from './sections/enclosure-form/enclosure-form.component';
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
-import { getFormError } from '../../shared/form-error.util';
 import { CabinetTypePickerComponent, CabinetTypePickerResult } from './cabinet-type-picker/cabinet-type-picker.component';
 import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visibility';
 import { CabinetSegmentsFormService } from './cabinet-segments-form.service';
@@ -170,7 +169,7 @@ export class CabinetFormComponent implements OnChanges {
 
   /** Returns inline error text for a single form field. */
   getFieldError(controlName: string): string | null {
-    return getFormError(this.form.get(controlName));
+    return this.validationErrorsService.getControlError(this.form.get(controlName));
   }
 
   private readonly TYPE_LABELS: Record<KitchenCabinetType, string> = {

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { ToastService } from '../../../../core/error/toast.service';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 import { JobVariantAdminResponse, Page } from '../../model/material-variant.model';
@@ -77,5 +77,18 @@ describe('JobVariantListComponent', () => {
     const actionButton = fixture.nativeElement.querySelector('.actions-cell button') as HTMLElement;
 
     expect(actionButton).not.toBeNull();
+  });
+
+  it('anuluje aktywny request po zniszczeniu komponentu', () => {
+    const result$ = new Subject<Page<JobVariantAdminResponse>>();
+    materialAdminService.getJobVariants.and.returnValue(result$);
+    const localFixture = TestBed.createComponent(JobVariantListComponent);
+
+    localFixture.detectChanges();
+    expect(result$.observers.length).toBe(1);
+
+    localFixture.destroy();
+
+    expect(result$.observers.length).toBe(0);
   });
 });

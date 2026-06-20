@@ -62,8 +62,8 @@ describe('BoardVariantListComponent', () => {
 
     materialAdminService.getBoardVariants.and.returnValue(of(makeBoardPage(variants)));
     translationService.getByCategories.and.returnValue(of({
-      'MATERIAL.CHIPBOARD': 'Plyta wiorowa',
-      'BOARD_VARIANT.WHITE': 'Bialy'
+      'MATERIAL.CHIPBOARD': 'Płyta wiórowa',
+      'BOARD_VARIANT.WHITE': 'Biały'
     }));
 
     await TestBed.configureTestingModule({
@@ -88,9 +88,14 @@ describe('BoardVariantListComponent', () => {
 
     expect(materialAdminService.getBoardVariants).toHaveBeenCalled();
     expect(translationService.getByCategories).toHaveBeenCalledWith(['MATERIAL', 'BOARD_VARIANT'], 'pl');
-    expect(firstRow.textContent).toContain('Plyta wiorowa');
-    expect(firstRow.textContent).toContain('Bialy');
+    expect(firstRow.textContent).toContain('Płyta wiórowa');
+    expect(firstRow.textContent).toContain('Biały');
     expect(count.textContent).toContain('1 wariant');
+  });
+
+  it('używa domyślnego rozmiaru strony 20 elementów', () => {
+    expect(component.pageSize()).toBe(20);
+    expect(materialAdminService.getBoardVariants).toHaveBeenCalledWith(0, 20, undefined, false);
   });
 
   it('renders section action buttons', () => {
@@ -112,6 +117,6 @@ describe('BoardVariantListComponent', () => {
 
     const emptyState = fixture.nativeElement.querySelector('.empty-state p') as HTMLElement;
 
-    expect(emptyState.textContent).toContain('Brak wariantow plyt');
+    expect(emptyState.textContent).toContain('Brak wariantów płyt');
   });
 });

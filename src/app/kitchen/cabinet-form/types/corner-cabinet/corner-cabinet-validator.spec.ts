@@ -346,10 +346,9 @@ describe('CornerCabinetValidator', () => {
 
     validator.validate(form);
 
-    expect(form.get('cornerSystemLine')?.hasError('message')).toBeTrue();
-    expect(form.get('cornerSystemLine')?.errors?.['message']).toBe(
-      'Magic Corner Comfort nie obsługuje linii 400 — wybierz linię 450 lub wyższą.'
-    );
+    expect(form.get('cornerSystemLine')?.errors?.['cabinetValidation']).toEqual({
+      code: 'MAGIC_COMFORT_LINE_400_UNSUPPORTED',
+    });
   });
 
   it('does not flag Magic Comfort with an allowed line (LINE_450)', () => {

@@ -32,7 +32,7 @@ import {
 } from '../../model/corner-cabinet.model';
 import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
 import { KitchenCabinetTypeConfig } from '../../type-config/kitchen-cabinet-type-config';
-import { getFormError } from '../../../../shared/form-error.util';
+import { CabinetFormValidationErrorsService } from '../../cabinet-form-validation-errors.service';
 import { CornerDimensionsComponent } from '../corner-dimensions/corner-dimensions.component';
 
 /** Rodzina prezentacyjna narożnika (warstwa UI, nie zmienia modelu). */
@@ -147,6 +147,7 @@ export class CornerFormComponent implements OnInit {
   }
 
   private destroyRef = inject(DestroyRef);
+  private readonly validationErrors = inject(CabinetFormValidationErrorsService);
 
   ngOnInit(): void {
     // Inicjalizacja — odczytaj aktualny stan formularza
@@ -679,7 +680,7 @@ export class CornerFormComponent implements OnInit {
   }
 
   getFieldError(controlName: string): string | null {
-    return getFormError(this.form.get(controlName));
+    return this.validationErrors.getControlError(this.form.get(controlName));
   }
 
   protected trackByValue = (_: number, item: { value: string }) => item.value;

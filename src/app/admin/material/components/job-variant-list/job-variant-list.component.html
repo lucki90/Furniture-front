@@ -3,7 +3,7 @@
     <div>
       <h2 class="admin-section-title">Warianty prac</h2>
       <p class="admin-section-subtitle">
-        Kontroluj warianty robocizny, jednostki i ceny dla uslug, ktore trafiaja do wyceny projektu.
+        Kontroluj warianty robocizny, jednostki i ceny dla usług, które trafiają do wyceny projektu.
       </p>
     </div>
   </div>
@@ -18,7 +18,7 @@
 
     <span class="settings-toolbar-label">Status:</span>
     <mat-form-field appearance="outline" class="variant-filter-field variant-filter-field--status">
-      <mat-label>Widocznosc</mat-label>
+      <mat-label>Widoczność</mat-label>
       <mat-select (selectionChange)="onActiveFilterChange()" [(ngModel)]="activeOnly">
         <mat-option [value]="false">Wszystkie</mat-option>
         <mat-option [value]="true">Tylko aktywne</mat-option>
@@ -81,7 +81,7 @@
         <ng-container matColumnDef="actions">
           <th *matHeaderCellDef mat-header-cell>Akcje</th>
           <td *matCellDef="let variant" class="actions-cell" mat-cell>
-            <button (click)="openEditDialog(variant)" color="primary" mat-icon-button matTooltip="Edytuj cene"
+            <button (click)="openEditDialog(variant)" color="primary" mat-icon-button matTooltip="Edytuj cenę"
                     type="button">
               <mat-icon>edit</mat-icon>
             </button>
@@ -104,7 +104,7 @@
     } @else if (!loading()) {
     <div class="empty-state">
       <mat-icon aria-hidden="true">build</mat-icon>
-      <p>Brak wariantow prac</p>
+      <p>Brak wariantów prac</p>
     </div>
     }
   </div>

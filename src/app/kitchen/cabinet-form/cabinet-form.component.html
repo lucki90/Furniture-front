@@ -412,8 +412,8 @@
           <label class="form-label">Wysokość górnego frontu (mm)</label>
           <input [max]="form.get('height')?.value || 1200" class="form-control" formControlName="hfUpperFrontHeightMm" min="1"
                  type="number">
-          <span *ngIf="form.get('hfUpperFrontHeightMm')?.touched && form.get('hfUpperFrontHeightMm')?.errors?.['message']"
-                class="form-error">{{ form.get('hfUpperFrontHeightMm')?.errors?.['message'] }}</span>
+          <span *ngIf="getFieldError('hfUpperFrontHeightMm') as error"
+                class="form-error">{{ error }}</span>
           <span class="form-hint">Pole opcjonalne (puste = front symetryczny, skrzydła równej wysokości). Dla frontu asymetrycznego dobór liczy TKH = 2 &times; wysokość górnego frontu + szczelina. Zalecenie Blum: większy front u góry (wysokość górnego frontu &ge; połowy frontu całkowitego).</span>
         </div>
       </div>
