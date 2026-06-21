@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { KitchenStateService } from './kitchen-state.service';
+import { KitchenProjectRequestsFacade } from './kitchen-project-requests.facade';
 import { KitchenWorkspaceStore } from './kitchen-workspace.store';
 import { KitchenProjectStateMapper } from './kitchen-project-state.mapper';
 import { KitchenCabinetStateFactory } from './kitchen-cabinet-state.factory';
@@ -13,6 +14,7 @@ import { CabinetFormData } from '../model/kitchen-state.model';
 
 describe('KitchenStateService', () => {
   let service: KitchenStateService;
+  let requestsFacade: KitchenProjectRequestsFacade;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -29,6 +31,7 @@ describe('KitchenStateService', () => {
     });
 
     service = TestBed.inject(KitchenStateService);
+    requestsFacade = TestBed.inject(KitchenProjectRequestsFacade);
   });
 
   it('should load project state through mapper and update facade signals', () => {
@@ -218,7 +221,7 @@ describe('KitchenStateService', () => {
     service.updateRoomDimensions(5000, 4200);
     service.addWall('ISLAND', 2400, 900, 950, 'NONE');
 
-    const request = service.buildMultiWallCalculateRequest();
+    const request = requestsFacade.buildMultiWallCalculateRequest();
 
     expect(request.roomWidthMm).toBe(5000);
     expect(request.roomDepthMm).toBe(4200);

@@ -1,4 +1,4 @@
-﻿import { Component, HostListener, inject, effect, DestroyRef } from '@angular/core';
+import { Component, HostListener, inject, effect, DestroyRef, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
@@ -31,10 +31,11 @@ import { KitchenCostsSectionComponent } from './costs-section/kitchen-costs-sect
 import { KitchenPageFooterComponent } from './page-footer/kitchen-page-footer.component';
 import { KitchenProjectsDrawerComponent } from './projects-drawer/kitchen-projects-drawer.component';
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
-import { buildCalculationViewState, createEmptyCalculationViewState } from './kitchen-page-view-state';
+import { buildCalculationViewState } from './kitchen-page-view-state';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
 import { KitchenService } from './service/kitchen.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
+import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
 
 export function resolveKitchenPageInitialView(
   storedView: string | null,
@@ -60,15 +61,12 @@ const MATERIAL_NAMES_PL: Record<string, string> = {
   GLASS: 'Szklo',
 };
 
-// TODO R.13: Consider ChangeDetectionStrategy.OnPush after migrating remaining mutable fields to signals.
-// Today several values below are still plain class fields updated from async callbacks.
-// With OnPush that would require manual markForCheck() calls in a few places.
-// Moving those fields to signals would make this component much easier to optimize safely.
 @Component({
   selector: 'app-kitchen-page',
   templateUrl: './kitchen-page.component.html',
   styleUrls: ['./kitchen-page.component.css'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
@@ -99,68 +97,65 @@ export class KitchenPageComponent {
   private languageService = inject(LanguageService);
   private destroyRef = inject(DestroyRef);
   private projectTransitionGuard = inject(KitchenProjectTransitionGuardService);
+  private requestsFacade = inject(KitchenProjectRequestsFacade);
 
   readonly projectTransitionInProgress = this.projectTransitionGuard.isTransitioning;
 
   // Single cabinet calculation result shown in the sidebar detail panel
-  // (not the same as projectResult which is a multi-wall aggregation)
-  result: CabinetResponse | null = null;
-  editingCabinet: KitchenCabinet | null = null;
+  readonly result = signal<CabinetResponse | null>(null);
+  readonly editingCabinet = signal<KitchenCabinet | null>(null);
+  readonly editingCabinetId = computed(() => this.editingCabinet()?.id ?? null);
 
   // Stan kalkulacji projektu (multi-wall)
-  projectResult: MultiWallCalculateResponse | null = null;
-  isCalculatingProject = false;
+  readonly projectResult = signal<MultiWallCalculateResponse | null>(null);
+  readonly isCalculatingProject = signal(false);
 
   // Tryb widoku strony: 'config' (workspace + lista szafek) lub 'costs' (zestawienie kosztów).
   // Persystowany w localStorage; auto-przełącza się na 'costs' po udanej kalkulacji.
-  view: 'config' | 'costs' = resolveKitchenPageInitialView(
+  readonly view = signal<'config' | 'costs'>(resolveKitchenPageInitialView(
     localStorage.getItem('fp_view'),
     this.stateService.totalCabinetCount() > 0
-  );
-  isProjectsDrawerOpen = false;
-  openingProjectFromDrawerId: number | null = null;
+  ));
+  readonly isProjectsDrawerOpen = signal(false);
+  readonly openingProjectFromDrawerId = signal<number | null>(null);
 
   // Active tab in project details panel
-  activeDetailsTab: 'walls' | 'boards' | 'components' | 'jobs' | 'pricing' = 'walls';
+  readonly activeDetailsTab = signal<'walls' | 'boards' | 'components' | 'jobs' | 'pricing'>('walls');
 
   // Aggregated data used by project detail tabs
-  aggregatedBoards: AggregatedBoard[] = [];
-  aggregatedComponents: AggregatedComponent[] = [];
-  aggregatedJobs: AggregatedJob[] = [];
+  readonly aggregatedBoards = signal<AggregatedBoard[]>([]);
+  readonly aggregatedComponents = signal<AggregatedComponent[]>([]);
+  readonly aggregatedJobs = signal<AggregatedJob[]>([]);
 
   // Koszt odpadu (SHEET_WASTE) - opcjonalnie wliczany
-  includeWasteCost = false;
-  totalWasteCost = 0;
-  wasteDetails: AggregatedComponent[] = [];
+  readonly includeWasteCost = signal(false);
+  readonly totalWasteCost = signal(0);
+  readonly wasteDetails = signal<AggregatedComponent[]>([]);
 
   // Pricing warnings for missing catalog prices (pricingComplete=false)
-  pricingWarnings: string[] = [];
+  readonly pricingWarnings = signal<string[]>([]);
 
   // Stan eksportu Excel
-  isExporting = false;
+  readonly isExporting = signal(false);
 
   // Stan zapisywania projektu
-  isSavingProject = false;
-  isChangingStatus = false;
+  readonly isSavingProject = signal(false);
+  readonly isChangingStatus = signal(false);
 
   /**
    * Backend translation dictionary for BOARD_NAME.* and MATERIAL.* keys.
    * Used both in BOM aggregation and Excel export.
    */
-  private bomTranslations: Record<string, string> = {};
+  private readonly bomTranslations = signal<Record<string, string>>({});
 
   constructor() {
     // Keep BOM translations in sync with the active UI language.
-    // The dedicated service encapsulates the language -> dictionary lookup pipeline.
-    // takeUntilDestroyed keeps the subscription local to this screen instance.
     this.bomTranslationsService.watchTranslations().pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe((translations: Record<string, string>) => {
-      this.bomTranslations = translations;
+      this.bomTranslations.set(translations);
     });
   }
-
-  // Sync wall-level config with global signals when selected wall changes
 
   // Sync wall-level config with global signals when selected wall changes
   private syncEffect = effect(() => {
@@ -224,7 +219,7 @@ export class KitchenPageComponent {
       this.redo();
     } else if (event.key === 's' || event.key === 'S') {
       event.preventDefault();
-      if (!this.isSavingProject) {
+      if (!this.isSavingProject()) {
         this.onSaveProject();
       }
     }
@@ -264,10 +259,6 @@ export class KitchenPageComponent {
       this.stateService.updateWallDimensions(wall.id, wall.widthMm, value);
       this.resetProjectResult();
     }
-  }
-
-  get editingCabinetId(): string | null {
-    return this.editingCabinet?.id ?? null;
   }
 
   get roomWidthMm(): number | null {
@@ -317,12 +308,11 @@ export class KitchenPageComponent {
 
   // ============ STATUS MANAGEMENT ============
 
-
   onStatusChange(newStatus: ProjectStatus): void {
     const projectId = this.currentProjectId();
-    if (!projectId || this.isChangingStatus) return;
+    if (!projectId || this.isChangingStatus()) return;
 
-    this.isChangingStatus = true;
+    this.isChangingStatus.set(true);
 
     this.projectStatusFacade.changeStatus(projectId, newStatus).subscribe({
       next: ({ projectInfo, successMessage }) => {
@@ -331,12 +321,12 @@ export class KitchenPageComponent {
           projectInfo.description, projectInfo.status, projectInfo.allowedTransitions,
           projectInfo.clientName, projectInfo.clientPhone, projectInfo.clientEmail
         );
-        this.isChangingStatus = false;
+        this.isChangingStatus.set(false);
         this.toast.success(successMessage);
       },
       error: (err) => {
         console.error('Error changing project status:', err);
-        this.isChangingStatus = false;
+        this.isChangingStatus.set(false);
         this.errorHandler.handle(err);
       }
     });
@@ -387,11 +377,11 @@ export class KitchenPageComponent {
   // ============ CABINET MANAGEMENT ============
 
   onCabinetCalculated(event: CabinetCalculatedEvent): void {
-    this.result = event.result;
+    this.result.set(event.result);
 
     if (event.editingCabinetId) {
       this.stateService.updateCabinet(event.editingCabinetId, event.formData, event.result);
-      this.editingCabinet = null;
+      this.editingCabinet.set(null);
     } else {
       this.stateService.addCabinet(event.formData, event.result);
     }
@@ -402,12 +392,12 @@ export class KitchenPageComponent {
   onEditCabinet(cabinetId: string): void {
     const cabinet = this.stateService.getCabinetById(cabinetId);
     if (cabinet) {
-      this.editingCabinet = cabinet;
+      this.editingCabinet.set(cabinet);
     }
   }
 
   onCancelEdit(): void {
-    this.editingCabinet = null;
+    this.editingCabinet.set(null);
   }
 
   onRemoveCabinet(cabinetId: string): void {
@@ -430,23 +420,23 @@ export class KitchenPageComponent {
   /** Zmiana trybu widoku (Konfigurator / Koszty). Persystuje wybór w localStorage. */
   setView(view: 'config' | 'costs'): void {
     if (view === 'costs') {
-      if (this.editingCabinetId !== null) return;
+      if (this.editingCabinetId() !== null) return;
       if (!this.canRenderCostsView()) {
         view = 'config';
       }
     }
 
-    if (this.view === view) return;
-    this.view = view;
+    if (this.view() === view) return;
+    this.view.set(view);
     localStorage.setItem('fp_view', view);
   }
 
   toggleProjectsDrawer(): void {
-    this.isProjectsDrawerOpen = !this.isProjectsDrawerOpen;
+    this.isProjectsDrawerOpen.update(v => !v);
   }
 
   closeProjectsDrawer(): void {
-    this.isProjectsDrawerOpen = false;
+    this.isProjectsDrawerOpen.set(false);
     queueMicrotask(() => {
       // Keep this selector in sync with `.projects-toggle-btn` in KitchenPageHeaderComponent.
       const trigger = document.querySelector<HTMLButtonElement>('.projects-toggle-btn');
@@ -455,7 +445,7 @@ export class KitchenPageComponent {
   }
 
   createNewProjectFromDrawer(): void {
-    if (this.projectTransitionInProgress() || this.isSavingProject || this.openingProjectFromDrawerId !== null) {
+    if (this.projectTransitionInProgress() || this.isSavingProject() || this.openingProjectFromDrawerId() !== null) {
       return;
     }
     this.projectTransitionGuard.confirmUnsavedAndProceed('utwórz nowy projekt', {
@@ -466,7 +456,7 @@ export class KitchenPageComponent {
         this.router.navigate(['/kitchen']);
       },
       onSavingChange: isSaving => {
-        this.isSavingProject = isSaving;
+        this.isSavingProject.set(isSaving);
       }
     });
   }
@@ -475,15 +465,15 @@ export class KitchenPageComponent {
     if (
       projectId === this.currentProjectId()
       || this.projectTransitionInProgress()
-      || this.isSavingProject
-      || this.openingProjectFromDrawerId !== null
+      || this.isSavingProject()
+      || this.openingProjectFromDrawerId() !== null
     ) {
       return;
     }
 
     this.projectTransitionGuard.confirmUnsavedAndProceed('otwórz inny projekt', {
       onProceed: () => {
-        this.openingProjectFromDrawerId = projectId;
+        this.openingProjectFromDrawerId.set(projectId);
         this.kitchenService.getProjectById(projectId).subscribe({
           next: project => {
             this.stateService.loadProject(project);
@@ -492,17 +482,17 @@ export class KitchenPageComponent {
             this.router.navigate(['/kitchen'], {
               queryParams: { projectId: project.id }
             });
-            this.openingProjectFromDrawerId = null;
+            this.openingProjectFromDrawerId.set(null);
           },
           error: err => {
             console.error('Error loading project from drawer:', err);
-            this.openingProjectFromDrawerId = null;
+            this.openingProjectFromDrawerId.set(null);
             this.errorHandler.handle(err);
           }
         });
       },
       onSavingChange: isSaving => {
-        this.isSavingProject = isSaving;
+        this.isSavingProject.set(isSaving);
       }
     });
   }
@@ -527,7 +517,7 @@ export class KitchenPageComponent {
   onSaveProject(): void {
     this.projectTransitionGuard.openSaveProjectDialogAndPersist({
       onSavingChange: isSaving => {
-        this.isSavingProject = isSaving;
+        this.isSavingProject.set(isSaving);
       }
     });
   }
@@ -541,47 +531,60 @@ export class KitchenPageComponent {
       return;
     }
 
-    this.isCalculatingProject = true;
-    this.projectResult = null;
+    this.isCalculatingProject.set(true);
+    this.projectResult.set(null);
 
-    const request = this.stateService.buildMultiWallCalculateRequest();
+    const request = this.requestsFacade.buildMultiWallCalculateRequest();
 
     this.pricingService.reset();
-    this.projectWorkflowFacade.calculateProject(request, this.stateService.walls(), this.bomTranslations).subscribe({
+    this.projectWorkflowFacade.calculateProject(request, this.stateService.walls(), this.bomTranslations()).subscribe({
       next: ({ response, aggregation, pricingWarnings }) => {
-        Object.assign(this, buildCalculationViewState({ response, aggregation, pricingWarnings }));
-        this.isCalculatingProject = false;
+        const state = buildCalculationViewState({ response, aggregation, pricingWarnings });
+        this.projectResult.set(state.projectResult);
+        this.aggregatedBoards.set(state.aggregatedBoards);
+        this.aggregatedComponents.set(state.aggregatedComponents);
+        this.aggregatedJobs.set(state.aggregatedJobs);
+        this.totalWasteCost.set(state.totalWasteCost);
+        this.wasteDetails.set(state.wasteDetails);
+        this.pricingWarnings.set(state.pricingWarnings);
+        this.isCalculatingProject.set(false);
         this.setView('costs');
 
-        if (this.pricingWarnings.length > 0) {
-          this.toast.warning('Uwagi projektu: ' + this.pricingWarnings.join(', '));
+        if (this.pricingWarnings().length > 0) {
+          this.toast.warning('Uwagi projektu: ' + this.pricingWarnings().join(', '));
         }
       },
       error: (err) => {
         console.error('Multi-wall calculation error:', err);
         this.errorHandler.handle(err);
-        this.isCalculatingProject = false;
+        this.isCalculatingProject.set(false);
       }
     });
   }
 
   private resetProjectResult(): void {
-    Object.assign(this, createEmptyCalculationViewState());
+    this.projectResult.set(null);
+    this.aggregatedBoards.set([]);
+    this.aggregatedComponents.set([]);
+    this.aggregatedJobs.set([]);
+    this.totalWasteCost.set(0);
+    this.wasteDetails.set([]);
+    this.pricingWarnings.set([]);
     this.pricingService.reset();
-    if (this.view === 'costs') {
+    if (this.view() === 'costs') {
       this.setView('config');
     }
   }
 
   private clearLocalWorkspaceViewState(): void {
-    this.result = null;
-    this.editingCabinet = null;
+    this.result.set(null);
+    this.editingCabinet.set(null);
     this.resetProjectResult();
     this.setView('config');
   }
 
   private canRenderCostsView(): boolean {
-    return this.totalCabinetCount() > 0 || this.projectResult !== null;
+    return this.totalCabinetCount() > 0 || this.projectResult() !== null;
   }
 
   // ============ WYCENA PROJEKTU ============
@@ -594,58 +597,58 @@ export class KitchenPageComponent {
 
   /** Total project cost with optional waste cost included. */
   get adjustedTotalCost(): number {
-    return calculateAdjustedTotalCost(this.projectResult, this.includeWasteCost);
+    return calculateAdjustedTotalCost(this.projectResult(), this.includeWasteCost());
   }
 
   /** Component cost with optional waste cost included. */
   get adjustedComponentCost(): number {
-    return calculateAdjustedComponentCost(this.projectResult, this.includeWasteCost);
+    return calculateAdjustedComponentCost(this.projectResult(), this.includeWasteCost());
   }
 
   /** Sum of all aggregated board costs. */
   get totalAggregatedBoardsCost(): number {
-    return sumAggregatedBoardsCost(this.aggregatedBoards);
+    return sumAggregatedBoardsCost(this.aggregatedBoards());
   }
 
   /** Sum of all aggregated component costs. */
   get totalAggregatedComponentsCost(): number {
-    return sumAggregatedComponentsCost(this.aggregatedComponents, this.includeWasteCost);
+    return sumAggregatedComponentsCost(this.aggregatedComponents(), this.includeWasteCost());
   }
 
   /** Sum of all aggregated job costs. */
   get totalAggregatedJobsCost(): number {
-    return sumAggregatedJobsCost(this.aggregatedJobs);
+    return sumAggregatedJobsCost(this.aggregatedJobs());
   }
 
   // ============ EXCEL EXPORT ===========
 
   /** Returns a warning when BOM contains items with missing catalog prices. */
   private validateBomPrices(): string | null {
-    return this.projectExportFacade.getBomPriceWarning(this.aggregatedBoards, this.aggregatedComponents, this.aggregatedJobs);
+    return this.projectExportFacade.getBomPriceWarning(this.aggregatedBoards(), this.aggregatedComponents(), this.aggregatedJobs());
   }
 
   /** Exports current aggregated boards as an Excel order file. */
   downloadExcel(): void {
-    if (!this.projectResult || this.isExporting) return;
+    if (!this.projectResult() || this.isExporting()) return;
 
     const priceWarning = this.validateBomPrices();
     if (priceWarning) {
       this.toast.warning(priceWarning);
     }
 
-    this.isExporting = true;
+    this.isExporting.set(true);
     this.projectExportFacade.exportExcel({
-      boards: this.aggregatedBoards,
-      bomTranslations: this.bomTranslations,
+      boards: this.aggregatedBoards(),
+      bomTranslations: this.bomTranslations(),
       fallbackMaterialNames: MATERIAL_NAMES_PL,
       projectName: this.stateService.currentProjectName(),
       language: this.languageService.lang()
     }).subscribe({
       next: () => {
-        this.isExporting = false;
+        this.isExporting.set(false);
       },
       error: () => {
-        this.isExporting = false;
+        this.isExporting.set(false);
         this.toast.error('Blad podczas generowania pliku Excel');
       }
     });

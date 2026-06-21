@@ -1,14 +1,11 @@
-// TODO R.12: Continue extracting remaining geometry calculations (countertopZoneRects, plinthPosition,
-// fillerPosition, computeJoinPositions) into KitchenGeometryService to reduce this facade further.
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { ProjectRequestBuilderService } from './project-request-builder.service';
+import { KitchenProjectRequestsFacade } from './kitchen-project-requests.facade';
 import { ProjectSettingsService } from './project-settings.service';
 import { ProjectMetadataService } from './project-metadata.service';
-import { KitchenGeometryService } from './kitchen-geometry.service';
+import { KitchenWallMetricsService } from './kitchen-wall-metrics.service';
 import { KitchenProjectStateMapper } from './kitchen-project-state.mapper';
 import { KitchenWorkspaceStore } from './kitchen-workspace.store';
 import {
-  CabinetPosition,
   CabinetFormData,
   CountertopConfig,
   KitchenCabinet,
@@ -18,15 +15,9 @@ import {
 } from '../model/kitchen-state.model';
 import {
   CabinetSide,
-  CreateKitchenProjectRequest,
   IslandAdjacentSide,
   KitchenProjectDetailResponse,
-  KitchenProjectRequest,
-  MultiWallCalculateRequest,
-  ProjectCabinetRequest,
   ProjectStatus,
-  ProjectWallRequest,
-  UpdateKitchenProjectRequest,
   WALL_TYPES,
   WallType
 } from '../model/kitchen-project.model';
@@ -36,15 +27,12 @@ import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.mode
   providedIn: 'root'
 })
 export class KitchenStateService {
-  // TODO(CODEX): To nadal jest centralna fasada dla zbyt wielu odpowiedzialności feature'a kitchen.
-  // Po wydzieleniu geometry/mapowania/store kolejnym krokiem powinno być przeniesienie legacy request
-  // building i pozostałych helperów layoutu do węższych serwisów, żeby KitchenStateService został cienkim API dla UI.
-  private requestBuilder = inject(ProjectRequestBuilderService);
   private settingsService = inject(ProjectSettingsService);
   private metadataService = inject(ProjectMetadataService);
-  private geometryService = inject(KitchenGeometryService);
+  private wallMetrics = inject(KitchenWallMetricsService);
   private projectStateMapper = inject(KitchenProjectStateMapper);
   private workspaceStore = inject(KitchenWorkspaceStore);
+  private requestsFacade = inject(KitchenProjectRequestsFacade);
 
   readonly walls = this.workspaceStore.walls;
   readonly selectedWallId = this.workspaceStore.selectedWallId;
@@ -115,64 +103,14 @@ export class KitchenStateService {
     return this.cabinets().reduce((sum, cabinet) => sum + (cabinet.calculatedResult?.totalCost ?? 0), 0);
   });
 
-  readonly usedWidthBottom = computed(() => {
-    return this.geometryService.calculateUsedWidth(
-      this.cabinets(),
-      'BOTTOM',
-      this.settingsService.fillerWidthMm(),
-      this.selectedWall()?.type
-    );
-  });
-
-  readonly usedWidthTop = computed(() => {
-    return this.geometryService.calculateUsedWidth(
-      this.cabinets(),
-      'TOP',
-      this.settingsService.fillerWidthMm(),
-      this.selectedWall()?.type
-    );
-  });
-
-  readonly totalWidth = computed(() => Math.max(this.usedWidthBottom(), this.usedWidthTop()));
-
-  readonly fitsOnWall = computed(() => {
-    const wall = this.selectedWall();
-    if (!wall) {
-      return true;
-    }
-
-    return this.usedWidthBottom() <= wall.widthMm && this.usedWidthTop() <= wall.widthMm;
-  });
-
-  readonly remainingWidth = computed(() => {
-    const wall = this.selectedWall();
-    if (!wall) {
-      return 0;
-    }
-
-    return Math.min(wall.widthMm - this.usedWidthBottom(), wall.widthMm - this.usedWidthTop());
-  });
-
-  readonly remainingWidthBottom = computed(() => {
-    const wall = this.selectedWall();
-    return wall ? wall.widthMm - this.usedWidthBottom() : 0;
-  });
-
-  readonly remainingWidthTop = computed(() => {
-    const wall = this.selectedWall();
-    return wall ? wall.widthMm - this.usedWidthTop() : 0;
-  });
-
-  readonly cabinetPositions = computed((): CabinetPosition[] => {
-    return this.geometryService.calculateCabinetPositions(this.cabinets(), {
-      wallType: this.selectedWall()?.type,
-      wallHeightMm: this.selectedWall()?.heightMm ?? 2600,
-      plinthHeightMm: this.settingsService.plinthHeightMm(),
-      countertopThicknessMm: this.settingsService.countertopThicknessMm(),
-      upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
-      fillerWidthMm: this.settingsService.fillerWidthMm()
-    });
-  });
+  readonly usedWidthBottom = this.wallMetrics.usedWidthBottom;
+  readonly usedWidthTop = this.wallMetrics.usedWidthTop;
+  readonly totalWidth = this.wallMetrics.totalWidth;
+  readonly fitsOnWall = this.wallMetrics.fitsOnWall;
+  readonly remainingWidth = this.wallMetrics.remainingWidth;
+  readonly remainingWidthBottom = this.wallMetrics.remainingWidthBottom;
+  readonly remainingWidthTop = this.wallMetrics.remainingWidthTop;
+  readonly cabinetPositions = this.wallMetrics.cabinetPositions;
 
   readonly totalCabinetCount = computed(() => {
     return this.walls().reduce((sum, wall) => sum + wall.cabinets.length, 0);
@@ -358,30 +296,6 @@ export class KitchenStateService {
     this.markProjectAsClean();
   }
 
-  buildUpdateProjectRequest(
-    name?: string,
-    description?: string,
-    clientName?: string,
-    clientPhone?: string,
-    clientEmail?: string
-  ): UpdateKitchenProjectRequest {
-    return {
-      name: name ?? this.metadataService.currentProjectName() ?? 'Bez nazwy',
-      description,
-      clientName,
-      clientPhone,
-      clientEmail,
-      walls: this.buildProjectWalls(),
-      plinthHeightMm: this.settingsService.plinthHeightMm(),
-      countertopThicknessMm: this.settingsService.countertopThicknessMm(),
-      upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
-      // Wysyłamy jawnie `null` (a nie `undefined`), żeby PUT /projects/{id}
-      // mógł wyczyścić wcześniej zapisane wymiary pomieszczenia.
-      roomWidthMm: this.metadataService.currentProjectRoomWidthMm(),
-      roomDepthMm: this.metadataService.currentProjectRoomDepthMm()
-    };
-  }
-
   setProjectInfo(
     projectId: number,
     projectName: string,
@@ -422,98 +336,12 @@ export class KitchenStateService {
     this.workspaceStore.clearSelectedWallCabinets();
   }
 
-  buildProjectRequest(): KitchenProjectRequest {
-    const selectedWall = this.selectedWall();
-    const cabinets = selectedWall?.cabinets ?? [];
-
-    let currentX = 0;
-    const projectCabinets: ProjectCabinetRequest[] = cabinets.map(cabinet => {
-      const request: ProjectCabinetRequest = {
-        cabinetId: cabinet.id,
-        kitchenCabinetType: cabinet.type,
-        openingType: cabinet.openingType,
-        height: cabinet.height,
-        width: cabinet.width,
-        depth: cabinet.depth,
-        positionX: currentX,
-        positionY: 0,
-        shelfQuantity: cabinet.shelfQuantity,
-        varnishedFront: false,
-        materialRequest: {
-          boxMaterial: 'CHIPBOARD',
-          boxBoardThickness: 18,
-          boxColor: 'WHITE',
-          boxVeneerColor: 'WHITE',
-          frontMaterial: 'CHIPBOARD',
-          frontBoardThickness: 18,
-          frontColor: 'WHITE',
-          frontVeneerColor: 'WHITE'
-        }
-      };
-      currentX += cabinet.width;
-      return request;
-    });
-
-    // TODO(CODEX): buildProjectRequest to nadal legacy flow ze sztywnymi materialRequest defaults na froncie.
-    // Jeśli ten endpoint jest jeszcze używany, materiały i domyślne parametry powinny pochodzić z backendu
-    // albo przynajmniej z jednego wspólnego mappera ustawień, bo inaczej request łatwo rozjedzie się z resztą kitchen.
-    return {
-      wall: {
-        length: selectedWall?.widthMm ?? 3600,
-        height: selectedWall?.heightMm ?? 2600
-      },
-      cabinets: projectCabinets
-    };
-  }
-
-  buildMultiWallCalculateRequest(): MultiWallCalculateRequest {
-    const connections = this.requestBuilder.buildConnections(this.walls());
-    return {
-      walls: this.buildProjectWalls(),
-      connections: connections.length > 0 ? connections : undefined,
-      roomWidthMm: this.metadataService.currentProjectRoomWidthMm() ?? undefined,
-      roomDepthMm: this.metadataService.currentProjectRoomDepthMm() ?? undefined
-    };
-  }
-
-  buildMultiWallProjectRequest(
-    name: string,
-    description?: string,
-    clientName?: string,
-    clientPhone?: string,
-    clientEmail?: string
-  ): CreateKitchenProjectRequest {
-    return {
-      name,
-      description,
-      clientName,
-      clientPhone,
-      clientEmail,
-      walls: this.buildProjectWalls(),
-      plinthHeightMm: this.settingsService.plinthHeightMm(),
-      countertopThicknessMm: this.settingsService.countertopThicknessMm(),
-      upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
-      roomWidthMm: this.metadataService.currentProjectRoomWidthMm() ?? undefined,
-      roomDepthMm: this.metadataService.currentProjectRoomDepthMm() ?? undefined
-    };
-  }
-
-  private buildProjectWalls(): ProjectWallRequest[] {
-    return this.requestBuilder.buildProjectWalls(this.walls(), {
-      plinthHeightMm: this.settingsService.plinthHeightMm(),
-      countertopThicknessMm: this.settingsService.countertopThicknessMm(),
-      upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
-      fillerWidthMm: this.settingsService.fillerWidthMm(),
-      materialDefaults: this.settingsService.materialDefaults()
-    });
-  }
-
   private buildPersistedWorkspaceSignature(): string {
     // Intentionally tracks only project-persisted workspace data.
     // We compare saved/loaded project state (walls, project-level dimensions and persisted project settings),
     // not global user defaults like distanceFromWall/plinthSetback/frontGap that are not stored in the project record.
     return JSON.stringify({
-      walls: this.buildProjectWalls(),
+      walls: this.requestsFacade.buildProjectWalls(),
       plinthHeightMm: this.settingsService.plinthHeightMm(),
       countertopThicknessMm: this.settingsService.countertopThicknessMm(),
       upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),

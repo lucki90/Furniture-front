@@ -11,6 +11,7 @@ import {
 } from '../unsaved-changes-dialog/unsaved-changes-dialog.component';
 import { KitchenProjectWorkflowFacade } from './kitchen-project-workflow.facade';
 import { KitchenStateService } from './kitchen-state.service';
+import { KitchenProjectRequestsFacade } from './kitchen-project-requests.facade';
 
 export interface KitchenProjectTransitionHooks {
   onProceed: () => void;
@@ -21,6 +22,7 @@ export interface KitchenProjectTransitionHooks {
 @Injectable({ providedIn: 'root' })
 export class KitchenProjectTransitionGuardService {
   private readonly stateService = inject(KitchenStateService);
+  private readonly requestsFacade = inject(KitchenProjectRequestsFacade);
   private readonly dialog = inject(MatDialog);
   private readonly workflowFacade = inject(KitchenProjectWorkflowFacade);
   private readonly toast = inject(ToastService);
@@ -117,14 +119,14 @@ export class KitchenProjectTransitionGuardService {
       };
 
       this.workflowFacade.saveProject(this.stateService.currentProjectId(), result, {
-        buildCreateRequest: dialogResult => this.stateService.buildMultiWallProjectRequest(
+        buildCreateRequest: dialogResult => this.requestsFacade.buildMultiWallProjectRequest(
           dialogResult.name,
           dialogResult.description,
           dialogResult.clientName,
           dialogResult.clientPhone,
           dialogResult.clientEmail
         ),
-        buildUpdateRequest: dialogResult => this.stateService.buildUpdateProjectRequest(
+        buildUpdateRequest: dialogResult => this.requestsFacade.buildUpdateProjectRequest(
           dialogResult.name,
           dialogResult.description,
           dialogResult.clientName,

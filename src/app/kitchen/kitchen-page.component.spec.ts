@@ -18,6 +18,7 @@ import { KitchenBomTranslationsService } from './service/kitchen-bom-translation
 import { LanguageService } from '../service/language.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
+import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
 import { EMPTY, of } from 'rxjs';
 
 // Stub dostarcza wszystkie sygnały konsumowane przez KitchenPageComponent.
@@ -104,7 +105,8 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
             confirmUnsavedAndProceed: () => {},
             isTransitioning: signal(false).asReadonly()
           }
-        }
+        },
+        { provide: KitchenProjectRequestsFacade, useValue: { buildMultiWallCalculateRequest: () => ({ walls: [] }) } }
       ]
     }).compileComponents();
 
@@ -132,7 +134,7 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
   describe('Ctrl+S', () => {
     it('calls onSaveProject when Ctrl+S is pressed and not saving', () => {
       const spy = spyOn(component, 'onSaveProject');
-      component.isSavingProject = false;
+      component.isSavingProject.set(false);
 
       sendKey('s', { ctrlKey: true });
 
@@ -141,7 +143,7 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
 
     it('does not call onSaveProject when already saving', () => {
       const spy = spyOn(component, 'onSaveProject');
-      component.isSavingProject = true;
+      component.isSavingProject.set(true);
 
       sendKey('s', { ctrlKey: true });
 
@@ -194,5 +196,33 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
     expect(secondService).not.toBe(firstService);
 
     secondFixture.destroy();
+  });
+
+  describe('sygnały widoku (FE-35 OnPush migration)', () => {
+
+    it('view() domyślnie równe "config" gdy brak zawartości', () => {
+      expect(component.view()).toBe('config');
+    });
+
+    it('setView("costs") pozostaje na "config" gdy brak treści projektu', () => {
+      // Guard canRenderCostsView(): totalCabinetCount=0 i projectResult=null → fallback do 'config'
+      component.setView('costs');
+      expect(component.view()).toBe('config');
+    });
+
+    it('setView("costs") przełącza widok gdy projectResult jest ustawiony', () => {
+      component.projectResult.set({} as any);
+      component.setView('costs');
+      expect(component.view()).toBe('costs');
+    });
+
+    it('editingCabinetId() zwraca null gdy editingCabinet() jest null', () => {
+      expect(component.editingCabinet()).toBeNull();
+      expect(component.editingCabinetId()).toBeNull();
+    });
+
+    it('isCalculatingProject() startuje jako false', () => {
+      expect(component.isCalculatingProject()).toBeFalse();
+    });
   });
 });

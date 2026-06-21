@@ -1,4 +1,4 @@
-﻿<div class="kitchen-page">
+<div class="kitchen-page">
   <!-- PAGE HEADER -->
   <app-kitchen-page-header
     (calculateProject)="calculateProject()"
@@ -12,13 +12,13 @@
     [allowedTransitions]="currentProjectTransitionOptions"
     [canRedo]="canRedo()"
     [canUndo]="canUndo()"
-    [hasCalculationResult]="!!projectResult"
+    [hasCalculationResult]="!!projectResult()"
     [hasProjectId]="!!currentProjectId()"
-    [isCalculatingProject]="isCalculatingProject"
-    [isChangingStatus]="isChangingStatus"
-    [isEditingCabinet]="editingCabinetId !== null"
-    [isProjectsDrawerOpen]="isProjectsDrawerOpen"
-    [isSavingProject]="isSavingProject || projectTransitionInProgress()"
+    [isCalculatingProject]="isCalculatingProject()"
+    [isChangingStatus]="isChangingStatus()"
+    [isEditingCabinet]="editingCabinetId() !== null"
+    [isProjectsDrawerOpen]="isProjectsDrawerOpen()"
+    [isSavingProject]="isSavingProject() || projectTransitionInProgress()"
     [projectDisplayName]="currentProjectName() || 'Nowy projekt kuchni'"
     [projectId]="currentProjectId()"
     [projectStatusColor]="currentProjectStatusColor"
@@ -26,13 +26,13 @@
     [projectSubtitle]="'Projektuj i wyceniaj zabudowe kuchenna'"
     [projectVersion]="currentProjectVersion()"
     [totalCabinetCount]="totalCabinetCount()"
-    [view]="view">
+    [view]="view()">
   </app-kitchen-page-header>
 
   <div class="kitchen-page-body">
 
     <!-- ============ TRYB: KONFIGURATOR (workspace + lista szafek) ============ -->
-    <ng-container *ngIf="view === 'config'">
+    <ng-container *ngIf="view() === 'config'">
       <!-- ============ SEKCJA 1: WIZUALIZACJA + FORMULARZ ============ -->
       <app-kitchen-workspace-section
         (addWallRequested)="onAddWallRequested()"
@@ -47,10 +47,10 @@
         (wallHeightChange)="wallHeight = $event"
         (wallLengthChange)="wallLength = $event"
         (wallRemoved)="onWallRemoved($event)"
-        [editingCabinetId]="editingCabinetId"
-        [editingCabinet]="editingCabinet"
+        [editingCabinetId]="editingCabinetId()"
+        [editingCabinet]="editingCabinet()"
         [hasSelectedWall]="!!selectedWall()"
-        [projectResult]="projectResult"
+        [projectResult]="projectResult()"
         [roomDepthMm]="roomDepthMm"
         [roomWidthMm]="roomWidthMm"
         [selectedWallLabel]="selectedWallLabel"
@@ -64,10 +64,10 @@
           (editCabinet)="onEditCabinet($event)"
           (removeCabinet)="onRemoveCabinet($event)"
           [cabinets]="cabinets()"
-          [editingCabinetId]="editingCabinetId"
+          [editingCabinetId]="editingCabinetId()"
           [fitsOnWall]="fitsOnWall()"
-          [hasEditingCabinet]="!!editingCabinet"
-          [result]="result"
+          [hasEditingCabinet]="!!editingCabinet()"
+          [result]="result()"
           [selectedWallLabel]="selectedWallLabel"
           [selectedWallTotalCost]="selectedWallTotalCost()"
           [selectedWallType]="selectedWall().type"
@@ -79,31 +79,31 @@
     </ng-container>
 
     <!-- ============ TRYB: KOSZTY ============ -->
-    <ng-container *ngIf="view === 'costs'">
+    <ng-container *ngIf="view() === 'costs'">
       <!-- ============ SEKCJA 3: MATERIALY I KOSZTY ============ -->
       <app-kitchen-costs-section
-        (activeDetailsTabChange)="activeDetailsTab = $event"
+        (activeDetailsTabChange)="activeDetailsTab.set($event)"
         (calculateProject)="calculateProject()"
         (clearAll)="clearAll()"
         (downloadOfferPdf)="downloadOfferPdf()"
-        (includeWasteCostChange)="includeWasteCost = $event"
+        (includeWasteCostChange)="includeWasteCost.set($event)"
         (pricingDiscountPctChange)="pricingService.setDiscountPct($event)"
         (pricingManualOverrideChange)="pricingService.setManualOverride($event)"
         (pricingManualOverrideEnabledChange)="pricingService.setManualOverrideEnabled($event)"
         (pricingOfferNotesChange)="pricingService.setOfferNotes($event)"
         (pricingTabRequested)="loadPricing()"
         (savePricing)="savePricing()"
-        [activeDetailsTab]="activeDetailsTab"
+        [activeDetailsTab]="activeDetailsTab()"
         [adjustedComponentCost]="adjustedComponentCost"
         [adjustedTotalCost]="adjustedTotalCost"
-        [aggregatedBoards]="aggregatedBoards"
-        [aggregatedComponents]="aggregatedComponents"
-        [aggregatedJobs]="aggregatedJobs"
+        [aggregatedBoards]="aggregatedBoards()"
+        [aggregatedComponents]="aggregatedComponents()"
+        [aggregatedJobs]="aggregatedJobs()"
         [currentProjectId]="currentProjectId()"
-        [editingCabinetId]="editingCabinetId"
+        [editingCabinetId]="editingCabinetId()"
         [fitsOnWall]="fitsOnWall()"
-        [includeWasteCost]="includeWasteCost"
-        [isCalculatingProject]="isCalculatingProject"
+        [includeWasteCost]="includeWasteCost()"
+        [isCalculatingProject]="isCalculatingProject()"
         [isPdfDownloading]="pricingService.isPdfDownloading()"
         [isPricingLoading]="pricingService.isPricingLoading()"
         [isPricingSaving]="pricingService.isPricingSaving()"
@@ -111,9 +111,9 @@
         [pricingManualOverrideEnabled]="pricingService.pricingManualOverrideEnabled()"
         [pricingManualOverride]="pricingService.pricingManualOverride()"
         [pricingOfferNotes]="pricingService.pricingOfferNotes()"
-        [pricingWarnings]="pricingWarnings"
+        [pricingWarnings]="pricingWarnings()"
         [pricing]="pricingService.pricing()"
-        [projectResult]="projectResult"
+        [projectResult]="projectResult()"
         [remainingWidth]="remainingWidth()"
         [selectedWallCabinetCount]="cabinets().length"
         [selectedWallLabel]="selectedWallLabel"
@@ -123,10 +123,10 @@
         [totalAggregatedJobsCost]="totalAggregatedJobsCost"
         [totalCabinetCount]="totalCabinetCount()"
         [totalCost]="totalCost()"
-        [totalWasteCost]="totalWasteCost"
+        [totalWasteCost]="totalWasteCost()"
         [totalWidth]="totalWidth()"
         [wallsCount]="walls().length"
-        [wasteDetails]="wasteDetails">
+        [wasteDetails]="wasteDetails()">
       </app-kitchen-costs-section>
     </ng-container>
   </div>
@@ -139,11 +139,11 @@
     (saveProject)="onSaveProject()"
     [adjustedTotalCost]="adjustedTotalCost"
     [currentProjectId]="currentProjectId()"
-    [editingCabinetId]="editingCabinetId"
-    [isCalculatingProject]="isCalculatingProject"
-    [isExporting]="isExporting"
-    [isSavingProject]="isSavingProject || projectTransitionInProgress()"
-    [projectResult]="projectResult"
+    [editingCabinetId]="editingCabinetId()"
+    [isCalculatingProject]="isCalculatingProject()"
+    [isExporting]="isExporting()"
+    [isSavingProject]="isSavingProject() || projectTransitionInProgress()"
+    [projectResult]="projectResult()"
     [totalCabinetCount]="totalCabinetCount()"
     [wallsCount]="walls().length">
   </app-kitchen-page-footer>
@@ -153,8 +153,8 @@
     (createProjectRequested)="createNewProjectFromDrawer()"
     (openProjectRequested)="openProjectFromDrawer($event)"
     [currentProjectId]="currentProjectId()"
-    [isTransitioning]="projectTransitionInProgress() || isSavingProject || openingProjectFromDrawerId !== null"
-    [open]="isProjectsDrawerOpen"
-    [openingProjectId]="openingProjectFromDrawerId">
+    [isTransitioning]="projectTransitionInProgress() || isSavingProject() || openingProjectFromDrawerId() !== null"
+    [open]="isProjectsDrawerOpen()"
+    [openingProjectId]="openingProjectFromDrawerId()">
   </app-kitchen-projects-drawer>
 </div>

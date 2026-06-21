@@ -8,11 +8,13 @@ import { UnsavedChangesDecision } from '../unsaved-changes-dialog/unsaved-change
 import { KitchenProjectTransitionGuardService } from './kitchen-project-transition-guard.service';
 import { KitchenProjectWorkflowFacade } from './kitchen-project-workflow.facade';
 import { KitchenStateService } from './kitchen-state.service';
+import { KitchenProjectRequestsFacade } from './kitchen-project-requests.facade';
 
 describe('KitchenProjectTransitionGuardService', () => {
   let service: KitchenProjectTransitionGuardService;
   let dialog: jasmine.SpyObj<MatDialog>;
   let stateService: jasmine.SpyObj<KitchenStateService>;
+  let requestsFacade: jasmine.SpyObj<KitchenProjectRequestsFacade>;
   let workflowFacade: jasmine.SpyObj<KitchenProjectWorkflowFacade>;
   let toast: jasmine.SpyObj<ToastService>;
   let errorHandler: jasmine.SpyObj<ApiErrorHandler>;
@@ -27,10 +29,12 @@ describe('KitchenProjectTransitionGuardService', () => {
       'currentProjectClientName',
       'currentProjectClientPhone',
       'currentProjectClientEmail',
-      'buildMultiWallProjectRequest',
-      'buildUpdateProjectRequest',
       'setProjectInfo',
       'markProjectAsClean'
+    ]);
+    requestsFacade = jasmine.createSpyObj<KitchenProjectRequestsFacade>('KitchenProjectRequestsFacade', [
+      'buildMultiWallProjectRequest',
+      'buildUpdateProjectRequest'
     ]);
     workflowFacade = jasmine.createSpyObj<KitchenProjectWorkflowFacade>('KitchenProjectWorkflowFacade', ['saveProject']);
     toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'info']);
@@ -47,6 +51,7 @@ describe('KitchenProjectTransitionGuardService', () => {
         KitchenProjectTransitionGuardService,
         { provide: MatDialog, useValue: dialog },
         { provide: KitchenStateService, useValue: stateService },
+        { provide: KitchenProjectRequestsFacade, useValue: requestsFacade },
         { provide: KitchenProjectWorkflowFacade, useValue: workflowFacade },
         { provide: ToastService, useValue: toast },
         { provide: ApiErrorHandler, useValue: errorHandler }
@@ -96,7 +101,7 @@ describe('KitchenProjectTransitionGuardService', () => {
     stateService.currentProjectClientName.and.returnValue('Jan');
     stateService.currentProjectClientPhone.and.returnValue('123');
     stateService.currentProjectClientEmail.and.returnValue('jan@example.com');
-    stateService.buildUpdateProjectRequest.and.returnValue({ name: 'Projekt testowy', walls: [] } as never);
+    requestsFacade.buildUpdateProjectRequest.and.returnValue({ name: 'Projekt testowy', walls: [] } as never);
 
     dialog.open.and.returnValues(
       { afterClosed: () => of('save') } as MatDialogRef<unknown>,
@@ -181,7 +186,7 @@ describe('KitchenProjectTransitionGuardService', () => {
     };
     const backendError = new Error('save failed');
     const savingChanges: boolean[] = [];
-    stateService.buildMultiWallProjectRequest.and.returnValue({ name: 'Nowy projekt', walls: [] } as never);
+    requestsFacade.buildMultiWallProjectRequest.and.returnValue({ name: 'Nowy projekt', walls: [] } as never);
     dialog.open.and.returnValue({
       afterClosed: () => of(saveResult)
     } as MatDialogRef<unknown>);
@@ -223,7 +228,7 @@ describe('KitchenProjectTransitionGuardService', () => {
       clientEmail: ''
     };
     const savingChanges: boolean[] = [];
-    stateService.buildMultiWallProjectRequest.and.returnValue({ name: 'Nowy projekt', walls: [] } as never);
+    requestsFacade.buildMultiWallProjectRequest.and.returnValue({ name: 'Nowy projekt', walls: [] } as never);
     dialog.open.and.returnValue({
       afterClosed: () => of(saveResult)
     } as MatDialogRef<unknown>);
