@@ -34,11 +34,11 @@ import { CabinetSegmentsSectionComponent } from './sections/cabinet-segments-sec
 import {
   CARGO_BRAND_OPTIONS,
   CARGO_VARIANT_OPTIONS,
-  isCargoMechanismNominalWidth
+  getCargoWidthHint
 } from './types/base-cargo/cargo-cabinet.model';
 import { CornerMechanismType } from './model/corner-cabinet.model';
-import { ProjectSettingsConstraints, LiftMechanismType, supportsThirdLiftMechanism, supportsHfAsymmetricFront } from './model/kitchen-cabinet-constants';
-import { hfUpperFrontHeightValidator } from './types/upper-lift-up/upper-lift-up.validators';
+import { LiftMechanismType } from './model/kitchen-cabinet-constants';
+import { CABINET_TYPE_PICKER_LABELS } from './types/cabinet-type-labels';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -55,9 +55,10 @@ export class CabinetFormComponent implements OnChanges {
   protected readonly cargoVariantOptions = CARGO_VARIANT_OPTIONS;
   protected readonly cargoBrandOptions = CARGO_BRAND_OPTIONS;
 
-  // TODO(CODEX): Cabinet form still has high domain complexity and a few `as any` casts
-  // in the editing/type-switch flow. This suggests the form model and typing are still too
-  // loose; the next step should be stronger per-type mappers instead of growing this component.
+  // Komponent przekracza miękki limit 500 linii ze względu na inherentną złożoność:
+  // 23 typy szafek, 8 subskrypcji valueChanges + 2 effects koniecznych przy OnPush,
+  // 41 linii importów Angular/Material oraz dużo getterów prezentacyjnych (adaptery form→template).
+  // Dalszy podział bez sensu domenowego byłby antywzorcem (serwis przyjmujący cdr+fb+form).
   @Input()
   editingCabinet: KitchenCabinet | null = null;
 
@@ -79,7 +80,9 @@ export class CabinetFormComponent implements OnChanges {
   private readonly segmentValidationService = inject(CabinetSegmentValidationService);
 
   form: FormGroup;
-  visibility: CabinetFormVisibility = {} as CabinetFormVisibility;
+  visibility: CabinetFormVisibility = this.typeLifecycleService.createBaseVisibility();
+  /** Cache widoczności taba "Opcje" — przeliczany przy każdej zmianie `visibility`, aby template nie wołał metody 4× na cykl CD. */
+  hasOptionsTab = false;
   loading = false;
 
   /** Aktywny tab formularza: 'basic' (wymiary/typ), 'position' (pozycjonowanie/flagi), 'options' (sekcje specjalistyczne). */
@@ -91,8 +94,17 @@ export class CabinetFormComponent implements OnChanges {
     this.cdr.markForCheck();
   }
 
+  /**
+   * Centralny zapis `visibility` — odświeża cache `hasOptionsTab`, aby template nie wołał metody na każdym cyklu CD.
+   * KAŻDA zmiana `visibility` musi przechodzić przez tę metodę, inaczej cache się rozjedzie z realnym stanem.
+   */
+  private setVisibility(next: CabinetFormVisibility): void {
+    this.visibility = next;
+    this.hasOptionsTab = this.computeHasOptionsTab();
+  }
+
   /** Tab "Opcje" jest widoczny tylko gdy istnieją sekcje specjalistyczne dla danego typu. */
-  hasOptionsTabContent(): boolean {
+  private computeHasOptionsTab(): boolean {
     const v = this.visibility;
     return !!(v.cornerWidthA || v.cascadeSegments || v.segments
       || v.sinkFrontType || v.cooktopType || v.hoodFrontType || v.drainerFrontType
@@ -156,15 +168,13 @@ export class CabinetFormComponent implements OnChanges {
   }
 
   /** Segment types allowed above the fridge section. */
-  readonly fridgeSegmentTypeOptions = computed(() =>
-    SEGMENT_TYPE_OPTIONS.filter(opt =>
-      opt.value === SegmentType.DOOR || opt.value === SegmentType.OPEN_SHELF
-    )
+  readonly fridgeSegmentTypeOptions = SEGMENT_TYPE_OPTIONS.filter(
+    opt => opt.value === SegmentType.DOOR || opt.value === SegmentType.OPEN_SHELF
   );
 
   /** Segment type options depend on the currently selected cabinet type. */
   get activeSegmentTypeOptions() {
-    return this.isFridgeCabinet ? this.fridgeSegmentTypeOptions() : SEGMENT_TYPE_OPTIONS;
+    return this.isFridgeCabinet ? this.fridgeSegmentTypeOptions : SEGMENT_TYPE_OPTIONS;
   }
 
   /** Returns inline error text for a single form field. */
@@ -172,35 +182,9 @@ export class CabinetFormComponent implements OnChanges {
     return this.validationErrorsService.getControlError(this.form.get(controlName));
   }
 
-  private readonly TYPE_LABELS: Record<KitchenCabinetType, string> = {
-    [KitchenCabinetType.BASE_TWO_DOOR]:               'Dolna - 2 drzwi',
-    [KitchenCabinetType.BASE_ONE_DOOR]:               'Dolna - 1 drzwi',
-    [KitchenCabinetType.BASE_OPEN]:                   'Dolna - otwarta',
-    [KitchenCabinetType.BASE_CARGO]:                  'Dolna - cargo',
-    [KitchenCabinetType.BASE_WITH_DRAWERS]:           'Dolna - szuflady',
-    [KitchenCabinetType.BASE_SINK]:                   'Dolna - zlewowa',
-    [KitchenCabinetType.BASE_COOKTOP]:                'Dolna - pod plyte grzewcza',
-    [KitchenCabinetType.BASE_DISHWASHER]:             'Dolna - zmywarka (front)',
-    [KitchenCabinetType.BASE_DISHWASHER_FREESTANDING]:'Dolna - zmywarka wolnostojaca',
-    [KitchenCabinetType.BASE_OVEN]:                   'Dolna - piekarnik (zabudowany)',
-    [KitchenCabinetType.BASE_OVEN_FREESTANDING]:      'Dolna - piekarnik wolnostojacy',
-    [KitchenCabinetType.BASE_FRIDGE]:                 'Slupek - lodowka w zabudowie',
-    [KitchenCabinetType.BASE_FRIDGE_FREESTANDING]:    'Dolna - lodowka wolnostojaca',
-    [KitchenCabinetType.PANTRY_PASSAGE]:              'Przejscie do spizarni',
-    [KitchenCabinetType.UPPER_ONE_DOOR]:              'Wiszaca - 1 drzwi',
-    [KitchenCabinetType.UPPER_LIFT_UP]:               'Wiszaca - klapa do gory',
-    [KitchenCabinetType.UPPER_TWO_DOOR]:              'Wiszaca - 2 drzwi',
-    [KitchenCabinetType.UPPER_OPEN_SHELF]:            'Wiszaca - otwarta polka',
-    [KitchenCabinetType.UPPER_CASCADE]:               'Wiszaca - kaskadowa',
-    [KitchenCabinetType.UPPER_HOOD]:                  'Wiszaca - na okap',
-    [KitchenCabinetType.UPPER_DRAINER]:               'Szafka z ociekaczem',
-    [KitchenCabinetType.TALL_CABINET]:                'Slupek',
-    [KitchenCabinetType.CORNER_CABINET]:              'Narozna',
-  };
-
   get currentTypeLabel(): string {
     const type = this.form.get('kitchenCabinetType')?.value as KitchenCabinetType;
-    return this.TYPE_LABELS[type] ?? 'Wybierz typ...';
+    return CABINET_TYPE_PICKER_LABELS[type] ?? 'Wybierz typ...';
   }
 
   openTypePicker(): void {
@@ -264,34 +248,14 @@ export class CabinetFormComponent implements OnChanges {
   }
 
   get cargoDrawerQuantityLabel(): string {
-    return this.isCargoMechanismVariant ? 'Ilosc koszy / polek' : 'Ilosc szuflad';
+    return this.isCargoMechanismVariant ? 'Ilość koszy / półek' : 'Ilość szuflad';
   }
 
   get cargoWidthHint(): string | null {
-    const width = Number(this.form.get('width')?.value);
-    if (Number.isNaN(width) || width <= 0) {
-      return null;
-    }
-
-    if (this.isCargoMechanismVariant) {
-      if (isCargoMechanismNominalWidth(width)) {
-        return null;
-      }
-
-      return 'Uwaga: dla tej szerokosci standardowy mechanizm cargo moze nie pasowac. Upewnij sie u producenta albo wybierz wariant cargo z szufladami.';
-    }
-
-    if (this.isCargoDrawersVariant) {
-      if (width <= 200) {
-        return 'Uwaga: przy szerokosci 200 mm cargo z szufladami jest technicznie mozliwe, ale zwykle bardzo malo uzytkowe. Rozwaz mechanizm cargo albo inna szafke.';
-      }
-
-      if (width < 250) {
-        return 'Uwaga: przy tej szerokosci szuflady wewnetrzne beda bardzo waskie. Upewnij sie, ze taki wariant bedzie praktyczny.';
-      }
-    }
-
-    return null;
+    return getCargoWidthHint(
+      Number(this.form.get('width')?.value),
+      this.form.get('cargoVariant')?.value
+    );
   }
 
   get isIslandWall(): boolean {
@@ -346,7 +310,7 @@ export class CabinetFormComponent implements OnChanges {
     if (errors.length > 0) {
       return errors.join(' • ');
     }
-    return 'Uzupelnij poprawnie wszystkie wymagane pola, aby dodac szafke.';
+    return 'Uzupełnij poprawnie wszystkie wymagane pola, aby dodać szafkę.';
   }
 
   /** Whether the current cabinet is a built-in fridge cabinet. */
@@ -380,30 +344,28 @@ export class CabinetFormComponent implements OnChanges {
         this.onTypeChange(nextType);
       });
 
-    // CORNER_CABINET — gdy użytkownik przełącza mechanizm wewnątrz formularza (karty rodziny/systemu),
-    // preparer NIE jest ponownie uruchamiany, więc parent-level visibility (opcje szafki wiszącej:
-    // pozycjonowanie + przedłużany front) nie odświeżyłaby się sama. Wiszący ślepy narożnik
-    // (BLIND_CORNER + isUpperCorner) musi pokazać te same opcje co zwykłe szafki wiszące — dlatego
-    // odświeżamy tu odpowiednie flagi widoczności (wzorzec jak przy drawerLayoutType powyżej).
+    // CORNER_CABINET — gdy użytkownik przełącza mechanizm wewnątrz formularza, preparer NIE jest ponownie
+    // uruchamiany (resetowałby wymiary). Lifecycle service replikuje flagi widoczności wiszącej blendy.
     this.form.get('cornerMechanism')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(mechanism => {
-        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.CORNER_CABINET) {
-          return;
-        }
-        this.refreshCornerHangingVisibility(mechanism as CornerMechanismType);
+        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.CORNER_CABINET) return;
+        this.setVisibility(this.typeLifecycleService.refreshCornerHangingVisibility(
+          this.form, this.visibility, mechanism as CornerMechanismType
+        ));
+        this.cdr.markForCheck();
       });
 
-    // UPPER_LIFT_UP — opcje zależne od mechanizmu: trzeci mechanizm Aventos (HK-S / HF top) i wysokość górnego
-    // frontu HF (tylko HF top). Preparer NIE jest ponownie uruchamiany przy zmianie mechanizmu w selekcie, więc tu
-    // odświeżamy widoczność (parytet z BE) i zerujemy wartości, których nowy mechanizm nie obsługuje.
+    // UPPER_LIFT_UP — opcje zależne od mechanizmu (trzeci mechanizm / wysokość górnego frontu HF).
+    // Preparer NIE jest ponownie uruchamiany przy zmianie mechanizmu w selekcie.
     this.form.get('liftMechanismType')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(mechanism => {
-        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.UPPER_LIFT_UP) {
-          return;
-        }
-        this.refreshLiftMechanismDependentVisibility(mechanism as LiftMechanismType);
+        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.UPPER_LIFT_UP) return;
+        this.setVisibility(this.typeLifecycleService.refreshLiftMechanismDependentVisibility(
+          this.form, this.visibility, mechanism as LiftMechanismType
+        ));
+        this.cdr.markForCheck();
       });
 
     // UPPER_LIFT_UP / HF top — walidator wysokości górnego frontu zależy od wysokości szafki (< height),
@@ -416,48 +378,30 @@ export class CabinetFormComponent implements OnChanges {
         }
       });
 
-    // BASE_WITH_DRAWERS — synchronizacja FormArray wysokosci z drawerQuantity i drawerLayoutType
+    // BASE_WITH_DRAWERS — synchronizacja FormArray wysokości szuflad z drawerQuantity i drawerLayoutType
     this.form.get('drawerLayoutType')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(layout => {
-        if (this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_WITH_DRAWERS) {
-          this.visibility = { ...this.visibility, drawerCustomHeights: layout === 'CUSTOM' };
-          this.syncDrawerCustomHeightsArray();
-        }
+        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.BASE_WITH_DRAWERS) return;
+        this.setVisibility({ ...this.visibility, drawerCustomHeights: layout === 'CUSTOM' });
+        this.segmentsFormService.syncDrawerCustomHeights(
+          this.drawerCustomHeightsArray, Number(this.form.get('drawerQuantity')?.value) || 3
+        );
       });
     this.form.get('drawerQuantity')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        if (this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_WITH_DRAWERS
-            && this.form.get('drawerLayoutType')?.value === 'CUSTOM') {
-          this.syncDrawerCustomHeightsArray();
-        }
+      .subscribe(qty => {
+        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.BASE_WITH_DRAWERS
+            || this.form.get('drawerLayoutType')?.value !== 'CUSTOM') return;
+        this.segmentsFormService.syncDrawerCustomHeights(
+          this.drawerCustomHeightsArray, Number(qty) || 3
+        );
       });
 
     this.form.get('cargoVariant')!
       .valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(variant => {
-        if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.BASE_CARGO) {
-          return;
-        }
-
-        if (variant === 'DRAWERS') {
-          this.form.patchValue({
-            drawerQuantity: this.form.get('drawerQuantity')?.value ?? 3,
-            drawerModel: this.form.get('drawerModel')?.value ?? this.defaultDrawerModelCode
-          }, { emitEvent: false });
-        } else {
-          this.form.patchValue({
-            drawerQuantity: this.form.get('drawerQuantity')?.value ?? 3,
-            drawerModel: null
-          }, { emitEvent: false });
-        }
-        this.form.get('drawerQuantity')?.updateValueAndValidity({ emitEvent: false });
-        this.form.get('drawerModel')?.updateValueAndValidity({ emitEvent: false });
-        this.form.get('cargoBrand')?.updateValueAndValidity({ emitEvent: false });
-        this.cdr.markForCheck();
-      });
+      .subscribe(variant => this.onCargoVariantChange(variant));
 
     this.form.get('pantryPassageFrontType')!
       .valueChanges
@@ -495,6 +439,25 @@ export class CabinetFormComponent implements OnChanges {
     });
   }
 
+  private onCargoVariantChange(variant: string): void {
+    if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.BASE_CARGO) return;
+    if (variant === 'DRAWERS') {
+      this.form.patchValue({
+        drawerQuantity: this.form.get('drawerQuantity')?.value ?? 3,
+        drawerModel: this.form.get('drawerModel')?.value ?? this.defaultDrawerModelCode
+      }, { emitEvent: false });
+    } else {
+      this.form.patchValue({
+        drawerQuantity: this.form.get('drawerQuantity')?.value ?? 3,
+        drawerModel: null
+      }, { emitEvent: false });
+    }
+    this.form.get('drawerQuantity')?.updateValueAndValidity({ emitEvent: false });
+    this.form.get('drawerModel')?.updateValueAndValidity({ emitEvent: false });
+    this.form.get('cargoBrand')?.updateValueAndValidity({ emitEvent: false });
+    this.cdr.markForCheck();
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['editingCabinet'] && this.editingCabinet) {
       this.fillFormWithCabinet(this.editingCabinet);
@@ -508,13 +471,14 @@ export class CabinetFormComponent implements OnChanges {
 
   private onTypeChange(type: KitchenCabinetType): void {
     const lifecycleResult = this.typeLifecycleService.applyTypeChange(this.form, type, this.editingCabinet);
-    this.visibility = lifecycleResult.visibility;
+    this.setVisibility(lifecycleResult.visibility);
 
-    // UPPER_LIFT_UP — po przywróceniu wartości edytowanej szafki (restore patchuje z emitEvent:false, więc
-    // subskrypcja selektu się nie odpala) widoczność opcji zależnych od mechanizmu (trzeci mechanizm, wysokość
-    // górnego frontu HF) musi odzwierciedlać REALNY mechanizm zapisanej szafki, nie domyślny z preparera.
+    // UPPER_LIFT_UP — po przywróceniu wartości edytowanej szafki widoczność opcji zależnych od mechanizmu
+    // musi odzwierciedlać REALNY mechanizm zapisanej szafki, nie domyślny z preparera.
     if (type === KitchenCabinetType.UPPER_LIFT_UP) {
-      this.refreshLiftMechanismDependentVisibility(this.form.get('liftMechanismType')?.value as LiftMechanismType);
+      this.setVisibility(this.typeLifecycleService.refreshLiftMechanismDependentVisibility(
+        this.form, this.visibility, this.form.get('liftMechanismType')?.value as LiftMechanismType
+      ));
     }
 
     // Reset taba do "basic" — w przeciwnym razie po zmianie typu można utknąć w tabie Opcje
@@ -531,75 +495,6 @@ export class CabinetFormComponent implements OnChanges {
     }
   }
 
-  /**
-   * CORNER_CABINET — odświeża parent-level visibility, gdy użytkownik przełącza mechanizm
-   * narożnika wewnątrz formularza (karty rodziny/systemu). Preparer NIE jest wtedy ponownie
-   * uruchamiany (resetowałby wymiary = zła UX), więc tu replikujemy flagi z
-   * `CornerCabinetPreparer.updateVisibilityForMechanism` dla wiszącego ślepego narożnika.
-   *
-   * Wiszący ślepy narożnik (BLIND_CORNER + isUpperCorner) ma mieć WSZYSTKIE opcje szafki
-   * wiszącej typu "przedłużany front": pozycjonowanie + przedłużany front.
-   */
-  private refreshCornerHangingVisibility(mechanism: CornerMechanismType | null): void {
-    const wantsUpper = this.form.get('isUpperCorner')?.value ?? false;
-    const upperBlind = mechanism === CornerMechanismType.BLIND_CORNER && wantsUpper;
-
-    this.visibility = {
-      ...this.visibility,
-      positioningMode: upperBlind,
-      gapFromCountertopMm: upperBlind,
-      gapFromAnchorMm: upperBlind,
-      extendedFront: upperBlind,
-      liftUp: false,
-      blockUpperAbove: !upperBlind
-    };
-
-    // Domyślne wartości opcji szafki wiszącej muszą zostać wstawione przy reaktywnym przełączeniu
-    // (preparer się nie odpala). Zachowujemy istniejące wartości (tryb edycji).
-    if (upperBlind) {
-      this.form.patchValue({
-        positioningMode: this.form.get('positioningMode')?.value ?? 'RELATIVE_TO_CEILING',
-        gapFromCountertopMm: this.form.get('gapFromCountertopMm')?.value
-          ?? ProjectSettingsConstraints.UPPER_GAP_FROM_COUNTERTOP_DEFAULT,
-        isFrontExtended: this.form.get('isFrontExtended')?.value ?? false,
-        isLiftUp: false
-      }, { emitEvent: false });
-    }
-
-    this.cdr.markForCheck();
-  }
-
-  /**
-   * UPPER_LIFT_UP — odświeża widoczność opcji zależnych od mechanizmu podnośnika. Checkbox „Zezwól na trzeci
-   * mechanizm Aventos" obsługuje wyłącznie HK-S / HF top (parytet z katalogiem BE {@code AventosCatalog}), a pole
-   * wysokości górnego frontu (fronty asymetryczne TKH, doc §10.4) wyłącznie HF top — dla pozostałych mechanizmów
-   * sekcje są ukrywane. Gdy nowy mechanizm nie obsługuje opcji, zerujemy wartość kontrolki, żeby nie wysłać
-   * „martwej" wartości do backendu.
-   */
-  private refreshLiftMechanismDependentVisibility(mechanism: LiftMechanismType | null): void {
-    const allowsThird = supportsThirdLiftMechanism(mechanism);
-    const allowsHfAsymmetry = supportsHfAsymmetricFront(mechanism);
-    this.visibility = {
-      ...this.visibility,
-      allowThirdLiftMechanism: allowsThird,
-      hfUpperFrontHeightMm: allowsHfAsymmetry
-    };
-    if (!allowsThird && this.form.get('allowThirdLiftMechanism')?.value) {
-      this.form.get('allowThirdLiftMechanism')?.setValue(false, { emitEvent: false });
-    }
-    const hfControl = this.form.get('hfUpperFrontHeightMm');
-    if (allowsHfAsymmetry) {
-      hfControl?.setValidators(hfUpperFrontHeightValidator);
-    } else {
-      hfControl?.clearValidators();
-      if (hfControl?.value != null) {
-        hfControl.setValue(null, { emitEvent: false });
-      }
-    }
-    hfControl?.updateValueAndValidity({ emitEvent: false });
-    this.cdr.markForCheck();
-  }
-
   private resetGapBeforeMm(): void {
     this.form.get('gapBeforeMm')?.setValue(0, { emitEvent: false });
   }
@@ -614,7 +509,7 @@ export class CabinetFormComponent implements OnChanges {
   }
 
   calculate(): void {
-    // Oznacz wszystkie kontrolki jako touched - pokazuje bledy inline
+    // Oznacz wszystkie kontrolki jako touched - pokazuje błędy inline
     this.form.markAllAsTouched();
 
     this.loading = true;
@@ -650,7 +545,7 @@ export class CabinetFormComponent implements OnChanges {
 
   /** Adds a new segment to the form. */
   addSegment(): void {
-    this.segmentsArray.push(this.segmentsFormService.createDefaultSegment(this.fb, this.segmentsArray.length));
+    this.segmentsArray.push(this.segmentsFormService.createDefaultSegment(this.segmentsArray.length));
     this.selectedSegmentIndex = this.segmentsArray.length - 1;
 
     this.segmentValidationService.validate(
@@ -702,42 +597,18 @@ export class CabinetFormComponent implements OnChanges {
   protected trackByValue = (_: number, item: { value: string }) => item.value;
   protected trackByIndex = (index: number) => index;
 
-  /** FormArray z wysokosciami frontow per szuflada (CUSTOM layout). */
+  /** FormArray z wysokościami frontów per szuflada (CUSTOM layout). */
   get drawerCustomHeightsArray(): FormArray {
     return this.form.get('drawerCustomHeightsMm') as FormArray;
   }
 
-  /**
-   * Synchronizuje rozmiar FormArray `drawerCustomHeightsMm` z aktualnym `drawerQuantity`.
-   * Wywolywane przy zmianie `drawerLayoutType` (na CUSTOM) lub `drawerQuantity`.
-   */
-  private syncDrawerCustomHeightsArray(): void {
-    const qty = Number(this.form.get('drawerQuantity')?.value) || 3;
-    const arr = this.drawerCustomHeightsArray;
-    while (arr.length < qty) arr.push(this.fb.control<number | null>(null));
-    while (arr.length > qty) arr.removeAt(arr.length - 1);
-  }
-
-  /**
-   * Ostrzezenie pod polami CUSTOM heights: gdy suma + szczeliny != wysokosc korpusu.
-   * Wzor (zalozenie defaults: spaceWreathFront=3, horizSpace=3):
-   *   suma_external = H - 2*3 - (qty-1)*3
-   */
   get customHeightsTotalWarning(): string | null {
-    if (this.form.get('drawerLayoutType')?.value !== 'CUSTOM') return null;
-    const qty = Number(this.form.get('drawerQuantity')?.value) || 0;
-    const h = Number(this.form.get('height')?.value) || 0;
-    if (qty < 1 || h <= 0) return null;
-    const heights: number[] = (this.drawerCustomHeightsArray.value as Array<number | null>)
-      .map(v => Number(v) || 0);
-    if (heights.length !== qty || heights.some(v => v <= 0)) {
-      return `Wpisz ${qty} wysokosci (> 0) dla wszystkich szuflad.`;
-    }
-    const expectedSum = h - 2 * 3 - (qty - 1) * 3;
-    const actualSum = heights.reduce((a, b) => a + b, 0);
-    const diff = expectedSum - actualSum;
-    if (Math.abs(diff) <= 1) return null;
-    return `Suma wysokosci (${actualSum}mm) + szczeliny powinna dac wysokosc korpusu ${h}mm. Pozostalo do rozdysponowania: ${diff}mm.`;
+    return this.segmentsFormService.getCustomHeightsTotalWarning(
+      this.form.get('drawerLayoutType')?.value,
+      Number(this.form.get('drawerQuantity')?.value) || 0,
+      Number(this.form.get('height')?.value) || 0,
+      this.drawerCustomHeightsArray.value as Array<number | null>
+    );
   }
 }
 

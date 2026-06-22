@@ -163,7 +163,7 @@ describe('CabinetFormComponent', () => {
     component.form.get('width')?.setValue(350);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('mechanizm cargo moze nie pasowac');
+    expect(fixture.nativeElement.textContent).toContain('mechanizm cargo może nie pasować');
     expect(fixture.nativeElement.textContent).toContain('Marka mechanizmu');
     expect(component.form.get('drawerModel')?.value).toBeNull();
   });
@@ -185,8 +185,8 @@ describe('CabinetFormComponent', () => {
     component.form.get('width')?.setValue(200);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('przy szerokosci 200 mm cargo z szufladami jest technicznie mozliwe');
-    expect(fixture.nativeElement.textContent).toContain('bardzo malo uzytkowe');
+    expect(fixture.nativeElement.textContent).toContain('przy szerokości 200 mm cargo z szufladami jest technicznie możliwe');
+    expect(fixture.nativeElement.textContent).toContain('mało użytkowe');
   });
 
   it('shows a narrower usability warning for cargo drawers above 200 mm but below 250 mm', () => {
@@ -195,7 +195,7 @@ describe('CabinetFormComponent', () => {
     component.form.get('width')?.setValue(220);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('szuflady wewnetrzne beda bardzo waskie');
+    expect(fixture.nativeElement.textContent).toContain('szuflady wewnętrzne będą bardzo wąskie');
     expect(fixture.nativeElement.textContent).not.toContain('Marka mechanizmu');
   });
 
@@ -205,9 +205,9 @@ describe('CabinetFormComponent', () => {
     component.form.get('width')?.setValue(250);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).not.toContain('bardzo malo uzytkowe');
-    expect(fixture.nativeElement.textContent).not.toContain('szuflady wewnetrzne beda bardzo waskie');
-    expect(fixture.nativeElement.textContent).not.toContain('mechanizm cargo moze nie pasowac');
+    expect(fixture.nativeElement.textContent).not.toContain('mało użytkowe');
+    expect(fixture.nativeElement.textContent).not.toContain('szuflady wewnętrzne będą bardzo wąskie');
+    expect(fixture.nativeElement.textContent).not.toContain('mechanizm cargo może nie pasować');
   });
 
   describe('UPPER_LIFT_UP — third Aventos mechanism checkbox visibility', () => {
@@ -216,7 +216,7 @@ describe('CabinetFormComponent', () => {
       (component as any).activeTab = 'options';
       fixture.detectChanges();
 
-      expect(component.hasOptionsTabContent()).toBeTrue();
+      expect(component.hasOptionsTab).toBeTrue();
       expect(fixture.nativeElement.textContent).toContain('Mechanizm podnośnika');
       expect(fixture.nativeElement.textContent).not.toContain('Ten typ szafki nie ma dodatkowych opcji');
     });
@@ -292,6 +292,47 @@ describe('CabinetFormComponent', () => {
     });
   });
 
+  /**
+   * Cache `hasOptionsTab` jest przeliczany wyłącznie w `setVisibility()`. Te testy pilnują, by wartość cache
+   * pozostała zgodna z realnym stanem `visibility` przy każdej zmianie typu — gdyby ktoś w przyszłości zapisał
+   * `this.visibility` z pominięciem `setVisibility()`, cache rozjechałby się i te asercje by to wychwyciły.
+   */
+  describe('hasOptionsTab cache stays in sync with visibility', () => {
+    const recompute = () => (component as any).computeHasOptionsTab() as boolean;
+
+    it('flips to true for a type with specialist options (UPPER_LIFT_UP)', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      fixture.detectChanges();
+
+      expect(component.hasOptionsTab).toBeTrue();
+      expect(component.hasOptionsTab).toBe(recompute());
+    });
+
+    it('flips back to false for a type without specialist options (BASE_ONE_DOOR)', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_ONE_DOOR);
+      fixture.detectChanges();
+
+      expect(component.hasOptionsTab).toBeFalse();
+      expect(component.hasOptionsTab).toBe(recompute());
+    });
+
+    it('stays consistent across consecutive type switches', () => {
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      fixture.detectChanges();
+      expect(component.hasOptionsTab).toBeTrue();
+
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_ONE_DOOR);
+      fixture.detectChanges();
+      expect(component.hasOptionsTab).toBeFalse();
+      expect(component.hasOptionsTab).toBe(recompute());
+
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+      fixture.detectChanges();
+      expect(component.hasOptionsTab).toBeTrue();
+      expect(component.hasOptionsTab).toBe(recompute());
+    });
+  });
+
   describe('UPPER_LIFT_UP — HF asymmetric front field visibility (hfUpperFrontHeightMm)', () => {
     it('shows the upper-front height field only for AVENTOS_HF_TOP', () => {
       component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
@@ -345,6 +386,54 @@ describe('CabinetFormComponent', () => {
       code: 'PANTRY_ONE_DOOR_TOO_WIDE',
     });
   });
+
+  describe('BASE_WITH_DRAWERS — CUSTOM drawer heights', () => {
+    let segmentsServiceSpy: jasmine.SpyObj<CabinetSegmentsFormServiceStub>;
+
+    beforeEach(() => {
+      segmentsServiceSpy = TestBed.inject(CabinetSegmentsFormService) as unknown as jasmine.SpyObj<CabinetSegmentsFormServiceStub>;
+      spyOn(segmentsServiceSpy, 'syncDrawerCustomHeights');
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_WITH_DRAWERS);
+    });
+
+    it('wywołuje syncDrawerCustomHeights gdy drawerLayoutType zmienia się na CUSTOM', () => {
+      component.form.get('drawerLayoutType')?.setValue('CUSTOM');
+      expect(segmentsServiceSpy.syncDrawerCustomHeights).toHaveBeenCalled();
+    });
+
+    it('wywołuje syncDrawerCustomHeights i ukrywa sekcję przy zmianie na EQUAL', () => {
+      component.form.get('drawerLayoutType')?.setValue('EQUAL');
+      expect(segmentsServiceSpy.syncDrawerCustomHeights).toHaveBeenCalled();
+      expect(component.visibility.drawerCustomHeights).toBeFalse();
+    });
+
+    it('wywołuje syncDrawerCustomHeights przy zmianie drawerQuantity gdy układ CUSTOM', () => {
+      component.form.get('drawerLayoutType')?.setValue('CUSTOM');
+      (segmentsServiceSpy.syncDrawerCustomHeights as jasmine.Spy).calls.reset();
+
+      component.form.get('drawerQuantity')?.setValue(4);
+      expect(segmentsServiceSpy.syncDrawerCustomHeights).toHaveBeenCalled();
+    });
+
+    it('pokazuje ostrzeżenie w widoku gdy customHeightsTotalWarning zwraca komunikat', () => {
+      spyOn(segmentsServiceSpy, 'getCustomHeightsTotalWarning').and.returnValue(
+        'Suma wysokości szuflad powinna wynieść 708 mm (korpus po odjęciu szczelin). Aktualna: 600 mm, różnica: +108 mm.'
+      );
+      component.form.get('drawerLayoutType')?.setValue('CUSTOM');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).toContain('Suma wysokości szuflad powinna wynieść 708 mm');
+      expect(fixture.nativeElement.textContent).toContain('+108 mm');
+    });
+
+    it('nie pokazuje ostrzeżenia gdy customHeightsTotalWarning zwraca null', () => {
+      spyOn(segmentsServiceSpy, 'getCustomHeightsTotalWarning').and.returnValue(null);
+      component.form.get('drawerLayoutType')?.setValue('CUSTOM');
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.form-error')).toBeNull();
+    });
+  });
 });
 
 function buildWall(type: 'MAIN' | 'ISLAND'): WallWithCabinets {
@@ -396,6 +485,12 @@ class CabinetSegmentsFormServiceStub {
   getSelectedSegmentForm() {
     return null;
   }
+
+  syncDrawerCustomHeights() {}
+
+  getCustomHeightsTotalWarning(): string | null {
+    return null;
+  }
 }
 
 class CabinetFormEditingServiceStub {
@@ -403,6 +498,39 @@ class CabinetFormEditingServiceStub {
 }
 
 class CabinetFormTypeLifecycleServiceStub {
+  createBaseVisibility() {
+    return { openingType: true } as any;
+  }
+
+  refreshLiftMechanismDependentVisibility(form: any, visibility: any, mechanism: string | null) {
+    const allowsThird = mechanism === 'AVENTOS_HK_S' || mechanism === 'AVENTOS_HF_TOP';
+    const allowsHfAsymmetry = mechanism === 'AVENTOS_HF_TOP';
+    if (!allowsThird) {
+      form.get('allowThirdLiftMechanism')?.setValue(false, { emitEvent: false });
+    }
+    if (!allowsHfAsymmetry && form.get('hfUpperFrontHeightMm')?.value != null) {
+      form.get('hfUpperFrontHeightMm')?.setValue(null, { emitEvent: false });
+    }
+    return { ...visibility, allowThirdLiftMechanism: allowsThird, hfUpperFrontHeightMm: allowsHfAsymmetry };
+  }
+
+  refreshCornerHangingVisibility(form: any, visibility: any, mechanism: string | null) {
+    const wantsUpper = form.get('isUpperCorner')?.value ?? false;
+    const upperBlind = mechanism === 'BLIND_CORNER' && wantsUpper;
+    if (upperBlind) {
+      form.patchValue({ isLiftUp: false }, { emitEvent: false });
+    }
+    return {
+      ...visibility,
+      positioningMode: upperBlind,
+      gapFromCountertopMm: upperBlind,
+      gapFromAnchorMm: upperBlind,
+      extendedFront: upperBlind,
+      liftUp: false,
+      blockUpperAbove: !upperBlind
+    };
+  }
+
   applyTypeChange(form: any, type: KitchenCabinetType) {
     if (type === KitchenCabinetType.BASE_OPEN) {
       form.get('openingType')?.setValue('NONE', { emitEvent: false });

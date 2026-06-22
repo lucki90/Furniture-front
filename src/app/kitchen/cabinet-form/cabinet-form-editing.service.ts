@@ -18,7 +18,7 @@ export class CabinetFormEditingService {
     form.patchValue(this.buildEditPatch(cabinet, false), { emitEvent: false });
 
     if (cabinetHasSegments(cabinet) && cabinet.segments?.length) {
-      this.segmentsFormService.replaceSegments(this.fb, form.get('segments') as any, cabinet.segments);
+      this.segmentsFormService.replaceSegments(form.get('segments') as any, cabinet.segments);
     }
 
     // BASE_WITH_DRAWERS — odtworz FormArray drawerCustomHeightsMm dla edytowanej szafki (gdy CUSTOM)

@@ -18,9 +18,9 @@
     </button>
     <button (click)="setActiveTab('options')" [attr.aria-selected]="activeTab === 'options'"
             [class.active]="activeTab === 'options'"
-            [class.disabled]="!hasOptionsTabContent()"
-            [disabled]="!hasOptionsTabContent()"
-            [title]="hasOptionsTabContent() ? 'Opcje specjalistyczne dla wybranego typu szafki' : 'Brak opcji specjalistycznych dla tego typu szafki'"
+            [class.disabled]="!hasOptionsTab"
+            [disabled]="!hasOptionsTab"
+            [title]="hasOptionsTab ? 'Opcje specjalistyczne dla wybranego typu szafki' : 'Brak opcji specjalistycznych dla tego typu szafki'"
             class="form-tab"
             role="tab"
             type="button">
@@ -194,12 +194,13 @@
         </span>
       </div>
       <div *ngIf="visibility.drawerQuantity" class="form-group">
-        <label class="form-label">{{ isCargoCabinet ? cargoDrawerQuantityLabel : 'Ilosc szuflad' }}</label>
-        <input class="form-control" formControlName="drawerQuantity" type="number">
+        <label class="form-label">{{ isCargoCabinet ? cargoDrawerQuantityLabel : 'Ilość szuflad' }}</label>
+        <input class="form-control" formControlName="drawerQuantity" type="number" step="1">
         <span *ngIf="form.get('drawerQuantity')?.touched && form.get('drawerQuantity')?.errors" class="form-error">
           <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['required']">Wymagane</ng-container>
           <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['min']">Min: {{ form.get('drawerQuantity')?.errors?.['min'].min }}</ng-container>
           <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['max']">Max: {{ form.get('drawerQuantity')?.errors?.['max'].max }}</ng-container>
+          <ng-container *ngIf="form.get('drawerQuantity')?.errors?.['integer']">Liczba całkowita</ng-container>
         </span>
       </div>
       <div *ngIf="visibility.drawerModel && (!isCargoCabinet || isCargoDrawersVariant)" class="form-group">
@@ -448,7 +449,7 @@
     <app-enclosure-form *ngIf="visibility.enclosureSection" [form]="form"></app-enclosure-form>
 
     <!-- Pusty stan -->
-    <div *ngIf="!hasOptionsTabContent()" class="form-tab-empty">
+    <div *ngIf="!hasOptionsTab" class="form-tab-empty">
       Ten typ szafki nie ma dodatkowych opcji do skonfigurowania. Sprawdź zakładkę <strong>Podstawowe</strong>.
     </div>
 

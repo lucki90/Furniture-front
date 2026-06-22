@@ -1,6 +1,7 @@
 import { AbstractControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
+import { integerValidator } from '../../type-config/validator/integer.validator';
 
 export class BaseCargoCabinetValidator implements KitchenCabinetValidator {
   private readonly constraints = KitchenCabinetConstraints.BASE_CARGO;
@@ -55,7 +56,7 @@ export class BaseCargoCabinetValidator implements KitchenCabinetValidator {
       if (value > this.constraints.DRAWER_MAX) {
         return { max: { max: this.constraints.DRAWER_MAX, actual: value } };
       }
-      return null;
+      return integerValidator(control);
     };
   }
 

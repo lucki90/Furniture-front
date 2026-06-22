@@ -1,6 +1,7 @@
 import { FormGroup, Validators } from "@angular/forms";
 import { KitchenCabinetValidator } from "../../type-config/validator/kitchen-cabinet-validator";
 import { KitchenCabinetConstraints } from "../../model/kitchen-cabinet-constants";
+import { integerValidator } from '../../type-config/validator/integer.validator';
 
 export class BaseWithDrawersCabinetValidator implements KitchenCabinetValidator {
 
@@ -28,7 +29,8 @@ export class BaseWithDrawersCabinetValidator implements KitchenCabinetValidator 
     form.get('drawerQuantity')?.setValidators([
       Validators.required,
       Validators.min(this.constraints.DRAWER_MIN),
-      Validators.max(this.constraints.DRAWER_MAX)
+      Validators.max(this.constraints.DRAWER_MAX),
+      integerValidator
     ]);
 
     form.get('width')?.updateValueAndValidity();

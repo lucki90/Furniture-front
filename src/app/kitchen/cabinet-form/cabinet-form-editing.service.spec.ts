@@ -58,7 +58,6 @@ describe('CabinetFormEditingService', () => {
     expect(form.get('height')?.value).toBe(2200);
     expect(form.get('openingType')?.value).toBe('HANDLE');
     expect(segmentsFormService.replaceSegments).toHaveBeenCalledWith(
-      fb,
       form.get('segments') as any,
       cabinet.segments
     );

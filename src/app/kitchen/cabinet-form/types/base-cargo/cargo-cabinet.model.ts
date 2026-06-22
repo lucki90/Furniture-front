@@ -66,3 +66,24 @@ export function pickCargoMechanismProfileForWidth(widthMm: number): CargoMechani
 
   return CARGO_MECHANISM_WIDTH_PROFILES[CARGO_MECHANISM_WIDTH_PROFILES.length - 1];
 }
+
+/**
+ * Oblicza podpowiedź ostrzegawczą dla szerokości szafki cargo.
+ * Zwraca null gdy brak ostrzeżenia (dobry wymiar lub nieznana szerokość).
+ */
+export function getCargoWidthHint(widthMm: number, variant: CargoVariant | string | null): string | null {
+  if (!widthMm || widthMm <= 0) return null;
+  if (variant === 'MECHANISM') {
+    if (isCargoMechanismNominalWidth(widthMm)) return null;
+    return 'Uwaga: dla tej szerokości standardowy mechanizm cargo może nie pasować. Upewnij się u producenta albo wybierz wariant cargo z szufladami.';
+  }
+  if (variant === 'DRAWERS') {
+    if (widthMm <= 200) {
+      return 'Uwaga: przy szerokości 200 mm cargo z szufladami jest technicznie możliwe, ale zwykle bardzo mało użytkowe. Rozważ mechanizm cargo albo inną szafkę.';
+    }
+    if (widthMm < 250) {
+      return 'Uwaga: przy tej szerokości szuflady wewnętrzne będą bardzo wąskie. Upewnij się, że taki wariant będzie praktyczny.';
+    }
+  }
+  return null;
+}

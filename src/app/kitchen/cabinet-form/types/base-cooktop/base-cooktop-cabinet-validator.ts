@@ -1,40 +1,52 @@
-import { FormGroup } from '@angular/forms';
+import { AbstractControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
+import { integerValidator } from '../../type-config/validator/integer.validator';
 
 export class BaseCooktopCabinetValidator implements KitchenCabinetValidator {
 
   validate(form: FormGroup): void {
     const c = KitchenCabinetConstraints.BASE_COOKTOP;
 
-    const widthCtrl = form.get('width');
-    if (widthCtrl) {
-      const w = widthCtrl.value;
-      if (w < c.WIDTH_MIN || w > c.WIDTH_MAX) {
-        widthCtrl.setErrors({ outOfRange: true });
-      } else {
-        widthCtrl.setErrors(null);
-      }
-    }
+    form.get('width')?.setValidators([
+      Validators.required,
+      Validators.min(c.WIDTH_MIN),
+      Validators.max(c.WIDTH_MAX)
+    ]);
+    form.get('height')?.setValidators([
+      Validators.required,
+      Validators.min(c.HEIGHT_MIN),
+      Validators.max(c.HEIGHT_MAX)
+    ]);
+    form.get('depth')?.setValidators([
+      Validators.required,
+      Validators.min(c.DEPTH_MIN),
+      Validators.max(c.DEPTH_MAX)
+    ]);
 
-    const heightCtrl = form.get('height');
-    if (heightCtrl) {
-      const h = heightCtrl.value;
-      if (h < c.HEIGHT_MIN || h > c.HEIGHT_MAX) {
-        heightCtrl.setErrors({ outOfRange: true });
-      } else {
-        heightCtrl.setErrors(null);
-      }
-    }
+    form.get('drawerQuantity')?.setValidators([
+      this.drawerQuantityValidator(form)
+    ]);
 
-    const depthCtrl = form.get('depth');
-    if (depthCtrl) {
-      const d = depthCtrl.value;
-      if (d < c.DEPTH_MIN || d > c.DEPTH_MAX) {
-        depthCtrl.setErrors({ outOfRange: true });
-      } else {
-        depthCtrl.setErrors(null);
+    form.get('width')?.updateValueAndValidity();
+    form.get('height')?.updateValueAndValidity();
+    form.get('depth')?.updateValueAndValidity();
+    form.get('drawerQuantity')?.updateValueAndValidity();
+    form.updateValueAndValidity();
+  }
+
+  private drawerQuantityValidator(form: FormGroup) {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (form.get('cooktopFrontType')?.value !== 'DRAWERS') {
+        return null;
       }
-    }
+
+      return Validators.compose([
+        Validators.required,
+        Validators.min(KitchenCabinetConstraints.BASE_COOKTOP.DRAWER_MIN),
+        Validators.max(KitchenCabinetConstraints.BASE_COOKTOP.DRAWER_MAX),
+        integerValidator
+      ])?.(control) ?? null;
+    };
   }
 }
