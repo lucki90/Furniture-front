@@ -75,7 +75,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  width: 140px;
+  width: 160px;
   padding: 9px 10px 8px;
   background: var(--bg-card);
   border: 1.5px solid var(--border-color);
@@ -94,6 +94,11 @@
   background: var(--card-accent-bg);
   border-color: var(--card-accent);
   box-shadow: 0 0 0 2px var(--card-accent-bg), var(--shadow-md);
+}
+
+.cabinet-card.drawing-active {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-soft), var(--shadow-sm);
 }
 
 /* Header: numer + dot + label */
@@ -169,6 +174,10 @@
 }
 
 .cabinet-card-price {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 11.5px;
   font-weight: 700;
   font-family: var(--font-mono, var(--font-sans));
@@ -188,6 +197,7 @@
 .cabinet-card-actions {
   display: flex;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .cabinet-card-btn {
@@ -217,6 +227,12 @@
 
 .cabinet-card-btn--clone:hover:not(:disabled) {
   border-color: var(--success-color);
+}
+
+.cabinet-card-btn--drawing:hover:not(:disabled),
+.cabinet-card-btn--drawing.cabinet-card-btn--active {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
 }
 
 .cabinet-card-btn--remove:hover:not(:disabled) {

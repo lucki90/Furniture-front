@@ -46,7 +46,8 @@ export class KitchenCabinetStateFactory {
       materialRequest: formData.materialRequest ? { ...formData.materialRequest } : undefined,
       varnishedFront: formData.varnishedFront,
       materialPresetCode: formData.materialPresetCode ?? null,
-      calculatedResult: this.requestBuilder.mapCalculationResult(calculatedResult)
+      calculatedResult: this.requestBuilder.mapCalculationResult(calculatedResult),
+      calculationResponse: structuredClone(calculatedResult)
     };
 
     switch (formData.kitchenCabinetType) {

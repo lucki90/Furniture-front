@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { KitchenCabinet, getCabinetZone, isFreestandingAppliance } from '../model/kitchen-state.model';
+import {
+  KitchenCabinet,
+  getCabinetZone,
+  hasKitchenCabinetTechnicalDrawing,
+  isFreestandingAppliance
+} from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { CabinetTypeNamePipe } from '../cabinet-form/pipes/cabinet-type-name.pipe';
 import { CabinetSide, WallType } from '../model/kitchen-project.model';
@@ -25,11 +30,13 @@ export class KitchenCabinetListComponent implements OnChanges {
 
   @Input() cabinets: KitchenCabinet[] = [];
   @Input() editingCabinetId: string | null = null;
+  @Input() selectedDrawingCabinetId: string | null = null;
   @Input() wallType: WallType = 'MAIN';
 
   @Output() remove = new EventEmitter<string>();
   @Output() edit = new EventEmitter<string>();
   @Output() clone = new EventEmitter<string>();
+  @Output() showDrawing = new EventEmitter<string>();
 
   protected trackByCabinetId = (_: number, cabinet: KitchenCabinet) => cabinet.id;
   protected trackBySide = (_: number, group: { side: CabinetSide }) => group.side;
@@ -65,8 +72,20 @@ export class KitchenCabinetListComponent implements OnChanges {
     this.clone.emit(cabinetId);
   }
 
+  onShowDrawing(cabinetId: string): void {
+    this.showDrawing.emit(cabinetId);
+  }
+
   isEditing(cabinetId: string): boolean {
     return this.editingCabinetId === cabinetId;
+  }
+
+  isDrawingSelected(cabinetId: string): boolean {
+    return this.selectedDrawingCabinetId === cabinetId;
+  }
+
+  hasTechnicalDrawing(cabinet: KitchenCabinet): boolean {
+    return hasKitchenCabinetTechnicalDrawing(cabinet);
   }
 
   /** Łączny koszt szafki (boards + components + jobs) lub null gdy brak kalkulacji. */

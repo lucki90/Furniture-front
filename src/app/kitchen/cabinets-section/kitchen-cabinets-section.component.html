@@ -47,9 +47,11 @@
         (clone)="cloneCabinet.emit($event)"
         (edit)="editCabinet.emit($event)"
         (remove)="removeCabinet.emit($event)"
+        (showDrawing)="selectTechnicalDrawing($event)"
         *ngIf="cabinets.length > 0"
         [cabinets]="cabinets"
         [editingCabinetId]="editingCabinetId"
+        [selectedDrawingCabinetId]="selectedDrawingCabinetId"
         [wallType]="selectedWallType">
       </app-kitchen-cabinet-list>
 
@@ -59,5 +61,22 @@
         <small>Uzyj formularza powyzej, aby dodac szafke</small>
       </div>
     </div>
+  </div>
+
+  <div *ngIf="selectedDrawingResult" class="technical-drawing-shell">
+    <div *ngIf="drawingCabinetTabs.length > 1" class="technical-drawing-tabs">
+      <button
+        (click)="selectTechnicalDrawing(tab.id)"
+        *ngFor="let tab of drawingCabinetTabs; trackBy: trackByDrawingCabinetTabId"
+        [attr.aria-label]="'Pokaż rysunek: ' + tab.label"
+        [class.active]="selectedDrawingCabinetId === tab.id"
+        class="technical-drawing-tab"
+        type="button">
+        <mat-icon aria-hidden="true">architecture</mat-icon>
+        <span>{{ tab.label }}</span>
+      </button>
+    </div>
+
+    <app-cabinet-technical-drawing [result]="selectedDrawingResult"></app-cabinet-technical-drawing>
   </div>
 </section>

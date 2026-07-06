@@ -3,6 +3,7 @@ import { KitchenCabinetStateFactory } from './kitchen-cabinet-state.factory';
 import { ProjectRequestBuilderService } from './project-request-builder.service';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { CabinetFormData } from '../model/kitchen-state.model';
+import { boardFixture as board } from '../technical-drawing/testing/board.fixture';
 
 describe('KitchenCabinetStateFactory', () => {
   let factory: KitchenCabinetStateFactory;
@@ -16,6 +17,16 @@ describe('KitchenCabinetStateFactory', () => {
   });
 
   it('should build typed cabinets from form data with defaults', () => {
+    const response = {
+      boards: [board('SIDE_NAME', 720, 560, 18, 2)],
+      components: [],
+      jobs: [],
+      summaryCosts: 1000,
+      boardTotalCost: 400,
+      componentTotalCost: 350,
+      jobTotalCost: 250
+    };
+
     const cabinet = factory.fromFormData({
       kitchenCabinetType: KitchenCabinetType.BASE_SINK,
       openingType: 'HANDLE',
@@ -24,15 +35,7 @@ describe('KitchenCabinetStateFactory', () => {
       depth: 560,
       positionY: 0,
       shelfQuantity: 1
-    } as CabinetFormData, 'cab-1', {
-      boards: [],
-      components: [],
-      jobs: [],
-      summaryCosts: 1000,
-      boardTotalCost: 400,
-      componentTotalCost: 350,
-      jobTotalCost: 250
-    });
+    } as CabinetFormData, 'cab-1', response);
 
     expect(cabinet).toEqual(jasmine.objectContaining({
       id: 'cab-1',
@@ -47,6 +50,8 @@ describe('KitchenCabinetStateFactory', () => {
         jobCosts: 250
       })
     }));
+    expect(cabinet.calculationResponse).toEqual(response);
+    expect(cabinet.calculationResponse).not.toBe(response);
   });
 
   it('should map base open cabinet from form data without front-specific fields', () => {

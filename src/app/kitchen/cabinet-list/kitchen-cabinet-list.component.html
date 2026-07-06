@@ -13,6 +13,7 @@
       <div class="cabinet-strip" role="list">
         <div
           *ngFor="let cabinet of group.cabinets; let i = index; trackBy: trackByCabinetId"
+          [class.drawing-active]="isDrawingSelected(cabinet.id)"
           [class.editing]="isEditing(cabinet.id)"
           [style.--card-accent-bg]="cabinetMetaById[cabinet.id].bg"
           [style.--card-accent]="cabinetMetaById[cabinet.id].color"
@@ -41,6 +42,16 @@
             </span>
 
             <div class="cabinet-card-actions">
+              <button
+                (click)="onShowDrawing(cabinet.id)"
+                [class.cabinet-card-btn--active]="isDrawingSelected(cabinet.id)"
+                [disabled]="editingCabinetId !== null || !hasTechnicalDrawing(cabinet)"
+                aria-label="Pokaż rysunek szafki"
+                class="cabinet-card-btn cabinet-card-btn--drawing"
+                title="Pokaż rysunek szafki"
+                type="button">
+                <mat-icon aria-hidden="true">architecture</mat-icon>
+              </button>
               <button
                 (click)="onEdit(cabinet.id)"
                 [disabled]="editingCabinetId !== null"

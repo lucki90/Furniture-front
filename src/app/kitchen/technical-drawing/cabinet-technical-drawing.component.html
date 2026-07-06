@@ -1,0 +1,128 @@
+@if (layout(); as drawingLayout) {
+  <section class="technical-drawing-card">
+    <div class="technical-drawing-header">
+      <div>
+        <h3>Rysunek techniczny</h3>
+        <p>{{ drawingLayout.model.cabinetWidthMm }} x {{ drawingLayout.model.cabinetHeightMm }} x {{ drawingLayout.model.cabinetDepthMm }} mm</p>
+      </div>
+      <span
+        [class.technical-drawing-confidence--high]="drawingLayout.model.sourceConfidence === 'high'"
+        [class.technical-drawing-confidence--medium]="drawingLayout.model.sourceConfidence === 'medium'"
+        [class.technical-drawing-confidence--low]="drawingLayout.model.sourceConfidence === 'low'"
+        class="technical-drawing-confidence">
+        {{ drawingLayout.model.sourceConfidence === 'high' ? 'BOM+' : drawingLayout.model.sourceConfidence === 'medium' ? 'BOM' : 'Szkic' }}
+      </span>
+    </div>
+
+    <div class="technical-drawing-canvas">
+      <svg
+        [attr.aria-label]="'Rysunek techniczny szafki ' + drawingLayout.model.cabinetWidthMm + ' x ' + drawingLayout.model.cabinetHeightMm + ' x ' + drawingLayout.model.cabinetDepthMm + ' mm'"
+        [attr.viewBox]="'0 0 ' + drawingLayout.svgWidth + ' ' + drawingLayout.svgHeight"
+        class="technical-drawing-svg"
+        role="img">
+        <g class="technical-view">
+          <text [attr.x]="drawingLayout.front.x" [attr.y]="drawingLayout.front.y - 12" class="technical-view-title">
+            {{ drawingLayout.front.title }}
+          </text>
+
+          @for (rect of drawingLayout.front.rects; track trackByRect($index, rect)) {
+            <rect
+              [attr.class]="rect.className"
+              [attr.height]="rect.height"
+              [attr.width]="rect.width"
+              [attr.x]="rect.x"
+              [attr.y]="rect.y"
+              rx="1">
+              <title>{{ rect.label }}</title>
+            </rect>
+          }
+
+          @for (line of drawingLayout.front.lines; track trackByLine($index, line)) {
+            <line
+              [attr.class]="line.className"
+              [attr.x1]="line.x1"
+              [attr.x2]="line.x2"
+              [attr.y1]="line.y1"
+              [attr.y2]="line.y2" />
+          }
+
+          <text
+            [attr.x]="drawingLayout.front.x + drawingLayout.front.width / 2"
+            [attr.y]="drawingLayout.front.y + drawingLayout.front.height + 34"
+            class="technical-dim-text"
+            text-anchor="middle">
+            {{ drawingLayout.front.widthLabel }}
+          </text>
+          <text
+            [attr.transform]="'rotate(-90 ' + (drawingLayout.front.x - 29) + ' ' + (drawingLayout.front.y + drawingLayout.front.height / 2) + ')'"
+            [attr.x]="drawingLayout.front.x - 29"
+            [attr.y]="drawingLayout.front.y + drawingLayout.front.height / 2"
+            class="technical-dim-text"
+            text-anchor="middle">
+            {{ drawingLayout.front.heightLabel }}
+          </text>
+        </g>
+
+        <g class="technical-view">
+          <text [attr.x]="drawingLayout.side.x" [attr.y]="drawingLayout.side.y - 12" class="technical-view-title">
+            {{ drawingLayout.side.title }}
+          </text>
+
+          @for (rect of drawingLayout.side.rects; track trackByRect($index, rect)) {
+            <rect
+              [attr.class]="rect.className"
+              [attr.height]="rect.height"
+              [attr.width]="rect.width"
+              [attr.x]="rect.x"
+              [attr.y]="rect.y"
+              rx="1">
+              <title>{{ rect.label }}</title>
+            </rect>
+          }
+
+          @for (line of drawingLayout.side.lines; track trackByLine($index, line)) {
+            <line
+              [attr.class]="line.className"
+              [attr.x1]="line.x1"
+              [attr.x2]="line.x2"
+              [attr.y1]="line.y1"
+              [attr.y2]="line.y2" />
+          }
+
+          <text
+            [attr.x]="drawingLayout.side.x + drawingLayout.side.width / 2"
+            [attr.y]="drawingLayout.side.y + drawingLayout.side.height + 34"
+            class="technical-dim-text"
+            text-anchor="middle">
+            {{ drawingLayout.side.widthLabel }}
+          </text>
+          <text
+            [attr.transform]="'rotate(-90 ' + (drawingLayout.side.x - 29) + ' ' + (drawingLayout.side.y + drawingLayout.side.height / 2) + ')'"
+            [attr.x]="drawingLayout.side.x - 29"
+            [attr.y]="drawingLayout.side.y + drawingLayout.side.height / 2"
+            class="technical-dim-text"
+            text-anchor="middle">
+            {{ drawingLayout.side.heightLabel }}
+          </text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="technical-drawing-meta">
+      <span>{{ drawingLayout.model.boardCount }} płyt</span>
+      <span>{{ drawingLayout.model.frontPanels.length }} typ. frontów</span>
+      <span>{{ drawingLayout.model.shelfCount }} półek</span>
+      @if (drawingLayout.model.hasBackPanel) {
+        <span>HDF</span>
+      }
+    </div>
+
+    @if (drawingLayout.model.notes.length > 0) {
+      <ul class="technical-drawing-notes">
+        @for (note of drawingLayout.model.notes; track trackByNote($index)) {
+          <li>{{ note }}</li>
+        }
+      </ul>
+    }
+  </section>
+}

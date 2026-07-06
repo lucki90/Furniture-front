@@ -147,6 +147,11 @@ export interface KitchenCabinetBase {
   materialPresetCode?: string | null;
 
   calculatedResult?: CabinetCalculationResult;
+  calculationResponse?: CabinetResponse;
+}
+
+export function hasKitchenCabinetTechnicalDrawing(cabinet: Pick<KitchenCabinetBase, 'calculationResponse'>): boolean {
+  return (cabinet.calculationResponse?.boards?.length ?? 0) > 0;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

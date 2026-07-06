@@ -7,6 +7,7 @@ import { ProjectMetadataService } from './project-metadata.service';
 import { ProjectSettingsService } from './project-settings.service';
 import { CabinetFormData } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { boardFixture as board } from '../technical-drawing/testing/board.fixture';
 
 describe('KitchenWorkspaceStore', () => {
   let store: KitchenWorkspaceStore;
@@ -44,7 +45,7 @@ describe('KitchenWorkspaceStore', () => {
       drawerModel: 'ANTARO'
     } as CabinetFormData;
     const result = {
-      boards: [],
+      boards: [board('SIDE_NAME', 720, 560, 18, 2)],
       components: [],
       jobs: [],
       summaryCosts: 1000,
@@ -60,8 +61,15 @@ describe('KitchenWorkspaceStore', () => {
     store.cloneCabinet(firstCabinetId);
 
     expect(store.getWallsSnapshot()[0].cabinets).toEqual([
-      jasmine.objectContaining({ id: firstCabinetId, drawerQuantity: 4 }),
-      jasmine.objectContaining({ drawerQuantity: 4 })
+      jasmine.objectContaining({
+        id: firstCabinetId,
+        drawerQuantity: 4,
+        calculationResponse: jasmine.objectContaining({ boards: result.boards })
+      }),
+      jasmine.objectContaining({
+        drawerQuantity: 4,
+        calculationResponse: jasmine.objectContaining({ boards: result.boards })
+      })
     ]);
 
     store.clearSelectedWallCabinets();
