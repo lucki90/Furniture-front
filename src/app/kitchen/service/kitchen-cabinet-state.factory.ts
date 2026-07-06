@@ -7,7 +7,7 @@ import {
   CabinetCalculationResult,
   CabinetFormData
 } from '../model/kitchen-state.model';
-import { CabinetPlacementResponse } from '../model/kitchen-project.model';
+import { CabinetPlacementResponse, MaterialRequest } from '../model/kitchen-project.model';
 import { SegmentFormData, SegmentRequest } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 import { OpeningType, LiftMechanismType } from '../cabinet-form/model/kitchen-cabinet-constants';
@@ -43,6 +43,9 @@ export class KitchenCabinetStateFactory {
       bottomWreathOnFloor: formData.bottomWreathOnFloor ?? false,
       blockUpperAbove: formData.blockUpperAbove ?? false,
       gapBeforeMm: formData.gapBeforeMm ?? 0,
+      materialRequest: formData.materialRequest ? { ...formData.materialRequest } : undefined,
+      varnishedFront: formData.varnishedFront,
+      materialPresetCode: formData.materialPresetCode ?? null,
       calculatedResult: this.requestBuilder.mapCalculationResult(calculatedResult)
     };
 
@@ -251,6 +254,9 @@ export class KitchenCabinetStateFactory {
       bottomWreathOnFloor: cabResp.bottomWreathOnFloor ?? false,
       blockUpperAbove: cabResp.blockUpperAbove ?? false,
       gapBeforeMm: cabResp.gapBeforeMm ?? 0,
+      materialRequest: this.mapPlacementMaterialRequest(cabResp),
+      varnishedFront: cabResp.varnishedFront,
+      materialPresetCode: cabResp.materialPresetCode ?? null,
       calculatedResult: this.mapPlacementCalculationResult(cabResp)
     };
 
@@ -439,6 +445,31 @@ export class KitchenCabinetStateFactory {
       boardCosts: cabResp.boardsCost,
       componentCosts: cabResp.componentsCost,
       jobCosts: cabResp.jobsCost
+    };
+  }
+
+  private mapPlacementMaterialRequest(cabResp: CabinetPlacementResponse): MaterialRequest | undefined {
+    if (cabResp.materialRequest) {
+      return { ...cabResp.materialRequest };
+    }
+
+    if (!cabResp.boxMaterialCode || !cabResp.boxThicknessMm || !cabResp.boxColorCode) {
+      return undefined;
+    }
+
+    const frontMaterial = cabResp.frontMaterialCode ?? cabResp.boxMaterialCode;
+    const frontBoardThickness = cabResp.frontThicknessMm ?? cabResp.boxThicknessMm;
+    const frontColor = cabResp.frontColorCode ?? cabResp.boxColorCode;
+
+    return {
+      boxMaterial: cabResp.boxMaterialCode,
+      boxBoardThickness: cabResp.boxThicknessMm,
+      boxColor: cabResp.boxColorCode,
+      boxVeneerColor: cabResp.boxColorCode,
+      frontMaterial,
+      frontBoardThickness,
+      frontColor,
+      frontVeneerColor: cabResp.varnishedFront ? null : frontColor
     };
   }
 }

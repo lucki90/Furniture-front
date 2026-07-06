@@ -331,6 +331,20 @@
             Można nadpisać per-szafka w przyszłości. Zmiany dotyczą tylko nowych kalkulacji.
           </p>
 
+          <div class="form-grid">
+            <app-form-field hint="Nazwany zestaw materiałów zapisany w bazie" label="Preset materiałów">
+              <select (ngModelChange)="applyDefaultMaterialPreset($event)"
+                      [disabled]="saving || materialPresets.length === 0"
+                      [ngModel]="defaultMaterialPresetCode ?? ''"
+                      class="form-control">
+                <option value="">Własne ustawienia</option>
+                <option *ngFor="let preset of materialPresets; trackBy: trackByIndex" [value]="preset.code">
+                  {{ materialPresetLabel(preset) }}
+                </option>
+              </select>
+            </app-form-field>
+          </div>
+
           <p class="subsection-title">Korpus szafki</p>
           <div class="form-grid">
             <app-form-field hint="Materiał płyt korpusu (boki, wieńce, półki)" label="Materiał korpusu">
@@ -343,7 +357,7 @@
             </app-form-field>
 
             <app-form-field hint="Grubość płyt korpusu (typowo 18mm)" label="Grubość korpusu" unit="mm">
-              <select [(ngModel)]="defaultBoxBoardThickness" [disabled]="saving" class="form-control">
+              <select (ngModelChange)="markDefaultMaterialPresetCustom()" [(ngModel)]="defaultBoxBoardThickness" [disabled]="saving" class="form-control">
                 <option [ngValue]="16">16 mm</option>
                 <option [ngValue]="18">18 mm</option>
                 <option [ngValue]="22">22 mm</option>
@@ -355,7 +369,7 @@
             <app-form-field hint="Kolor płyt korpusu — lista pochodzi z dodanych wariantów płyt" label="Kolor korpusu">
               <div class="color-select-wrapper">
                 <ng-container *ngIf="boxColorOptions.length > 0; else boxColorFallback">
-                  <select [(ngModel)]="defaultBoxColor" [disabled]="saving" class="form-control">
+                  <select (ngModelChange)="markDefaultMaterialPresetCustom()" [(ngModel)]="defaultBoxColor" [disabled]="saving" class="form-control">
                     <option *ngFor="let opt of boxColorOptions; trackBy: trackByColorCode" [value]="opt.colorCode">
                       {{ opt.colorName || opt.colorCode }}
                     </option>
@@ -364,7 +378,7 @@
                         [title]="hex" class="color-swatch"></span>
                 </ng-container>
                 <ng-template #boxColorFallback>
-                  <input [(ngModel)]="defaultBoxColor" [disabled]="saving" class="form-control" maxlength="100"
+                  <input (ngModelChange)="markDefaultMaterialPresetCustom()" [(ngModel)]="defaultBoxColor" [disabled]="saving" class="form-control" maxlength="100"
                          placeholder="np. WHITE, OAK_NATURAL"
                          type="text"/>
                 </ng-template>
@@ -384,7 +398,7 @@
             </app-form-field>
 
             <app-form-field hint="Grubość płyt frontów (typowo 18mm)" label="Grubość frontu" unit="mm">
-              <select [(ngModel)]="defaultFrontBoardThickness" [disabled]="saving" class="form-control">
+              <select (ngModelChange)="markDefaultMaterialPresetCustom()" [(ngModel)]="defaultFrontBoardThickness" [disabled]="saving" class="form-control">
                 <option [ngValue]="16">16 mm</option>
                 <option [ngValue]="18">18 mm</option>
                 <option [ngValue]="22">22 mm</option>
@@ -396,7 +410,7 @@
             <app-form-field hint="Kolor płyt frontów — lista pochodzi z dodanych wariantów płyt" label="Kolor frontu">
               <div class="color-select-wrapper">
                 <ng-container *ngIf="frontColorOptions.length > 0; else frontColorFallback">
-                  <select [(ngModel)]="defaultFrontColor" [disabled]="saving" class="form-control">
+                  <select (ngModelChange)="markDefaultMaterialPresetCustom()" [(ngModel)]="defaultFrontColor" [disabled]="saving" class="form-control">
                     <option *ngFor="let opt of frontColorOptions; trackBy: trackByColorCode" [value]="opt.colorCode">
                       {{ opt.colorName || opt.colorCode }}
                     </option>
@@ -405,7 +419,7 @@
                         [title]="hex" class="color-swatch"></span>
                 </ng-container>
                 <ng-template #frontColorFallback>
-                  <input [(ngModel)]="defaultFrontColor" [disabled]="saving" class="form-control" maxlength="100"
+                  <input (ngModelChange)="markDefaultMaterialPresetCustom()" [(ngModel)]="defaultFrontColor" [disabled]="saving" class="form-control" maxlength="100"
                          placeholder="np. ANTHRACITE, WHITE"
                          type="text"/>
                 </ng-template>
@@ -415,7 +429,7 @@
             <app-form-field [hint]="canVarnishFront ? 'Fronty MDF lakierowane — okleina krawędzi nie jest liczona' : 'Lakierowanie dostępne tylko dla MDF'"
                             label="Domyślnie lakierowany front">
               <label [class.disabled]="!canVarnishFront || saving" class="checkbox-label">
-                <input [(ngModel)]="defaultVarnishedFront" [disabled]="saving || !canVarnishFront"
+                <input (ngModelChange)="markDefaultMaterialPresetCustom()" [(ngModel)]="defaultVarnishedFront" [disabled]="saving || !canVarnishFront"
                        type="checkbox"/>
                 <span>Front lakierowany</span>
               </label>
@@ -425,14 +439,14 @@
           <p class="subsection-title">Tył szafki (HDF)</p>
           <div class="form-grid">
             <app-form-field hint="Materiał tylnej ścianki (zazwyczaj HDF)" label="Materiał tyłu">
-              <select [(ngModel)]="defaultBackMaterial" [disabled]="saving" class="form-control">
+              <select (ngModelChange)="markDefaultMaterialPresetCustom()" [(ngModel)]="defaultBackMaterial" [disabled]="saving" class="form-control">
                 <option value="HDF">HDF</option>
                 <option value="CHIPBOARD">Płyta wiórowa (CHIPBOARD)</option>
               </select>
             </app-form-field>
 
             <app-form-field hint="Grubość tylnej ścianki HDF (typowo 3mm)" label="Grubość tyłu" unit="mm">
-              <select [(ngModel)]="defaultBackBoardThickness" [disabled]="saving" class="form-control">
+              <select (ngModelChange)="markDefaultMaterialPresetCustom()" [(ngModel)]="defaultBackBoardThickness" [disabled]="saving" class="form-control">
                 <option [ngValue]="3">3 mm</option>
                 <option [ngValue]="4">4 mm</option>
                 <option [ngValue]="6">6 mm</option>

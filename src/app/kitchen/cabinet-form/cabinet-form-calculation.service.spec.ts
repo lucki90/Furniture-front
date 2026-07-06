@@ -15,6 +15,7 @@ describe('CabinetFormCalculationService', () => {
     selectedWall: jasmine.Spy;
     plinthHeightMm: jasmine.Spy;
     plinthSetbackMm: jasmine.Spy;
+    getCabinetById: jasmine.Spy;
   };
 
   beforeEach(() => {
@@ -23,7 +24,8 @@ describe('CabinetFormCalculationService', () => {
       getPlinthConfig: jasmine.createSpy('getPlinthConfig').and.returnValue(undefined),
       selectedWall: jasmine.createSpy('selectedWall').and.returnValue({ id: 'wall-1', type: 'MAIN' }),
       plinthHeightMm: jasmine.createSpy('plinthHeightMm').and.returnValue(100),
-      plinthSetbackMm: jasmine.createSpy('plinthSetbackMm').and.returnValue(40)
+      plinthSetbackMm: jasmine.createSpy('plinthSetbackMm').and.returnValue(40),
+      getCabinetById: jasmine.createSpy('getCabinetById').and.returnValue(undefined)
     };
 
     TestBed.configureTestingModule({
@@ -75,12 +77,209 @@ describe('CabinetFormCalculationService', () => {
           })
         );
         expect(event).toEqual({
-          formData,
+          formData: {
+            ...formData,
+            materialRequest: {
+              boxMaterial: 'CHIPBOARD',
+              boxBoardThickness: 18,
+              boxColor: 'WHITE',
+              boxVeneerColor: 'WHITE',
+              frontMaterial: 'MDF',
+              frontBoardThickness: 18,
+              frontColor: 'BLACK',
+              frontVeneerColor: 'BLACK'
+            },
+            varnishedFront: false,
+            materialPresetCode: null
+          },
           result: response,
           editingCabinetId: 'cab-1'
         });
         done();
       });
+  });
+
+  it('uses persisted cabinet material while editing instead of current global defaults', (done) => {
+    const persistedMaterial = {
+      boxMaterial: 'PLYWOOD',
+      boxBoardThickness: 21,
+      boxColor: 'OAK',
+      boxVeneerColor: 'OAK_EDGE',
+      frontMaterial: 'MDF',
+      frontBoardThickness: 19,
+      frontColor: 'RAL_7016',
+      frontVeneerColor: null
+    };
+    kitchenStateServiceStub.getCabinetById.and.returnValue({
+      id: 'cab-loaded',
+      materialRequest: persistedMaterial,
+      varnishedFront: true
+    });
+    kitchenServiceSpy.calculateCabinet.and.returnValue(of({ summaryCosts: 0 } as any));
+
+    service.calculateCabinet(
+      KitchenCabinetType.BASE_ONE_DOOR,
+      {
+        kitchenCabinetType: KitchenCabinetType.BASE_ONE_DOOR,
+        openingType: 'HANDLE',
+        width: 600,
+        height: 720,
+        depth: 560,
+        shelfQuantity: 1,
+        positionY: 0
+      } as CabinetFormData,
+      {
+        boxMaterial: 'CHIPBOARD',
+        boxBoardThickness: 18,
+        boxColor: 'WHITE',
+        frontMaterial: 'CHIPBOARD',
+        frontBoardThickness: 18,
+        frontColor: 'WHITE',
+        backMaterial: 'HDF',
+        backBoardThickness: 3,
+        varnishedFront: false
+      },
+      'cab-loaded'
+    ).subscribe(event => {
+      expect(kitchenServiceSpy.calculateCabinet).toHaveBeenCalledWith(jasmine.objectContaining({
+        materialRequest: persistedMaterial,
+        varnishedFront: true
+      }));
+      expect(event.formData.materialRequest).toEqual(persistedMaterial);
+      expect(event.formData.varnishedFront).toBeTrue();
+      done();
+    });
+  });
+
+  it('uses explicit material override when editing a cabinet with persisted material', (done) => {
+    kitchenStateServiceStub.getCabinetById.and.returnValue({
+      id: 'cab-loaded',
+      materialRequest: {
+        boxMaterial: 'PLYWOOD',
+        boxBoardThickness: 21,
+        boxColor: 'OAK',
+        boxVeneerColor: 'OAK_EDGE',
+        frontMaterial: 'MDF',
+        frontBoardThickness: 19,
+        frontColor: 'RAL_7016',
+        frontVeneerColor: null
+      },
+      varnishedFront: true
+    });
+    const overrideMaterial = {
+      boxMaterial: 'CHIPBOARD',
+      boxBoardThickness: 18,
+      boxColor: 'WHITE',
+      boxVeneerColor: 'WHITE',
+      frontMaterial: 'CHIPBOARD',
+      frontBoardThickness: 18,
+      frontColor: 'BLACK',
+      frontVeneerColor: 'BLACK'
+    };
+    kitchenServiceSpy.calculateCabinet.and.returnValue(of({ summaryCosts: 0 } as any));
+
+    service.calculateCabinet(
+      KitchenCabinetType.BASE_ONE_DOOR,
+      {
+        kitchenCabinetType: KitchenCabinetType.BASE_ONE_DOOR,
+        openingType: 'HANDLE',
+        width: 600,
+        height: 720,
+        depth: 560,
+        shelfQuantity: 1,
+        positionY: 0
+      } as CabinetFormData,
+      {
+        boxMaterial: 'CHIPBOARD',
+        boxBoardThickness: 18,
+        boxColor: 'WHITE',
+        frontMaterial: 'CHIPBOARD',
+        frontBoardThickness: 18,
+        frontColor: 'WHITE',
+        backMaterial: 'HDF',
+        backBoardThickness: 3,
+        varnishedFront: false
+      },
+      'cab-loaded',
+      {
+        materialRequest: overrideMaterial,
+        varnishedFront: false,
+        materialPresetCode: 'BLACK_CONTRAST'
+      }
+    ).subscribe(event => {
+      expect(kitchenServiceSpy.calculateCabinet).toHaveBeenCalledWith(jasmine.objectContaining({
+        materialRequest: overrideMaterial,
+        varnishedFront: false
+      }));
+      expect(event.formData.materialRequest).toEqual(overrideMaterial);
+      expect(event.formData.varnishedFront).toBeFalse();
+      expect(event.formData.materialPresetCode).toBe('BLACK_CONTRAST');
+      done();
+    });
+  });
+
+  it('uses current global defaults when persisted material preservation is disabled', (done) => {
+    kitchenStateServiceStub.getCabinetById.and.returnValue({
+      id: 'cab-loaded',
+      materialRequest: {
+        boxMaterial: 'PLYWOOD',
+        boxBoardThickness: 21,
+        boxColor: 'OAK',
+        boxVeneerColor: 'OAK_EDGE',
+        frontMaterial: 'MDF',
+        frontBoardThickness: 19,
+        frontColor: 'RAL_7016',
+        frontVeneerColor: null
+      },
+      varnishedFront: true
+    });
+    kitchenServiceSpy.calculateCabinet.and.returnValue(of({ summaryCosts: 0 } as any));
+
+    service.calculateCabinet(
+      KitchenCabinetType.BASE_ONE_DOOR,
+      {
+        kitchenCabinetType: KitchenCabinetType.BASE_ONE_DOOR,
+        openingType: 'HANDLE',
+        width: 600,
+        height: 720,
+        depth: 560,
+        shelfQuantity: 1,
+        positionY: 0,
+        useMaterialOverride: false,
+        materialPresetCode: null
+      } as CabinetFormData,
+      {
+        boxMaterial: 'CHIPBOARD',
+        boxBoardThickness: 18,
+        boxColor: 'WHITE',
+        frontMaterial: 'CHIPBOARD',
+        frontBoardThickness: 18,
+        frontColor: 'WHITE',
+        backMaterial: 'HDF',
+        backBoardThickness: 3,
+        varnishedFront: false
+      },
+      'cab-loaded',
+      undefined,
+      false
+    ).subscribe(event => {
+      expect(kitchenServiceSpy.calculateCabinet).toHaveBeenCalledWith(jasmine.objectContaining({
+        materialRequest: {
+          boxMaterial: 'CHIPBOARD',
+          boxBoardThickness: 18,
+          boxColor: 'WHITE',
+          boxVeneerColor: 'WHITE',
+          frontMaterial: 'CHIPBOARD',
+          frontBoardThickness: 18,
+          frontColor: 'WHITE',
+          frontVeneerColor: 'WHITE'
+        },
+        varnishedFront: false
+      }));
+      expect(event.formData.materialPresetCode).toBeNull();
+      expect(event.formData.varnishedFront).toBeFalse();
+      done();
+    });
   });
 
   it('propagates backend errors', (done) => {

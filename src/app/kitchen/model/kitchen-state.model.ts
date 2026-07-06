@@ -1,6 +1,6 @@
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType, LiftMechanismType } from '../cabinet-form/model/kitchen-cabinet-constants';
-import { WallType, PositioningMode, CabinetSide, IslandAdjacentSide } from './kitchen-project.model';
+import { WallType, PositioningMode, CabinetSide, IslandAdjacentSide, MaterialRequest } from './kitchen-project.model';
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 import { CabinetVisualConfig } from '../cabinet-form/model/cabinet-visual-elements.model';
@@ -142,6 +142,9 @@ export interface KitchenCabinetBase {
   // Konfiguracja wizualna i inne wspólne opcje
   visualConfig?: CabinetVisualConfig;
   bottomWreathOnFloor?: boolean;
+  materialRequest?: MaterialRequest;
+  varnishedFront?: boolean;
+  materialPresetCode?: string | null;
 
   calculatedResult?: CabinetCalculationResult;
 }
@@ -511,6 +514,10 @@ export interface CabinetFormData {
 
   // Nowy sposób liczenia dolnych: dolny wieniec na podłodze, boki oparte na wieńcu
   bottomWreathOnFloor?: boolean;
+  materialRequest?: MaterialRequest;
+  varnishedFront?: boolean;
+  materialPresetCode?: string | null;
+  useMaterialOverride?: boolean;
 
   // Pola szafki zlewowej (BASE_SINK)
   sinkFrontType?: string;      // ONE_DOOR | TWO_DOORS | DRAWER

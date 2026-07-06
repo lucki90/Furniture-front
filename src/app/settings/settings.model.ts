@@ -55,6 +55,7 @@ export interface UserSettings {
   defaultBackBoardThickness: number;
   defaultSheetSizeMode: 'FULL' | 'HALF' | 'QUARTER';
   defaultVarnishedFront: boolean;
+  defaultMaterialPresetCode?: string | null;
 
   // Dane firmy (dla ofert PDF)
   companyName?: string;
@@ -73,6 +74,8 @@ export interface SettingsOptions {
   upperFillerHeights: number[];
   distanceFromWallOptions: number[];
 }
+
+export const DEFAULT_MATERIAL_PRESET_CODE = 'WHITE_STANDARD';
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
   defaultPlinthHeightMm: 100,
@@ -116,6 +119,7 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   defaultBackBoardThickness: 3,
   defaultSheetSizeMode: 'FULL',
   defaultVarnishedFront: false,
+  defaultMaterialPresetCode: DEFAULT_MATERIAL_PRESET_CODE,
   companyName: '',
   companyAddress: '',
   companyPhone: '',

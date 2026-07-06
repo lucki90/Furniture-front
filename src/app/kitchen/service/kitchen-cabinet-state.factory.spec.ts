@@ -76,6 +76,47 @@ describe('KitchenCabinetStateFactory', () => {
     }));
   });
 
+  it('should preserve material request and varnished flag from calculated form data', () => {
+    const materialRequest = {
+      boxMaterial: 'PLYWOOD',
+      boxBoardThickness: 21,
+      boxColor: 'OAK',
+      boxVeneerColor: 'OAK_EDGE',
+      frontMaterial: 'MDF',
+      frontBoardThickness: 19,
+      frontColor: 'RAL_7016',
+      frontVeneerColor: null
+    };
+
+    const cabinet = factory.fromFormData({
+      kitchenCabinetType: KitchenCabinetType.BASE_ONE_DOOR,
+      openingType: 'HANDLE',
+      width: 600,
+      height: 720,
+      depth: 560,
+      positionY: 0,
+      shelfQuantity: 1,
+      materialRequest,
+      varnishedFront: true,
+      materialPresetCode: 'WHITE_LACQUER_PREMIUM'
+    } as CabinetFormData, 'material-1', {
+      boards: [],
+      components: [],
+      jobs: [],
+      summaryCosts: 100,
+      boardTotalCost: 40,
+      componentTotalCost: 30,
+      jobTotalCost: 30
+    });
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      id: 'material-1',
+      materialRequest,
+      varnishedFront: true,
+      materialPresetCode: 'WHITE_LACQUER_PREMIUM'
+    }));
+  });
+
   it('should map cargo cabinet from form data and preserve drawer variant details', () => {
     const cabinet = factory.fromFormData({
       kitchenCabinetType: KitchenCabinetType.BASE_CARGO,
@@ -268,6 +309,51 @@ describe('KitchenCabinetStateFactory', () => {
       type: KitchenCabinetType.BASE_OPEN,
       openingType: 'NONE',
       shelfQuantity: 2
+    }));
+  });
+
+  it('should preserve persisted material request when mapping placement response', () => {
+    const materialRequest = {
+      boxMaterial: 'CHIPBOARD',
+      boxBoardThickness: 18,
+      boxColor: 'K003',
+      boxVeneerColor: 'K003_EDGE',
+      frontMaterial: 'MDF',
+      frontBoardThickness: 19,
+      frontColor: 'RAL_9003',
+      frontVeneerColor: null
+    };
+
+    const cabinet = factory.fromPlacementResponse({
+      id: 55,
+      cabinetId: 'loaded-material-1',
+      cabinetType: KitchenCabinetType.BASE_ONE_DOOR,
+      positionX: 0,
+      positionY: 0,
+      widthMm: 600,
+      heightMm: 720,
+      depthMm: 560,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'K003',
+      frontMaterialCode: 'MDF',
+      frontThicknessMm: 19,
+      frontColorCode: 'RAL_9003',
+      materialRequest,
+      varnishedFront: true,
+      materialPresetCode: 'WHITE_LACQUER_PREMIUM',
+      boardsCost: 100,
+      componentsCost: 50,
+      jobsCost: 20,
+      totalCost: 170,
+      displayOrder: 0
+    }, 'fallback-material');
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      id: 'loaded-material-1',
+      materialRequest,
+      varnishedFront: true,
+      materialPresetCode: 'WHITE_LACQUER_PREMIUM'
     }));
   });
 

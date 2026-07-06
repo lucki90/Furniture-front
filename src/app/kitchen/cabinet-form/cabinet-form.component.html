@@ -16,6 +16,13 @@
             type="button">
       Pozycja
     </button>
+    <button (click)="setActiveTab('materials')" [attr.aria-selected]="activeTab === 'materials'"
+            [class.active]="activeTab === 'materials'"
+            class="form-tab"
+            role="tab"
+            type="button">
+      Materiały
+    </button>
     <button (click)="setActiveTab('options')" [attr.aria-selected]="activeTab === 'options'"
             [class.active]="activeTab === 'options'"
             [class.disabled]="!hasOptionsTab"
@@ -319,6 +326,36 @@
       </label>
     </div>
 
+  </ng-container>
+
+  <!-- ═══════════ TAB: MATERIAŁY ═══════════ -->
+  <ng-container *ngIf="activeTab === 'materials'">
+    <div class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label enclosure-checkbox-label">
+          <input
+            (change)="onMaterialOverrideToggle($any($event.target).checked)"
+            [checked]="useMaterialOverride"
+            class="enclosure-checkbox"
+            type="checkbox">
+          Własny preset materiałów
+        </label>
+      </div>
+    </div>
+
+    <div *ngIf="useMaterialOverride" class="form-row">
+      <div class="form-group flex-2">
+        <label class="form-label">Preset materiałów</label>
+        <select (change)="onMaterialPresetChange($any($event.target).value)"
+                [value]="form.get('materialPresetCode')?.value ?? ''"
+                class="form-control">
+          <option value="">Wybierz preset</option>
+          <option *ngFor="let preset of materialPresets; trackBy: trackByPresetCode" [value]="preset.code">
+            {{ materialPresetLabel(preset) }}
+          </option>
+        </select>
+      </div>
+    </div>
   </ng-container>
 
   <!-- ═══════════ TAB: OPCJE ═══════════ -->

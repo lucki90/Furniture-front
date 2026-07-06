@@ -404,6 +404,47 @@ describe('ProjectWallCabinetsBuilder', () => {
     });
   });
 
+  describe('material mapping', () => {
+    it('should prefer persisted cabinet material over current global defaults', () => {
+      const materialRequest = {
+        boxMaterial: 'PLYWOOD',
+        boxBoardThickness: 21,
+        boxColor: 'OAK',
+        boxVeneerColor: 'OAK_EDGE',
+        frontMaterial: 'MDF',
+        frontBoardThickness: 19,
+        frontColor: 'RAL_7016',
+        frontVeneerColor: null
+      };
+      const cabinet = makeCabinet({
+        id: 'material-cab',
+        type: KitchenCabinetType.BASE_ONE_DOOR,
+        materialRequest,
+        varnishedFront: true,
+        materialPresetCode: 'WHITE_LACQUER_PREMIUM'
+      });
+
+      const [request] = builder.buildCabinets(buildWall([cabinet]), {
+        ...settings,
+        materialDefaults: {
+          boxMaterial: 'CHIPBOARD',
+          boxBoardThickness: 18,
+          boxColor: 'WHITE',
+          frontMaterial: 'CHIPBOARD',
+          frontBoardThickness: 18,
+          frontColor: 'WHITE',
+          backMaterial: 'HDF',
+          backBoardThickness: 3,
+          varnishedFront: false
+        }
+      });
+
+      expect(request.materialRequest).toEqual(materialRequest);
+      expect(request.varnishedFront).toBeTrue();
+      expect(request.materialPresetCode).toBe('WHITE_LACQUER_PREMIUM');
+    });
+  });
+
   describe('UPPER_LIFT_UP mapping', () => {
     it('should persist dedicated lift-up cabinet with lift mechanism fields', () => {
       const liftUp = makeCabinet({

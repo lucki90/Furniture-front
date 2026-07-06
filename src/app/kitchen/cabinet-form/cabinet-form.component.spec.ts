@@ -16,6 +16,9 @@ import { CabinetFormCalculationService } from './cabinet-form-calculation.servic
 import { CabinetSegmentValidationService } from './cabinet-segment-validation.service';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { PantryPassageCabinetValidator } from './types/pantry-passage/pantry-passage-cabinet-validator';
+import { MaterialPresetService } from '../service/material-preset.service';
+import { TranslationService } from '../../translation/translation.service';
+import { LanguageService } from '../../service/language.service';
 
 describe('CabinetFormComponent', () => {
   let component: CabinetFormComponent;
@@ -35,6 +38,9 @@ describe('CabinetFormComponent', () => {
         { provide: CabinetFormValidationErrorsService, useClass: CabinetFormValidationErrorsServiceStub },
         { provide: CabinetFormCalculationService, useClass: CabinetFormCalculationServiceStub },
         { provide: CabinetSegmentValidationService, useClass: CabinetSegmentValidationServiceStub },
+        { provide: MaterialPresetService, useClass: MaterialPresetServiceStub },
+        { provide: TranslationService, useClass: TranslationServiceStub },
+        { provide: LanguageService, useClass: LanguageServiceStub },
         { provide: ApiErrorHandler, useClass: ApiErrorHandlerStub },
         { provide: MatDialog, useClass: MatDialogStub }
       ]
@@ -63,6 +69,44 @@ describe('CabinetFormComponent', () => {
 
   it('defaults cabinet side control to FRONT', () => {
     expect(component.form.get('cabinetSide')?.value).toBe('FRONT');
+  });
+
+  it('passes selected material preset override to calculation service', () => {
+    const calculationService = TestBed.inject(CabinetFormCalculationService) as unknown as CabinetFormCalculationServiceStub;
+
+    component.onMaterialOverrideToggle(true);
+    component.onMaterialPresetChange('WHITE_LACQUER_PREMIUM');
+    component.calculate();
+
+    expect(calculationService.lastMaterialOverride).toEqual({
+      materialRequest: {
+        boxMaterial: 'CHIPBOARD',
+        boxBoardThickness: 18,
+        boxColor: 'WHITE',
+        boxVeneerColor: 'WHITE',
+        frontMaterial: 'MDF',
+        frontBoardThickness: 18,
+        frontColor: 'WHITE',
+        frontVeneerColor: null
+      },
+      varnishedFront: true,
+      materialPresetCode: 'WHITE_LACQUER_PREMIUM'
+    });
+  });
+
+  it('does not preserve persisted material when an edited cabinet preset is disabled', () => {
+    const calculationService = TestBed.inject(CabinetFormCalculationService) as unknown as CabinetFormCalculationServiceStub;
+    component.editingCabinet = {
+      id: 'cab-loaded',
+      type: KitchenCabinetType.BASE_ONE_DOOR,
+      materialPresetCode: 'WHITE_LACQUER_PREMIUM'
+    } as any;
+
+    component.onMaterialOverrideToggle(false);
+    component.calculate();
+
+    expect(calculationService.lastMaterialOverride).toBeUndefined();
+    expect(calculationService.lastPreservePersistedMaterial).toBeFalse();
   });
 
   it('resets gap before when selected wall changes', () => {
@@ -462,6 +506,66 @@ class DictionaryServiceStub {
   });
 }
 
+class MaterialPresetServiceStub {
+  listActive() {
+    return of([
+      {
+        code: 'WHITE_STANDARD',
+        translationKey: 'MATERIAL_PRESET.WHITE_STANDARD',
+        defaultPreset: true,
+        sortOrder: 10,
+        varnishedFront: false,
+        materialRequest: {
+          boxMaterial: 'CHIPBOARD',
+          boxBoardThickness: 18,
+          boxColor: 'WHITE',
+          boxVeneerColor: 'WHITE',
+          frontMaterial: 'CHIPBOARD',
+          frontBoardThickness: 18,
+          frontColor: 'WHITE',
+          frontVeneerColor: 'WHITE'
+        },
+        backMaterial: 'HDF',
+        backBoardThickness: 3,
+        backColor: 'NATURAL'
+      },
+      {
+        code: 'WHITE_LACQUER_PREMIUM',
+        translationKey: 'MATERIAL_PRESET.WHITE_LACQUER_PREMIUM',
+        defaultPreset: false,
+        sortOrder: 30,
+        varnishedFront: true,
+        materialRequest: {
+          boxMaterial: 'CHIPBOARD',
+          boxBoardThickness: 18,
+          boxColor: 'WHITE',
+          boxVeneerColor: 'WHITE',
+          frontMaterial: 'MDF',
+          frontBoardThickness: 18,
+          frontColor: 'WHITE',
+          frontVeneerColor: null
+        },
+        backMaterial: 'HDF',
+        backBoardThickness: 3,
+        backColor: 'NATURAL'
+      }
+    ]);
+  }
+}
+
+class TranslationServiceStub {
+  getByCategories() {
+    return of({
+      'MATERIAL_PRESET.WHITE_STANDARD': 'Biały standard',
+      'MATERIAL_PRESET.WHITE_LACQUER_PREMIUM': 'Lakier biały premium'
+    });
+  }
+}
+
+class LanguageServiceStub {
+  readonly lang = signal('pl');
+}
+
 class KitchenStateServiceStub {
   readonly selectedWallSignal = signal<WallWithCabinets | null>(buildWall('MAIN'));
   readonly selectedWall = this.selectedWallSignal;
@@ -569,7 +673,19 @@ class CabinetFormValidationErrorsServiceStub {
 }
 
 class CabinetFormCalculationServiceStub {
-  calculateCabinet(type: KitchenCabinetType, formData: unknown) {
+  lastMaterialOverride: unknown;
+  lastPreservePersistedMaterial: boolean | undefined;
+
+  calculateCabinet(
+    type: KitchenCabinetType,
+    formData: unknown,
+    materialDefaults?: unknown,
+    editingCabinetId?: string,
+    materialOverride?: unknown,
+    preservePersistedMaterial?: boolean
+  ) {
+    this.lastMaterialOverride = materialOverride;
+    this.lastPreservePersistedMaterial = preservePersistedMaterial;
     return of({ formData, result: { kitchenCabinetType: type } });
   }
 }

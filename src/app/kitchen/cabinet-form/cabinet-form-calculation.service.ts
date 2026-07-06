@@ -6,6 +6,13 @@ import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { CabinetCalculateRequest, MaterialDefaults } from './type-config/request-mapper/kitchen-cabinet-request-mapper';
 import { KitchenCabinetTypeConfig } from './type-config/kitchen-cabinet-type-config';
 import { KitchenStateService } from '../service/kitchen-state.service';
+import { MaterialRequest } from '../model/kitchen-project.model';
+
+export interface CabinetMaterialOverride {
+  materialRequest: MaterialRequest;
+  varnishedFront: boolean;
+  materialPresetCode?: string | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CabinetFormCalculationService {
@@ -18,10 +25,17 @@ export class CabinetFormCalculationService {
     type: KitchenCabinetType,
     formData: CabinetFormData,
     materialDefaults: MaterialDefaults,
-    editingCabinetId?: string
+    editingCabinetId?: string,
+    materialOverride?: CabinetMaterialOverride,
+    preservePersistedMaterial = true
   ): Observable<CabinetCalculatedEvent> {
     const mapper = KitchenCabinetTypeConfig[type].requestMapper;
-    const request = mapper.map(formData, materialDefaults);
+    const mappedRequest = mapper.map(formData, materialDefaults);
+    const request = materialOverride
+      ? this.applyMaterialOverride(mappedRequest, materialOverride)
+      : preservePersistedMaterial
+        ? this.applyPersistedCabinetMaterial(mappedRequest, editingCabinetId)
+        : mappedRequest;
     // PANTRY_PASSAGE inherits attached plinth dimensions from the active wall/project plinth.
     // The static request mapper intentionally leaves these fields empty and we enrich the preview request here,
     // where KitchenStateService is available.
@@ -31,11 +45,49 @@ export class CabinetFormCalculationService {
 
     return this.kitchenService.calculateCabinet(enrichedRequest).pipe(
       map(result => ({
-        formData,
+        formData: {
+          ...formData,
+          materialRequest: { ...enrichedRequest.materialRequest },
+          varnishedFront: enrichedRequest.varnishedFront,
+          materialPresetCode: materialOverride?.materialPresetCode ?? formData.materialPresetCode ?? null
+        },
         result,
         editingCabinetId
       }))
     );
+  }
+
+  private applyMaterialOverride(
+    request: CabinetCalculateRequest,
+    materialOverride: CabinetMaterialOverride
+  ): CabinetCalculateRequest {
+    return {
+      ...request,
+      materialRequest: { ...materialOverride.materialRequest },
+      varnishedFront: materialOverride.varnishedFront
+    };
+  }
+
+  private applyPersistedCabinetMaterial(
+    request: CabinetCalculateRequest,
+    editingCabinetId?: string
+  ): CabinetCalculateRequest {
+    if (!editingCabinetId) {
+      return request;
+    }
+
+    const existingCabinet = this.stateService.getCabinetById(editingCabinetId);
+    if (!existingCabinet?.materialRequest && existingCabinet?.varnishedFront === undefined) {
+      return request;
+    }
+
+    return {
+      ...request,
+      materialRequest: existingCabinet.materialRequest
+        ? { ...existingCabinet.materialRequest }
+        : request.materialRequest,
+      varnishedFront: existingCabinet.varnishedFront ?? request.varnishedFront
+    };
   }
 
   private attachPantryPassagePlinth(request: CabinetCalculateRequest): CabinetCalculateRequest {

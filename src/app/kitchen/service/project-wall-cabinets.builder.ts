@@ -10,7 +10,8 @@ import {
   ProjectCabinetRequest,
   DrawerRequest,
   CornerCabinetRequest,
-  CascadeSegmentRequest
+  CascadeSegmentRequest,
+  MaterialRequest
 } from '../model/kitchen-project.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { mapSegmentToRequest, SegmentFormData } from '../cabinet-form/model/segment.model';
@@ -91,6 +92,7 @@ export class ProjectWallCabinetsBuilder {
       // - FULL (TALL/BASE_FRIDGE) and TOP zones use geometry service Y directly (same as backend).
       const zone = getCabinetZone(cab);
       const positionY = zone === 'BOTTOM' ? 0 : (pos?.y ?? 0);
+      const materialRequest = this.buildMaterialRequest(cab, materialDefaults);
 
       return {
         cabinetId: cab.name || cab.id,
@@ -102,21 +104,11 @@ export class ProjectWallCabinetsBuilder {
         positionX,
         positionY,
         shelfQuantity: cab.shelfQuantity,
-        // TODO: per-projekt overrides - gdy projekt/szafka ma nadpisane materiały/kolory/okleiny,
-        //   użyj ich zamiast globalnych defaults `materialDefaults`. Patrz kitchen-state.service.ts -> TODO ProjectMaterialOverrides.
-        //   Priorytet: cab.materialOverride ?? materialDefaults (per szafka) -> wall.materialOverride ?? materialDefaults (per ściana) -> materialDefaults (global)
-        varnishedFront: materialDefaults.varnishedFront,
-        materialRequest: {
-          boxMaterial: materialDefaults.boxMaterial,
-          boxBoardThickness: materialDefaults.boxBoardThickness,
-          boxColor: materialDefaults.boxColor,
-          boxVeneerColor: materialDefaults.boxColor,
-          frontMaterial: materialDefaults.frontMaterial,
-          frontBoardThickness: materialDefaults.frontBoardThickness,
-          frontColor: materialDefaults.frontColor,
-          frontVeneerColor: materialDefaults.frontColor
-        },
-        drawerRequest: this.buildDrawerRequest(cab),
+      // Persisted cabinet material wins over current user defaults.
+      varnishedFront: cab.varnishedFront ?? materialDefaults.varnishedFront,
+      materialRequest,
+      materialPresetCode: cab.materialPresetCode ?? null,
+      drawerRequest: this.buildDrawerRequest(cab),
         segments: this.buildSegments(cab),
         cascadeSegments: this.buildCascadeSegments(cab),
         cornerRequest: this.buildCornerRequest(cab),
@@ -133,6 +125,23 @@ export class ProjectWallCabinetsBuilder {
         ...this.buildTypeSpecificFields(cab)
       };
     });
+  }
+
+  private buildMaterialRequest(cab: KitchenCabinet, materialDefaults: typeof DEFAULT_MATERIAL_DEFAULTS): MaterialRequest {
+    if (cab.materialRequest) {
+      return { ...cab.materialRequest };
+    }
+
+    return {
+      boxMaterial: materialDefaults.boxMaterial,
+      boxBoardThickness: materialDefaults.boxBoardThickness,
+      boxColor: materialDefaults.boxColor,
+      boxVeneerColor: materialDefaults.boxColor,
+      frontMaterial: materialDefaults.frontMaterial,
+      frontBoardThickness: materialDefaults.frontBoardThickness,
+      frontColor: materialDefaults.frontColor,
+      frontVeneerColor: materialDefaults.frontColor
+    };
   }
 
   private buildDrawerRequest(cab: KitchenCabinet): DrawerRequest | undefined {

@@ -5,7 +5,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { SettingsService } from './settings.service';
 import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
-import { SettingsOptions, UpdateUserSettingsRequest } from './settings.model';
+import { DEFAULT_MATERIAL_PRESET_CODE, SettingsOptions, UpdateUserSettingsRequest } from './settings.model';
 import { FormFieldComponent } from '../shared/form-field/form-field.component';
 import { BoardPrice } from './board-price.service';
 import { ComponentPriceService, ComponentPrice } from './component-price.service';
@@ -18,6 +18,7 @@ import { MaterialAdminService } from '../admin/material/service/material-admin.s
 import { BoardColorOptionResponse, MaterialOption } from '../admin/material/model/material-variant.model';
 import { BoardPricesSectionComponent } from './board-prices-section/board-prices-section.component';
 import { CompanyInfoSectionComponent } from './company-info-section/company-info-section.component';
+import { MaterialPresetResponse, MaterialPresetService } from '../kitchen/service/material-preset.service';
 
 @Component({
   selector: 'app-settings',
@@ -38,6 +39,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   private translationService = inject(TranslationService);
   private languageService = inject(LanguageService);
   private materialAdminService = inject(MaterialAdminService);
+  private materialPresetService = inject(MaterialPresetService);
   private destroyRef = inject(DestroyRef);
 
   // Cached translations for material names (reloads on language change)
@@ -45,6 +47,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
 
   // Material options for dropdown in "Dodaj cenę"
   materialOptions: MaterialOption[] = [];
+  materialPresets: MaterialPresetResponse[] = [];
 
   // Form values — kuchnia
   plinthHeightMm = 100;
@@ -101,6 +104,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   defaultBackBoardThickness = 3;
   defaultSheetSizeMode: 'FULL' | 'HALF' | 'QUARTER' = 'FULL';
   defaultVarnishedFront = false;
+  defaultMaterialPresetCode: string | null = DEFAULT_MATERIAL_PRESET_CODE;
 
   // Color options for box/front dropdowns — loaded from backend when material changes
   boxColorOptions: BoardColorOptionResponse[] = [];
@@ -158,6 +162,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     this.loadOptions();
     this.loadSettings();
     this.loadMaterialOptions();
+    this.loadMaterialPresets();
     this.loadComponentPrices();
     this.loadJobPrices();
   }
@@ -172,7 +177,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   // Wywołanie: ngAfterViewInit → this.companyInfoSection?.loadLogo().
 
   private loadTranslations(lang: string): void {
-    this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT'], lang).subscribe(t => {
+    this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT', 'MATERIAL_PRESET'], lang).subscribe(t => {
       this.translations = t;
     });
   }
@@ -185,13 +190,47 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   }
 
   /** Called when box material select changes — rebuild color list and keep/reset current color. */
+  private loadMaterialPresets(): void {
+    this.materialPresetService.listActive().subscribe({
+      next: presets => { this.materialPresets = presets; },
+      error: () => { this.materialPresets = []; }
+    });
+  }
+
+  applyDefaultMaterialPreset(code: string): void {
+    this.defaultMaterialPresetCode = code || null;
+    const preset = this.materialPresets.find(item => item.code === code);
+    if (!preset) return;
+
+    this.defaultBoxMaterial = preset.materialRequest.boxMaterial;
+    this.defaultBoxBoardThickness = preset.materialRequest.boxBoardThickness;
+    this.defaultBoxColor = preset.materialRequest.boxColor;
+    this.defaultFrontMaterial = preset.materialRequest.frontMaterial;
+    this.defaultFrontBoardThickness = preset.materialRequest.frontBoardThickness;
+    this.defaultFrontColor = preset.materialRequest.frontColor;
+    this.defaultBackMaterial = preset.backMaterial;
+    this.defaultBackBoardThickness = preset.backBoardThickness;
+    this.defaultVarnishedFront = preset.varnishedFront;
+    this.rebuildColorOptions();
+  }
+
+  materialPresetLabel(preset: MaterialPresetResponse): string {
+    return this.translations[preset.translationKey] || preset.code;
+  }
+
+  markDefaultMaterialPresetCustom(): void {
+    this.defaultMaterialPresetCode = null;
+  }
+
   onBoxMaterialChange(materialCode: string): void {
+    this.markDefaultMaterialPresetCustom();
     this.defaultBoxMaterial = materialCode;
     this.rebuildColorOptions();
   }
 
   /** Called when front material select changes — rebuild colors, enforce varnished-only-for-MDF rule. */
   onFrontMaterialChange(materialCode: string): void {
+    this.markDefaultMaterialPresetCustom();
     this.defaultFrontMaterial = materialCode;
     if (materialCode !== 'MDF') {
       // Only MDF fronts can be varnished — auto-clear when switching away
@@ -315,6 +354,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
         this.defaultBackBoardThickness = settings.defaultBackBoardThickness ?? 3;
         this.defaultSheetSizeMode = (settings.defaultSheetSizeMode as 'FULL' | 'HALF' | 'QUARTER') ?? 'FULL';
         this.defaultVarnishedFront = settings.defaultVarnishedFront ?? false;
+        this.defaultMaterialPresetCode = settings.defaultMaterialPresetCode ?? null;
         // Rebuild color dropdowns using loaded material (boardPrices may already be ready)
         this.rebuildColorOptions();
         // Dane firmy — delegowane do CompanyInfoSectionComponent (R.2.4)
@@ -376,6 +416,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       defaultBackBoardThickness: this.defaultBackBoardThickness,
       defaultSheetSizeMode: this.defaultSheetSizeMode,
       defaultVarnishedFront: this.defaultVarnishedFront,
+      defaultMaterialPresetCode: this.defaultMaterialPresetCode,
       // Dane firmy — czytane z CompanyInfoSectionComponent przez @ViewChild
       ...(this.companyInfoSection?.getCompanyData() ?? { offerValidityDays: 14 })
     };

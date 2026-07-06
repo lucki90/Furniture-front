@@ -148,6 +148,7 @@ export interface ProjectCabinetRequest {
   shelfQuantity: number;
   varnishedFront: boolean;
   materialRequest: MaterialRequest;
+  materialPresetCode?: string | null;
   drawerRequest?: DrawerRequest;
   cargoVariant?: string;
   cargoBrand?: string;
@@ -483,6 +484,8 @@ export interface CabinetPlacementResponse {
   frontMaterialCode?: string;
   frontThicknessMm?: number;
   frontColorCode?: string;
+  materialRequest?: MaterialRequest;
+  materialPresetCode?: string | null;
 
   openingType?: string;
 

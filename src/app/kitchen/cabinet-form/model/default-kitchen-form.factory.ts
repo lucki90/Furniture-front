@@ -52,6 +52,10 @@ export class DefaultKitchenFormFactory {
       cabinetSide: ['FRONT'],
       gapBeforeMm: [0],
 
+      // Material override
+      useMaterialOverride: [false],
+      materialPresetCode: [null as string | null],
+
       // Cascade
       cascadeLowerHeight: [400],
       cascadeLowerDepth: [400],

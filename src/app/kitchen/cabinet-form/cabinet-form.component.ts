@@ -1,5 +1,5 @@
 ﻿import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject, computed, effect, DestroyRef } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -28,9 +28,12 @@ import { CabinetSegmentsFormService } from './cabinet-segments-form.service';
 import { CabinetFormEditingService } from './cabinet-form-editing.service';
 import { CabinetFormTypeLifecycleService } from './cabinet-form-type-lifecycle.service';
 import { CabinetFormValidationErrorsService } from './cabinet-form-validation-errors.service';
-import { CabinetFormCalculationService } from './cabinet-form-calculation.service';
+import { CabinetFormCalculationService, CabinetMaterialOverride } from './cabinet-form-calculation.service';
 import { CabinetSegmentValidationService } from './cabinet-segment-validation.service';
 import { CabinetSegmentsSectionComponent } from './sections/cabinet-segments-section/cabinet-segments-section.component';
+import { MaterialPresetResponse, MaterialPresetService } from '../service/material-preset.service';
+import { TranslationService } from '../../translation/translation.service';
+import { LanguageService } from '../../service/language.service';
 import {
   CARGO_BRAND_OPTIONS,
   CARGO_VARIANT_OPTIONS,
@@ -78,6 +81,9 @@ export class CabinetFormComponent implements OnChanges {
   private readonly validationErrorsService = inject(CabinetFormValidationErrorsService);
   private readonly calculationService = inject(CabinetFormCalculationService);
   private readonly segmentValidationService = inject(CabinetSegmentValidationService);
+  private readonly materialPresetService = inject(MaterialPresetService);
+  private readonly translationService = inject(TranslationService);
+  private readonly languageService = inject(LanguageService);
 
   form: FormGroup;
   visibility: CabinetFormVisibility = this.typeLifecycleService.createBaseVisibility();
@@ -86,9 +92,11 @@ export class CabinetFormComponent implements OnChanges {
   loading = false;
 
   /** Aktywny tab formularza: 'basic' (wymiary/typ), 'position' (pozycjonowanie/flagi), 'options' (sekcje specjalistyczne). */
-  activeTab: 'basic' | 'position' | 'options' = 'basic';
+  activeTab: 'basic' | 'position' | 'materials' | 'options' = 'basic';
+  materialPresets: MaterialPresetResponse[] = [];
+  materialPresetTranslations: Record<string, string> = {};
 
-  setActiveTab(tab: 'basic' | 'position' | 'options'): void {
+  setActiveTab(tab: 'basic' | 'position' | 'materials' | 'options'): void {
     if (this.activeTab === tab) return;
     this.activeTab = tab;
     this.cdr.markForCheck();
@@ -141,6 +149,33 @@ export class CabinetFormComponent implements OnChanges {
 
   get isEditMode(): boolean {
     return this.editingCabinet !== null;
+  }
+
+  get useMaterialOverride(): boolean {
+    return !!this.form.get('useMaterialOverride')?.value;
+  }
+
+  get selectedMaterialPreset(): MaterialPresetResponse | undefined {
+    const code = this.form.get('materialPresetCode')?.value;
+    return this.materialPresets.find(preset => preset.code === code);
+  }
+
+  onMaterialOverrideToggle(enabled: boolean): void {
+    this.form.get('useMaterialOverride')?.setValue(enabled);
+    if (!enabled) {
+      this.form.get('materialPresetCode')?.setValue(null);
+    } else if (!this.form.get('materialPresetCode')?.value) {
+      this.form.get('materialPresetCode')?.setValue(this.materialPresets[0]?.code ?? null);
+    }
+    this.cdr.markForCheck();
+  }
+
+  onMaterialPresetChange(code: string): void {
+    this.form.get('materialPresetCode')?.setValue(code || null);
+  }
+
+  materialPresetLabel(preset: MaterialPresetResponse): string {
+    return this.materialPresetTranslations[preset.translationKey] || preset.code;
   }
 
   get segmentsArray(): FormArray {
@@ -330,6 +365,23 @@ export class CabinetFormComponent implements OnChanges {
     this.previousWallType = this.stateService.selectedWall()?.type ?? null;
     this.previousCabinetType = this.form.value.kitchenCabinetType;
 
+    this.materialPresetService.listActive()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(presets => {
+        this.materialPresets = presets;
+        this.cdr.markForCheck();
+      });
+    toObservable(this.languageService.lang)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(lang => {
+        this.translationService.getByCategories(['MATERIAL_PRESET'], lang)
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(translations => {
+            this.materialPresetTranslations = translations;
+            this.cdr.markForCheck();
+          });
+      });
+
     this.onTypeChange(this.form.value.kitchenCabinetType);
 
     this.form.get('kitchenCabinetType')!
@@ -516,12 +568,16 @@ export class CabinetFormComponent implements OnChanges {
 
     const type = this.form.get('kitchenCabinetType')!.value as KitchenCabinetType;
     const formData = this.form.getRawValue();
+    const materialOverride = this.buildMaterialOverride();
+    const preservePersistedMaterial = this.shouldPreservePersistedMaterial();
 
     this.calculationService.calculateCabinet(
       type,
       formData,
       this.stateService.materialDefaults(),
-      this.editingCabinet?.id
+      this.editingCabinet?.id,
+      materialOverride,
+      preservePersistedMaterial
     ).subscribe({
       next: event => {
         this.calculated.emit(event);
@@ -535,6 +591,30 @@ export class CabinetFormComponent implements OnChanges {
         this.cdr.markForCheck(); // OnPush: HTTP callback nie jest DOM eventem
       }
     });
+  }
+
+  private buildMaterialOverride(): CabinetMaterialOverride | undefined {
+    if (!this.useMaterialOverride) {
+      return undefined;
+    }
+
+    const preset = this.selectedMaterialPreset;
+    if (!preset) {
+      return undefined;
+    }
+
+    return {
+      materialRequest: { ...preset.materialRequest },
+      varnishedFront: preset.varnishedFront,
+      materialPresetCode: preset.code
+    };
+  }
+
+  private shouldPreservePersistedMaterial(): boolean {
+    if (!this.editingCabinet) {
+      return false;
+    }
+    return !(this.editingCabinet.materialPresetCode && !this.useMaterialOverride);
   }
 
   onCancel(): void {
@@ -595,6 +675,7 @@ export class CabinetFormComponent implements OnChanges {
   }
 
   protected trackByValue = (_: number, item: { value: string }) => item.value;
+  protected trackByPresetCode = (_: number, item: MaterialPresetResponse) => item.code;
   protected trackByIndex = (index: number) => index;
 
   /** FormArray z wysokościami frontów per szuflada (CUSTOM layout). */
