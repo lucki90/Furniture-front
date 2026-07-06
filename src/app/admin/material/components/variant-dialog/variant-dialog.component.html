@@ -10,31 +10,31 @@
 
     @if (data.type === 'board') {
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Material</mat-label>
+      <mat-label>Materiał</mat-label>
       <mat-select formControlName="materialId">
         @for (material of materials(); track material.id) {
         <mat-option [value]="material.id">
-          {{ material.code }} ({{ material.translationKey || 'brak tlumaczenia' }})
+          {{ material.code }} ({{ material.translationKey || 'brak tłumaczenia' }})
         </mat-option>
         }
       </mat-select>
       @if (form.get('materialId')?.hasError('required')) {
-      <mat-error>Material jest wymagany</mat-error>
+      <mat-error>Materiał jest wymagany</mat-error>
       }
     </mat-form-field>
 
     <div class="form-row">
       <mat-form-field appearance="outline">
-        <mat-label>Grubosc (mm)</mat-label>
+        <mat-label>Grubość (mm)</mat-label>
         <input formControlName="thicknessMm" matInput type="number">
         @if (form.get('thicknessMm')?.hasError('required')) {
-        <mat-error>Grubosc jest wymagana</mat-error>
+        <mat-error>Grubość jest wymagana</mat-error>
         }
         @if (form.get('thicknessMm')?.hasError('min')) {
-        <mat-error>Grubosc min. 2 mm</mat-error>
+        <mat-error>Grubość min. 2 mm</mat-error>
         }
         @if (form.get('thicknessMm')?.hasError('max')) {
-        <mat-error>Grubosc max. 50 mm</mat-error>
+        <mat-error>Grubość max. 50 mm</mat-error>
         }
       </mat-form-field>
 
@@ -72,43 +72,43 @@
       <mat-error>Cena jest wymagana</mat-error>
       }
       @if (form.get('currentPrice')?.hasError('min')) {
-      <mat-error>Cena musi byc wieksza od 0</mat-error>
+      <mat-error>Cena musi być większa od 0</mat-error>
       }
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Klucz tlumaczenia (opcjonalnie)</mat-label>
+      <mat-label>Klucz tłumaczenia (opcjonalnie)</mat-label>
       <input
         formControlName="translationKey"
         matInput
         maxlength="255"
         placeholder="np. BOARD_VARIANT.BIALY_18">
-      <mat-hint>np. BOARD_VARIANT.BIALY - uzyj klucza kategorii + nazwy</mat-hint>
+      <mat-hint>np. BOARD_VARIANT.BIALY - użyj klucza kategorii + nazwy</mat-hint>
     </mat-form-field>
 
     @if (form.get('translationKey')?.value?.length >= 3) {
     <div class="translation-edit-section">
       <div class="translation-edit-header">
         @if (translationLoading()) {
-        <span class="translation-status">Ladowanie...</span>
+        <span class="translation-status">Ładowanie...</span>
         } @else if (translationKeyExists() === true) {
-        <span class="translation-status exists">Istniejace tlumaczenie - edytujesz</span>
+        <span class="translation-status exists">Istniejące tłumaczenie - edytujesz</span>
         } @else {
         <span class="translation-status new">Nowy klucz - zostanie dodany przy zapisie</span>
         }
       </div>
       <div class="form-row">
         <mat-form-field appearance="outline">
-          <mat-label>Wartosc PL</mat-label>
+          <mat-label>Wartość PL</mat-label>
           <input
             (input)="translationPl.set($any($event.target).value)"
             [value]="translationPl()"
             matInput
             maxlength="500"
-            placeholder="np. Bialy">
+            placeholder="np. Biały">
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Wartosc EN</mat-label>
+          <mat-label>Wartość EN</mat-label>
           <input
             (input)="translationEn.set($any($event.target).value)"
             [value]="translationEn()"
@@ -159,7 +159,7 @@
       <mat-error>Cena jest wymagana</mat-error>
       }
       @if (form.get('currentPrice')?.hasError('min')) {
-      <mat-error>Cena musi byc wieksza od 0</mat-error>
+      <mat-error>Cena musi być większa od 0</mat-error>
       }
     </mat-form-field>
 
@@ -170,29 +170,29 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Klucz tlumaczenia (opcjonalnie)</mat-label>
+      <mat-label>Klucz tłumaczenia (opcjonalnie)</mat-label>
       <input
         formControlName="translationKey"
         matInput
         maxlength="255"
         placeholder="np. COMPONENT.BLUM_HINGE_110">
-      <mat-hint>np. COMPONENT.KOD - uzyj klucza kategorii + nazwy</mat-hint>
+      <mat-hint>np. COMPONENT.KOD - użyj klucza kategorii + nazwy</mat-hint>
     </mat-form-field>
 
     @if (form.get('translationKey')?.value?.length >= 3) {
     <div class="translation-edit-section">
       <div class="translation-edit-header">
         @if (translationLoading()) {
-        <span class="translation-status">Ladowanie...</span>
+        <span class="translation-status">Ładowanie...</span>
         } @else if (translationKeyExists() === true) {
-        <span class="translation-status exists">Istniejace tlumaczenie - edytujesz</span>
+        <span class="translation-status exists">Istniejące tłumaczenie - edytujesz</span>
         } @else {
         <span class="translation-status new">Nowy klucz - zostanie dodany przy zapisie</span>
         }
       </div>
       <div class="form-row">
         <mat-form-field appearance="outline">
-          <mat-label>Wartosc PL</mat-label>
+          <mat-label>Wartość PL</mat-label>
           <input
             (input)="translationPl.set($any($event.target).value)"
             [value]="translationPl()"
@@ -200,7 +200,7 @@
             maxlength="500">
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <mat-label>Wartosc EN</mat-label>
+          <mat-label>Wartość EN</mat-label>
           <input
             (input)="translationEn.set($any($event.target).value)"
             [value]="translationEn()"
@@ -234,7 +234,7 @@
       <mat-error>Cena jest wymagana</mat-error>
       }
       @if (form.get('currentPrice')?.hasError('min')) {
-      <mat-error>Cena musi byc wieksza od 0</mat-error>
+      <mat-error>Cena musi być większa od 0</mat-error>
       }
     </mat-form-field>
     }

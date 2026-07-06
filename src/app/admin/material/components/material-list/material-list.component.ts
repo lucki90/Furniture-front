@@ -62,7 +62,7 @@ export class MaterialListComponent implements OnInit {
   }
 
   get materialsCountLabel(): string {
-    return this.pluralize(this.materials().length, 'material', 'materialy', 'materialow');
+    return this.pluralize(this.materials().length, 'materiał', 'materiały', 'materiałów');
   }
 
   loadMaterials(): void {
@@ -75,7 +75,7 @@ export class MaterialListComponent implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.toast.error('Blad podczas ladowania materialow');
+          this.toast.error('Błąd podczas ładowania materiałów');
           this.loading.set(false);
         }
       });
@@ -92,10 +92,10 @@ export class MaterialListComponent implements OnInit {
 
           this.materials.set(nextMaterials);
           const status = updated.active ? 'aktywny' : 'nieaktywny';
-          this.toast.success(`Material "${updated.code}" - ${status}`);
+          this.toast.success(`Materiał "${updated.code}" - ${status}`);
         },
         error: () => {
-          this.toast.error('Blad podczas zmiany statusu materialu');
+          this.toast.error('Błąd podczas zmiany statusu materiału');
         }
       });
   }

@@ -50,7 +50,7 @@ describe('MaterialListComponent', () => {
     expect(component.materials().length).toBe(2);
     expect(chips).toContain('1 aktywny');
     expect(chips).toContain('1 nieaktywny');
-    expect(count.textContent).toContain('2 materialy');
+    expect(count.textContent).toContain('2 materiały');
   });
 
   it('renders an empty state when the service returns no materials', async () => {
@@ -63,7 +63,7 @@ describe('MaterialListComponent', () => {
 
     const emptyState = fixture.nativeElement.querySelector('.empty-state p') as HTMLElement;
 
-    expect(emptyState.textContent).toContain('Brak materialow w bazie danych');
+    expect(emptyState.textContent).toContain('Brak materiałów w bazie danych');
   });
 
   it('updates local state after toggling material status', () => {
@@ -72,6 +72,6 @@ describe('MaterialListComponent', () => {
 
     expect(materialAdminService.toggleMaterialActive).toHaveBeenCalledWith(1);
     expect(component.materials()[0].active).toBeFalse();
-    expect(toastService.success).toHaveBeenCalledWith('Material "CHIPBOARD" - nieaktywny');
+    expect(toastService.success).toHaveBeenCalledWith('Materiał "CHIPBOARD" - nieaktywny');
   });
 });

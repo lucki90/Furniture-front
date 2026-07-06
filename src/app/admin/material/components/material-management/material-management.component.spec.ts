@@ -72,7 +72,7 @@ describe('MaterialManagementComponent', () => {
     const title = fixture.nativeElement.querySelector('.app-page-title') as HTMLElement;
     const chips = fixture.nativeElement.querySelectorAll('.app-page-summary-chip');
 
-    expect(title.textContent).toContain('Zarzadzanie materialami');
+    expect(title.textContent).toContain('Zarządzanie materiałami');
     expect(chips.length).toBe(5);
   });
 
@@ -81,9 +81,9 @@ describe('MaterialManagementComponent', () => {
       fixture.nativeElement.querySelectorAll('.mdc-tab__text-label')
     ).map(element => element.textContent?.trim().replace(/\s+/g, ' '));
 
-    expect(tabLabels.some(label => label?.includes('Materialy'))).toBeTrue();
-    expect(tabLabels.some(label => label?.includes('Warianty plyt'))).toBeTrue();
-    expect(tabLabels.some(label => label?.includes('Warianty komponentow'))).toBeTrue();
+    expect(tabLabels.some(label => label?.includes('Materiały'))).toBeTrue();
+    expect(tabLabels.some(label => label?.includes('Warianty płyt'))).toBeTrue();
+    expect(tabLabels.some(label => label?.includes('Warianty komponentów'))).toBeTrue();
     expect(tabLabels.some(label => label?.includes('Warianty prac'))).toBeTrue();
   });
 

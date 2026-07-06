@@ -1,9 +1,9 @@
 <section class="admin-section">
   <div class="admin-section-header">
     <div>
-      <h2 class="admin-section-title">Materialy bazowe</h2>
+      <h2 class="admin-section-title">Materiały bazowe</h2>
       <p class="admin-section-subtitle">
-        Wlaczaj i wylaczaj materialy dostepne w formularzach, wariantach oraz dalszych kalkulacjach projektu.
+        Włączaj i wyłączaj materiały dostępne w formularzach, wariantach oraz dalszych kalkulacjach projektu.
       </p>
     </div>
 
@@ -14,8 +14,8 @@
   </div>
 
   <div class="settings-toolbar settings-toolbar--filters material-toolbar">
-    <span class="settings-toolbar-label">Widocznosc</span>
-    <span class="material-toolbar__note">Nieaktywne materialy pozostaja w bazie, ale sa ukrywane w formularzach i nowych wariantach.</span>
+    <span class="settings-toolbar-label">Widoczność</span>
+    <span class="material-toolbar__note">Nieaktywne materiały pozostają w bazie, ale są ukrywane w formularzach i nowych wariantach.</span>
     <span class="settings-toolbar-count">{{ materialsCountLabel }}</span>
   </div>
 
@@ -28,12 +28,12 @@
     <div class="admin-table-scroll">
       <table [dataSource]="materials()" class="variant-table" mat-table>
         <ng-container matColumnDef="code">
-          <th *matHeaderCellDef mat-header-cell>Kod materialu</th>
+          <th *matHeaderCellDef mat-header-cell>Kod materiału</th>
           <td *matCellDef="let material" mat-cell>{{ material.code }}</td>
         </ng-container>
 
         <ng-container matColumnDef="translationKey">
-          <th *matHeaderCellDef mat-header-cell>Klucz tlumaczenia</th>
+          <th *matHeaderCellDef mat-header-cell>Klucz tłumaczenia</th>
           <td *matCellDef="let material" mat-cell>{{ material.translationKey || '-' }}</td>
         </ng-container>
 
@@ -44,7 +44,7 @@
               (change)="onToggleActive(material)"
               [checked]="material.active"
               color="primary"
-              matTooltip="Kliknij, aby zmienic dostepnosc materialu">
+              matTooltip="Kliknij, aby zmienić dostępność materiału">
             </mat-slide-toggle>
           </td>
         </ng-container>
@@ -56,7 +56,7 @@
     } @else if (!loading()) {
     <div class="empty-state">
       <mat-icon aria-hidden="true">layers_clear</mat-icon>
-      <p>Brak materialow w bazie danych</p>
+      <p>Brak materiałów w bazie danych</p>
     </div>
     }
   </div>
