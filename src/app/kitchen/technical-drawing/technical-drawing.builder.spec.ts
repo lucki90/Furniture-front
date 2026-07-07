@@ -26,6 +26,13 @@ describe('buildTechnicalDrawingModel', () => {
     expect(model?.hasBackPanel).toBeTrue();
     expect(model?.hasTopWreath).toBeTrue();
     expect(model?.hasBottomWreath).toBeTrue();
+    expect(model?.footprint).toEqual({
+      shape: 'RECTANGLE',
+      widthMm: 600,
+      depthMm: 536,
+      cutoutWidthMm: null,
+      cutoutDepthMm: null
+    });
   });
 
   it('keeps drawer fronts and shelves visible in the drawing model', () => {
@@ -98,11 +105,21 @@ describe('buildTechnicalDrawingModel', () => {
   it('adds a note for L-shape boards', () => {
     const model = buildTechnicalDrawingModel([
       board('SIDE_NAME', 720, 560, 18, 2),
-      board('SHELF_L_SHAPE', 560, 560, 18, 2, { lShapeCutoutLengthAMm: 220 })
+      board('SHELF_L_SHAPE', 560, 760, 18, 2, {
+        lShapeCutoutLengthAMm: 220,
+        lShapeCutoutLengthBMm: 180
+      })
     ]);
 
     expect(model?.lShapeBoardCount).toBe(2);
     expect(model?.notes.some(note => note.includes('L-shape: 2'))).toBeTrue();
+    expect(model?.footprint).toEqual({
+      shape: 'L_SHAPE',
+      widthMm: 560,
+      depthMm: 760,
+      cutoutWidthMm: 220,
+      cutoutDepthMm: 180
+    });
   });
 
   it('marks inferred models without side boards as low confidence', () => {

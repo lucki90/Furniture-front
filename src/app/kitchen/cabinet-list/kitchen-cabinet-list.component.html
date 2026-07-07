@@ -1,6 +1,6 @@
 <div class="cabinet-list">
   <div *ngIf="cabinets.length === 0" class="empty-state">
-    Brak dodanych szafek. Uzyj formularza po prawej, aby dodac szafke.
+    Brak dodanych szafek. Użyj formularza po prawej, aby dodać szafkę.
   </div>
 
   <ng-container *ngIf="cabinets.length > 0">
@@ -13,8 +13,8 @@
       <div class="cabinet-strip" role="list">
         <div
           *ngFor="let cabinet of group.cabinets; let i = index; trackBy: trackByCabinetId"
-          [class.drawing-active]="isDrawingSelected(cabinet.id)"
-          [class.editing]="isEditing(cabinet.id)"
+          [class.drawing-active]="cabinetStateById[cabinet.id].isDrawingSelected"
+          [class.editing]="cabinetStateById[cabinet.id].isEditing"
           [style.--card-accent-bg]="cabinetMetaById[cabinet.id].bg"
           [style.--card-accent]="cabinetMetaById[cabinet.id].color"
           [title]="(cabinet.type | cabinetTypeName) + ' | ' + cabinet.width + 'x' + cabinet.height + 'x' + cabinet.depth + ' mm'"
@@ -34,18 +34,18 @@
           </div>
 
           <div class="cabinet-card-footer">
-            <span *ngIf="cabinetTotalCost(cabinet) !== null" class="cabinet-card-price">
-              {{ cabinetTotalCost(cabinet) | number:'1.0-0' }} zł
+            <span *ngIf="cabinetStateById[cabinet.id].totalCost !== null" class="cabinet-card-price">
+              {{ cabinetStateById[cabinet.id].totalCost | number:'1.0-0' }} zł
             </span>
-            <span *ngIf="cabinetTotalCost(cabinet) === null" class="cabinet-card-price cabinet-card-price--empty">
+            <span *ngIf="cabinetStateById[cabinet.id].totalCost === null" class="cabinet-card-price cabinet-card-price--empty">
               -
             </span>
 
             <div class="cabinet-card-actions">
               <button
                 (click)="onShowDrawing(cabinet.id)"
-                [class.cabinet-card-btn--active]="isDrawingSelected(cabinet.id)"
-                [disabled]="editingCabinetId !== null || !hasTechnicalDrawing(cabinet)"
+                [class.cabinet-card-btn--active]="cabinetStateById[cabinet.id].isDrawingSelected"
+                [disabled]="editingCabinetId !== null || !cabinetStateById[cabinet.id].hasTechnicalDrawing"
                 aria-label="Pokaż rysunek szafki"
                 class="cabinet-card-btn cabinet-card-btn--drawing"
                 title="Pokaż rysunek szafki"
@@ -55,27 +55,27 @@
               <button
                 (click)="onEdit(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
-                aria-label="Edytuj szafke"
+                aria-label="Edytuj szafkę"
                 class="cabinet-card-btn cabinet-card-btn--edit"
-                title="Edytuj szafke"
+                title="Edytuj szafkę"
                 type="button">
                 <mat-icon aria-hidden="true">edit</mat-icon>
               </button>
               <button
                 (click)="onClone(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
-                aria-label="Kopiuj szafke"
+                aria-label="Kopiuj szafkę"
                 class="cabinet-card-btn cabinet-card-btn--clone"
-                title="Kopiuj szafke"
+                title="Kopiuj szafkę"
                 type="button">
                 <mat-icon aria-hidden="true">content_copy</mat-icon>
               </button>
               <button
                 (click)="onRemove(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
-                aria-label="Usun szafke"
+                aria-label="Usuń szafkę"
                 class="cabinet-card-btn cabinet-card-btn--remove"
-                title="Usun szafke"
+                title="Usuń szafkę"
                 type="button">
                 <mat-icon aria-hidden="true">close</mat-icon>
               </button>

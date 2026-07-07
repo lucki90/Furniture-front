@@ -6,11 +6,8 @@
         <p>{{ drawingLayout.model.cabinetWidthMm }} x {{ drawingLayout.model.cabinetHeightMm }} x {{ drawingLayout.model.cabinetDepthMm }} mm</p>
       </div>
       <span
-        [class.technical-drawing-confidence--high]="drawingLayout.model.sourceConfidence === 'high'"
-        [class.technical-drawing-confidence--medium]="drawingLayout.model.sourceConfidence === 'medium'"
-        [class.technical-drawing-confidence--low]="drawingLayout.model.sourceConfidence === 'low'"
-        class="technical-drawing-confidence">
-        {{ drawingLayout.model.sourceConfidence === 'high' ? 'BOM+' : drawingLayout.model.sourceConfidence === 'medium' ? 'BOM' : 'Szkic' }}
+        [class]="drawingLayout.confidenceClass + ' technical-drawing-confidence'">
+        {{ drawingLayout.confidenceLabel }}
       </span>
     </div>
 
@@ -20,91 +17,58 @@
         [attr.viewBox]="'0 0 ' + drawingLayout.svgWidth + ' ' + drawingLayout.svgHeight"
         class="technical-drawing-svg"
         role="img">
-        <g class="technical-view">
-          <text [attr.x]="drawingLayout.front.x" [attr.y]="drawingLayout.front.y - 12" class="technical-view-title">
-            {{ drawingLayout.front.title }}
-          </text>
+        @for (view of drawingLayout.views; track trackByView($index, view)) {
+          <g class="technical-view">
+            <text [attr.x]="view.titleX" [attr.y]="view.titleY" class="technical-view-title">
+              {{ view.title }}
+            </text>
 
-          @for (rect of drawingLayout.front.rects; track trackByRect($index, rect)) {
-            <rect
-              [attr.class]="rect.className"
-              [attr.height]="rect.height"
-              [attr.width]="rect.width"
-              [attr.x]="rect.x"
-              [attr.y]="rect.y"
-              rx="1">
-              <title>{{ rect.label }}</title>
-            </rect>
-          }
+            @for (path of view.paths; track trackByPath($index, path)) {
+              <path
+                [attr.class]="path.className"
+                [attr.d]="path.d">
+                <title>{{ path.label }}</title>
+              </path>
+            }
 
-          @for (line of drawingLayout.front.lines; track trackByLine($index, line)) {
-            <line
-              [attr.class]="line.className"
-              [attr.x1]="line.x1"
-              [attr.x2]="line.x2"
-              [attr.y1]="line.y1"
-              [attr.y2]="line.y2" />
-          }
+            @for (rect of view.rects; track trackByRect($index, rect)) {
+              <rect
+                [attr.class]="rect.className"
+                [attr.height]="rect.height"
+                [attr.width]="rect.width"
+                [attr.x]="rect.x"
+                [attr.y]="rect.y"
+                rx="1">
+                <title>{{ rect.label }}</title>
+              </rect>
+            }
 
-          <text
-            [attr.x]="drawingLayout.front.x + drawingLayout.front.width / 2"
-            [attr.y]="drawingLayout.front.y + drawingLayout.front.height + 34"
-            class="technical-dim-text"
-            text-anchor="middle">
-            {{ drawingLayout.front.widthLabel }}
-          </text>
-          <text
-            [attr.transform]="'rotate(-90 ' + (drawingLayout.front.x - 29) + ' ' + (drawingLayout.front.y + drawingLayout.front.height / 2) + ')'"
-            [attr.x]="drawingLayout.front.x - 29"
-            [attr.y]="drawingLayout.front.y + drawingLayout.front.height / 2"
-            class="technical-dim-text"
-            text-anchor="middle">
-            {{ drawingLayout.front.heightLabel }}
-          </text>
-        </g>
+            @for (line of view.lines; track trackByLine($index, line)) {
+              <line
+                [attr.class]="line.className"
+                [attr.x1]="line.x1"
+                [attr.x2]="line.x2"
+                [attr.y1]="line.y1"
+                [attr.y2]="line.y2" />
+            }
 
-        <g class="technical-view">
-          <text [attr.x]="drawingLayout.side.x" [attr.y]="drawingLayout.side.y - 12" class="technical-view-title">
-            {{ drawingLayout.side.title }}
-          </text>
-
-          @for (rect of drawingLayout.side.rects; track trackByRect($index, rect)) {
-            <rect
-              [attr.class]="rect.className"
-              [attr.height]="rect.height"
-              [attr.width]="rect.width"
-              [attr.x]="rect.x"
-              [attr.y]="rect.y"
-              rx="1">
-              <title>{{ rect.label }}</title>
-            </rect>
-          }
-
-          @for (line of drawingLayout.side.lines; track trackByLine($index, line)) {
-            <line
-              [attr.class]="line.className"
-              [attr.x1]="line.x1"
-              [attr.x2]="line.x2"
-              [attr.y1]="line.y1"
-              [attr.y2]="line.y2" />
-          }
-
-          <text
-            [attr.x]="drawingLayout.side.x + drawingLayout.side.width / 2"
-            [attr.y]="drawingLayout.side.y + drawingLayout.side.height + 34"
-            class="technical-dim-text"
-            text-anchor="middle">
-            {{ drawingLayout.side.widthLabel }}
-          </text>
-          <text
-            [attr.transform]="'rotate(-90 ' + (drawingLayout.side.x - 29) + ' ' + (drawingLayout.side.y + drawingLayout.side.height / 2) + ')'"
-            [attr.x]="drawingLayout.side.x - 29"
-            [attr.y]="drawingLayout.side.y + drawingLayout.side.height / 2"
-            class="technical-dim-text"
-            text-anchor="middle">
-            {{ drawingLayout.side.heightLabel }}
-          </text>
-        </g>
+            <text
+              [attr.x]="view.widthLabelX"
+              [attr.y]="view.widthLabelY"
+              class="technical-dim-text"
+              text-anchor="middle">
+              {{ view.widthLabel }}
+            </text>
+            <text
+              [attr.transform]="view.heightLabelTransform"
+              [attr.x]="view.heightLabelX"
+              [attr.y]="view.heightLabelY"
+              class="technical-dim-text"
+              text-anchor="middle">
+              {{ view.heightLabel }}
+            </text>
+          </g>
+        }
       </svg>
     </div>
 

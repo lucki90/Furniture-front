@@ -33,7 +33,14 @@ describe('buildTechnicalDrawingDocument', () => {
         cabinetHeightMm: 758,
         cabinetDepthMm: 536,
         boardCount: 7,
-        sourceConfidence: 'high'
+        sourceConfidence: 'high',
+        footprint: {
+          shape: 'RECTANGLE',
+          widthMm: 600,
+          depthMm: 536,
+          cutoutWidthMm: null,
+          cutoutDepthMm: null
+        }
       })
     }));
   });
@@ -42,7 +49,10 @@ describe('buildTechnicalDrawingDocument', () => {
     const document = buildTechnicalDrawingDocument([
       wall('wall-main', [
         cabinet('cab-1', null, cabinetResponseFixture([
-          boardFixture('SHELF_L_SHAPE', 560, 760, 18, 2, { lShapeCutoutLengthAMm: 220 })
+          boardFixture('SHELF_L_SHAPE', 560, 760, 18, 2, {
+            lShapeCutoutLengthAMm: 220,
+            lShapeCutoutLengthBMm: 180
+          })
         ]))
       ])
     ]);
@@ -54,8 +64,15 @@ describe('buildTechnicalDrawingDocument', () => {
       widthMm: 760,
       heightMm: 560,
       lShapeCutoutLengthAMm: 220,
-      lShapeCutoutLengthBMm: null
+      lShapeCutoutLengthBMm: 180
     }));
+    expect(document.drawings[0].drawing.footprint).toEqual({
+      shape: 'L_SHAPE',
+      widthMm: 560,
+      depthMm: 760,
+      cutoutWidthMm: 220,
+      cutoutDepthMm: 180
+    });
     expect(document.drawings[0].drawing.boards[0] as any).not.toEqual(jasmine.objectContaining({
       source: jasmine.anything(),
       priceEntry: jasmine.anything()

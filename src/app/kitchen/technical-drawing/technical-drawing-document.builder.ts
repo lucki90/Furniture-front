@@ -87,6 +87,7 @@ function toDocumentModel(model: TechnicalDrawingModel): TechnicalDrawingDocument
     hasTopWreath: model.hasTopWreath,
     hasBottomWreath: model.hasBottomWreath,
     lShapeBoardCount: model.lShapeBoardCount,
+    footprint: { ...model.footprint },
     notes: [...model.notes],
     boards: model.boards.map(toDocumentBoard)
   };

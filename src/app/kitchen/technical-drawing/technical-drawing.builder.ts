@@ -73,6 +73,7 @@ export function buildTechnicalDrawingModel(boards: Board[] | null | undefined): 
     hasTopWreath: boardRefs.some(ref => ref.role === 'TOP_WREATH'),
     hasBottomWreath: boardRefs.some(ref => ref.role === 'BOTTOM_WREATH'),
     lShapeBoardCount,
+    footprint: buildFootprint(boardRefs, cabinetWidth, cabinetDepth),
     boards: boardRefs,
     notes: buildNotes(boardRefs, sourceConfidence, lShapeBoardCount)
   };
@@ -174,6 +175,34 @@ function inferCabinetDepth(boardRefs: TechnicalBoardRef[], sideBoard: TechnicalB
       .filter(ref => ref.role === 'SHELF' || ref.role === 'BOTTOM_WREATH' || ref.role === 'TOP_WREATH')
       .map(ref => ref.heightMm)
   ) ?? maxBoardSide(boardRefs.map(ref => ref.source));
+}
+
+function buildFootprint(
+  boardRefs: TechnicalBoardRef[],
+  cabinetWidth: number,
+  cabinetDepth: number
+): TechnicalDrawingModel['footprint'] {
+  const lShapeBoard = boardRefs.find(ref =>
+    ref.source.lShapeCutoutLengthAMm && ref.source.lShapeCutoutLengthBMm
+  );
+
+  if (!lShapeBoard) {
+    return {
+      shape: 'RECTANGLE',
+      widthMm: cabinetWidth,
+      depthMm: cabinetDepth,
+      cutoutWidthMm: null,
+      cutoutDepthMm: null
+    };
+  }
+
+  return {
+    shape: 'L_SHAPE',
+    widthMm: lShapeBoard.source.sideX,
+    depthMm: lShapeBoard.source.sideY,
+    cutoutWidthMm: lShapeBoard.source.lShapeCutoutLengthAMm ?? null,
+    cutoutDepthMm: lShapeBoard.source.lShapeCutoutLengthBMm ?? null
+  };
 }
 
 function buildNotes(

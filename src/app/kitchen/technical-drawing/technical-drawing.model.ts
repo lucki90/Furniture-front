@@ -29,6 +29,14 @@ export interface TechnicalFrontPanel {
   role: 'FRONT' | 'DRAWER_FRONT';
 }
 
+export interface TechnicalFootprint {
+  shape: 'RECTANGLE' | 'L_SHAPE';
+  widthMm: number;
+  depthMm: number;
+  cutoutWidthMm: number | null;
+  cutoutDepthMm: number | null;
+}
+
 export interface TechnicalDrawingModel {
   cabinetWidthMm: number;
   cabinetHeightMm: number;
@@ -43,6 +51,7 @@ export interface TechnicalDrawingModel {
   hasTopWreath: boolean;
   hasBottomWreath: boolean;
   lShapeBoardCount: number;
+  footprint: TechnicalFootprint;
   boards: TechnicalBoardRef[];
   notes: string[];
 }

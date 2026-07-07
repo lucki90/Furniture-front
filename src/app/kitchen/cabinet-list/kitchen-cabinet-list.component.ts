@@ -17,6 +17,13 @@ interface CabinetVisualMeta {
   abbr: string;
 }
 
+interface CabinetCardState {
+  isEditing: boolean;
+  isDrawingSelected: boolean;
+  hasTechnicalDrawing: boolean;
+  totalCost: number | null;
+}
+
 @Component({
   selector: 'app-kitchen-cabinet-list',
   templateUrl: './kitchen-cabinet-list.component.html',
@@ -41,6 +48,7 @@ export class KitchenCabinetListComponent implements OnChanges {
   protected trackByCabinetId = (_: number, cabinet: KitchenCabinet) => cabinet.id;
   protected trackBySide = (_: number, group: { side: CabinetSide }) => group.side;
   protected cabinetMetaById: Record<string, CabinetVisualMeta> = {};
+  protected cabinetStateById: Record<string, CabinetCardState> = {};
 
   /** Przeliczany tylko gdy zmienią się @Input() — bezpieczne z OnPush. */
   protected groupedCabinets: Array<{ side: CabinetSide; cabinets: KitchenCabinet[] }> = [];
@@ -48,6 +56,7 @@ export class KitchenCabinetListComponent implements OnChanges {
   ngOnChanges(): void {
     this.groupedCabinets = this.computeGroupedCabinets();
     this.cabinetMetaById = this.buildCabinetMetaById();
+    this.cabinetStateById = this.buildCabinetStateById();
   }
 
   private computeGroupedCabinets(): Array<{ side: CabinetSide; cabinets: KitchenCabinet[] }> {
@@ -76,20 +85,7 @@ export class KitchenCabinetListComponent implements OnChanges {
     this.showDrawing.emit(cabinetId);
   }
 
-  isEditing(cabinetId: string): boolean {
-    return this.editingCabinetId === cabinetId;
-  }
-
-  isDrawingSelected(cabinetId: string): boolean {
-    return this.selectedDrawingCabinetId === cabinetId;
-  }
-
-  hasTechnicalDrawing(cabinet: KitchenCabinet): boolean {
-    return hasKitchenCabinetTechnicalDrawing(cabinet);
-  }
-
-  /** Łączny koszt szafki (boards + components + jobs) lub null gdy brak kalkulacji. */
-  cabinetTotalCost(cabinet: KitchenCabinet): number | null {
+  private cabinetTotalCost(cabinet: KitchenCabinet): number | null {
     const r = cabinet.calculatedResult;
     if (!r) return null;
     return (r.boardCosts ?? 0) + (r.componentCosts ?? 0) + (r.jobCosts ?? 0);
@@ -115,6 +111,18 @@ export class KitchenCabinetListComponent implements OnChanges {
   private buildCabinetMetaById(): Record<string, CabinetVisualMeta> {
     return this.cabinets.reduce<Record<string, CabinetVisualMeta>>((acc, cabinet) => {
       acc[cabinet.id] = this.cabinetVisualMeta(cabinet);
+      return acc;
+    }, {});
+  }
+
+  private buildCabinetStateById(): Record<string, CabinetCardState> {
+    return this.cabinets.reduce<Record<string, CabinetCardState>>((acc, cabinet) => {
+      acc[cabinet.id] = {
+        isEditing: this.editingCabinetId === cabinet.id,
+        isDrawingSelected: this.selectedDrawingCabinetId === cabinet.id,
+        hasTechnicalDrawing: hasKitchenCabinetTechnicalDrawing(cabinet),
+        totalCost: this.cabinetTotalCost(cabinet)
+      };
       return acc;
     }, {});
   }

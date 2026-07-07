@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
@@ -20,57 +20,51 @@ interface DrawingCabinetTab {
   styleUrls: ['./kitchen-cabinets-section.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class KitchenCabinetsSectionComponent implements OnChanges {
-  @Input() result: CabinetResponse | null = null;
-  @Input() hasEditingCabinet = false;
-  @Input() cabinets: KitchenCabinet[] = [];
-  @Input() selectedWallType: WallType = 'MAIN';
-  @Input() selectedWallLabel = '';
-  @Input() selectedWallTotalCost = 0;
-  @Input() totalCabinetCount = 0;
-  @Input() totalCost = 0;
-  @Input() fitsOnWall = true;
-  @Input() editingCabinetId: string | null = null;
+export class KitchenCabinetsSectionComponent {
+  readonly result = input<CabinetResponse | null>(null);
+  readonly hasEditingCabinet = input(false);
+  readonly cabinets = input<KitchenCabinet[]>([]);
+  readonly selectedWallType = input<WallType>('MAIN');
+  readonly selectedWallLabel = input('');
+  readonly selectedWallTotalCost = input(0);
+  readonly totalCabinetCount = input(0);
+  readonly totalCost = input(0);
+  readonly fitsOnWall = input(true);
+  readonly editingCabinetId = input<string | null>(null);
 
-  @Output() clearSelectedWallCabinets = new EventEmitter<void>();
-  @Output() editCabinet = new EventEmitter<string>();
-  @Output() removeCabinet = new EventEmitter<string>();
-  @Output() cloneCabinet = new EventEmitter<string>();
+  readonly clearSelectedWallCabinets = output<void>();
+  readonly editCabinet = output<string>();
+  readonly removeCabinet = output<string>();
+  readonly cloneCabinet = output<string>();
 
-  protected selectedDrawingCabinetId: string | null = null;
-  protected drawingCabinets: KitchenCabinet[] = [];
-  protected drawingCabinetTabs: DrawingCabinetTab[] = [];
-  protected selectedDrawingResult: CabinetResponse | null = null;
+  private readonly requestedDrawingCabinetId = signal<string | null>(null);
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['cabinets']) {
-      this.refreshDrawingSelection();
-    }
-  }
+  protected readonly drawingCabinets = computed(() => this.cabinets().filter(hasKitchenCabinetTechnicalDrawing));
+  protected readonly selectedDrawingCabinetId = computed(() => {
+    const requestedId = this.requestedDrawingCabinetId();
+    const cabinets = this.drawingCabinets();
+    return cabinets.some(cabinet => cabinet.id === requestedId)
+      ? requestedId
+      : cabinets[cabinets.length - 1]?.id ?? null;
+  });
+  protected readonly drawingCabinetTabs = computed(() => this.buildDrawingCabinetTabs());
+  protected readonly selectedDrawingResult = computed(() => {
+    const selectedId = this.selectedDrawingCabinetId();
+    return this.drawingCabinets().find(cabinet => cabinet.id === selectedId)?.calculationResponse ?? null;
+  });
 
   protected selectTechnicalDrawing(cabinetId: string): void {
-    this.selectedDrawingCabinetId = cabinetId;
-    this.refreshDrawingSelection();
+    this.requestedDrawingCabinetId.set(cabinetId);
   }
 
   protected trackByDrawingCabinetTabId = (_: number, tab: DrawingCabinetTab) => tab.id;
 
-  private refreshDrawingSelection(): void {
-    this.drawingCabinets = this.cabinets.filter(hasKitchenCabinetTechnicalDrawing);
-    this.drawingCabinetTabs = this.buildDrawingCabinetTabs();
-    const selected = this.drawingCabinets.find(cabinet => cabinet.id === this.selectedDrawingCabinetId)
-      ?? this.drawingCabinets[this.drawingCabinets.length - 1]
-      ?? null;
-
-    this.selectedDrawingCabinetId = selected?.id ?? null;
-    this.selectedDrawingResult = selected?.calculationResponse ?? null;
-  }
-
   private buildDrawingCabinetTabs(): DrawingCabinetTab[] {
-    const cabinetPositionById = new Map(this.cabinets.map((cabinet, index) => [cabinet.id, index + 1]));
-    return this.drawingCabinets.map(cabinet => ({
+    const allCabinets = this.cabinets();
+    const cabinetPositionById = new Map(allCabinets.map((cabinet, index) => [cabinet.id, index + 1]));
+    return this.drawingCabinets().map((cabinet, index) => ({
       id: cabinet.id,
-      label: cabinet.name || `Szafka ${cabinetPositionById.get(cabinet.id) ?? ''}`.trim()
+      label: cabinet.name || `Szafka ${cabinetPositionById.get(cabinet.id) ?? index + 1}`
     }));
   }
 }

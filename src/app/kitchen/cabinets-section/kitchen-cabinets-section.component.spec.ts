@@ -21,7 +21,7 @@ describe('KitchenCabinetsSectionComponent', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Brak szafek na tej scianie');
+    expect(fixture.nativeElement.textContent).toContain('Brak szafek na tej ścianie');
   });
 
   it('keeps clear action visible but disabled when there are no cabinets', () => {
@@ -138,6 +138,28 @@ describe('KitchenCabinetsSectionComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('600 x 758 x 536 mm');
+  });
+
+  it('uses cabinet position as drawing tab fallback label when name is missing', () => {
+    fixture.componentRef.setInput('selectedWallLabel', 'Ściana główna');
+    fixture.componentRef.setInput('cabinets', [
+      cabinet('cab-1', '', responseWithBoards([
+        board('SIDE_NAME', 758, 536, 18, 2),
+        board('WREATH_NAME', 536, 564, 18)
+      ])),
+      cabinet('cab-2', '', responseWithBoards([
+        board('SIDE_NAME', 718, 536, 18, 2),
+        board('WREATH_NAME', 536, 764, 18)
+      ]))
+    ]);
+
+    fixture.detectChanges();
+
+    const tabs = Array.from(
+      fixture.nativeElement.querySelectorAll('.technical-drawing-tab span')
+    ) as HTMLSpanElement[];
+
+    expect(tabs.map(tab => tab.textContent?.trim())).toEqual(['Szafka 1', 'Szafka 2']);
   });
 });
 

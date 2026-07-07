@@ -10,6 +10,8 @@
   --technical-front-stroke: var(--accent-color);
   --technical-back-fill: var(--bg-main);
   --technical-back-stroke: var(--border-strong);
+  --technical-top-fill: color-mix(in srgb, var(--accent-color) 10%, var(--bg-card));
+  --technical-top-stroke: var(--accent-color);
   --technical-dim-stroke: var(--text-secondary);
 
   margin-top: 12px;
@@ -91,7 +93,8 @@
   font-weight: 800;
 }
 
-.technical-rect {
+.technical-rect,
+.technical-path {
   vector-effect: non-scaling-stroke;
 }
 
@@ -135,6 +138,13 @@
   fill: var(--technical-back-fill);
   stroke: var(--technical-back-stroke);
   stroke-width: 0.8;
+}
+
+.technical-rect--top-footprint,
+.technical-path--l-shape {
+  fill: var(--technical-top-fill);
+  stroke: var(--technical-top-stroke);
+  stroke-width: 1;
 }
 
 .technical-dim-line {

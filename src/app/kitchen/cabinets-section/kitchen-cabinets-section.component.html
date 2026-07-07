@@ -1,75 +1,75 @@
 <section class="cabinets-section">
-  <div *ngIf="!hasEditingCabinet" class="inline-summary">
+  <div *ngIf="!hasEditingCabinet()" class="inline-summary">
     <div class="summary-badge summary-badge--project highlight">
       <mat-icon aria-hidden="true" class="summary-icon">straighten</mat-icon>
       <span class="summary-text">
-        Projekt: <strong>{{ totalCabinetCount }}</strong> szafek, <strong>{{ totalCost.toFixed(0) }} zł</strong>
+        Projekt: <strong>{{ totalCabinetCount() }}</strong> szafek, <strong>{{ totalCost().toFixed(0) }} zł</strong>
       </span>
     </div>
 
     <div class="summary-badge summary-badge--wall">
       <mat-icon aria-hidden="true" class="summary-icon">view_in_ar</mat-icon>
       <span class="summary-text">
-        {{ selectedWallLabel }}: <strong>{{ cabinets.length }}</strong> szafek, <strong>{{ selectedWallTotalCost.toFixed(0) }} zł</strong>
+        {{ selectedWallLabel() }}: <strong>{{ cabinets().length }}</strong> szafek, <strong>{{ selectedWallTotalCost().toFixed(0) }} zł</strong>
       </span>
-      <span [class.error]="!fitsOnWall" [class.success]="fitsOnWall" class="fit-indicator">
-        <mat-icon aria-hidden="true" class="fit-indicator-icon">{{ fitsOnWall ? 'check' : 'close' }}</mat-icon>
+      <span [class.error]="!fitsOnWall()" [class.success]="fitsOnWall()" class="fit-indicator">
+        <mat-icon aria-hidden="true" class="fit-indicator-icon">{{ fitsOnWall() ? 'check' : 'close' }}</mat-icon>
       </span>
     </div>
 
     <div class="summary-badge summary-badge--last">
       <mat-icon aria-hidden="true" class="summary-icon">check_circle</mat-icon>
       <span class="summary-text">
-        Ostatnia szafka: <strong>{{ (result?.summaryCosts ?? 0).toFixed(0) }} zł</strong>
+        Ostatnia szafka: <strong>{{ (result()?.summaryCosts ?? 0).toFixed(0) }} zł</strong>
       </span>
     </div>
   </div>
 
-  <div [class.cabinets-list-card--fixed]="selectedWallType !== 'ISLAND'" class="cabinets-list-card">
+  <div [class.cabinets-list-card--fixed]="selectedWallType() !== 'ISLAND'" class="cabinets-list-card">
     <div class="list-header">
       <h3>
         <mat-icon aria-hidden="true" class="list-header-icon">list_alt</mat-icon>
-        Szafki: {{ selectedWallLabel }}
-        <span class="count-badge">{{ cabinets.length }}</span>
+        Szafki: {{ selectedWallLabel() }}
+        <span class="count-badge">{{ cabinets().length }}</span>
       </h3>
       <div class="list-actions">
         <button
           (click)="clearSelectedWallCabinets.emit()"
-          [disabled]="cabinets.length === 0 || editingCabinetId !== null"
+          [disabled]="cabinets().length === 0 || editingCabinetId() !== null"
           class="btn btn-sm btn-secondary">
-          Wyczysc
+          Wyczyść
         </button>
       </div>
     </div>
 
-    <div [class.list-content--fixed]="selectedWallType !== 'ISLAND'" class="list-content">
+    <div [class.list-content--fixed]="selectedWallType() !== 'ISLAND'" class="list-content">
       <app-kitchen-cabinet-list
         (clone)="cloneCabinet.emit($event)"
         (edit)="editCabinet.emit($event)"
         (remove)="removeCabinet.emit($event)"
         (showDrawing)="selectTechnicalDrawing($event)"
-        *ngIf="cabinets.length > 0"
-        [cabinets]="cabinets"
-        [editingCabinetId]="editingCabinetId"
-        [selectedDrawingCabinetId]="selectedDrawingCabinetId"
-        [wallType]="selectedWallType">
+        *ngIf="cabinets().length > 0"
+        [cabinets]="cabinets()"
+        [editingCabinetId]="editingCabinetId()"
+        [selectedDrawingCabinetId]="selectedDrawingCabinetId()"
+        [wallType]="selectedWallType()">
       </app-kitchen-cabinet-list>
 
-      <div *ngIf="cabinets.length === 0" class="empty-list">
+      <div *ngIf="cabinets().length === 0" class="empty-list">
         <mat-icon aria-hidden="true" class="empty-icon">inventory_2</mat-icon>
-        <p>Brak szafek na tej scianie</p>
-        <small>Uzyj formularza powyzej, aby dodac szafke</small>
+        <p>Brak szafek na tej ścianie</p>
+        <small>Użyj formularza powyżej, aby dodać szafkę</small>
       </div>
     </div>
   </div>
 
-  <div *ngIf="selectedDrawingResult" class="technical-drawing-shell">
-    <div *ngIf="drawingCabinetTabs.length > 1" class="technical-drawing-tabs">
+  <div *ngIf="selectedDrawingResult() as drawingResult" class="technical-drawing-shell">
+    <div *ngIf="drawingCabinetTabs().length > 1" class="technical-drawing-tabs">
       <button
         (click)="selectTechnicalDrawing(tab.id)"
-        *ngFor="let tab of drawingCabinetTabs; trackBy: trackByDrawingCabinetTabId"
+        *ngFor="let tab of drawingCabinetTabs(); trackBy: trackByDrawingCabinetTabId"
         [attr.aria-label]="'Pokaż rysunek: ' + tab.label"
-        [class.active]="selectedDrawingCabinetId === tab.id"
+        [class.active]="selectedDrawingCabinetId() === tab.id"
         class="technical-drawing-tab"
         type="button">
         <mat-icon aria-hidden="true">architecture</mat-icon>
@@ -77,6 +77,6 @@
       </button>
     </div>
 
-    <app-cabinet-technical-drawing [result]="selectedDrawingResult"></app-cabinet-technical-drawing>
+    <app-cabinet-technical-drawing [result]="drawingResult"></app-cabinet-technical-drawing>
   </div>
 </section>
