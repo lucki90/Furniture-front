@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
@@ -6,6 +6,7 @@ import { KitchenCabinet, hasKitchenCabinetTechnicalDrawing } from '../model/kitc
 import { KitchenCabinetListComponent } from '../cabinet-list/kitchen-cabinet-list.component';
 import { WallType } from '../model/kitchen-project.model';
 import { CabinetTechnicalDrawingComponent } from '../technical-drawing/cabinet-technical-drawing.component';
+import { TECHNICAL_DRAWING_ENABLED } from '../technical-drawing/technical-drawing.feature';
 
 interface DrawingCabinetTab {
   id: string;
@@ -21,6 +22,8 @@ interface DrawingCabinetTab {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class KitchenCabinetsSectionComponent {
+  protected readonly technicalDrawingEnabled = TECHNICAL_DRAWING_ENABLED;
+
   readonly result = input<CabinetResponse | null>(null);
   readonly hasEditingCabinet = input(false);
   readonly cabinets = input<KitchenCabinet[]>([]);
@@ -31,30 +34,37 @@ export class KitchenCabinetsSectionComponent {
   readonly totalCost = input(0);
   readonly fitsOnWall = input(true);
   readonly editingCabinetId = input<string | null>(null);
+  readonly selectedCabinetId = input<string | null | undefined>(undefined);
 
   readonly clearSelectedWallCabinets = output<void>();
   readonly editCabinet = output<string>();
   readonly removeCabinet = output<string>();
   readonly cloneCabinet = output<string>();
+  readonly selectCabinet = output<string | null>();
 
-  private readonly requestedDrawingCabinetId = signal<string | null>(null);
-
-  protected readonly drawingCabinets = computed(() => this.cabinets().filter(hasKitchenCabinetTechnicalDrawing));
+  protected readonly drawingCabinets = computed(() =>
+    this.technicalDrawingEnabled ? this.cabinets().filter(hasKitchenCabinetTechnicalDrawing) : []
+  );
+  protected readonly selectedCabinet = computed(() => this.resolveSelectedCabinet());
   protected readonly selectedDrawingCabinetId = computed(() => {
-    const requestedId = this.requestedDrawingCabinetId();
-    const cabinets = this.drawingCabinets();
-    return cabinets.some(cabinet => cabinet.id === requestedId)
-      ? requestedId
-      : cabinets[cabinets.length - 1]?.id ?? null;
+    return this.selectedCabinet()?.id ?? null;
   });
   protected readonly drawingCabinetTabs = computed(() => this.buildDrawingCabinetTabs());
   protected readonly selectedDrawingResult = computed(() => {
-    const selectedId = this.selectedDrawingCabinetId();
-    return this.drawingCabinets().find(cabinet => cabinet.id === selectedId)?.calculationResponse ?? null;
+    const cabinet = this.selectedCabinet();
+    return cabinet && hasKitchenCabinetTechnicalDrawing(cabinet) ? cabinet.calculationResponse ?? null : null;
+  });
+  protected readonly selectedCabinetHasNoDrawing = computed(() => {
+    const cabinet = this.selectedCabinet();
+    return !!cabinet && !hasKitchenCabinetTechnicalDrawing(cabinet);
   });
 
   protected selectTechnicalDrawing(cabinetId: string): void {
-    this.requestedDrawingCabinetId.set(cabinetId);
+    if (!this.technicalDrawingEnabled) {
+      return;
+    }
+
+    this.selectCabinet.emit(cabinetId);
   }
 
   protected trackByDrawingCabinetTabId = (_: number, tab: DrawingCabinetTab) => tab.id;
@@ -66,5 +76,23 @@ export class KitchenCabinetsSectionComponent {
       id: cabinet.id,
       label: cabinet.name || `Szafka ${cabinetPositionById.get(cabinet.id) ?? index + 1}`
     }));
+  }
+
+  private resolveSelectedCabinet(): KitchenCabinet | null {
+    const selectedId = this.selectedCabinetId();
+    const allCabinets = this.cabinets();
+    if (selectedId === null) {
+      return null;
+    }
+
+    if (selectedId) {
+      const selected = allCabinets.find(cabinet => cabinet.id === selectedId);
+      if (selected) {
+        return selected;
+      }
+    }
+
+    const drawableCabinets = this.drawingCabinets();
+    return drawableCabinets[drawableCabinets.length - 1] ?? null;
   }
 }

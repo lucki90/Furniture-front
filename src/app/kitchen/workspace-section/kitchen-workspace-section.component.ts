@@ -33,6 +33,7 @@ export class KitchenWorkspaceSectionComponent {
   @Input() roomWidthMm: number | null = null;
   @Input() roomDepthMm: number | null = null;
   @Input() projectResult: MultiWallCalculateResponse | null = null;
+  @Input() selectedCabinetId: string | null | undefined = undefined;
 
   @Output() addWallRequested = new EventEmitter<void>();
   @Output() wallRemoved = new EventEmitter<string>();
@@ -46,6 +47,7 @@ export class KitchenWorkspaceSectionComponent {
   @Output() editCabinet = new EventEmitter<string>();
   @Output() cloneCabinet = new EventEmitter<string>();
   @Output() removeCabinet = new EventEmitter<string>();
+  @Output() selectCabinet = new EventEmitter<string | null>();
 
   onWallLengthInput(value: string): void {
     const parsedValue = Number(value);

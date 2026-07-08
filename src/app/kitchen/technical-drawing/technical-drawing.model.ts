@@ -42,6 +42,7 @@ export interface TechnicalDrawingModel {
   cabinetHeightMm: number;
   cabinetDepthMm: number;
   boardThicknessMm: number;
+  bottomWreathOnFloor: boolean | null;
   boardCount: number;
   sourceConfidence: 'high' | 'medium' | 'low';
   frontPanels: TechnicalFrontPanel[];

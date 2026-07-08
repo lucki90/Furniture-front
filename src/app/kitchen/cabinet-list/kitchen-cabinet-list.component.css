@@ -90,6 +90,15 @@
   box-shadow: var(--shadow-sm);
 }
 
+.cabinet-card--selectable {
+  cursor: pointer;
+}
+
+.cabinet-card:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
 .cabinet-card.editing {
   background: var(--card-accent-bg);
   border-color: var(--card-accent);

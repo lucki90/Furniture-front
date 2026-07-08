@@ -105,6 +105,7 @@ export class KitchenPageComponent {
   readonly result = signal<CabinetResponse | null>(null);
   readonly editingCabinet = signal<KitchenCabinet | null>(null);
   readonly editingCabinetId = computed(() => this.editingCabinet()?.id ?? null);
+  readonly selectedCabinetId = signal<string | null | undefined>(undefined);
 
   // Stan kalkulacji projektu (multi-wall)
   readonly projectResult = signal<MultiWallCalculateResponse | null>(null);
@@ -402,6 +403,7 @@ export class KitchenPageComponent {
 
   onRemoveCabinet(cabinetId: string): void {
     this.stateService.removeCabinet(cabinetId);
+    this.clearSelectedCabinetIfNeeded(cabinetId);
     this.resetProjectResult();
   }
 
@@ -504,9 +506,14 @@ export class KitchenPageComponent {
     this.workspaceActionsFacade.confirmAndClearSelectedWallCabinets(this.selectedWallLabel)
       .subscribe(cleared => {
         if (cleared) {
+          this.selectedCabinetId.set(undefined);
           this.resetProjectResult();
         }
       });
+  }
+
+  onCabinetSelected(cabinetId: string | null): void {
+    this.selectedCabinetId.set(cabinetId);
   }
 
   // ============ PROJECT SAVE ============
@@ -579,8 +586,15 @@ export class KitchenPageComponent {
   private clearLocalWorkspaceViewState(): void {
     this.result.set(null);
     this.editingCabinet.set(null);
+    this.selectedCabinetId.set(undefined);
     this.resetProjectResult();
     this.setView('config');
+  }
+
+  private clearSelectedCabinetIfNeeded(cabinetId: string): void {
+    if (this.selectedCabinetId() === cabinetId) {
+      this.selectedCabinetId.set(undefined);
+    }
   }
 
   private canRenderCostsView(): boolean {

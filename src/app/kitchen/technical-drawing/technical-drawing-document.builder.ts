@@ -23,7 +23,9 @@ export function buildTechnicalDrawingDocument(walls: WallWithCabinets[] | null |
     const wallMeta = toDocumentWall(wall, wallIndex);
     wall.cabinets.forEach((cabinet, cabinetIndex) => {
       const cabinetMeta = toDocumentCabinet(cabinet, cabinetIndex);
-      const drawingModel = buildTechnicalDrawingModel(cabinet.calculationResponse?.boards);
+      const drawingModel = buildTechnicalDrawingModel(cabinet.calculationResponse?.boards, {
+        bottomWreathOnFloor: cabinet.bottomWreathOnFloor
+      });
 
       if (!drawingModel) {
         skippedCabinets.push(toSkippedCabinet(wallMeta, cabinetMeta, cabinet, resolveSkipReason(cabinet)));
@@ -78,6 +80,7 @@ function toDocumentModel(model: TechnicalDrawingModel): TechnicalDrawingDocument
     cabinetHeightMm: model.cabinetHeightMm,
     cabinetDepthMm: model.cabinetDepthMm,
     boardThicknessMm: model.boardThicknessMm,
+    bottomWreathOnFloor: model.bottomWreathOnFloor,
     boardCount: model.boardCount,
     sourceConfidence: model.sourceConfidence,
     frontPanels: [...model.frontPanels],

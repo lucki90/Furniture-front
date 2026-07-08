@@ -33,7 +33,8 @@
 
             @for (rect of view.rects; track trackByRect($index, rect)) {
               <rect
-                [attr.class]="rect.className"
+                (click)="selectDrawingRect($event, rect)"
+                [attr.class]="rectClass(rect)"
                 [attr.height]="rect.height"
                 [attr.width]="rect.width"
                 [attr.x]="rect.x"
@@ -41,6 +42,16 @@
                 rx="1">
                 <title>{{ rect.label }}</title>
               </rect>
+            }
+
+            @for (text of view.texts; track trackByText($index, text)) {
+              <text
+                [attr.text-anchor]="text.textAnchor ?? 'middle'"
+                [attr.x]="text.x"
+                [attr.y]="text.y"
+                [attr.class]="text.className">
+                {{ text.value }}
+              </text>
             }
 
             @for (line of view.lines; track trackByLine($index, line)) {

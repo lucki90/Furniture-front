@@ -56,6 +56,25 @@ describe('CabinetTechnicalDrawingComponent', () => {
     expect(lShapePath.getAttribute('d')).toContain('Z');
     expect(fixture.nativeElement.textContent).toContain('Rzut z góry');
   });
+
+  it('renders front dimensions and allows selecting drawer fronts', () => {
+    fixture.componentRef.setInput('result', cabinetResponseFixture([
+      board('SIDE_NAME', 720, 560, 18, 2),
+      board('WREATH_NAME', 536, 564, 18),
+      board('FRONT_DRAWER_NAME', 220, 596, 18, 3)
+    ]));
+
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('596 x 220 mm');
+
+    const drawerFront = root.querySelector('.technical-rect--drawer-front') as SVGRectElement;
+    drawerFront.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    fixture.detectChanges();
+
+    expect(drawerFront.getAttribute('class')).toContain('technical-rect--selected');
+  });
 });
 
 function responseWithBoards(): CabinetResponse {

@@ -52,6 +52,7 @@
         [cabinets]="cabinets()"
         [editingCabinetId]="editingCabinetId()"
         [selectedDrawingCabinetId]="selectedDrawingCabinetId()"
+        [technicalDrawingEnabled]="technicalDrawingEnabled"
         [wallType]="selectedWallType()">
       </app-kitchen-cabinet-list>
 
@@ -63,20 +64,36 @@
     </div>
   </div>
 
-  <div *ngIf="selectedDrawingResult() as drawingResult" class="technical-drawing-shell">
-    <div *ngIf="drawingCabinetTabs().length > 1" class="technical-drawing-tabs">
-      <button
-        (click)="selectTechnicalDrawing(tab.id)"
-        *ngFor="let tab of drawingCabinetTabs(); trackBy: trackByDrawingCabinetTabId"
-        [attr.aria-label]="'Pokaż rysunek: ' + tab.label"
-        [class.active]="selectedDrawingCabinetId() === tab.id"
-        class="technical-drawing-tab"
-        type="button">
-        <mat-icon aria-hidden="true">architecture</mat-icon>
-        <span>{{ tab.label }}</span>
-      </button>
-    </div>
+  <ng-container *ngIf="technicalDrawingEnabled">
+    <div *ngIf="selectedCabinet() as activeCabinet" class="technical-drawing-shell">
+      <div *ngIf="drawingCabinetTabs().length > 1" class="technical-drawing-tabs">
+        <button
+          (click)="selectTechnicalDrawing(tab.id)"
+          *ngFor="let tab of drawingCabinetTabs(); trackBy: trackByDrawingCabinetTabId"
+          [attr.aria-label]="'Pokaż rysunek: ' + tab.label"
+          [class.active]="selectedDrawingCabinetId() === tab.id"
+          class="technical-drawing-tab"
+          type="button">
+          <mat-icon aria-hidden="true">architecture</mat-icon>
+          <span>{{ tab.label }}</span>
+        </button>
+      </div>
 
-    <app-cabinet-technical-drawing [result]="drawingResult"></app-cabinet-technical-drawing>
-  </div>
+      <app-cabinet-technical-drawing
+        *ngIf="selectedDrawingResult() as drawingResult; else noTechnicalDrawing"
+        [bottomWreathOnFloor]="activeCabinet.bottomWreathOnFloor ?? null"
+        [result]="drawingResult">
+      </app-cabinet-technical-drawing>
+
+      <ng-template #noTechnicalDrawing>
+        <div *ngIf="selectedCabinetHasNoDrawing()" class="technical-drawing-empty">
+          <mat-icon aria-hidden="true">architecture</mat-icon>
+          <div>
+            <p>Wybrana szafka nie ma rysunku technicznego</p>
+            <small>{{ activeCabinet.name || 'Szafka' }} nie zawiera rysowalnych płyt w aktualnej kalkulacji.</small>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </ng-container>
 </section>

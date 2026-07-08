@@ -3,11 +3,12 @@ import type {
   DrawingLine,
   DrawingPath,
   DrawingRect,
+  DrawingText,
   DrawingViewLayout,
   TechnicalDrawingLayout
 } from './technical-drawing-layout.model';
-
-type InteriorBoardKind = 'shelf' | 'divider';
+import { buildHorizontalBoards } from './technical-drawing-boards.layout';
+import { buildFrontPanelDimensionTexts, buildFrontPanelRects } from './technical-drawing-front-panels.layout';
 
 const LAYOUT_PADDING = 22;
 const VIEW_GAP = 54;
@@ -26,11 +27,6 @@ const DIM_TEXT_GUTTER_X = 29;
 const MIN_FRONT_EDGE_PX = 3;
 const BACK_PANEL_THICKNESS_MM = 3;
 const MIN_BACK_PANEL_PX = 2;
-const FRONT_INSET_PX = 3;
-const FRONT_GAP_PX = 6;
-const MAX_VISIBLE_INTERIOR_BOARDS = 7;
-const MAX_VISIBLE_DRAWER_FRONTS = 8;
-const MAX_VISIBLE_DOOR_FRONTS = 4;
 
 const CONFIDENCE_LABELS: Record<TechnicalDrawingModel['sourceConfidence'], string> = {
   high: 'BOM+',
@@ -88,17 +84,29 @@ function buildFrontView(
   scale: number
 ): DrawingViewLayout {
   const t = scaledThickness(model, scale);
+  const sideHeight = model.bottomWreathOnFloor === true && model.hasBottomWreath
+    ? Math.max(1, height - t)
+    : height;
   const rects: DrawingRect[] = [
     { x, y, width, height, className: 'technical-rect technical-rect--outline', label: 'Korpus' },
-    { x, y, width: t, height, className: 'technical-rect technical-rect--carcass', label: 'Bok lewy' },
-    { x: x + width - t, y, width: t, height, className: 'technical-rect technical-rect--carcass', label: 'Bok prawy' },
+    { x, y, width: t, height: sideHeight, className: 'technical-rect technical-rect--carcass', label: 'Bok lewy' },
+    { x: x + width - t, y, width: t, height: sideHeight, className: 'technical-rect technical-rect--carcass', label: 'Bok prawy' },
   ];
 
   if (model.hasTopWreath) {
     rects.push({ x, y, width, height: t, className: 'technical-rect technical-rect--carcass', label: 'Wieniec górny' });
   }
   if (model.hasBottomWreath) {
-    rects.push({ x, y: y + height - t, width, height: t, className: 'technical-rect technical-rect--carcass', label: 'Wieniec dolny' });
+    const bottomWreathX = model.bottomWreathOnFloor === true ? x : x + t;
+    const bottomWreathWidth = model.bottomWreathOnFloor === true ? width : Math.max(1, width - t * 2);
+    rects.push({
+      x: bottomWreathX,
+      y: y + height - t,
+      width: bottomWreathWidth,
+      height: t,
+      className: 'technical-rect technical-rect--carcass',
+      label: model.bottomWreathOnFloor === true ? 'Wieniec dolny na podłodze' : 'Wieniec dolny między bokami'
+    });
   }
 
   const innerX = x + t;
@@ -107,9 +115,11 @@ function buildFrontView(
   const innerHeight = Math.max(1, height - t * 2);
   rects.push(...buildHorizontalBoards(model.shelfCount, innerX, innerY, innerWidth, innerHeight, t, 'Półka', 'shelf'));
   rects.push(...buildHorizontalBoards(model.dividerCount, innerX, innerY, innerWidth, innerHeight, t, 'Przegroda', 'divider'));
-  rects.push(...buildFrontPanelRects(model, x, y, width, height));
+  const frontPanelRects = buildFrontPanelRects(model, x, y, width, height);
+  rects.push(...frontPanelRects);
+  const texts = buildFrontPanelDimensionTexts(frontPanelRects);
 
-  return buildView('Widok frontu', x, y, width, height, scale, rects, [], `${model.cabinetWidthMm} mm`, `${model.cabinetHeightMm} mm`);
+  return buildView('Widok frontu', x, y, width, height, scale, rects, [], `${model.cabinetWidthMm} mm`, `${model.cabinetHeightMm} mm`, texts);
 }
 
 function buildSideView(
@@ -220,7 +230,8 @@ function buildView(
   rects: DrawingRect[],
   paths: DrawingPath[],
   widthLabel: string,
-  heightLabel: string
+  heightLabel: string,
+  texts: DrawingText[] = []
 ): DrawingViewLayout {
   const heightLabelX = x - DIM_TEXT_GUTTER_X;
   const heightLabelY = y + height / 2;
@@ -237,6 +248,7 @@ function buildView(
     rects,
     paths,
     lines: buildDimensionLines(x, y, width, height),
+    texts,
     widthLabel,
     widthLabelX: x + width / 2,
     widthLabelY: y + height + DIM_TEXT_OFFSET_Y,
@@ -245,81 +257,6 @@ function buildView(
     heightLabelY,
     heightLabelTransform: `rotate(-90 ${heightLabelX} ${heightLabelY})`
   };
-}
-
-function buildHorizontalBoards(
-  count: number,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  thickness: number,
-  label: string,
-  kind: InteriorBoardKind
-): DrawingRect[] {
-  const visibleCount = Math.min(count, MAX_VISIBLE_INTERIOR_BOARDS);
-  return Array.from({ length: visibleCount }, (_, index) => {
-    const boardY = y + ((index + 1) * height / (visibleCount + 1)) - thickness / 2;
-    return {
-      x,
-      y: boardY,
-      width,
-      height: thickness,
-      className: `technical-rect technical-rect--${kind}`,
-      label: `${label} ${index + 1}`
-    };
-  });
-}
-
-function buildFrontPanelRects(
-  model: TechnicalDrawingModel,
-  x: number,
-  y: number,
-  width: number,
-  height: number
-): DrawingRect[] {
-  if (model.frontPanels.length === 0) {
-    return [];
-  }
-
-  const drawerCount = model.frontPanels
-    .filter(panel => panel.role === 'DRAWER_FRONT')
-    .reduce((sum, panel) => sum + panel.quantity, 0);
-  if (drawerCount > 0) {
-    const count = Math.min(drawerCount, MAX_VISIBLE_DRAWER_FRONTS);
-    return Array.from({ length: count }, (_, index) => ({
-      x: x + FRONT_INSET_PX,
-      y: y + (index * height / count) + FRONT_INSET_PX,
-      width: Math.max(1, width - FRONT_GAP_PX),
-      height: Math.max(1, height / count - FRONT_GAP_PX),
-      className: 'technical-rect technical-rect--front',
-      label: `Front szuflady ${index + 1}`
-    }));
-  }
-
-  const frontCount = Math.min(
-    model.frontPanels.reduce((sum, panel) => sum + panel.quantity, 0),
-    MAX_VISIBLE_DOOR_FRONTS
-  );
-  if (frontCount <= 1) {
-    return [{
-      x: x + FRONT_INSET_PX,
-      y: y + FRONT_INSET_PX,
-      width: Math.max(1, width - FRONT_GAP_PX),
-      height: Math.max(1, height - FRONT_GAP_PX),
-      className: 'technical-rect technical-rect--front',
-      label: 'Front'
-    }];
-  }
-
-  return Array.from({ length: frontCount }, (_, index) => ({
-    x: x + (index * width / frontCount) + FRONT_INSET_PX,
-    y: y + FRONT_INSET_PX,
-    width: Math.max(1, width / frontCount - FRONT_GAP_PX),
-    height: Math.max(1, height - FRONT_GAP_PX),
-    className: 'technical-rect technical-rect--front',
-    label: `Front ${index + 1}`
-  }));
 }
 
 function buildDimensionLines(x: number, y: number, width: number, height: number): DrawingLine[] {

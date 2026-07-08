@@ -39,6 +39,7 @@ export class KitchenCabinetListComponent implements OnChanges {
   @Input() editingCabinetId: string | null = null;
   @Input() selectedDrawingCabinetId: string | null = null;
   @Input() wallType: WallType = 'MAIN';
+  @Input() technicalDrawingEnabled = false;
 
   @Output() remove = new EventEmitter<string>();
   @Output() edit = new EventEmitter<string>();
@@ -82,7 +83,32 @@ export class KitchenCabinetListComponent implements OnChanges {
   }
 
   onShowDrawing(cabinetId: string): void {
+    if (!this.technicalDrawingEnabled) {
+      return;
+    }
+
     this.showDrawing.emit(cabinetId);
+  }
+
+  onCardClick(cabinetId: string): void {
+    if (!this.technicalDrawingEnabled) {
+      return;
+    }
+
+    this.onShowDrawing(cabinetId);
+  }
+
+  onCardKeydown(event: KeyboardEvent, cabinetId: string): void {
+    if (!this.technicalDrawingEnabled) {
+      return;
+    }
+
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+
+    event.preventDefault();
+    this.onShowDrawing(cabinetId);
   }
 
   private cabinetTotalCost(cabinet: KitchenCabinet): number | null {
@@ -119,8 +145,8 @@ export class KitchenCabinetListComponent implements OnChanges {
     return this.cabinets.reduce<Record<string, CabinetCardState>>((acc, cabinet) => {
       acc[cabinet.id] = {
         isEditing: this.editingCabinetId === cabinet.id,
-        isDrawingSelected: this.selectedDrawingCabinetId === cabinet.id,
-        hasTechnicalDrawing: hasKitchenCabinetTechnicalDrawing(cabinet),
+        isDrawingSelected: this.technicalDrawingEnabled && this.selectedDrawingCabinetId === cabinet.id,
+        hasTechnicalDrawing: this.technicalDrawingEnabled && hasKitchenCabinetTechnicalDrawing(cabinet),
         totalCost: this.cabinetTotalCost(cabinet)
       };
       return acc;

@@ -35,7 +35,14 @@ const WIDTH_FROM_SIDE_Y_ROLES = new Set<TechnicalBoardRole>([
   'TOP_WREATH'
 ]);
 
-export function buildTechnicalDrawingModel(boards: Board[] | null | undefined): TechnicalDrawingModel | null {
+export interface TechnicalDrawingModelOptions {
+  bottomWreathOnFloor?: boolean | null;
+}
+
+export function buildTechnicalDrawingModel(
+  boards: Board[] | null | undefined,
+  options: TechnicalDrawingModelOptions = {}
+): TechnicalDrawingModel | null {
   const validBoards = (boards ?? []).filter(hasPositiveDimensions);
   if (validBoards.length === 0) {
     return null;
@@ -54,6 +61,7 @@ export function buildTechnicalDrawingModel(boards: Board[] | null | undefined): 
   ) ?? maxBoardSide(validBoards);
   const cabinetWidth = inferCabinetWidth(boardRefs, frontPanels, backBoard, thickness);
   const cabinetDepth = inferCabinetDepth(boardRefs, sideBoard);
+  const bottomWreathOnFloor = options.bottomWreathOnFloor ?? inferBottomWreathOnFloor(boardRefs, cabinetWidth, thickness);
   const sourceConfidence = sideBoard && (mainFrontPanel || backBoard) ? 'high' : sideBoard ? 'medium' : 'low';
   const lShapeBoardCount = boardRefs
     .filter(ref => ref.source.lShapeCutoutLengthAMm || ref.source.lShapeCutoutLengthBMm)
@@ -64,6 +72,7 @@ export function buildTechnicalDrawingModel(boards: Board[] | null | undefined): 
     cabinetHeightMm: cabinetHeight,
     cabinetDepthMm: cabinetDepth,
     boardThicknessMm: thickness,
+    bottomWreathOnFloor,
     boardCount: boardRefs.reduce((sum, ref) => sum + ref.quantity, 0),
     sourceConfidence,
     frontPanels,
@@ -175,6 +184,19 @@ function inferCabinetDepth(boardRefs: TechnicalBoardRef[], sideBoard: TechnicalB
       .filter(ref => ref.role === 'SHELF' || ref.role === 'BOTTOM_WREATH' || ref.role === 'TOP_WREATH')
       .map(ref => ref.heightMm)
   ) ?? maxBoardSide(boardRefs.map(ref => ref.source));
+}
+
+function inferBottomWreathOnFloor(
+  boardRefs: TechnicalBoardRef[],
+  cabinetWidth: number,
+  thickness: number
+): boolean | null {
+  const bottomWreath = firstByRole(boardRefs, 'BOTTOM_WREATH');
+  if (!bottomWreath || cabinetWidth <= 0 || thickness <= 0) {
+    return null;
+  }
+
+  return bottomWreath.widthMm >= cabinetWidth - thickness;
 }
 
 function buildFootprint(

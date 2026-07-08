@@ -78,7 +78,9 @@
           (cloneCabinet)="cloneCabinet.emit($event)"
           (editCabinet)="editCabinet.emit($event)"
           (removeCabinet)="removeCabinet.emit($event)"
-          [editingCabinetId]="editingCabinetId">
+          (selectCabinet)="selectCabinet.emit($event)"
+          [editingCabinetId]="editingCabinetId"
+          [selectedCabinetId]="selectedCabinetId">
         </app-kitchen-layout>
       </div>
     </div>

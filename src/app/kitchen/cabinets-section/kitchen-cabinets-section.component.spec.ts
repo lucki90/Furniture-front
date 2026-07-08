@@ -89,7 +89,7 @@ describe('KitchenCabinetsSectionComponent', () => {
     expect(component.clearSelectedWallCabinets.emit).toHaveBeenCalled();
   });
 
-  it('renders technical drawing from the selected cabinet calculation response', () => {
+  it('hides technical drawing UI while the spike is paused', () => {
     fixture.componentRef.setInput('selectedWallLabel', 'Ściana główna');
     fixture.componentRef.setInput('cabinets', [
       cabinet('cab-1', 'Pierwsza', responseWithBoards([
@@ -103,12 +103,13 @@ describe('KitchenCabinetsSectionComponent', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('app-cabinet-technical-drawing')).not.toBeNull();
-    expect(fixture.nativeElement.textContent).toContain('Rysunek techniczny');
-    expect(fixture.nativeElement.textContent).toContain('600 x 758 x 536 mm');
+    expect(fixture.nativeElement.querySelector('app-cabinet-technical-drawing')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.technical-drawing-shell')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.cabinet-card-btn--drawing')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Rysunek techniczny');
   });
 
-  it('switches technical drawing between cabinet cards', () => {
+  it('does not render technical drawing tabs while the spike is paused', () => {
     fixture.componentRef.setInput('selectedWallLabel', 'Ściana główna');
     fixture.componentRef.setInput('cabinets', [
       cabinet('cab-1', 'Pierwsza', responseWithBoards([
@@ -129,18 +130,66 @@ describe('KitchenCabinetsSectionComponent', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('800 x 718 x 536 mm');
-
-    const tabs = Array.from(
-      fixture.nativeElement.querySelectorAll('.technical-drawing-tab')
-    ) as HTMLButtonElement[];
-    tabs[0].click();
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('600 x 758 x 536 mm');
+    expect(fixture.nativeElement.querySelectorAll('.technical-drawing-tab').length).toBe(0);
+    expect(fixture.nativeElement.textContent).not.toContain('800 x 718 x 536 mm');
   });
 
-  it('uses cabinet position as drawing tab fallback label when name is missing', () => {
+  it('does not show technical drawing empty state while the spike is paused', () => {
+    fixture.componentRef.setInput('selectedWallLabel', 'Ściana główna');
+    fixture.componentRef.setInput('selectedCabinetId', 'cab-empty');
+    fixture.componentRef.setInput('cabinets', [
+      cabinet('cab-drawable', 'Dolna', responseWithBoards([
+        board('SIDE_NAME', 758, 536, 18, 2),
+        board('WREATH_NAME', 536, 564, 18),
+        board('FRONT_NAME', 752, 594, 18)
+      ])),
+      cabinet('cab-empty', 'Piekarnik wolnostojący', cabinetResponseFixture([]), KitchenCabinetType.BASE_OVEN_FREESTANDING)
+    ]);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-cabinet-technical-drawing')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.technical-drawing-empty')).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Wybrana szafka nie ma rysunku technicznego');
+  });
+
+  it('hides the drawing panel when selection is explicitly cleared', () => {
+    fixture.componentRef.setInput('selectedWallLabel', 'Ściana główna');
+    fixture.componentRef.setInput('selectedCabinetId', null);
+    fixture.componentRef.setInput('cabinets', [
+      cabinet('cab-drawable', 'Dolna', responseWithBoards([
+        board('SIDE_NAME', 758, 536, 18, 2),
+        board('WREATH_NAME', 536, 564, 18),
+        board('FRONT_NAME', 752, 594, 18)
+      ]))
+    ]);
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-cabinet-technical-drawing')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.technical-drawing-shell')).toBeNull();
+  });
+
+  it('does not emit drawing selection when a cabinet card is clicked while drawings are hidden', () => {
+    spyOn(component.selectCabinet, 'emit');
+    fixture.componentRef.setInput('selectedWallLabel', 'Ściana główna');
+    fixture.componentRef.setInput('cabinets', [
+      cabinet('cab-1', 'Pierwsza', responseWithBoards([
+        board('SIDE_NAME', 758, 536, 18, 2),
+        board('WREATH_NAME', 536, 564, 18)
+      ])),
+      cabinet('cab-empty', 'Piekarnik wolnostojący', cabinetResponseFixture([]), KitchenCabinetType.BASE_OVEN_FREESTANDING)
+    ]);
+
+    fixture.detectChanges();
+
+    const cards = Array.from(fixture.nativeElement.querySelectorAll('.cabinet-card')) as HTMLElement[];
+    cards[1].click();
+
+    expect(component.selectCabinet.emit).not.toHaveBeenCalled();
+  });
+
+  it('keeps drawing tab fallback labels hidden while the spike is paused', () => {
     fixture.componentRef.setInput('selectedWallLabel', 'Ściana główna');
     fixture.componentRef.setInput('cabinets', [
       cabinet('cab-1', '', responseWithBoards([
@@ -159,15 +208,20 @@ describe('KitchenCabinetsSectionComponent', () => {
       fixture.nativeElement.querySelectorAll('.technical-drawing-tab span')
     ) as HTMLSpanElement[];
 
-    expect(tabs.map(tab => tab.textContent?.trim())).toEqual(['Szafka 1', 'Szafka 2']);
+    expect(tabs).toEqual([]);
   });
 });
 
-function cabinet(id: string, name: string, calculationResponse: any) {
+function cabinet(
+  id: string,
+  name: string,
+  calculationResponse: any,
+  type: KitchenCabinetType = KitchenCabinetType.BASE_ONE_DOOR
+) {
   return {
     id,
     name,
-    type: KitchenCabinetType.BASE_ONE_DOOR,
+    type,
     openingType: 'HANDLE',
     width: 600,
     height: 720,

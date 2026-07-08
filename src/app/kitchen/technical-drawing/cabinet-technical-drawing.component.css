@@ -13,6 +13,7 @@
   --technical-top-fill: color-mix(in srgb, var(--accent-color) 10%, var(--bg-card));
   --technical-top-stroke: var(--accent-color);
   --technical-dim-stroke: var(--text-secondary);
+  --technical-selected-stroke: var(--warning-color);
 
   margin-top: 12px;
   background: var(--bg-card);
@@ -128,6 +129,10 @@
   stroke-width: 0.9;
 }
 
+.technical-rect--drawer-front {
+  fill: color-mix(in srgb, var(--technical-front-fill) 82%, var(--bg-card));
+}
+
 .technical-rect--front-edge {
   fill: var(--technical-front-fill);
   stroke: var(--technical-front-stroke);
@@ -158,6 +163,27 @@
   font-size: 10.5px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.technical-front-dim-text {
+  fill: var(--text-primary);
+  font-size: 8.5px;
+  font-weight: 800;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.technical-rect--selectable {
+  cursor: pointer;
+}
+
+.technical-rect--selectable:hover {
+  stroke-width: 1.4;
+}
+
+.technical-rect--selected {
+  stroke: var(--technical-selected-stroke);
+  stroke-width: 2;
 }
 
 .technical-drawing-meta {

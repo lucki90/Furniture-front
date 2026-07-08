@@ -1,4 +1,5 @@
 import { buildTechnicalDrawingModel } from './technical-drawing.builder';
+import { buildTechnicalDrawingLayout } from './technical-drawing.layout';
 import { boardFixture as board } from './testing/board.fixture';
 
 describe('buildTechnicalDrawingModel', () => {
@@ -130,5 +131,45 @@ describe('buildTechnicalDrawingModel', () => {
 
     expect(model?.sourceConfidence).toBe('low');
     expect(model?.notes).toContain('Model wywnioskowany z BOM bez jawnych pozycji płyt.');
+  });
+
+  it('draws bottom wreath between sides or under sides depending on construction option', () => {
+    const boards = [
+      board('SIDE_NAME', 720, 560, 18, 2),
+      board('TOP_WREATH_NAME', 100, 564, 18, 2),
+      board('WREATH_NAME', 536, 564, 18),
+      board('FRONT_NAME', 714, 594, 18)
+    ];
+
+    const betweenLayout = buildTechnicalDrawingLayout(buildTechnicalDrawingModel(boards, { bottomWreathOnFloor: false })!);
+    const onFloorLayout = buildTechnicalDrawingLayout(buildTechnicalDrawingModel(boards, { bottomWreathOnFloor: true })!);
+    const betweenBottom = betweenLayout.front.rects.find(rect => rect.label === 'Wieniec dolny między bokami')!;
+    const onFloorBottom = onFloorLayout.front.rects.find(rect => rect.label === 'Wieniec dolny na podłodze')!;
+    const onFloorSide = onFloorLayout.front.rects.find(rect => rect.label === 'Bok lewy')!;
+
+    expect(betweenBottom.x).toBeGreaterThan(betweenLayout.front.x);
+    expect(betweenBottom.width).toBeLessThan(betweenLayout.front.width);
+    expect(onFloorBottom.x).toBe(onFloorLayout.front.x);
+    expect(onFloorBottom.width).toBe(onFloorLayout.front.width);
+    expect(onFloorSide.height).toBeLessThan(onFloorLayout.front.height);
+  });
+
+  it('stacks mixed tall-cabinet fronts instead of rendering one oversized panel', () => {
+    const model = buildTechnicalDrawingModel([
+      board('SIDE_NAME', 2100, 560, 18, 2),
+      board('WREATH_NAME', 536, 564, 18),
+      board('SEGMENT_DIVIDER_NAME', 536, 564, 18, 2),
+      board('FRONT_NAME', 1200, 594, 18),
+      board('FRONT_DRAWER_NAME', 220, 596, 18, 2)
+    ]);
+
+    const layout = buildTechnicalDrawingLayout(model!);
+    const frontRects = layout.front.rects.filter(rect => rect.selectable);
+
+    expect(frontRects.length).toBe(3);
+    expect(frontRects[0].label).toContain('1200');
+    expect(frontRects[1].label).toContain('Front szuflady 1');
+    expect(frontRects[2].label).toContain('Front szuflady 2');
+    expect(frontRects[0].height).toBeGreaterThan(frontRects[1].height);
   });
 });

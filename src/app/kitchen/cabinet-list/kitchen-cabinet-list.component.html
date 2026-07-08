@@ -12,14 +12,18 @@
 
       <div class="cabinet-strip" role="list">
         <div
+          (click)="onCardClick(cabinet.id)"
+          (keydown)="onCardKeydown($event, cabinet.id)"
           *ngFor="let cabinet of group.cabinets; let i = index; trackBy: trackByCabinetId"
           [class.drawing-active]="cabinetStateById[cabinet.id].isDrawingSelected"
           [class.editing]="cabinetStateById[cabinet.id].isEditing"
+          [class.cabinet-card--selectable]="technicalDrawingEnabled"
           [style.--card-accent-bg]="cabinetMetaById[cabinet.id].bg"
           [style.--card-accent]="cabinetMetaById[cabinet.id].color"
           [title]="(cabinet.type | cabinetTypeName) + ' | ' + cabinet.width + 'x' + cabinet.height + 'x' + cabinet.depth + ' mm'"
           class="cabinet-card"
-          role="listitem">
+          role="listitem"
+          [attr.tabindex]="technicalDrawingEnabled ? 0 : null">
 
           <div class="cabinet-card-header">
             <span class="cabinet-card-num">{{ i + 1 }}</span>
@@ -43,7 +47,8 @@
 
             <div class="cabinet-card-actions">
               <button
-                (click)="onShowDrawing(cabinet.id)"
+                *ngIf="technicalDrawingEnabled"
+                (click)="$event.stopPropagation(); onShowDrawing(cabinet.id)"
                 [class.cabinet-card-btn--active]="cabinetStateById[cabinet.id].isDrawingSelected"
                 [disabled]="editingCabinetId !== null || !cabinetStateById[cabinet.id].hasTechnicalDrawing"
                 aria-label="Pokaż rysunek szafki"
@@ -53,7 +58,7 @@
                 <mat-icon aria-hidden="true">architecture</mat-icon>
               </button>
               <button
-                (click)="onEdit(cabinet.id)"
+                (click)="$event.stopPropagation(); onEdit(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
                 aria-label="Edytuj szafkę"
                 class="cabinet-card-btn cabinet-card-btn--edit"
@@ -62,7 +67,7 @@
                 <mat-icon aria-hidden="true">edit</mat-icon>
               </button>
               <button
-                (click)="onClone(cabinet.id)"
+                (click)="$event.stopPropagation(); onClone(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
                 aria-label="Kopiuj szafkę"
                 class="cabinet-card-btn cabinet-card-btn--clone"
@@ -71,7 +76,7 @@
                 <mat-icon aria-hidden="true">content_copy</mat-icon>
               </button>
               <button
-                (click)="onRemove(cabinet.id)"
+                (click)="$event.stopPropagation(); onRemove(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
                 aria-label="Usuń szafkę"
                 class="cabinet-card-btn cabinet-card-btn--remove"

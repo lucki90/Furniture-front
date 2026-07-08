@@ -66,6 +66,21 @@ describe('KitchenLayoutComponent', () => {
     expect(root.textContent).toContain('Razem sciana');
   });
 
+  it('syncs cabinet selection from input and emits selections from front view', () => {
+    const selected: Array<string | null> = [];
+    component.selectCabinet.subscribe((cabinetId: string | null) => selected.push(cabinetId));
+
+    fixture.componentRef.setInput('selectedCabinetId', 'base-1');
+    fixture.detectChanges();
+
+    expect(component.selectedFrontCabinetId()).toBe('base-1');
+
+    (component as any).clearSelectedFrontCabinet();
+
+    expect(component.selectedFrontCabinetId()).toBeNull();
+    expect(selected).toEqual([null]);
+  });
+
   describe('Plinth checkbox controls only the plinth panel, never the feet (bug-fix 2026-06-08)', () => {
     it('hides the plinth panel but keeps the feet when plinth is disabled', () => {
       stateService.setPlinthEnabled(false);

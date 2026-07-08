@@ -1,12 +1,15 @@
 import { TechnicalDrawingModel } from './technical-drawing.model';
 
 export interface DrawingRect {
+  id?: string;
   x: number;
   y: number;
   width: number;
   height: number;
   className: string;
   label: string;
+  selectable?: boolean;
+  dimensionLabel?: string;
 }
 
 export interface DrawingPath {
@@ -23,6 +26,14 @@ export interface DrawingLine {
   className: string;
 }
 
+export interface DrawingText {
+  x: number;
+  y: number;
+  value: string;
+  className: string;
+  textAnchor?: 'start' | 'middle' | 'end';
+}
+
 export interface DrawingViewLayout {
   title: string;
   x: number;
@@ -35,6 +46,7 @@ export interface DrawingViewLayout {
   rects: DrawingRect[];
   paths: DrawingPath[];
   lines: DrawingLine[];
+  texts: DrawingText[];
   widthLabel: string;
   widthLabelX: number;
   widthLabelY: number;

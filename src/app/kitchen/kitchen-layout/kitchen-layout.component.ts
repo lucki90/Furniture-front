@@ -39,11 +39,18 @@ export class KitchenLayoutComponent {
 
   /** ID aktualnie edytowanej szafki - do podświetlenia */
   @Input() editingCabinetId: string | null = null;
+  @Input() set selectedCabinetId(cabinetId: string | null | undefined) {
+    const normalizedCabinetId = cabinetId ?? null;
+    if (this.selectedFrontCabinetId() !== normalizedCabinetId) {
+      this.selectedFrontCabinetId.set(normalizedCabinetId);
+    }
+  }
 
   @Output() editCabinet = new EventEmitter<string>();
   @Output() cloneCabinet = new EventEmitter<string>();
   @Output() removeCabinet = new EventEmitter<string>();
   @Output() addWallRequested = new EventEmitter<void>();
+  @Output() selectCabinet = new EventEmitter<string | null>();
 
   // ===== Sygnały przełączników widoczności (toolbar SVG) =====
   readonly showCabinetLabels = signal(true);
@@ -720,11 +727,11 @@ export class KitchenLayoutComponent {
 
   /** Używane dla elementów SVG bez unikalnego ID (fronty, uchwyty, nóżki, markery spoin) */
   protected onFrontCabinetSelected(cabinetId: string): void {
-    this.selectedFrontCabinetId.update(current => current === cabinetId ? null : cabinetId);
+    this.setSelectedFrontCabinet(cabinetId, true);
   }
 
   protected clearSelectedFrontCabinet(): void {
-    this.selectedFrontCabinetId.set(null);
+    this.setSelectedFrontCabinet(null, true);
   }
 
   protected onContextSelectWall(wallId: string): void {
@@ -740,9 +747,18 @@ export class KitchenLayoutComponent {
   }
 
   protected onContextRemoveCabinet(cabinetId: string): void {
-    this.selectedFrontCabinetId.set(null);
+    this.setSelectedFrontCabinet(null, true);
     this.removeCabinet.emit(cabinetId);
   }
 
   protected trackByIndex = (index: number) => index;
+
+  private setSelectedFrontCabinet(cabinetId: string | null, emit: boolean): void {
+    if (this.selectedFrontCabinetId() !== cabinetId) {
+      this.selectedFrontCabinetId.set(cabinetId);
+    }
+    if (emit) {
+      this.selectCabinet.emit(cabinetId);
+    }
+  }
 }
