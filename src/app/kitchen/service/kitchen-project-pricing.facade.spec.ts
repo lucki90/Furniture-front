@@ -1,7 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 import { of } from 'rxjs';
-import { KitchenProjectPricingFacade, buildPricingUpdateRequest, extractOfferPdfFilename, mapPricingBreakdownToFormState } from './kitchen-project-pricing.facade';
+import {
+  KitchenProjectPricingFacade,
+  buildPricingUpdateRequest,
+  extractOfferPdfFilename,
+  extractOfferPdfSize,
+  mapPricingBreakdownToFormState
+} from './kitchen-project-pricing.facade';
 import { PricingBreakdown, ProjectPricingService } from './project-pricing.service';
 
 describe('KitchenProjectPricingFacade', () => {
@@ -12,7 +18,8 @@ describe('KitchenProjectPricingFacade', () => {
     pricingService = jasmine.createSpyObj<ProjectPricingService>('ProjectPricingService', [
       'getBreakdown',
       'updatePricing',
-      'downloadOfferPdf'
+      'downloadOfferPdf',
+      'downloadLatestOfferPdf'
     ]);
 
     TestBed.configureTestingModule({
@@ -71,13 +78,33 @@ describe('KitchenProjectPricingFacade', () => {
   it('should extract filename from download response', (done) => {
     const response = new HttpResponse<Blob>({
       body: new Blob(['pdf']),
-      headers: new HttpHeaders({ 'Content-Disposition': 'attachment; filename="moja-oferta.pdf"' })
+      headers: new HttpHeaders({
+        'Content-Disposition': 'attachment; filename="moja-oferta.pdf"',
+        'X-Offer-Pdf-Generated-At': '2026-07-08T12:30:00',
+        'X-Offer-Pdf-Size': '321'
+      })
     });
     pricingService.downloadOfferPdf.and.returnValue(of(response));
 
     facade.downloadOfferPdf(10, { showCostDetails: true }).subscribe(result => {
       expect(result.filename).toBe('moja-oferta.pdf');
+      expect(result.generatedAt).toBe('2026-07-08T12:30:00');
+      expect(result.fileSizeBytes).toBe(321);
       expect(result.blob).toEqual(jasmine.any(Blob));
+      done();
+    });
+  });
+
+  it('should download latest saved offer pdf', (done) => {
+    const response = new HttpResponse<Blob>({
+      body: new Blob(['pdf']),
+      headers: new HttpHeaders({ 'Content-Disposition': 'attachment; filename="ostatnia.pdf"' })
+    });
+    pricingService.downloadLatestOfferPdf.and.returnValue(of(response));
+
+    facade.downloadLatestOfferPdf(10).subscribe(result => {
+      expect(pricingService.downloadLatestOfferPdf).toHaveBeenCalledWith(10);
+      expect(result.filename).toBe('ostatnia.pdf');
       done();
     });
   });
@@ -107,6 +134,8 @@ describe('KitchenProjectPricingFacade', () => {
 
     expect(extractOfferPdfFilename('attachment; filename="plik.pdf"')).toBe('plik.pdf');
     expect(extractOfferPdfFilename(null)).toBe('oferta.pdf');
+    expect(extractOfferPdfSize('123')).toBe(123);
+    expect(extractOfferPdfSize('abc')).toBeNull();
   });
 });
 

@@ -215,11 +215,17 @@ describe('KitchenPagePricingService', () => {
       const pdfDialogRef = jasmine.createSpyObj<MatDialogRef<any>>('MatDialogRef', ['afterClosed']);
       pdfDialogRef.afterClosed.and.returnValue(of(options));
       dialog.open.and.returnValue(pdfDialogRef);
-      exportFacade.downloadOfferPdf.and.returnValue(of(undefined as any));
+      exportFacade.downloadOfferPdf.and.returnValue(of({
+        blob: new Blob(['pdf']),
+        filename: 'oferta.pdf',
+        generatedAt: '2026-07-08T12:30:00',
+        fileSizeBytes: 3
+      }));
 
       service.downloadOfferPdf(null);
 
       expect(exportFacade.downloadOfferPdf).toHaveBeenCalledWith(jasmine.objectContaining({ projectId: 1, options }));
+      expect(toast.success).toHaveBeenCalledWith('Oferta PDF została zapisana przy projekcie i pobrana: oferta.pdf');
       expect(service.isPdfDownloading()).toBeFalse();
     });
 

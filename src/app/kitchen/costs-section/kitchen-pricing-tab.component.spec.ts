@@ -95,7 +95,7 @@ describe('KitchenPricingTabComponent', () => {
     expect(component.savePricing.emit).toHaveBeenCalled();
   });
 
-  it('emituje downloadOfferPdf po kliknięciu przycisku Pobierz ofertę PDF', () => {
+  it('emituje downloadOfferPdf po kliknięciu przycisku Wygeneruj i zapisz PDF', () => {
     spyOn(component.downloadOfferPdf, 'emit');
     component.pricing = SAMPLE_PRICING;
     fixture.detectChanges();

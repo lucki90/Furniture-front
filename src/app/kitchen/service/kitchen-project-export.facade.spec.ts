@@ -84,15 +84,18 @@ describe('KitchenProjectExportFacade', () => {
     const blob = new Blob(['pdf']);
     pricingFacade.downloadOfferPdf.and.returnValue(of({
       blob,
-      filename: 'oferta.pdf'
+      filename: 'oferta.pdf',
+      generatedAt: '2026-07-08T12:30:00',
+      fileSizeBytes: 3
     }));
 
     facade.downloadOfferPdf({
       projectId: 12,
       options: { showCostDetails: true }
-    }).subscribe(() => {
+    }).subscribe(result => {
       expect(pricingFacade.downloadOfferPdf).toHaveBeenCalledWith(12, { showCostDetails: true });
       expect(browserDownloadService.downloadBlob).toHaveBeenCalledWith(blob, 'oferta.pdf');
+      expect(result.generatedAt).toBe('2026-07-08T12:30:00');
       done();
     });
   });

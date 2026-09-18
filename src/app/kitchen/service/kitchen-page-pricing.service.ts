@@ -99,7 +99,12 @@ export class KitchenPagePricingService {
         takeUntil(this.cancelPdfRequest$),
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.isPdfDownloading.set(false))
-      ).subscribe({ next: () => {}, error: () => {} });
+      ).subscribe({
+        next: result => {
+          this.toast.success(`Oferta PDF została zapisana przy projekcie i pobrana: ${result.filename}`);
+        },
+        error: () => {}
+      });
     });
   }
 

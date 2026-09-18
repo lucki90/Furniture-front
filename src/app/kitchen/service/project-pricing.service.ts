@@ -65,4 +65,11 @@ export class ProjectPricingService {
       observe: 'response'
     });
   }
+
+  downloadLatestOfferPdf(projectId: number): Observable<HttpResponse<Blob>> {
+    return this.http.get(`${BASE_URL}/${projectId}/offer/pdf/latest`, {
+      responseType: 'blob',
+      observe: 'response'
+    });
+  }
 }

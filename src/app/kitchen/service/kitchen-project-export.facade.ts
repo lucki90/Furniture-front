@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { map, Observable, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { BrowserDownloadService } from '../../shared/browser-download.service';
 import { AggregatedBoard, AggregatedComponent, AggregatedJob } from './project-details-aggregator.service';
 import { ExcelRowRequest, ExcelService } from './excel.service';
-import { KitchenProjectPricingFacade } from './kitchen-project-pricing.facade';
+import { KitchenProjectPricingFacade, OfferPdfDownload } from './kitchen-project-pricing.facade';
 import { OfferOptionsRequest } from './project-pricing.service';
 import {
   buildBoardExcelFilename,
@@ -52,14 +52,13 @@ export class KitchenProjectExportFacade {
     return this.excelService.downloadBoardList(rows, filename, input.language);
   }
 
-  downloadOfferPdf(input: KitchenProjectPdfExportInput): Observable<void> {
+  downloadOfferPdf(input: KitchenProjectPdfExportInput): Observable<OfferPdfDownload> {
     return this.pricingFacade.downloadOfferPdf(input.projectId, input.options).pipe(
       tap(({ blob, filename }) => {
         if (blob) {
           this.browserDownloadService.downloadBlob(blob, filename);
         }
-      }),
-      map(() => undefined)
+      })
     );
   }
 }

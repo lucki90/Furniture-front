@@ -22,6 +22,8 @@ export interface PricingLoadResult {
 export interface OfferPdfDownload {
   blob: Blob | null;
   filename: string;
+  generatedAt: string | null;
+  fileSizeBytes: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -48,12 +50,24 @@ export class KitchenProjectPricingFacade {
 
   downloadOfferPdf(projectId: number, options: OfferOptionsRequest): Observable<OfferPdfDownload> {
     return this.pricingService.downloadOfferPdf(projectId, options).pipe(
-      map(response => ({
-        blob: response.body,
-        filename: extractOfferPdfFilename(response.headers.get('Content-Disposition'))
-      }))
+      map(response => mapOfferPdfDownload(response))
     );
   }
+
+  downloadLatestOfferPdf(projectId: number): Observable<OfferPdfDownload> {
+    return this.pricingService.downloadLatestOfferPdf(projectId).pipe(
+      map(response => mapOfferPdfDownload(response))
+    );
+  }
+}
+
+function mapOfferPdfDownload(response: { body: Blob | null; headers: { get(name: string): string | null } }): OfferPdfDownload {
+  return {
+    blob: response.body,
+    filename: extractOfferPdfFilename(response.headers.get('Content-Disposition')),
+    generatedAt: response.headers.get('X-Offer-Pdf-Generated-At'),
+    fileSizeBytes: extractOfferPdfSize(response.headers.get('X-Offer-Pdf-Size'))
+  };
 }
 
 export function mapPricingBreakdownToFormState(breakdown: PricingBreakdown): PricingFormState {
@@ -80,4 +94,12 @@ export function extractOfferPdfFilename(contentDisposition: string | null | unde
 
   const match = contentDisposition.match(/filename="?([^";\n]+)"?/);
   return match?.[1] || 'oferta.pdf';
+}
+
+export function extractOfferPdfSize(value: string | null | undefined): number | null {
+  if (!value) {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
