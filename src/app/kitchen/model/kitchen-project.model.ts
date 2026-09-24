@@ -659,6 +659,11 @@ export interface MultiWallCalculateResponse {
    */
   globalWasteComponents?: Component[];
   totalJobCost: number;
+  /**
+   * Globalne pozycje cięcia policzone raz dla całego projektu przez backend.
+   * Nie należy odtwarzać ich z prac pojedynczych szafek ani przeliczać ceny na froncie.
+   */
+  globalCuttingJobs?: Job[];
   /** Koszt obudów (płyty boczne, blendy). */
   totalEnclosureCost?: number;
   /** Koszt blend górnych (listwy nad szafkami wiszącymi). */

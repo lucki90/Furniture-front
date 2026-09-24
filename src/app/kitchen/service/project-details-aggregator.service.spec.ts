@@ -318,6 +318,72 @@ describe('ProjectDetailsAggregatorService', () => {
     ]);
   });
 
+  it('should add and merge global cutting jobs exactly once', () => {
+    const response = {
+      walls: [
+        {
+          cabinets: [
+            {
+              jobs: [
+                { category: 'ASSEMBLY', type: 'SCREWING', quantity: 3, totalPrice: 15, priceEntry: { price: 5 } }
+              ]
+            }
+          ]
+        }
+      ],
+      globalCuttingJobs: [
+        {
+          category: 'BOARD_CUTTING', type: 'NORMAL_LESS_THAN_20', quantity: 8,
+          totalPrice: 20, priceEntry: { price: 2.5 }
+        },
+        {
+          category: 'BOARD_CUTTING', type: 'NORMAL_LESS_THAN_20', quantity: 12,
+          totalPrice: 30, priceEntry: { price: 2.5 }
+        }
+      ],
+      totalJobCost: 65,
+      totalWasteCost: 0,
+      globalWasteComponents: []
+    } as unknown as MultiWallCalculateResponse;
+
+    const result = service.aggregate(response, [] as WallWithCabinets[]);
+    const cutting = result.jobs.find(job => job.type === 'BOARD_CUTTING');
+
+    expect(cutting).toEqual(jasmine.objectContaining({
+      name: 'NORMAL_LESS_THAN_20',
+      quantity: 20,
+      unitCost: 2.5,
+      totalCost: 50
+    }));
+    expect(result.jobs.reduce((sum, job) => sum + job.totalCost, 0)).toBe(response.totalJobCost);
+  });
+
+  it('should preserve existing jobs when global cutting jobs are missing or empty', () => {
+    for (const globalCuttingJobs of [undefined, []]) {
+      const response = {
+        walls: [
+          {
+            cabinets: [
+              {
+                jobs: [
+                  { category: 'ASSEMBLY', type: 'SCREWING', quantity: 2, totalPrice: 10, priceEntry: { price: 5 } }
+                ]
+              }
+            ]
+          }
+        ],
+        globalCuttingJobs,
+        totalJobCost: 10,
+        totalWasteCost: 0,
+        globalWasteComponents: []
+      } as unknown as MultiWallCalculateResponse;
+
+      expect(service.aggregate(response, [] as WallWithCabinets[]).jobs).toEqual([
+        jasmine.objectContaining({ name: 'SCREWING', quantity: 2, totalCost: 10 })
+      ]);
+    }
+  });
+
   it('should add BASE_SINK-specific remarks to FRONT (hinge 150mm) and TOP_WREATH (3mm setback)', () => {
     // Książka Wasiak v.2.3 str. 41:
     // - Górny zawias szafki pod zlew: 150mm od góry (zamiast standardowych ~100mm) — żeby ominąć pasek przedni

@@ -26,6 +26,7 @@ describe('CuttingLayoutTabComponent', () => {
     expect(text).toContain('CHIPBOARD · WHITE · 18 mm');
     expect(text).toContain('2.00 m');
     expect(text).toContain('10.0%');
+    expect(text).toContain('Wolne resztki (bez rzazu)');
     expect(svg.getAttribute('viewBox')).toBe('0 0 1000 2000');
   });
 

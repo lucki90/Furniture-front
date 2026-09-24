@@ -8,6 +8,7 @@ export interface CuttingLayoutResponse {
   totalCutCount: number;
   totalSheetAreaMm2: number;
   totalUsedAreaMm2: number;
+  /** Suma pól wolnych resztek; nie obejmuje pola rzazu raportowanego osobno. */
   totalWasteAreaMm2: number;
   totalKerfAreaMm2: number;
   utilization: number;
@@ -27,6 +28,7 @@ export interface CuttingSheetLayout {
   cuts: CuttingSegment[];
   offcuts: CuttingOffcut[];
   usedAreaMm2: number;
+  /** Pole wolnych resztek tego arkusza, bez pola rzazu. */
   wasteAreaMm2: number;
   kerfAreaMm2: number;
   cutLengthMm: number;

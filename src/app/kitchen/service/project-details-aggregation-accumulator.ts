@@ -74,6 +74,7 @@ export class ProjectDetailsAggregationAccumulator {
 
   buildResult(response: MultiWallCalculateResponse, maps: AggregationMaps): AggregationResult {
     const wasteDetails = this.buildWasteDetails(response);
+    this.addGlobalCuttingJobs(response, maps.jobs);
 
     return {
       boards: Array.from(maps.boards.values()),
@@ -82,6 +83,21 @@ export class ProjectDetailsAggregationAccumulator {
       wasteCost: response.totalWasteCost ?? 0,
       wasteDetails
     };
+  }
+
+  private addGlobalCuttingJobs(
+    response: MultiWallCalculateResponse,
+    jobs: Map<string, AggregatedJob>
+  ): void {
+    for (const job of response.globalCuttingJobs ?? []) {
+      this.addJob(jobs, {
+        name: job.type,
+        type: job.category,
+        quantity: job.quantity,
+        unitCost: job.priceEntry?.price ?? 0,
+        totalCost: job.totalPrice
+      });
+    }
   }
 
   private buildWasteDetails(response: MultiWallCalculateResponse): AggregatedComponent[] {

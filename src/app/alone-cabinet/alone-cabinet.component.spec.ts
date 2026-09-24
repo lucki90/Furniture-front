@@ -195,4 +195,16 @@ describe('AloneCabinetComponent', () => {
     expect(summary.textContent).toContain('Liczba szuflad');
     expect(summary.textContent).toContain('Drawer quantity is below minimum allowed.');
   });
+
+  it('blocks a height above the UI limit and does not send a calculation request', () => {
+    component.form.get('height')?.setValue(2601);
+
+    component.calculate(false);
+    fixture.detectChanges();
+
+    const summary = fixture.nativeElement.querySelector('.alone-cabinet-validation-summary') as HTMLElement;
+    expect(component.form.get('height')?.hasError('max')).toBeTrue();
+    expect(summary.textContent).toContain('Wysokosc: Maksimum: 2600.');
+    expect(cabinetService.calculateCabinet).not.toHaveBeenCalled();
+  });
 });
