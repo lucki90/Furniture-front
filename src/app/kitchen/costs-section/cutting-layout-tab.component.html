@@ -1,0 +1,102 @@
+<div *ngIf="loading()" class="cutting-state" role="status">
+  <span aria-hidden="true" class="cutting-spinner"></span>
+  Obliczam rozkrój…
+</div>
+
+<div *ngIf="!loading() && error()" class="cutting-state cutting-state--error" role="alert">
+  <span>{{ error() }}</span>
+  <button (click)="retry.emit()" class="cutting-retry" type="button">Spróbuj ponownie</button>
+</div>
+
+<ng-container *ngIf="!loading() && !error() && layout() as result">
+  <div *ngIf="result.sheets.length > 0; else emptyLayout" class="cutting-layout">
+    <div class="cutting-summary">
+      <div class="cutting-summary-item">
+        <span>Arkusze</span>
+        <strong>{{ result.sheetCount }}</strong>
+      </div>
+      <div class="cutting-summary-item">
+        <span>Długość cięcia</span>
+        <strong>{{ lengthMeters(result.totalCutLengthMm) }}</strong>
+      </div>
+      <div class="cutting-summary-item">
+        <span>Wykorzystanie</span>
+        <strong>{{ utilizationPercent(result.utilization) }}</strong>
+      </div>
+      <div class="cutting-summary-item">
+        <span>Pole odpadu</span>
+        <strong>{{ areaMeters(result.totalWasteAreaMm2) }}</strong>
+      </div>
+    </div>
+
+    <article *ngFor="let sheet of result.sheets; trackBy: trackBySheet" class="cutting-sheet">
+      <header class="cutting-sheet-header">
+        <div>
+          <strong>Arkusz {{ sheet.index }}</strong>
+          <span>{{ sheet.material }} · {{ sheet.color }} · {{ sheet.thicknessMm }} mm</span>
+        </div>
+        <div class="cutting-sheet-metrics">
+          <span>{{ sheet.width }} × {{ sheet.height }} mm</span>
+          <span>{{ utilizationPercent(sheet.utilization) }} wykorzystania</span>
+          <span>{{ lengthMeters(sheet.cutLengthMm) }} / {{ sheet.cutCount }} cięć</span>
+        </div>
+      </header>
+
+      <div class="cutting-sheet-canvas">
+        <svg [attr.aria-label]="'Rozkrój arkusza ' + sheet.index"
+             [attr.viewBox]="sheetViewBox(sheet)"
+             class="cutting-sheet-svg"
+             preserveAspectRatio="xMidYMid meet"
+             role="img">
+          <rect [attr.height]="sheet.height" [attr.width]="sheet.width"
+                class="sheet-background" x="0" y="0"></rect>
+
+          <rect *ngFor="let offcut of sheet.offcuts; trackBy: trackByOffcut"
+                [attr.class]="offcut.useful ? 'sheet-offcut sheet-offcut--useful' : 'sheet-offcut sheet-offcut--waste'"
+                [attr.height]="offcut.height"
+                [attr.width]="offcut.width"
+                [attr.x]="offcut.x"
+                [attr.y]="offcut.y">
+            <title>{{ offcut.useful ? 'Użyteczna zrzynka' : 'Odpad' }}: {{ offcut.width }} × {{ offcut.height }} mm</title>
+          </rect>
+
+          <g *ngFor="let placement of sheet.placements; trackBy: trackByPlacement" class="sheet-placement">
+            <rect [attr.height]="placement.height"
+                  [attr.width]="placement.width"
+                  [attr.x]="placement.x"
+                  [attr.y]="placement.y"></rect>
+            <text [attr.font-size]="labelFontSize(sheet)"
+                  [attr.x]="placement.x + placement.width / 2"
+                  [attr.y]="placement.y + placement.height / 2"
+                  dominant-baseline="middle"
+                  text-anchor="middle">
+              {{ placement.label }}
+            </text>
+            <title>{{ placement.label }}: {{ placement.width }} × {{ placement.height }} mm{{ placement.rotated ? ' (obrócona)' : '' }}</title>
+          </g>
+
+          <line *ngFor="let cut of sheet.cuts; trackBy: trackByCut"
+                [attr.stroke-width]="sheet.kerfMm"
+                [attr.x1]="cutX1(cut, sheet.kerfMm)"
+                [attr.x2]="cutX2(cut, sheet.kerfMm)"
+                [attr.y1]="cutY1(cut, sheet.kerfMm)"
+                [attr.y2]="cutY2(cut, sheet.kerfMm)"
+                class="sheet-cut">
+            <title>Cięcie {{ cut.length }} mm, głębokość {{ cut.depth }}</title>
+          </line>
+        </svg>
+      </div>
+
+      <footer class="cutting-sheet-legend">
+        <span><i class="legend-swatch legend-swatch--placement"></i> Formatka</span>
+        <span><i class="legend-swatch legend-swatch--useful"></i> Użyteczna zrzynka</span>
+        <span><i class="legend-swatch legend-swatch--waste"></i> Odpad</span>
+        <span><i class="legend-line"></i> Rzaz {{ sheet.kerfMm }} mm</span>
+      </footer>
+    </article>
+  </div>
+
+  <ng-template #emptyLayout>
+    <p class="cutting-state cutting-state--empty">Brak formatek do rozkroju.</p>
+  </ng-template>
+</ng-container>

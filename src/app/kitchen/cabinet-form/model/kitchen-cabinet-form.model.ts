@@ -63,6 +63,10 @@ export interface CabinetResponse {
 export interface Board {
   boardName: string;
   boardNameLabel?: string;
+  /** Kod materiału źródłowego zwracany przez backendowy BoardDto. */
+  material?: string;
+  /** Informacja o lakierowaniu używana w tożsamości BoardDto. */
+  varnished?: boolean;
   quantity: number;
   sideX: number;
   veneerX?: number;
@@ -78,6 +82,9 @@ export interface Board {
   /** Iter.4/5b [A2 opcja C]: wymiary wycięcia CNC dla L-shape — null dla prostokątnych. */
   lShapeCutoutLengthAMm?: number | null;
   lShapeCutoutLengthBMm?: number | null;
+  /** Faktyczna pisownia pól serializowanych przez Jacksona. */
+  lshapeCutoutLengthAMm?: number | null;
+  lshapeCutoutLengthBMm?: number | null;
 }
 
 export interface Component {

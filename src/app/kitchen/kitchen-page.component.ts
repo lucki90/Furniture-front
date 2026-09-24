@@ -36,6 +36,7 @@ import { KitchenPagePricingService } from './service/kitchen-page-pricing.servic
 import { KitchenService } from './service/kitchen.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
+import { CuttingLayoutService } from './service/cutting-layout.service';
 
 export function resolveKitchenPageInitialView(
   storedView: string | null,
@@ -78,12 +79,13 @@ const MATERIAL_NAMES_PL: Record<string, string> = {
     KitchenPageFooterComponent,
     KitchenProjectsDrawerComponent
   ],
-  providers: [KitchenPagePricingService]
+  providers: [KitchenPagePricingService, CuttingLayoutService]
 })
 export class KitchenPageComponent {
 
   private stateService = inject(KitchenStateService);
   protected readonly pricingService = inject(KitchenPagePricingService);
+  protected readonly cuttingLayoutService = inject(CuttingLayoutService);
   private projectWorkflowFacade = inject(KitchenProjectWorkflowFacade);
   private projectExportFacade = inject(KitchenProjectExportFacade);
   private projectStatusFacade = inject(KitchenProjectStatusFacade);
@@ -544,6 +546,7 @@ export class KitchenPageComponent {
     const request = this.requestsFacade.buildMultiWallCalculateRequest();
 
     this.pricingService.reset();
+    this.cuttingLayoutService.reset();
     this.projectWorkflowFacade.calculateProject(request, this.stateService.walls(), this.bomTranslations()).subscribe({
       next: ({ response, aggregation, pricingWarnings }) => {
         const state = buildCalculationViewState({ response, aggregation, pricingWarnings });
@@ -578,6 +581,7 @@ export class KitchenPageComponent {
     this.wasteDetails.set([]);
     this.pricingWarnings.set([]);
     this.pricingService.reset();
+    this.cuttingLayoutService.reset();
     if (this.view() === 'costs') {
       this.setView('config');
     }
@@ -604,6 +608,14 @@ export class KitchenPageComponent {
   // ============ WYCENA PROJEKTU ============
 
   loadPricing(): void { this.pricingService.loadPricing(); }
+
+  /** Uruchamia kosztowną optymalizację dopiero po otwarciu zakładki „Rozkrój”. */
+  loadCuttingLayout(): void {
+    const boards = (this.projectResult()?.walls ?? [])
+      .flatMap(wall => wall.cabinets)
+      .flatMap(cabinet => cabinet.boards ?? []);
+    this.cuttingLayoutService.loadLayout(boards);
+  }
 
   savePricing(): void { this.pricingService.savePricing(); }
 

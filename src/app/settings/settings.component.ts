@@ -86,6 +86,8 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   wasteHdfEnabled = false;
   wasteMdfEnabled = false;
   grainContinuityEnabled = false;
+  cuttingKerfMm = 3;
+  cuttingOptimizationPriority: UpdateUserSettingsRequest['cuttingOptimizationPriority'] = 'LEAST_WASTE';
 
   // Form values — marże i rabaty
   markupMaterialsPct = 0;
@@ -338,6 +340,8 @@ export class SettingsComponent implements OnInit, AfterViewInit {
         this.wasteHdfEnabled = settings.wasteHdfEnabled ?? false;
         this.wasteMdfEnabled = settings.wasteMdfEnabled ?? false;
         this.grainContinuityEnabled = settings.grainContinuityEnabled ?? false;
+        this.cuttingKerfMm = settings.cuttingKerfMm ?? 3;
+        this.cuttingOptimizationPriority = settings.cuttingOptimizationPriority ?? 'LEAST_WASTE';
         // Marże i rabaty
         this.markupMaterialsPct = Number(settings.markupMaterialsPct ?? 0);
         this.markupComponentsPct = Number(settings.markupComponentsPct ?? 0);
@@ -402,6 +406,8 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       wasteHdfEnabled: this.wasteHdfEnabled,
       wasteMdfEnabled: this.wasteMdfEnabled,
       grainContinuityEnabled: this.grainContinuityEnabled,
+      cuttingKerfMm: this.cuttingKerfMm,
+      cuttingOptimizationPriority: this.cuttingOptimizationPriority,
       markupMaterialsPct: this.markupMaterialsPct,
       markupComponentsPct: this.markupComponentsPct,
       markupJobsPct: this.markupJobsPct,

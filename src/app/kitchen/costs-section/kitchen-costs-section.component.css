@@ -401,6 +401,12 @@
   overflow: hidden;
 }
 
+app-cutting-layout-tab {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
 /* The sole scroll container for BOM rows — no intermediate overflow element
    between here and the table, so thead's position:sticky works correctly. */
 .bom-scroll-area {

@@ -6,13 +6,16 @@ import { AggregatedBoard, AggregatedComponent, AggregatedJob } from '../service/
 import { CabinetSummary, MultiWallCalculateResponse, WallCalculationSummary } from '../model/kitchen-project.model';
 import { PricingBreakdown } from '../service/project-pricing.service';
 import { KitchenPricingTabComponent } from './kitchen-pricing-tab.component';
+import { CuttingLayoutTabComponent } from './cutting-layout-tab.component';
+import { CuttingLayoutResponse } from '../model/cutting-layout.model';
 
 type DetailsTab = 'walls' | 'boards' | 'components' | 'jobs' | 'pricing';
+type BomTab = 'boards' | 'components' | 'jobs' | 'cutting';
 
 @Component({
   selector: 'app-kitchen-costs-section',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, KitchenPricingTabComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, KitchenPricingTabComponent, CuttingLayoutTabComponent],
   templateUrl: './kitchen-costs-section.component.html',
   styleUrls: ['./kitchen-costs-section.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -36,6 +39,9 @@ export class KitchenCostsSectionComponent {
   @Input() aggregatedComponents: AggregatedComponent[] = [];
   @Input() aggregatedJobs: AggregatedJob[] = [];
   @Input() wasteDetails: AggregatedComponent[] = [];
+  @Input() cuttingLayout: CuttingLayoutResponse | null = null;
+  @Input() isCuttingLayoutLoading = false;
+  @Input() cuttingLayoutError: string | null = null;
 
   @Input() totalAggregatedBoardsCost = 0;
   @Input() totalAggregatedComponentsCost = 0;
@@ -62,6 +68,7 @@ export class KitchenCostsSectionComponent {
   @Output() includeWasteCostChange = new EventEmitter<boolean>();
   @Output() activeDetailsTabChange = new EventEmitter<DetailsTab>();
   @Output() pricingTabRequested = new EventEmitter<void>();
+  @Output() cuttingTabRequested = new EventEmitter<void>();
   @Output() pricingDiscountPctChange = new EventEmitter<number>();
   @Output() pricingManualOverrideEnabledChange = new EventEmitter<boolean>();
   @Output() pricingManualOverrideChange = new EventEmitter<number | null>();
@@ -69,12 +76,15 @@ export class KitchenCostsSectionComponent {
   @Output() savePricing = new EventEmitter<void>();
   @Output() downloadOfferPdf = new EventEmitter<void>();
 
-  /** Local state — which BOM sub-tab is active (boards/components/jobs).
-   *  Intentionally NOT an @Input; parent owns walls/pricing via activeDetailsTab. */
-  bomTab: 'boards' | 'components' | 'jobs' = 'boards';
+  /** Stan lokalny aktywnej podzakładki BOM-u; świadomie nie jest wejściem komponentu.
+   *  Rodzic nadal zarządza wyłącznie ścianami i wyceną przez activeDetailsTab. */
+  bomTab: BomTab = 'boards';
 
-  setBomTab(tab: 'boards' | 'components' | 'jobs'): void {
+  setBomTab(tab: BomTab): void {
     this.bomTab = tab;
+    if (tab === 'cutting') {
+      this.cuttingTabRequested.emit();
+    }
   }
 
   readonly trackByIndex = (index: number) => index;

@@ -72,6 +72,32 @@ describe('KitchenCostsSectionComponent', () => {
     expect(component.pricingTabRequested.emit).toHaveBeenCalled();
   });
 
+  it('renders cutting pill and emits lazy layout request without changing details tab', () => {
+    spyOn(component.cuttingTabRequested, 'emit');
+    spyOn(component.activeDetailsTabChange, 'emit');
+    component.projectResult = {
+      allFit: true,
+      wallCount: 1,
+      totalCabinetCount: 1,
+      walls: []
+    } as any;
+    component.activeDetailsTab = 'walls';
+
+    fixture.detectChanges();
+
+    const cuttingTab = Array.from(
+      fixture.nativeElement.querySelectorAll('.pill-tab') as NodeListOf<HTMLButtonElement>
+    ).find(button => button.textContent?.includes('Rozkrój')) as HTMLButtonElement;
+
+    expect(cuttingTab).toBeTruthy();
+    cuttingTab.click();
+
+    expect(component.bomTab).toBe('cutting');
+    expect(component.cuttingTabRequested.emit).toHaveBeenCalled();
+    expect(component.activeDetailsTab).toBe('walls');
+    expect(component.activeDetailsTabChange.emit).not.toHaveBeenCalled();
+  });
+
   it('emits pricing form changes and save action', () => {
     spyOn(component.pricingDiscountPctChange, 'emit');
     spyOn(component.pricingManualOverrideEnabledChange, 'emit');

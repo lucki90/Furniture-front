@@ -313,6 +313,12 @@
                 <span>{{ grainContinuityEnabled ? 'Włączona' : 'Wyłączona' }}</span>
               </label>
             </app-form-field>
+
+            <app-form-field hint="Grubość materiału zabieranego przez tarczę piły (1–10 mm)"
+                            label="Rzaz piły" unit="mm">
+              <input [(ngModel)]="cuttingKerfMm" [disabled]="saving" class="form-control"
+                     data-testid="cutting-kerf-input" max="10" min="1" step="1" type="number"/>
+            </app-form-field>
           </div>
         </div>
       </section>

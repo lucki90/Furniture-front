@@ -114,6 +114,10 @@
             <button (click)="setBomTab('jobs')" [class.active]="bomTab === 'jobs'" class="pill-tab" type="button">
               Prace <span class="pill-count">{{ aggregatedJobs.length }}</span>
             </button>
+            <button (click)="setBomTab('cutting')" [class.active]="bomTab === 'cutting'" class="pill-tab"
+                    type="button">
+              Rozkrój <span *ngIf="cuttingLayout" class="pill-count">{{ cuttingLayout.sheetCount }}</span>
+            </button>
           </div>
         </div>
 
@@ -223,6 +227,15 @@
               <span class="bom-total-value">{{ totalAggregatedJobsCost.toFixed(2) }} zł</span>
             </div>
           </ng-container>
+
+          <!-- Cutting layout — obliczany dopiero po otwarciu tej zakładki -->
+          <app-cutting-layout-tab
+            *ngIf="bomTab === 'cutting'"
+            (retry)="cuttingTabRequested.emit()"
+            [error]="cuttingLayoutError"
+            [layout]="cuttingLayout"
+            [loading]="isCuttingLayoutLoading">
+          </app-cutting-layout-tab>
 
         </div>
       </div>

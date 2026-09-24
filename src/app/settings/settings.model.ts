@@ -1,3 +1,5 @@
+export type CuttingOptimizationPriority = 'LEAST_WASTE' | 'FEWEST_CUTS' | 'SMALLER_SHEETS';
+
 export interface UserSettings {
   defaultPlinthHeightMm: number;
   defaultCountertopThicknessMm: number;
@@ -37,6 +39,10 @@ export interface UserSettings {
   wasteHdfEnabled: boolean;
   wasteMdfEnabled: boolean;
   grainContinuityEnabled: boolean;
+
+  // Parametry rozkroju gilotynowego
+  cuttingKerfMm: number;
+  cuttingOptimizationPriority: CuttingOptimizationPriority;
 
   // Marże i rabaty
   markupMaterialsPct: number;
@@ -105,6 +111,8 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   wasteHdfEnabled: false,
   wasteMdfEnabled: false,
   grainContinuityEnabled: false,
+  cuttingKerfMm: 3,
+  cuttingOptimizationPriority: 'LEAST_WASTE',
   markupMaterialsPct: 0,
   markupComponentsPct: 0,
   markupJobsPct: 0,
