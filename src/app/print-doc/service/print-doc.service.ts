@@ -2,17 +2,25 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PrintDocRequest } from '../../alone-cabinet/model/cabinet-form.model';
 import { ExcelRowRequest, ExcelService } from '../../kitchen/service/excel.service';
+import { LanguageService } from '../../service/language.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PrintDocService {
 
-  constructor(private excelService: ExcelService) {
+  constructor(
+    private excelService: ExcelService,
+    private languageService: LanguageService
+  ) {
   }
 
   downloadExcel(data: PrintDocRequest[]): Observable<void> {
-    return this.excelService.downloadBoardList(this.mapToExcelRows(data), 'szafka.xlsx');
+    return this.excelService.downloadBoardList(
+      this.mapToExcelRows(data),
+      'szafka.xlsx',
+      this.languageService.lang()
+    );
   }
 
   private mapToExcelRows(data: PrintDocRequest[]): ExcelRowRequest[] {

@@ -1,12 +1,15 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { PrintDocRequest } from '../../alone-cabinet/model/cabinet-form.model';
 import { ExcelService } from '../../kitchen/service/excel.service';
+import { LanguageService } from '../../service/language.service';
 import { PrintDocService } from './print-doc.service';
 
 describe('PrintDocService', () => {
   let service: PrintDocService;
   let excelService: jasmine.SpyObj<ExcelService>;
+  const language = signal<'pl' | 'en'>('en');
 
   beforeEach(() => {
     excelService = jasmine.createSpyObj<ExcelService>('ExcelService', ['downloadBoardList']);
@@ -15,7 +18,8 @@ describe('PrintDocService', () => {
     TestBed.configureTestingModule({
       providers: [
         PrintDocService,
-        { provide: ExcelService, useValue: excelService }
+        { provide: ExcelService, useValue: excelService },
+        { provide: LanguageService, useValue: { lang: language.asReadonly() } }
       ]
     });
 
@@ -53,8 +57,9 @@ describe('PrintDocService', () => {
 
     service.downloadExcel(rows).subscribe();
 
-    const [mappedRows, filename] = excelService.downloadBoardList.calls.mostRecent().args;
+    const [mappedRows, filename, selectedLanguage] = excelService.downloadBoardList.calls.mostRecent().args;
     expect(filename).toBe('szafka.xlsx');
+    expect(selectedLanguage).toBe('en');
     expect(mappedRows).toEqual([
       {
         lp: 1,
