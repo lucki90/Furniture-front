@@ -8,7 +8,7 @@ import { AloneCabinetService } from './service/alone-cabinet.service';
 import { TranslationService } from '../translation/translation.service';
 import { CabinetConstants } from './model/cabinet-constants';
 import { AppLanguage, LanguageService } from '../service/language.service';
-import { Board, CabinetRequest, CabinetResponse, PrintDocRequest } from './model/cabinet-form.model';
+import { Board, CabinetRequest, CabinetResponse, FrontMountingType, PrintDocRequest } from './model/cabinet-form.model';
 import { ApiErrorResponse } from '../core/error/api-error.model';
 import { ErrorTranslationService } from '../core/error/error-translation.service';
 
@@ -21,7 +21,7 @@ type AloneCabinetView = 'config' | 'costs';
   standalone: false
 })
 export class AloneCabinetComponent implements OnInit, OnDestroy {
-  readonly cabinetTypes = CabinetConstants.CABINET_TYPES;
+  readonly frontMountingTypes = CabinetConstants.FRONT_MOUNTING_TYPES;
   readonly openingTypes = CabinetConstants.OPENING_TYPES;
   readonly frontTypes = CabinetConstants.FRONT_TYPES;
   readonly drawerModels = CabinetConstants.DRAWER_MODELS;
@@ -47,9 +47,9 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   };
 
   private readonly CONTROL_LABELS: Record<string, { translationKey?: string; fallback: string }> = {
-    cabinetType: { translationKey: 'UI.cabinetType', fallback: 'Typ szafki' },
+    frontMountingType: { translationKey: 'UI.frontMountingType', fallback: 'Osadzenie frontu' },
     openingType: { translationKey: 'UI.openingType', fallback: 'Typ otwierania' },
-    frontType: { translationKey: 'UI.frontType', fallback: 'Uklad frontu' },
+    frontType: { translationKey: 'UI.frontType', fallback: 'Układ frontu' },
     height: { translationKey: 'UI.height', fallback: 'Wysokosc' },
     width: { translationKey: 'UI.width', fallback: 'Szerokosc' },
     depth: { translationKey: 'UI.depth', fallback: 'Glebokosc' },
@@ -102,7 +102,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     depth: ['500', this.FORM_VALIDATORS.depth],
     shelfQuantity: [{ value: '0', disabled: true }, this.FORM_VALIDATORS.shelfQuantity],
     drawerQuantity: [{ value: '0', disabled: false }, this.FORM_VALIDATORS.drawerQuantity],
-    cabinetType: ['STANDARD', Validators.required],
+    frontMountingType: ['OVERLAY' satisfies FrontMountingType, Validators.required],
     openingType: ['HANDLE', Validators.required],
     frontType: ['DRAWER', Validators.required],
     drawerModel: ['SEVROLL_BALL', Validators.required],
@@ -127,7 +127,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
 
   private readonly defaultFormValue = this.form.getRawValue();
   private readonly validationSummaryOrder = [
-    'cabinetType',
+    'frontMountingType',
     'openingType',
     'frontType',
     'height',
@@ -171,6 +171,12 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     frontTypeControl?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(value => this.syncFrontTypeState(value));
+
+    const frontMountingTypeControl = this.form.get('frontMountingType');
+    this.syncFrontMountingState(frontMountingTypeControl?.value);
+    frontMountingTypeControl?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => this.syncFrontMountingState(value));
 
     const needBacksControl = this.form.get('needBacks');
     this.syncNeedBacksState(needBacksControl?.value);
@@ -230,8 +236,24 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     return !!this.response;
   }
 
-  get selectedCabinetTypeLabel(): string {
-    return this.resolveOptionLabel(this.cabinetTypes, this.form.get('cabinetType')?.value);
+  get selectedFrontMountingTypeLabel(): string {
+    return this.resolveOptionLabel(this.frontMountingTypes, this.form.get('frontMountingType')?.value);
+  }
+
+  get availableFrontTypes(): typeof CabinetConstants.FRONT_TYPES {
+    if (this.form.get('frontMountingType')?.value === 'INSET') {
+      return this.frontTypes.filter(option => option.value !== 'UPWARDS');
+    }
+    return this.frontTypes;
+  }
+
+  get frontMountingHelp(): string {
+    const inset = this.form.get('frontMountingType')?.value === 'INSET';
+    const key = inset ? 'UI.frontMountingInsetHelp' : 'UI.frontMountingOverlayHelp';
+    const fallback = inset
+      ? 'Front znajduje się między bokami i wieńcami; krawędzie korpusu są widoczne.'
+      : 'Front zakrywa przednie krawędzie boków i wieńców korpusu.';
+    return this.translations[key] || fallback;
   }
 
   get selectedOpeningTypeLabel(): string {
@@ -333,7 +355,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
   }
 
   describePreparedRequest(request: CabinetRequest): string {
-    const typeLabel = this.resolveOptionLabel(this.cabinetTypes, request.cabinetType);
+    const typeLabel = this.resolveOptionLabel(this.frontMountingTypes, request.frontMountingType);
     return `${typeLabel} | ${request.width} x ${request.height} x ${request.depth} mm`;
   }
 
@@ -423,7 +445,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
 
   protected readonly trackByIndex = (index: number) => index;
   protected readonly trackByPreparedRequest = (index: number, request: CabinetRequest) =>
-    `${request.cabinetType}-${request.width}-${request.height}-${request.depth}-${index}`;
+    `${request.frontMountingType}-${request.width}-${request.height}-${request.depth}-${index}`;
 
   private prepareRequestBody(): CabinetRequest {
     const frontType = this.form.get('frontType')?.value;
@@ -452,7 +474,8 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
       isCoveredWithCounterTop: this.form.get('isCoveredWithCounterTop')?.value,
       varnishedFront: this.form.get('varnishedFront')?.value,
       frontType,
-      cabinetType: this.form.get('cabinetType')?.value,
+      cabinetType: 'STANDARD',
+      frontMountingType: this.resolveRequestFrontMountingType(frontType),
       openingType: this.form.get('openingType')?.value,
       drawerRequest,
       materialRequest: {
@@ -625,6 +648,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
     this.syncHangingState(this.form.get('isHanging')?.value);
     this.syncFrontMaterialState(this.form.get('frontMaterial')?.value);
     this.syncVarnishedFrontState(this.form.get('varnishedFront')?.value);
+    this.syncFrontMountingState(this.form.get('frontMountingType')?.value);
   }
 
   private syncFrontTypeState(frontType: unknown): void {
@@ -678,6 +702,50 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
 
     drawerQuantityControl.updateValueAndValidity({ emitEvent: false });
     shelfQuantityControl.updateValueAndValidity({ emitEvent: false });
+    this.syncFrontMountingState(this.form.get('frontMountingType')?.value);
+  }
+
+  private syncFrontMountingState(frontMountingType: unknown): void {
+    const mountingControl = this.form.get('frontMountingType');
+    const frontTypeControl = this.form.get('frontType');
+    const extendedControl = this.form.get('isFrontExtended');
+    if (!mountingControl || !frontTypeControl || !extendedControl) {
+      return;
+    }
+
+    const frontType = frontTypeControl.value;
+    if (frontType === 'OPEN') {
+      mountingControl.setValue('OVERLAY', { emitEvent: false });
+      mountingControl.disable({ emitEvent: false });
+      frontMountingType = 'OVERLAY';
+    } else {
+      mountingControl.enable({ emitEvent: false });
+    }
+
+    if (frontMountingType === 'INSET') {
+      if (frontType === 'UPWARDS') {
+        frontTypeControl.setValue('ONE_DOOR', { emitEvent: false });
+        this.syncFrontTypeState('ONE_DOOR');
+        return;
+      }
+      extendedControl.setValue(false, { emitEvent: false });
+      extendedControl.disable({ emitEvent: false });
+      return;
+    }
+
+    const canExtend = !!this.form.get('isHanging')?.value && frontType !== 'DRAWER' && frontType !== 'OPEN';
+    if (canExtend) {
+      extendedControl.enable({ emitEvent: false });
+    } else {
+      extendedControl.disable({ emitEvent: false });
+    }
+  }
+
+  private resolveRequestFrontMountingType(frontType: unknown): FrontMountingType {
+    if (frontType === 'OPEN') {
+      return 'OVERLAY';
+    }
+    return this.form.get('frontMountingType')?.value === 'INSET' ? 'INSET' : 'OVERLAY';
   }
 
   private syncNeedBacksState(needBacks: unknown): void {
@@ -715,7 +783,7 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
       isHangingOnRailControl.enable({ emitEvent: false });
       isStandingOnFeetControl.disable({ emitEvent: false });
       this.form.patchValue({ isStandingOnFeet: false }, { emitEvent: false });
-      if (frontType !== 'DRAWER') {
+      if (frontType !== 'DRAWER' && this.form.get('frontMountingType')?.value !== 'INSET') {
         isFrontExtendedControl.enable({ emitEvent: false });
       }
       isCoveredWithCounterTopControl.disable({ emitEvent: false });

@@ -67,6 +67,9 @@ export const DEFAULT_TRANSLATIONS: { [key: string]: string } = {
   'UI.veneer': 'Okleina',
   'UI.width': 'Szerokość (mm)',
   'UI.cabinetType': 'Typ szafki',
+  'UI.frontMountingType': 'Osadzenie frontu',
+  'UI.frontMountingOverlayHelp': 'Front zakrywa przednie krawędzie boków i wieńców korpusu.',
+  'UI.frontMountingInsetHelp': 'Front znajduje się między bokami i wieńcami; krawędzie korpusu są widoczne.',
   'UI.openingType': 'Typ otwarcia szafki',
   'UI.selectLanguage': 'Wybierz język',
   'UI.drawerModelBlumAntaroTandembox': 'Antaro (Tandembox)',
@@ -134,6 +137,8 @@ export const DEFAULT_TRANSLATIONS: { [key: string]: string } = {
 
   // Cabinet types
   'CABINET_TYPE.INTERNAL': 'Szafka z frontem wewnętrznym',
+  'FRONT_MOUNTING_TYPE.OVERLAY': 'Nakładany',
+  'FRONT_MOUNTING_TYPE.INSET': 'Wpuszczany',
   'CABINET_TYPE.STANDARD': 'Standardowa szafka',
 
   // Colors

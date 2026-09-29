@@ -1,6 +1,8 @@
 /**
  * Interfejsy dla danych formularza szafki
  */
+export type FrontMountingType = 'OVERLAY' | 'INSET';
+
 export interface CabinetRequest {
   lang: string;
   height: number;
@@ -16,7 +18,8 @@ export interface CabinetRequest {
   isCoveredWithCounterTop: boolean;
   varnishedFront: boolean;
   frontType: string;
-  cabinetType: string;
+  cabinetType: 'STANDARD';
+  frontMountingType: FrontMountingType;
   openingType: string;
   drawerRequest: DrawerRequest | null;
   materialRequest: MaterialRequest;

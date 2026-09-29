@@ -3,9 +3,9 @@
  */
 export class CabinetConstants {
   // TODO(CODEX): Ten feature trzyma słowniki domenowe na sztywno po stronie frontu: typy szafek, modele szuflad, materiały, grubości i kolory. To powinno docelowo przychodzić z backendu jako konfigurowalne słowniki, bo dziś każda zmiana oferty albo nomenklatury wymaga redeployu frontu i łatwo o rozjazd z tym, co backend naprawdę obsługuje.
-  static readonly CABINET_TYPES = [
-    {value: 'STANDARD', label: 'CABINET_TYPE.STANDARD'},
-    {value: 'INTERNAL', label: 'CABINET_TYPE.INTERNAL'},
+  static readonly FRONT_MOUNTING_TYPES = [
+    {value: 'OVERLAY', label: 'FRONT_MOUNTING_TYPE.OVERLAY'},
+    {value: 'INSET', label: 'FRONT_MOUNTING_TYPE.INSET'},
   ];
 
   static readonly OPENING_TYPES = [
@@ -62,6 +62,7 @@ export class CabinetConstants {
     'CUTTING_TYPE',
     'MILLING_TYPE',
     'CABINET_TYPE',
+    'FRONT_MOUNTING_TYPE',
     'COLOR',
     'MATERIAL',
     'DRAWER'

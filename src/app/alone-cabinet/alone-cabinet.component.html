@@ -88,14 +88,14 @@
 
                 <div class="alone-cabinet-fields-grid alone-cabinet-fields-grid--three">
                   <app-dropdown
-                    [errorMessage]="getControlErrorMessage('cabinetType', 'Wybierz typ szafki')"
-                    [externalErrorMessage]="getFieldError('cabinetType')"
-                    [label]="translations['UI.cabinetType'] || 'Typ szafki'"
-                    [options]="cabinetTypes"
+                    [errorMessage]="getControlErrorMessage('frontMountingType', 'Wybierz sposób osadzenia frontu')"
+                    [externalErrorMessage]="getFieldError('frontMountingType')"
+                    [label]="translations['UI.frontMountingType'] || 'Osadzenie frontu'"
+                    [options]="frontMountingTypes"
                     [translations]="translations"
                     [visible]="true"
-                    formControlName="cabinetType"
-                    id="cabinet-type">
+                    formControlName="frontMountingType"
+                    id="front-mounting-type">
                   </app-dropdown>
 
                   <app-dropdown
@@ -112,14 +112,15 @@
                   <app-dropdown
                     [errorMessage]="getControlErrorMessage('frontType', 'Wybierz uklad frontu')"
                     [externalErrorMessage]="getFieldError('frontType')"
-                    [label]="translations['UI.frontType'] || 'Uklad frontu'"
-                    [options]="frontTypes"
+                    [label]="translations['UI.frontType'] || 'Układ frontu'"
+                    [options]="availableFrontTypes"
                     [translations]="translations"
                     [visible]="true"
                     formControlName="frontType"
                     id="front-type">
                   </app-dropdown>
                 </div>
+                <p class="alone-cabinet-form-section__note">{{ frontMountingHelp }}</p>
               </section>
 
               <section class="alone-cabinet-form-section">
@@ -427,7 +428,7 @@
             </div>
 
             <div class="alone-cabinet-preview-chips">
-              <span class="workspace-meta-chip workspace-meta-chip--accent">{{ selectedCabinetTypeLabel }}</span>
+              <span class="workspace-meta-chip workspace-meta-chip--accent">{{ selectedFrontMountingTypeLabel }}</span>
               <span class="workspace-meta-chip">{{ cabinetPlacementLabel }}</span>
               <span class="workspace-meta-chip">{{ selectedFrontTypeLabel }}</span>
               <span *ngIf="response" class="workspace-meta-chip workspace-meta-chip--success">{{ response.summaryCosts | number:'1.2-2' }} PLN</span>
@@ -693,7 +694,10 @@
                     <td>{{ i + 1 }}</td>
                     <td [attr.title]="getTranslatedAdditionalInfo(job.additionalInfo)"
                         class="alone-cabinet-result-table__tooltip">
-                      {{ translations['JOB_CATEGORY.' + job.category] || job.category }}
+                      <span>{{ translations['JOB_CATEGORY.' + job.category] || job.category }}</span>
+                      <small *ngIf="job.additionalInfo?.length" class="alone-cabinet-result-table__details">
+                        {{ getTranslatedAdditionalInfo(job.additionalInfo) }}
+                      </small>
                     </td>
                     <td>{{ translations[job.translationKey] || job.translationKey }}</td>
                     <td>{{ job.quantity }}</td>
@@ -802,4 +806,3 @@
     </footer>
   </ng-container>
 </div>
-

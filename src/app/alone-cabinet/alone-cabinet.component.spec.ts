@@ -24,7 +24,11 @@ describe('AloneCabinetComponent', () => {
   let cabinetService: jasmine.SpyObj<AloneCabinetService>;
 
   const translations = {
-    'UI.cabinetType': 'Typ szafki',
+    'UI.frontMountingType': 'Osadzenie frontu',
+    'UI.frontMountingOverlayHelp': 'Front nakładany',
+    'UI.frontMountingInsetHelp': 'Front wpuszczany',
+    'FRONT_MOUNTING_TYPE.OVERLAY': 'Nakładany',
+    'FRONT_MOUNTING_TYPE.INSET': 'Wpuszczany',
     'UI.openingType': 'Typ otwierania',
     'UI.frontType': 'Uklad frontu',
     'UI.height': 'Wysokosc',
@@ -108,6 +112,38 @@ describe('AloneCabinetComponent', () => {
     expect(queueChip.textContent).toContain('1 konfiguracja');
   });
 
+  it('sends the standard carcass profile with overlay mounting by default', () => {
+    const request = component['prepareRequestBody']();
+
+    expect(request.cabinetType).toBe('STANDARD');
+    expect(request.frontMountingType).toBe('OVERLAY');
+  });
+
+  it('maps inset mounting separately and disables an extended front', () => {
+    component.form.patchValue({
+      frontType: 'ONE_DOOR',
+      isHanging: true,
+      isFrontExtended: true,
+      frontMountingType: 'INSET'
+    });
+
+    const request = component['prepareRequestBody']();
+
+    expect(request.cabinetType).toBe('STANDARD');
+    expect(request.frontMountingType).toBe('INSET');
+    expect(request.isFrontExtended).toBeFalse();
+    expect(component.form.get('isFrontExtended')?.disabled).toBeTrue();
+    expect(component.availableFrontTypes.some(option => option.value === 'UPWARDS')).toBeFalse();
+  });
+
+  it('normalizes an open cabinet to overlay mounting', () => {
+    component.form.patchValue({ frontMountingType: 'INSET', frontType: 'OPEN' });
+
+    expect(component.form.get('frontMountingType')?.value).toBe('OVERLAY');
+    expect(component.form.get('frontMountingType')?.disabled).toBeTrue();
+    expect(component['prepareRequestBody']().frontMountingType).toBe('OVERLAY');
+  });
+
   it('renders cost summary and result tables when response exists', () => {
     const response: CabinetResponse = {
       boards: [{
@@ -138,7 +174,7 @@ describe('AloneCabinetComponent', () => {
         category: 'BOARD_CUTTING',
         type: 'STRAIGHT',
         quantity: 2,
-        additionalInfo: undefined,
+        additionalInfo: ['application=INSET', 'mountingPlateSetbackMm=19.5'],
         priceEntry: { price: 8, unit: 'UNIT.PCS' },
         totalPrice: 16,
         translationKey: 'JOB_TYPE.STRAIGHT'
@@ -159,6 +195,7 @@ describe('AloneCabinetComponent', () => {
     expect(summaryCards.length).toBe(4);
     expect(summaryCards[0].textContent).toContain('76.00 PLN');
     expect(tables.length).toBe(3);
+    expect(tables[2].textContent).toContain('mountingPlateSetbackMm=19.5');
   });
 
   it('maps backend validation errors to the matching field summary', () => {

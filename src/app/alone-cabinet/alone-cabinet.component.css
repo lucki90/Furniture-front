@@ -799,3 +799,9 @@
     align-items: stretch;
   }
 }
+.alone-cabinet-result-table__details {
+  display: block;
+  margin-top: 0.25rem;
+  white-space: pre-line;
+  color: var(--text-muted, #64748b);
+}
