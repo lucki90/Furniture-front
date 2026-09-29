@@ -12,6 +12,7 @@ import { SegmentFormData, SegmentRequest } from '../cabinet-form/model/segment.m
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 import { OpeningType, LiftMechanismType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
+import { DEFAULT_FRONT_MOUNTING_TYPE } from '../../shared/model/front-mounting-type';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +25,7 @@ export class KitchenCabinetStateFactory {
       id,
       name: formData.name,
       openingType: formData.openingType,
+      frontMountingType: formData.frontMountingType ?? DEFAULT_FRONT_MOUNTING_TYPE,
       width: formData.width,
       height: formData.height,
       depth: formData.depth,
@@ -236,6 +238,7 @@ export class KitchenCabinetStateFactory {
       id: cabResp.cabinetId || fallbackId,
       name: cabResp.cabinetId,
       openingType: (cabResp.openingType ?? 'LEFT') as OpeningType,
+      frontMountingType: cabResp.frontMountingType ?? DEFAULT_FRONT_MOUNTING_TYPE,
       width: effectiveWidth,
       height: cabResp.heightMm,
       depth: cabResp.depthMm,

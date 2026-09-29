@@ -1,4 +1,5 @@
 import { SegmentFormData } from '../../cabinet-form/model/segment.model';
+import { FrontMountingType } from '../../../shared/model/front-mounting-type';
 
 /**
  * Element frontu przeskalowany do wyświetlania.
@@ -36,6 +37,10 @@ export interface CabinetRenderContext {
   bodyHeight: number;
   /** Stała FRONT_GAP = 1px — odstęp wewnętrzny frontu od krawędzi korpusu. */
   frontGap: number;
+  /** Osadzenie frontu oraz przeskalowana grubość boków i wieńców korpusu. */
+  frontMountingType: FrontMountingType;
+  carcassEdgeX: number;
+  carcassEdgeY: number;
   /** SCALE_VERT() — skala pionowa mm→px, potrzebna dla piekarnika (oven slot height). */
   scaleVert: number;
   // Dane specyficzne dla typów

@@ -88,6 +88,7 @@ describe('Simple door cabinet type factories', () => {
         depth: testCase.depth,
         shelfQuantity: 2,
         openingType: 'CLICK',
+        frontMountingType: 'INSET',
         isFrontExtended: true,
         isLiftUp: false
       } as CabinetRequestFormValue;
@@ -105,6 +106,7 @@ describe('Simple door cabinet type factories', () => {
         shelfQuantity: 2,
         frontType: testCase.frontType,
         openingType: 'CLICK',
+        frontMountingType: 'INSET',
         needBacks: true,
         isHanging: testCase.level === 'UPPER',
         isHangingOnRail: testCase.level === 'UPPER',

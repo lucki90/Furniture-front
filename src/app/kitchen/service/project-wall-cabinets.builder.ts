@@ -98,6 +98,7 @@ export class ProjectWallCabinetsBuilder {
         cabinetId: cab.name || cab.id,
         kitchenCabinetType: cab.type,
         openingType: cab.openingType,
+        frontMountingType: cab.frontMountingType ?? 'OVERLAY',
         height: cab.height,
         width: cab.width,
         depth: cab.depth,

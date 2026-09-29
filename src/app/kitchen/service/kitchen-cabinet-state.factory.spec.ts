@@ -41,6 +41,7 @@ describe('KitchenCabinetStateFactory', () => {
       id: 'cab-1',
       type: KitchenCabinetType.BASE_SINK,
       sinkFrontType: 'ONE_DOOR',
+      frontMountingType: 'OVERLAY',
       sinkApronEnabled: true,
       sinkApronHeightMm: 150,
       calculatedResult: jasmine.objectContaining({
@@ -101,6 +102,7 @@ describe('KitchenCabinetStateFactory', () => {
       depth: 560,
       positionY: 0,
       shelfQuantity: 1,
+      frontMountingType: 'INSET',
       materialRequest,
       varnishedFront: true,
       materialPresetCode: 'WHITE_LACQUER_PREMIUM'
@@ -118,6 +120,7 @@ describe('KitchenCabinetStateFactory', () => {
       id: 'material-1',
       materialRequest,
       varnishedFront: true,
+      frontMountingType: 'INSET',
       materialPresetCode: 'WHITE_LACQUER_PREMIUM'
     }));
   });
@@ -344,6 +347,7 @@ describe('KitchenCabinetStateFactory', () => {
       frontMaterialCode: 'MDF',
       frontThicknessMm: 19,
       frontColorCode: 'RAL_9003',
+      frontMountingType: 'INSET',
       materialRequest,
       varnishedFront: true,
       materialPresetCode: 'WHITE_LACQUER_PREMIUM',
@@ -358,6 +362,7 @@ describe('KitchenCabinetStateFactory', () => {
       id: 'loaded-material-1',
       materialRequest,
       varnishedFront: true,
+      frontMountingType: 'INSET',
       materialPresetCode: 'WHITE_LACQUER_PREMIUM'
     }));
   });

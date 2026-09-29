@@ -47,6 +47,7 @@ export class CabinetFormEditingService {
       ...(includeType ? { kitchenCabinetType: cabinet.type } : {}),
       name: c.name || '',
       openingType: c.openingType,
+      frontMountingType: c.frontMountingType ?? 'OVERLAY',
       width: c.width,
       height: c.height,
       depth: c.depth,

@@ -42,6 +42,10 @@ import {
 import { CornerMechanismType } from './model/corner-cabinet.model';
 import { LiftMechanismType } from './model/kitchen-cabinet-constants';
 import { CABINET_TYPE_PICKER_LABELS } from './types/cabinet-type-labels';
+import {
+  FrontMountingType,
+  supportsInsetFrontMounting
+} from './model/front-mounting.model';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -137,6 +141,12 @@ export class CabinetFormComponent implements OnChanges {
       label: item.label
     }))
   );
+  readonly frontMountingTypes = computed(() =>
+    this.dictionaryService.data().frontMountingTypes.map(item => ({
+      value: item.code,
+      label: item.label
+    }))
+  );
   readonly drawerModels = computed(() =>
     this.dictionaryService.data().drawerModels.map(item => ({
       value: item.code,
@@ -153,6 +163,19 @@ export class CabinetFormComponent implements OnChanges {
 
   get useMaterialOverride(): boolean {
     return !!this.form.get('useMaterialOverride')?.value;
+  }
+
+  get supportsFrontMountingSelection(): boolean {
+    return supportsInsetFrontMounting(
+      this.form.get('kitchenCabinetType')?.value as KitchenCabinetType,
+      this.form.get('bottomWreathOnFloor')?.value === true
+    );
+  }
+
+  get frontMountingHelp(): string {
+    return this.form.get('frontMountingType')?.value === 'INSET'
+      ? 'Front mieści się wewnątrz światła korpusu.'
+      : 'Front nakłada się na krawędzie korpusu.';
   }
 
   get selectedMaterialPreset(): MaterialPresetResponse | undefined {
@@ -396,6 +419,10 @@ export class CabinetFormComponent implements OnChanges {
         this.onTypeChange(nextType);
       });
 
+    this.form.get('bottomWreathOnFloor')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.syncFrontMountingAvailability());
+
     // CORNER_CABINET — gdy użytkownik przełącza mechanizm wewnątrz formularza, preparer NIE jest ponownie
     // uruchamiany (resetowałby wymiary). Lifecycle service replikuje flagi widoczności wiszącej blendy.
     this.form.get('cornerMechanism')?.valueChanges
@@ -533,6 +560,8 @@ export class CabinetFormComponent implements OnChanges {
       ));
     }
 
+    this.syncFrontMountingAvailability();
+
     // Reset taba do "basic" — w przeciwnym razie po zmianie typu można utknąć w tabie Opcje
     // który dla nowego typu może być pusty (np. przejście BASE_SINK -> BASE_OPEN).
     if (this.activeTab !== 'basic') {
@@ -608,6 +637,16 @@ export class CabinetFormComponent implements OnChanges {
       varnishedFront: preset.varnishedFront,
       materialPresetCode: preset.code
     };
+  }
+
+  private syncFrontMountingAvailability(): void {
+    const control = this.form.get('frontMountingType');
+    if (!control) return;
+
+    if (!this.supportsFrontMountingSelection && control.value !== 'OVERLAY') {
+      control.setValue('OVERLAY' satisfies FrontMountingType, { emitEvent: false });
+    }
+    this.cdr.markForCheck();
   }
 
   private shouldPreservePersistedMaterial(): boolean {

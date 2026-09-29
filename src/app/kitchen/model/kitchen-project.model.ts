@@ -7,6 +7,7 @@ import { CountertopRequest, CountertopResponse } from './countertop.model';
 import { PlinthRequest, PlinthResponse } from './plinth.model';
 import { FillerPanelRequest, FillerPanelResponse } from './filler-panel.model';
 import { EnclosureConfig } from '../cabinet-form/model/enclosure.model';
+import { FrontMountingType } from '../../shared/model/front-mounting-type';
 
 // ============ ENCLOSURE RESPONSE ============
 
@@ -140,6 +141,7 @@ export interface ProjectCabinetRequest {
   cabinetId: string;
   kitchenCabinetType: KitchenCabinetType;
   openingType: OpeningType;
+  frontMountingType?: FrontMountingType;
   height: number;
   width: number;
   depth: number;
@@ -488,6 +490,7 @@ export interface CabinetPlacementResponse {
   materialPresetCode?: string | null;
 
   openingType?: string;
+  frontMountingType?: FrontMountingType;
 
   // Additional configuration - drawers
   drawerQuantity?: number;

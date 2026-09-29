@@ -3,6 +3,7 @@
        [class.editing]="isEditing(pos.cabinetId)"
        [class.selected]="isSelected(pos.cabinetId)"
        [style.display]="!showUpperCabinets && pos.zone === 'TOP' ? 'none' : null"
+       [class.front-inset]="pos.frontMountingType === 'INSET'"
        class="cabinet-group">
 
   <svg:rect *ngIf="pos.leftEnclosureDisplayWidth > 0"

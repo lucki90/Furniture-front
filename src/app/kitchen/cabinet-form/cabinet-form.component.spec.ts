@@ -71,6 +71,31 @@ describe('CabinetFormComponent', () => {
     expect(component.form.get('cabinetSide')?.value).toBe('FRONT');
   });
 
+  it('shows front mounting for supported cabinet and defaults to overlay', () => {
+    expect(component.supportsFrontMountingSelection).toBeTrue();
+    expect(component.form.get('frontMountingType')?.value).toBe('OVERLAY');
+    expect(fixture.nativeElement.textContent).toContain('Osadzenie frontu');
+  });
+
+  it('resets inset mounting after switching to an unsupported cabinet', () => {
+    component.form.get('frontMountingType')?.setValue('INSET');
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_SINK);
+    fixture.detectChanges();
+
+    expect(component.supportsFrontMountingSelection).toBeFalse();
+    expect(component.form.get('frontMountingType')?.value).toBe('OVERLAY');
+    expect(fixture.nativeElement.textContent).not.toContain('Osadzenie frontu');
+  });
+
+  it('resets inset mounting when bottom wreath is placed on the floor', () => {
+    component.form.get('frontMountingType')?.setValue('INSET');
+    component.form.get('bottomWreathOnFloor')?.setValue(true);
+    fixture.detectChanges();
+
+    expect(component.supportsFrontMountingSelection).toBeFalse();
+    expect(component.form.get('frontMountingType')?.value).toBe('OVERLAY');
+  });
+
   it('passes selected material preset override to calculation service', () => {
     const calculationService = TestBed.inject(CabinetFormCalculationService) as unknown as CabinetFormCalculationServiceStub;
 
@@ -493,6 +518,10 @@ function buildWall(type: 'MAIN' | 'ISLAND'): WallWithCabinets {
 class DictionaryServiceStub {
   readonly data = signal({
     openingTypes: [{ code: 'HANDLE', label: 'Handle' }],
+    frontMountingTypes: [
+      { code: 'OVERLAY', label: 'Nakładany' },
+      { code: 'INSET', label: 'Wpuszczany' }
+    ],
     drawerModels: [
       { code: 'ANTARO_TANDEMBOX', label: 'Blum Antaro / Tandembox' },
       { code: 'SEVROLL_BALL', label: 'Sevroll kulkowe' }

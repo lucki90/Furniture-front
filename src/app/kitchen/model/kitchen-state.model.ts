@@ -8,6 +8,7 @@ import { CountertopMaterialType, CountertopJointType, CountertopEdgeType } from 
 import { FeetType, PlinthMaterialType } from './plinth.model';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import { CargoBrand, CargoVariant } from '../cabinet-form/types/base-cargo/cargo-cabinet.model';
+import { FrontMountingType } from '../../shared/model/front-mounting-type';
 
 /**
  * Strefa pozycjonowania szafki:
@@ -110,6 +111,7 @@ export interface KitchenCabinetBase {
   id: string;
   name?: string;
   openingType: OpeningType;
+  frontMountingType?: FrontMountingType;
   width: number;
   height: number;
   depth: number;
@@ -451,6 +453,7 @@ export interface CabinetFormData {
   name?: string;
   kitchenCabinetType: KitchenCabinetType;
   openingType: OpeningType;
+  frontMountingType?: FrontMountingType;
   width: number;
   height: number;
   depth: number;

@@ -9,6 +9,7 @@ export class DefaultKitchenFormFactory {
       name: [''],
       kitchenCabinetType: [KitchenCabinetType.BASE_ONE_DOOR],
       openingType: ['HANDLE'],
+      frontMountingType: ['OVERLAY'],
       width: null,
       height: null,
       depth: null,

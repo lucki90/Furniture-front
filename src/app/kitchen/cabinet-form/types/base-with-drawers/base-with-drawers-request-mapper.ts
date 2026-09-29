@@ -24,6 +24,7 @@ export class BaseWithDrawersRequestMapper extends AbstractCabinetRequestMapper {
 
       frontType: 'DRAWER',
       cabinetType: 'STANDARD',
+      frontMountingType: form.frontMountingType ?? 'OVERLAY',
       openingType: form.openingType ?? 'HANDLE',
 
       drawerLayoutType: form.drawerLayoutType ?? 'EQUAL',

@@ -1,5 +1,5 @@
 import { CabinetRenderContext, DisplayFront, DisplayHandle } from '../cabinet-render-context';
-import { createHorizontalHandle } from '../cabinet-svg-helpers';
+import { createHorizontalHandle, resolveFrontInsets } from '../cabinet-svg-helpers';
 
 /**
  * Renderuje szuflady.
@@ -12,16 +12,18 @@ export function renderDrawers(
   handles: DisplayHandle[]
 ): void {
   const { displayX, bodyY, displayWidth, bodyHeight, frontGap: gap, drawerQuantity } = ctx;
+  const inset = resolveFrontInsets(ctx);
   const drawerCount = drawerQuantity || 3;
-  const drawerHeight = (bodyHeight - gap * (drawerCount + 1)) / drawerCount;
+  const drawerHeight = (bodyHeight - inset.y * 2 - gap * (drawerCount - 1)) / drawerCount;
+  const drawerWidth = displayWidth - inset.x * 2;
 
   for (let i = 0; i < drawerCount; i++) {
-    const drawerY = bodyY + gap + i * (drawerHeight + gap);
+    const drawerY = bodyY + inset.y + i * (drawerHeight + gap);
     fronts.push({
       type: 'DRAWER',
-      x: displayX + gap,
+      x: displayX + inset.x,
       y: drawerY,
-      width: displayWidth - gap * 2,
+      width: drawerWidth,
       height: drawerHeight
     });
     handles.push(createHorizontalHandle(

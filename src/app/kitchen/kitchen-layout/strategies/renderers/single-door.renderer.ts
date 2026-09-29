@@ -1,5 +1,5 @@
 import { CabinetRenderContext, DisplayFront, DisplayHandle } from '../cabinet-render-context';
-import { createVerticalHandle } from '../cabinet-svg-helpers';
+import { createVerticalHandle, resolveFrontInsets } from '../cabinet-svg-helpers';
 
 /**
  * Renderuje pojedyncze drzwi.
@@ -11,18 +11,21 @@ export function renderSingleDoor(
   fronts: DisplayFront[],
   handles: DisplayHandle[]
 ): void {
-  const { displayX, bodyY, displayWidth, bodyHeight, frontGap: gap } = ctx;
+  const { displayX, bodyY, displayWidth, bodyHeight } = ctx;
+  const inset = resolveFrontInsets(ctx);
+  const frontWidth = displayWidth - inset.x * 2;
+  const frontHeight = bodyHeight - inset.y * 2;
   fronts.push({
     type: 'DOOR_SINGLE',
-    x: displayX + gap,
-    y: bodyY + gap,
-    width: displayWidth - gap * 2,
-    height: bodyHeight - gap * 2,
+    x: displayX + inset.x,
+    y: bodyY + inset.y,
+    width: frontWidth,
+    height: frontHeight,
     hingesSide: 'LEFT'
   });
   handles.push(createVerticalHandle(
-    displayX + displayWidth - gap - 4,
-    bodyY + gap + 3,
-    bodyHeight - gap * 2 - 6
+    displayX + inset.x + frontWidth - 4,
+    bodyY + inset.y + 3,
+    frontHeight - 6
   ));
 }

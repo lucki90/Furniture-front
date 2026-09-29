@@ -2,6 +2,7 @@ import { CabinetFormData } from '../../../model/kitchen-state.model';
 import { CornerCabinetRequest } from '../../model/corner-cabinet.model';
 import { DrawerFrontDetail, MaterialRequest } from '../../model/kitchen-cabinet-form.model';
 import { SegmentRequest } from '../../model/segment.model';
+import { FrontMountingType } from '../../../../shared/model/front-mounting-type';
 
 export interface MaterialDefaults {
   boxMaterial: string;
@@ -55,6 +56,7 @@ export interface CabinetCalculateRequest {
   lang: string;
   kitchenCabinetType: string;
   cabinetType?: string | null;
+  frontMountingType?: FrontMountingType;
   openingType: string;
   height: number;
   width: number;

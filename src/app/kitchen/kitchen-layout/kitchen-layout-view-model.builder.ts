@@ -5,6 +5,7 @@ import { CABINET_RENDER_REGISTRY } from './strategies/cabinet-render-registry';
 import { CabinetRenderContext, DisplayFront, DisplayHandle } from './strategies/cabinet-render-context';
 import { OVEN_HEIGHT_COMPACT_MM, OVEN_HEIGHT_STANDARD_MM, PLATE_THICKNESS_MM } from './kitchen-layout.constants';
 import { CornerMechanismType, isBlindType } from '../cabinet-form/model/corner-cabinet.model';
+import { FrontMountingType } from '../../shared/model/front-mounting-type';
 
 export interface DisplayFoot {
   x: number;
@@ -16,6 +17,7 @@ export interface VisualCabinetPosition {
   cabinetId: string;
   name?: string;
   type: KitchenCabinetType;
+  frontMountingType: FrontMountingType;
   x: number;
   y: number;
   width: number;
@@ -99,6 +101,7 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
     const displayX = position.x * input.scale;
     const displayWidth = position.width * input.scale;
     const displayHeight = Math.round(position.height * input.scaleVert);
+    const frontMountingType = originalCabinet?.frontMountingType ?? 'OVERLAY';
 
     const feetHeightPx = Math.round(input.feetHeightMm * input.scaleVert);
     const displayY = resolveDisplayY(zone, position, displayHeight, feetHeightPx, input.wallDisplayHeight, input.scaleVert);
@@ -136,6 +139,9 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       displayWidth,
       bodyHeight,
       frontGap: input.frontGap,
+      frontMountingType,
+      carcassEdgeX: Math.max(1, Math.round(PLATE_THICKNESS_MM * input.scale)),
+      carcassEdgeY: Math.max(1, Math.round(PLATE_THICKNESS_MM * input.scaleVert)),
       scaleVert: input.scaleVert,
       cargoVariant,
       pantryPassageFrontType: cabinetData?.pantryPassageFrontType as string | undefined,
@@ -177,6 +183,7 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       cabinetId: position.cabinetId,
       name: position.name,
       type: cabinetType,
+      frontMountingType,
       x: position.x,
       y: position.y,
       width: position.width,

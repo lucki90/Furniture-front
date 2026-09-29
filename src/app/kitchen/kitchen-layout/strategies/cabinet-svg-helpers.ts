@@ -1,4 +1,20 @@
-import { DisplayHandle } from './cabinet-render-context';
+import { CabinetRenderContext, DisplayHandle } from './cabinet-render-context';
+
+export interface FrontInsets {
+  x: number;
+  y: number;
+}
+
+/** Zwraca odsunięcie frontu od zewnętrznej krawędzi korpusu w osiach X/Y. */
+export function resolveFrontInsets(ctx: CabinetRenderContext): FrontInsets {
+  if (ctx.frontMountingType === 'INSET') {
+    return {
+      x: ctx.carcassEdgeX + ctx.frontGap,
+      y: ctx.carcassEdgeY + ctx.frontGap
+    };
+  }
+  return { x: ctx.frontGap, y: ctx.frontGap };
+}
 
 /**
  * Tworzy uchwyt pionowy (dla drzwi).

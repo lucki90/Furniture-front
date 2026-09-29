@@ -58,6 +58,55 @@ describe('kitchen-layout-view-model.builder', () => {
     expect(position.leftEnclosureDisplayWidth).toBe(8);
     expect(position.rightEnclosureDisplayWidth).toBe(2);
     expect(position.fronts.length).toBeGreaterThan(0);
+    expect(position.frontMountingType).toBe('OVERLAY');
+  });
+
+  it('should place supported inset fronts inside the carcass edges', () => {
+    const positions = buildVisualCabinetPositions({
+      cabinetPositions: [
+        createPosition({ cabinetId: 'single', x: 0, width: 600 }),
+        createPosition({ cabinetId: 'double', x: 600, width: 800 }),
+        createPosition({ cabinetId: 'drawers', x: 1400, width: 600 })
+      ],
+      cabinets: [
+        createCabinet({ id: 'single', width: 600, frontMountingType: 'INSET' }),
+        createCabinet({
+          id: 'double',
+          type: KitchenCabinetType.BASE_TWO_DOOR,
+          width: 800,
+          frontMountingType: 'INSET'
+        }),
+        createCabinet({
+          id: 'drawers',
+          type: KitchenCabinetType.BASE_WITH_DRAWERS,
+          width: 600,
+          frontMountingType: 'INSET',
+          drawerQuantity: 3,
+          drawerModel: 'ANTARO_TANDEMBOX'
+        } as Partial<KitchenCabinet>)
+      ],
+      scale: 0.1,
+      wallWidth: 220,
+      wallDisplayHeight: 180,
+      scaleVert: 0.1,
+      feetHeightMm: 100,
+      fillerWidthMm: 50,
+      standardBottomHeight: 720,
+      standardTopHeight: 720,
+      standardBottomDepth: 560,
+      standardTopDepth: 320,
+      frontGap: 1
+    });
+
+    for (const position of positions) {
+      expect(position.frontMountingType).toBe('INSET');
+      const visibleFronts = position.fronts.filter(front => front.type === 'DOOR_SINGLE' || front.type === 'DRAWER');
+      expect(visibleFronts.length).toBeGreaterThan(0);
+      expect(Math.min(...visibleFronts.map(front => front.x))).toBe(position.displayX + 3);
+      expect(Math.min(...visibleFronts.map(front => front.y))).toBe(position.displayY + 3);
+      expect(Math.max(...visibleFronts.map(front => front.x + front.width))).toBe(position.displayX + position.displayWidth - 3);
+      expect(Math.max(...visibleFronts.map(front => front.y + front.height))).toBe(position.displayY + position.bodyHeight - 3);
+    }
   });
 
   it('should build top cabinet view model without feet and preserve overflow flag', () => {

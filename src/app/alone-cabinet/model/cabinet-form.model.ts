@@ -1,7 +1,9 @@
 /**
  * Interfejsy dla danych formularza szafki
  */
-export type FrontMountingType = 'OVERLAY' | 'INSET';
+import { FrontMountingType } from '../../shared/model/front-mounting-type';
+
+export type { FrontMountingType } from '../../shared/model/front-mounting-type';
 
 export interface CabinetRequest {
   lang: string;

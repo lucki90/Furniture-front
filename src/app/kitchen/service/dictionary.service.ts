@@ -20,6 +20,7 @@ export interface AllDictionaries {
   fridgeFreestandingTypes: DictionaryItem[];
   drawerModels: DictionaryItem[];
   openingTypes: DictionaryItem[];
+  frontMountingTypes: DictionaryItem[];
   countertopMaterials: DictionaryItem[];
   countertopJoints: DictionaryItem[];
   countertopEdges: DictionaryItem[];
@@ -44,6 +45,7 @@ export const DICTIONARY_FALLBACK: AllDictionaries = {
   fridgeFreestandingTypes: [{ code: 'SINGLE_DOOR', label: 'Jedne drzwi' }, { code: 'TWO_DOORS', label: 'Lodówka + zamrażarka' }, { code: 'SIDE_BY_SIDE', label: 'Side-by-side' }],
   drawerModels:            [{ code: 'ANTARO_TANDEMBOX', label: 'Blum Antaro / Tandembox' }, { code: 'SEVROLL_BALL', label: 'Sevroll kulkowe' }],
   openingTypes:            [{ code: 'HANDLE', label: 'Uchwyt' }, { code: 'CLICK', label: 'Click (TIP-ON)' }, { code: 'MILLED', label: 'Frezowany' }, { code: 'NONE', label: 'Brak' }],
+  frontMountingTypes:      [{ code: 'OVERLAY', label: 'Nakładany' }, { code: 'INSET', label: 'Wpuszczany' }],
   countertopMaterials:     [{ code: 'LAMINATE', label: 'Laminat (standard)' }, { code: 'SOLID_WOOD', label: 'Lite drewno' }, { code: 'STONE', label: 'Kamień' }, { code: 'QUARTZ_COMPOSITE', label: 'Konglomerat kwarcowy' }, { code: 'COMPACT', label: 'Płyta kompaktowa' }],
   countertopJoints:        [{ code: 'NONE', label: 'Brak' }, { code: 'ALUMINUM_STRIP', label: 'Listewka aluminiowa' }, { code: 'MITER_JOINT', label: 'Łyżwa (45°)' }, { code: 'SEAMLESS', label: 'Bezszwowe' }],
   countertopEdges:         [{ code: 'NONE', label: 'Brak' }, { code: 'ABS_EDGE', label: 'Oklejina ABS/PVC' }, { code: 'WOOD_EDGE', label: 'Oklejina drewniana' }, { code: 'ALUMINUM_EDGE', label: 'Listewka aluminiowa' }, { code: 'POSTFORMED', label: 'Postforming' }, { code: 'PROFILED', label: 'Frezowana' }],

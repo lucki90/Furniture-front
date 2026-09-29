@@ -1,6 +1,8 @@
 /**
  * Interfejsy dla danych formularza szafki
  */
+import { FrontMountingType } from '../../../shared/model/front-mounting-type';
+
 export interface CabinetRequest {
   lang: string;
   height: number;
@@ -17,6 +19,7 @@ export interface CabinetRequest {
   varnishedFront: boolean;
   frontType: string;
   cabinetType: string;
+  frontMountingType?: FrontMountingType;
   openingType: string;
   drawerRequest: DrawerRequest | null;
   materialRequest: MaterialRequest;

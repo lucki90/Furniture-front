@@ -66,6 +66,12 @@ describe('ProjectWallCabinetsBuilder', () => {
   const buildRequests = (cabinets: KitchenCabinet[], wallHeightMm = 2600) =>
     builder.buildCabinets(buildWall(cabinets, wallHeightMm), settings);
 
+  it('preserves inset front mounting in the project request', () => {
+    const [request] = buildRequests([makeCabinet({ frontMountingType: 'INSET' })]);
+
+    expect(request.frontMountingType).toBe('INSET');
+  });
+
   it('preserves blind-panel visible width for legacy corner cabinets when the explicit split flag is missing', () => {
     const corner = makeCabinet({
       id: 'corner-legacy',

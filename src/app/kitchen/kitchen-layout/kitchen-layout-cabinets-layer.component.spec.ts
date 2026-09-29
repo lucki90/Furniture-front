@@ -42,6 +42,7 @@ describe('KitchenLayoutCabinetsLayerComponent', () => {
     cabinetId: 'cab-1',
     name: 'Szafka',
     type: KitchenCabinetType.BASE_ONE_DOOR,
+    frontMountingType: 'OVERLAY',
     zone: 'BOTTOM',
     x: 0,
     y: 0,
