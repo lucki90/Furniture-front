@@ -79,12 +79,31 @@ describe('CabinetFormComponent', () => {
 
   it('resets inset mounting after switching to an unsupported cabinet', () => {
     component.form.get('frontMountingType')?.setValue('INSET');
-    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_SINK);
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_OPEN);
     fixture.detectChanges();
 
     expect(component.supportsFrontMountingSelection).toBeFalse();
     expect(component.form.get('frontMountingType')?.value).toBe('OVERLAY');
     expect(fixture.nativeElement.textContent).not.toContain('Osadzenie frontu');
+  });
+
+  it('keeps inset mounting available for a sink cabinet', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_SINK);
+    component.form.get('frontMountingType')?.setValue('INSET');
+    fixture.detectChanges();
+
+    expect(component.supportsFrontMountingSelection).toBeTrue();
+    expect(component.form.get('frontMountingType')?.value).toBe('INSET');
+  });
+
+  it('resets inset mounting when switching from gas lift to Aventos', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_LIFT_UP);
+    component.form.get('frontMountingType')?.setValue('INSET');
+    component.form.get('liftMechanismType')?.setValue('AVENTOS_HK_TOP');
+    fixture.detectChanges();
+
+    expect(component.supportsFrontMountingSelection).toBeFalse();
+    expect(component.form.get('frontMountingType')?.value).toBe('OVERLAY');
   });
 
   it('keeps inset mounting available when bottom wreath is placed on the floor', () => {

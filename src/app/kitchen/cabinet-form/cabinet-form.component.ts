@@ -167,7 +167,12 @@ export class CabinetFormComponent implements OnChanges {
 
   get supportsFrontMountingSelection(): boolean {
     return supportsInsetFrontMounting(
-      this.form.get('kitchenCabinetType')?.value as KitchenCabinetType
+      this.form.get('kitchenCabinetType')?.value as KitchenCabinetType,
+      {
+        liftMechanismType: this.form.get('liftMechanismType')?.value,
+        ovenLowerSectionType: this.form.get('ovenLowerSectionType')?.value,
+        sinkFrontType: this.form.get('sinkFrontType')?.value
+      }
     );
   }
 
@@ -439,7 +444,24 @@ export class CabinetFormComponent implements OnChanges {
         this.setVisibility(this.typeLifecycleService.refreshLiftMechanismDependentVisibility(
           this.form, this.visibility, mechanism as LiftMechanismType
         ));
+        this.syncFrontMountingAvailability();
         this.cdr.markForCheck();
+      });
+
+    this.form.get('ovenLowerSectionType')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_OVEN) {
+          this.syncFrontMountingAvailability();
+        }
+      });
+
+    this.form.get('sinkFrontType')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (this.form.get('kitchenCabinetType')?.value === KitchenCabinetType.BASE_SINK) {
+          this.syncFrontMountingAvailability();
+        }
       });
 
     // UPPER_LIFT_UP / HF top — walidator wysokości górnego frontu zależy od wysokości szafki (< height),

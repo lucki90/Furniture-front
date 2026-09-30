@@ -26,6 +26,7 @@ export class BaseSinkRequestMapper extends AbstractCabinetRequestMapper {
       varnishedFront: materialDefaults.varnishedFront,
 
       openingType: form.openingType ?? 'HANDLE',
+      frontMountingType: form.frontMountingType ?? 'OVERLAY',
 
       // Pola specyficzne dla szafki zlewowej
       sinkFrontType: sinkFrontType,

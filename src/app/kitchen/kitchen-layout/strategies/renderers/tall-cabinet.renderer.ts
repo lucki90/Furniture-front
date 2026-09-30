@@ -1,5 +1,5 @@
 import { CabinetRenderContext, DisplayFront, DisplayHandle } from '../cabinet-render-context';
-import { createVerticalHandle, createHorizontalHandle } from '../cabinet-svg-helpers';
+import { createVerticalHandle, createHorizontalHandle, resolveFrontInsets } from '../cabinet-svg-helpers';
 import { SegmentFormData, SegmentType, SegmentFrontType } from '../../../cabinet-form/model/segment.model';
 import { TALL_SEGMENT_DOOR_DEFAULT_MM, TALL_SEGMENT_DRAWER_DEFAULT_MM } from '../../kitchen-layout.constants';
 
@@ -15,6 +15,8 @@ export function renderTallCabinet(
   handles: DisplayHandle[]
 ): void {
   const { displayX, bodyY, displayWidth, bodyHeight, frontGap: gap } = ctx;
+  const inset = resolveFrontInsets(ctx);
+  const isInset = ctx.frontMountingType === 'INSET';
   let segments = ctx.segments;
 
   if (!segments || segments.length === 0) {
@@ -34,10 +36,19 @@ export function renderTallCabinet(
   const totalSegmentHeight = sortedSegments.reduce((sum, s) => sum + s.height, 0);
   const scale = bodyHeight / totalSegmentHeight;
 
-  let currentY = bodyY + gap;
+  let currentSegmentY = bodyY;
 
-  for (const segment of sortedSegments) {
-    const segmentHeightPx = segment.height * scale - gap;
+  for (let segmentIndex = 0; segmentIndex < sortedSegments.length; segmentIndex++) {
+    const segment = sortedSegments[segmentIndex];
+    const rawSegmentHeightPx = segment.height * scale;
+    const topCarcassEdge = isInset && segmentIndex === 0 ? ctx.carcassEdgeY : 0;
+    const bottomCarcassEdge = isInset ? ctx.carcassEdgeY : 0;
+    const currentY = currentSegmentY + topCarcassEdge + gap;
+    const segmentHeightPx = isInset
+      ? rawSegmentHeightPx - topCarcassEdge - bottomCarcassEdge - gap * 2
+      : rawSegmentHeightPx - gap;
+    const frontX = displayX + inset.x;
+    const frontWidth = displayWidth - inset.x * 2;
 
     switch (segment.segmentType) {
       case SegmentType.DRAWER: {
@@ -47,9 +58,9 @@ export function renderTallCabinet(
           const drawerY = currentY + i * (drawerHeight + gap);
           fronts.push({
             type: 'DRAWER',
-            x: displayX + gap,
+            x: frontX,
             y: drawerY,
-            width: displayWidth - gap * 2,
+            width: frontWidth,
             height: drawerHeight
           });
           handles.push(createHorizontalHandle(
@@ -63,32 +74,32 @@ export function renderTallCabinet(
 
       case SegmentType.DOOR:
         if (segment.frontType === SegmentFrontType.TWO_DOORS) {
-          const doorWidth = (displayWidth - gap * 3) / 2;
+          const doorWidth = (frontWidth - gap) / 2;
           fronts.push(
-            { type: 'DOOR_SINGLE', x: displayX + gap, y: currentY, width: doorWidth, height: segmentHeightPx, hingesSide: 'LEFT' },
-            { type: 'DOOR_SINGLE', x: displayX + gap + doorWidth + gap, y: currentY, width: doorWidth, height: segmentHeightPx, hingesSide: 'RIGHT' }
+            { type: 'DOOR_SINGLE', x: frontX, y: currentY, width: doorWidth, height: segmentHeightPx, hingesSide: 'LEFT' },
+            { type: 'DOOR_SINGLE', x: frontX + doorWidth + gap, y: currentY, width: doorWidth, height: segmentHeightPx, hingesSide: 'RIGHT' }
           );
           handles.push(
-            createVerticalHandle(displayX + gap + doorWidth - 3, currentY + 3, segmentHeightPx - 6),
-            createVerticalHandle(displayX + gap + doorWidth + gap + 3, currentY + 3, segmentHeightPx - 6)
+            createVerticalHandle(frontX + doorWidth - 3, currentY + 3, segmentHeightPx - 6),
+            createVerticalHandle(frontX + doorWidth + gap + 3, currentY + 3, segmentHeightPx - 6)
           );
         } else {
-          fronts.push({ type: 'DOOR_SINGLE', x: displayX + gap, y: currentY, width: displayWidth - gap * 2, height: segmentHeightPx, hingesSide: 'LEFT' });
-          handles.push(createVerticalHandle(displayX + displayWidth - gap - 4, currentY + 3, segmentHeightPx - 6));
+          fronts.push({ type: 'DOOR_SINGLE', x: frontX, y: currentY, width: frontWidth, height: segmentHeightPx, hingesSide: 'LEFT' });
+          handles.push(createVerticalHandle(displayX + displayWidth - inset.x - 4, currentY + 3, segmentHeightPx - 6));
         }
         break;
 
       case SegmentType.OPEN_SHELF:
-        fronts.push({ type: 'OPEN', x: displayX + gap, y: currentY, width: displayWidth - gap * 2, height: segmentHeightPx });
+        fronts.push({ type: 'OPEN', x: frontX, y: currentY, width: frontWidth, height: segmentHeightPx });
         break;
 
       case SegmentType.OVEN:
       case SegmentType.MICROWAVE:
         // Wnęka AGD — srebrno-szary kolor (typ 'APPLIANCE')
-        fronts.push({ type: 'APPLIANCE', x: displayX + gap, y: currentY, width: displayWidth - gap * 2, height: segmentHeightPx });
+        fronts.push({ type: 'APPLIANCE', x: frontX, y: currentY, width: frontWidth, height: segmentHeightPx });
         break;
     }
 
-    currentY += segmentHeightPx + gap;
+    currentSegmentY += rawSegmentHeightPx;
   }
 }

@@ -36,6 +36,7 @@ export class TallCabinetRequestMapper extends AbstractCabinetRequestMapper {
       frontType: null,
       cabinetType: 'STANDARD',
       openingType: form.openingType ?? 'HANDLE',
+      frontMountingType: form.frontMountingType ?? 'OVERLAY',
 
       // Brak globalnego drawerRequest - szuflady są w segmentach
       drawerRequest: null,

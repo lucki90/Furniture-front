@@ -22,6 +22,15 @@ describe('UpperLiftUpRequestMapper', () => {
     expect(result.liftMechanismType).toBe('GAS_GTV');
   });
 
+  it('maps inset front mounting into the request', () => {
+    const result = mapper.map(
+      { width: 600, height: 400, depth: 340, frontMountingType: 'INSET' },
+      materialDefaults
+    );
+
+    expect(result.frontMountingType).toBe('INSET');
+  });
+
   it('maps the allowThirdLiftMechanism opt-in flag into the request', () => {
     const result = mapper.map(
       { width: 600, height: 400, depth: 340, liftMechanismType: 'AVENTOS_HK_S', allowThirdLiftMechanism: true },

@@ -34,6 +34,7 @@ export class UpperLiftUpRequestMapper extends AbstractCabinetRequestMapper {
       frontType: 'UPWARDS',
       cabinetType: 'STANDARD',
       openingType: form.openingType ?? 'HANDLE',
+      frontMountingType: form.frontMountingType ?? 'OVERLAY',
 
       drawerRequest: null,
       materialRequest: this.buildMaterialRequest(materialDefaults)

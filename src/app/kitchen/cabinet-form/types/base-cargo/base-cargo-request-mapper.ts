@@ -27,6 +27,7 @@ export class BaseCargoRequestMapper extends AbstractCabinetRequestMapper {
       frontType: 'ONE_DOOR',
       cabinetType: 'CARGO',
       openingType: form.openingType ?? 'HANDLE',
+      frontMountingType: form.frontMountingType ?? 'OVERLAY',
       cargoVariant: form.cargoVariant ?? 'MECHANISM',
       cargoBrand: form.cargoBrand ?? 'BLUM',
 

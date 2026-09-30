@@ -1,5 +1,5 @@
 import { CabinetRenderContext, DisplayFront, DisplayHandle } from '../cabinet-render-context';
-import { createVerticalHandle, createHorizontalHandle } from '../cabinet-svg-helpers';
+import { createVerticalHandle, createHorizontalHandle, resolveFrontInsets } from '../cabinet-svg-helpers';
 import { PLATE_THICKNESS_MM, OVEN_HEIGHT_COMPACT_MM, OVEN_HEIGHT_STANDARD_MM } from '../../kitchen-layout.constants';
 
 /**
@@ -16,6 +16,7 @@ export function renderOven(
   handles: DisplayHandle[]
 ): void {
   const { displayX, bodyY, displayWidth, bodyHeight, frontGap: gap, scaleVert: sv, ovenConfig } = ctx;
+  const inset = resolveFrontInsets(ctx);
   const apronH = ovenConfig?.ovenApronEnabled ? (ovenConfig?.ovenApronHeightMm ?? 0) : 0;
   const ovenSlotH = ovenConfig?.ovenHeightType === 'COMPACT' ? OVEN_HEIGHT_COMPACT_MM : OVEN_HEIGHT_STANDARD_MM;
   const lowerSectionType = ovenConfig?.ovenLowerSectionType ?? 'NONE';
@@ -27,9 +28,9 @@ export function renderOven(
   if (apronH > 0 && apronDisplayH > gap) {
     fronts.push({
       type: 'DOOR_SINGLE',
-      x: displayX + gap,
+      x: displayX + inset.x,
       y: bodyY + gap,
-      width: displayWidth - gap * 2,
+      width: displayWidth - inset.x * 2,
       height: apronDisplayH - gap,
       hingesSide: 'LEFT'
     });
@@ -47,34 +48,35 @@ export function renderOven(
 
   // Sekcja dolna: szuflada lub drzwi
   const lowerStartPx = bodyY + Math.round((PLATE_THICKNESS_MM + apronH + ovenSlotH + PLATE_THICKNESS_MM) * sv);
-  const lowerH = bodyY + bodyHeight - gap - lowerStartPx;
+  const lowerY = lowerStartPx + gap;
+  const lowerH = bodyY + bodyHeight - gap - lowerY;
 
   if (lowerSectionType !== 'NONE' && lowerH > gap * 2) {
     if (lowerSectionType === 'LOW_DRAWER') {
       fronts.push({
         type: 'DRAWER',
-        x: displayX + gap,
-        y: lowerStartPx,
-        width: displayWidth - gap * 2,
+        x: displayX + inset.x,
+        y: lowerY,
+        width: displayWidth - inset.x * 2,
         height: lowerH
       });
       handles.push(createHorizontalHandle(
         displayX + displayWidth / 2,
-        lowerStartPx + lowerH / 2,
+        lowerY + lowerH / 2,
         Math.min(displayWidth * 0.4, 15)
       ));
     } else if (lowerSectionType === 'HINGED_DOOR') {
       fronts.push({
         type: 'DOOR_SINGLE',
-        x: displayX + gap,
-        y: lowerStartPx,
-        width: displayWidth - gap * 2,
+        x: displayX + inset.x,
+        y: lowerY,
+        width: displayWidth - inset.x * 2,
         height: lowerH,
         hingesSide: 'LEFT'
       });
       handles.push(createVerticalHandle(
-        displayX + displayWidth - gap - 4,
-        lowerStartPx + 3,
+        displayX + displayWidth - inset.x - 4,
+        lowerY + 3,
         lowerH - 6
       ));
     }

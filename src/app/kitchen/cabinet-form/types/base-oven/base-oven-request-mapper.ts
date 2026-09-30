@@ -29,6 +29,7 @@ export class BaseOvenRequestMapper extends AbstractCabinetRequestMapper {
 
       cabinetType: 'BASE_OVEN',
       openingType: form.openingType ?? 'HANDLE',
+      frontMountingType: form.frontMountingType ?? 'OVERLAY',
 
       // Pola specyficzne dla piekarnika wbudowanego
       ovenHeightType: form.ovenHeightType ?? 'STANDARD',
