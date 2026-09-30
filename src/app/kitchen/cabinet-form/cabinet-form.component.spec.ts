@@ -87,13 +87,13 @@ describe('CabinetFormComponent', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Osadzenie frontu');
   });
 
-  it('resets inset mounting when bottom wreath is placed on the floor', () => {
+  it('keeps inset mounting available when bottom wreath is placed on the floor', () => {
     component.form.get('frontMountingType')?.setValue('INSET');
     component.form.get('bottomWreathOnFloor')?.setValue(true);
     fixture.detectChanges();
 
-    expect(component.supportsFrontMountingSelection).toBeFalse();
-    expect(component.form.get('frontMountingType')?.value).toBe('OVERLAY');
+    expect(component.supportsFrontMountingSelection).toBeTrue();
+    expect(component.form.get('frontMountingType')?.value).toBe('INSET');
   });
 
   it('passes selected material preset override to calculation service', () => {

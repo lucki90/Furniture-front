@@ -15,17 +15,9 @@ const INSET_FRONT_CABINET_TYPES = new Set<KitchenCabinetType>([
 export { DEFAULT_FRONT_MOUNTING_TYPE };
 export type { FrontMountingType };
 
-/** Zakres Etapu E: proste korpusy bez segmentów, klap i wieńca dolnego na podłodze. */
+/** Zakres Etapu F1: proste korpusy, również z dolnym wieńcem na podłodze, bez segmentów i klap. */
 export function supportsInsetFrontMounting(
-  type: KitchenCabinetType | null | undefined,
-  bottomWreathOnFloor = false
+  type: KitchenCabinetType | null | undefined
 ): boolean {
-  if (!type || !INSET_FRONT_CABINET_TYPES.has(type)) {
-    return false;
-  }
-
-  const isBase = type === KitchenCabinetType.BASE_ONE_DOOR
-    || type === KitchenCabinetType.BASE_TWO_DOOR
-    || type === KitchenCabinetType.BASE_WITH_DRAWERS;
-  return !isBase || !bottomWreathOnFloor;
+  return !!type && INSET_FRONT_CABINET_TYPES.has(type);
 }

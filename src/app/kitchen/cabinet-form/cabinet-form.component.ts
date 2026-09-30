@@ -167,8 +167,7 @@ export class CabinetFormComponent implements OnChanges {
 
   get supportsFrontMountingSelection(): boolean {
     return supportsInsetFrontMounting(
-      this.form.get('kitchenCabinetType')?.value as KitchenCabinetType,
-      this.form.get('bottomWreathOnFloor')?.value === true
+      this.form.get('kitchenCabinetType')?.value as KitchenCabinetType
     );
   }
 
@@ -418,10 +417,6 @@ export class CabinetFormComponent implements OnChanges {
         this.previousCabinetType = nextType;
         this.onTypeChange(nextType);
       });
-
-    this.form.get('bottomWreathOnFloor')?.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.syncFrontMountingAvailability());
 
     // CORNER_CABINET — gdy użytkownik przełącza mechanizm wewnątrz formularza, preparer NIE jest ponownie
     // uruchamiany (resetowałby wymiary). Lifecycle service replikuje flagi widoczności wiszącej blendy.

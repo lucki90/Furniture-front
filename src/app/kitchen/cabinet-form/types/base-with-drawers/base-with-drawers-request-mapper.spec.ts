@@ -9,10 +9,12 @@ describe('BaseWithDrawersRequestMapper', () => {
       depth: 560,
       openingType: 'HANDLE',
       frontMountingType: 'INSET',
+      bottomWreathOnFloor: true,
       drawerQuantity: 3,
       drawerModel: 'ANTARO_TANDEMBOX'
     }, DEFAULT_MATERIAL_DEFAULTS);
 
     expect(request.frontMountingType).toBe('INSET');
+    expect(request.bottomWreathOnFloor).toBeTrue();
   });
 });

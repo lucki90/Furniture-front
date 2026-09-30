@@ -59,6 +59,7 @@ class SimpleDoorRequestMapper extends AbstractCabinetRequestMapper {
       frontType: liftUp ? 'UPWARDS' : this.options.frontType,
       cabinetType: 'STANDARD',
       frontMountingType: form.frontMountingType ?? 'OVERLAY',
+      bottomWreathOnFloor: this.options.level === 'BASE' ? (form.bottomWreathOnFloor ?? false) : false,
       openingType: form.openingType ?? 'HANDLE',
       drawerRequest: null,
       materialRequest: this.buildMaterialRequest(materialDefaults)
