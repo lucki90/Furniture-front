@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 
+/**
+ * Lekka, stale widoczna stopka edytora: podsumowanie projektu, eksport listy
+ * plyt do Excela oraz podstawowe akcje workflow. Eksport oferty PDF pozostaje
+ * w zakladce wyceny, gdzie dostepne sa jego opcje i kontekst cenowy.
+ */
 @Component({
   selector: 'app-kitchen-page-footer',
   standalone: true,
@@ -19,16 +24,10 @@ export class KitchenPageFooterComponent {
   @Input() isSavingProject = false;
   @Input() isCalculatingProject = false;
   @Input() editingCabinetId: string | null = null;
-  @Input() currentProjectId: number | null = null;
-  @Input() isExporting = false;
+  @Input() isExcelExporting = false;
 
   @Output() saveProject = new EventEmitter<void>();
   @Output() calculateProject = new EventEmitter<void>();
   @Output() clearAll = new EventEmitter<void>();
   @Output() downloadExcel = new EventEmitter<void>();
-
-  // TODO(CODEX): Footer nadal jest wizualnie częścią kitchen-page workflow,
-  // ale ma już własny kontrakt. Jeśli później pojawi się realny eksport PDF
-  // i instrukcja, warto nie dopinać ich tutaj "na szybko", tylko wydzielić
-  // osobny export-actions component albo zasilić footer pełnym modelem akcji.
 }

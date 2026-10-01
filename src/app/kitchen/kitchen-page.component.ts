@@ -139,7 +139,7 @@ export class KitchenPageComponent {
   readonly pricingWarnings = signal<string[]>([]);
 
   // Stan eksportu Excel
-  readonly isExporting = signal(false);
+  readonly isExcelExporting = signal(false);
 
   // Stan zapisywania projektu
   readonly isSavingProject = signal(false);
@@ -650,14 +650,14 @@ export class KitchenPageComponent {
 
   /** Exports current aggregated boards as an Excel order file. */
   downloadExcel(): void {
-    if (!this.projectResult() || this.isExporting()) return;
+    if (!this.projectResult() || this.isExcelExporting()) return;
 
     const priceWarning = this.validateBomPrices();
     if (priceWarning) {
       this.toast.warning(priceWarning);
     }
 
-    this.isExporting.set(true);
+    this.isExcelExporting.set(true);
     this.projectExportFacade.exportExcel({
       boards: this.aggregatedBoards(),
       bomTranslations: this.bomTranslations(),
@@ -666,10 +666,10 @@ export class KitchenPageComponent {
       language: this.languageService.lang()
     }).subscribe({
       next: () => {
-        this.isExporting.set(false);
+        this.isExcelExporting.set(false);
       },
       error: () => {
-        this.isExporting.set(false);
+        this.isExcelExporting.set(false);
         this.toast.error('Blad podczas generowania pliku Excel');
       }
     });
