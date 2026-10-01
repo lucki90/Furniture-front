@@ -190,6 +190,10 @@ describe('KitchenLayoutComponent — narożnik z sąsiednią ścianą', () => {
     expect(component.sideFillerWarning()).toBeNull();
   });
 
+  it('przebieg blatu bierze przycięcie z narożników projektu', () => {
+    expect(component.countertopRunsMm()).toEqual([{ startMm: 0, endMm: 1000, lengthMm: 1000 }]);
+  });
+
   it('ukrycie szafek górnych nie chowa cienia szafki dolnej', () => {
     component.showUpperCabinets.set(false);
     fixture.detectChanges();
@@ -228,7 +232,8 @@ class KitchenProjectLayoutServiceStub {
       conflict: false
     }],
     reservedZones: [{ wallId: 'wall-1', wallEnd: 'START', level: 'BASE', startMm: 0, endMm: 628 }],
-    junctionSides: new Map()
+    junctionSides: new Map(),
+    countertopTrimsByWallId: new Map([['wall-1', { startMm: 0, endMm: 1000 }]])
   });
   readonly issues = computed(() => this.layout().issues);
 

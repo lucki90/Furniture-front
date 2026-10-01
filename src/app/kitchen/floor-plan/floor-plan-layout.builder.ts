@@ -6,6 +6,7 @@ import { planEndForElevationSide, verticalSegmentTopPx } from './floor-plan-orie
 import { CornerJunctionSide, WallCornerConstraints, WallTopology } from '../service/corner-layout/corner-layout.model';
 import { resolveCornerJunctionSide } from '../service/corner-layout/corner-junction-side.resolver';
 import { resolveWallTopology } from '../service/corner-layout/wall-topology.resolver';
+import { CountertopRunTrim } from '../service/corner-layout/corner-run-trims';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { isBlindType } from '../cabinet-form/model/corner-cabinet.model';
 import { DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
@@ -85,6 +86,8 @@ export interface FloorPlanLayoutSettings {
   fillerWidthMm?: number;
   /** Strefy narożne i przypięcia ściany — blat biegnie razem z przesuniętymi szafkami. */
   cornerConstraints?: WallCornerConstraints;
+  /** Przycięcie przebiegu blatu w narożnikach (`ProjectCornerLayout.countertopTrimsByWallId`). */
+  countertopTrim?: CountertopRunTrim;
   roomWidthMm?: number | null;
   roomDepthMm?: number | null;
   islandOffsetXmm?: number;
@@ -432,7 +435,7 @@ function normalizePositiveDimension(value: number | null | undefined): number | 
 
 export function buildCountertopsForWall(
   pos: WallPosition,
-  settings: Pick<FloorPlanLayoutSettings, 'wallThickness' | 'countertopOverhang' | 'countertopStandardDepth' | 'fillerWidthMm' | 'cornerConstraints'>
+  settings: Pick<FloorPlanLayoutSettings, 'wallThickness' | 'countertopOverhang' | 'countertopStandardDepth' | 'fillerWidthMm' | 'cornerConstraints' | 'countertopTrim'>
 ): CountertopOnFloorPlan[] {
   const wall = pos.wall;
   if (wall.type === 'ISLAND') {
@@ -455,7 +458,7 @@ export function buildCountertopsForWall(
   );
   const positionMap = new Map(positions.map(position => [position.cabinetId, position]));
   const fillerWidthMm = settings.fillerWidthMm ?? DEFAULT_FILLER_WIDTH_MM;
-  return computeCountertopRunsMm(wall, positions, fillerWidthMm)
+  return computeCountertopRunsMm(wall, positions, fillerWidthMm, settings.countertopTrim)
     .map(run => buildCountertopSegment(pos, run.startMm, run.lengthMm, settings));
   /*
 
@@ -493,10 +496,16 @@ export function buildCountertopsForWall(
   */
 }
 
+/**
+ * Przebiegi blatu ściany wzdłuż szafek z blatem, przerywane słupkami i wolnostojącym AGD. Przycięcie z narożnika
+ * zmienia początek pierwszego i koniec ostatniego przebiegu (jak backend: `CountertopCalculationService`);
+ * przycięcie, które odwróciłoby przebieg, jest pomijane.
+ */
 export function computeCountertopRunsMm(
   wall: Pick<WallWithCabinets, 'widthMm' | 'countertopConfig'> & { cabinets: KitchenCabinet[] },
   cabinetPositions: CabinetPosition[],
-  fillerWidthMm = DEFAULT_FILLER_WIDTH_MM
+  fillerWidthMm = DEFAULT_FILLER_WIDTH_MM,
+  trim?: CountertopRunTrim
 ): CountertopRunMm[] {
   const positionMap = new Map(cabinetPositions.map(position => [position.cabinetId, position]));
   const sideExtra = wall.countertopConfig?.sideOverhangExtraMm ?? DEFAULT_SIDE_OVERHANG_EXTRA_MM;
@@ -560,7 +569,31 @@ export function computeCountertopRunsMm(
   }
 
   flushRun();
-  return result;
+  return applyCountertopRunTrim(result, trim, wall.widthMm);
+}
+
+function applyCountertopRunTrim(
+  runs: CountertopRunMm[],
+  trim: CountertopRunTrim | undefined,
+  wallWidthMm: number
+): CountertopRunMm[] {
+  if (!trim || runs.length === 0) {
+    return runs;
+  }
+  const clamp = (valueMm: number) => Math.max(0, Math.min(wallWidthMm, valueMm));
+  const trimmed = runs.map(run => ({ ...run }));
+  const first = trimmed[0];
+  const last = trimmed[trimmed.length - 1];
+  if (trim.startMm !== undefined) {
+    first.startMm = clamp(trim.startMm);
+  }
+  if (trim.endMm !== undefined) {
+    last.endMm = clamp(trim.endMm);
+  }
+  if (trimmed.some(run => run.endMm <= run.startMm)) {
+    return runs;
+  }
+  return trimmed.map(run => ({ ...run, lengthMm: run.endMm - run.startMm }));
 }
 
 function buildIslandCountertop(

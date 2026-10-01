@@ -606,6 +606,8 @@ export interface WallConnectionRequest {
 export interface CornerCountertopResponse {
   wallAIndex: number;
   wallBIndex: number;
+  /** Ściana, której blat przechodzi przez narożnik; brak — blaty w narożniku się nie łączą. */
+  ownerWallIndex?: number | null;
   /** Szerokość narożnego segmentu = głębokość blatu ściany B (depthB, ~600mm). */
   cornerWidthMm: number;
   /** Głębokość narożnego segmentu = głębokość blatu ściany A (depthA, ~600mm). */
@@ -677,15 +679,14 @@ export interface MultiWallCalculateResponse {
   // ============ Corner countertops (Faza 13.1) ============
 
   /**
-   * Narożne segmenty blatu łączące dwie ściany (kuchnie L-kształtne).
-   * Null lub pusta lista = brak połączeń między ścianami.
-   * TODO 13.1: Wypełniane przez CornerCountertopCalculationService po implementacji.
+   * Połączenia blatów w narożnikach (kuchnie L i U), po jednym na narożnik z topologii ścian. Kwadrat narożny jest
+   * częścią blatu ściany-właściciela, więc połączenie nie ma własnego materiału.
+   * Null lub pusta lista = brak narożników.
    */
   cornerCountertops?: CornerCountertopResponse[];
 
   /**
-   * Suma kosztów narożnych segmentów blatu.
-   * TODO 13.1: Wliczać do totalProjectCost po implementacji.
+   * Suma kosztów połączeń blatów w narożnikach; wliczona do totalProjectCost.
    */
   totalCornerCountertopCost?: number;
   islandWarnings?: string[];

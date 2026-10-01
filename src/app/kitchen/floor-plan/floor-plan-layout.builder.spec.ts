@@ -1,4 +1,4 @@
-import { buildCabinetsForWall, buildCountertopsForWall, buildWallPositions } from './floor-plan-layout.builder';
+import { buildCabinetsForWall, buildCountertopsForWall, buildWallPositions, computeCountertopRunsMm } from './floor-plan-layout.builder';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { NO_CORNER_CONSTRAINTS } from '../service/corner-layout/corner-layout.model';
@@ -230,6 +230,45 @@ describe('floor-plan-layout.builder', () => {
       expect(byPosition.cornerBlockingRects![1].x).toBeCloseTo(byPosition.x, 5);
       const sideArm = byTopology.cornerBlockingRects![1];
       expect(sideArm.x + sideArm.w).toBeCloseTo(byTopology.x + byTopology.width, 5);
+    });
+
+    describe('przebiegi blatu z przycięciem w narożniku (Etap 6)', () => {
+      const wall = (cabinets: any[]) => ({
+        widthMm: 2400,
+        countertopConfig: { enabled: true, sideOverhangExtraMm: 0 } as any,
+        cabinets
+      });
+      const positions = (...items: Array<[string, number]>) =>
+        items.map(([cabinetId, x]) => ({ cabinetId, x, y: 0, width: 600, height: 720 }));
+
+      it('przedłuża koniec ostatniego przebiegu do krawędzi blatu właściciela', () => {
+        const runs = computeCountertopRunsMm(
+          wall([base('b1'), base('b2')]), positions(['b1', 572], ['b2', 1172]), 50, { endMm: 1800 });
+
+        expect(runs).toEqual([{ startMm: 572, endMm: 1800, lengthMm: 1228 }]);
+      });
+
+      it('przycina początek pierwszego przebiegu, gdy blat przerywa słupek', () => {
+        const tallCabinet = { ...base('t1'), type: KitchenCabinetType.TALL_CABINET, height: 2100 };
+        const runs = computeCountertopRunsMm(
+          wall([base('b1'), tallCabinet, base('b2')]),
+          positions(['b1', 50], ['t1', 650], ['b2', 1250]),
+          50,
+          { startMm: 0, endMm: 2400 });
+
+        expect(runs).toEqual([
+          { startMm: 0, endMm: 650, lengthMm: 650 },
+          { startMm: 1250, endMm: 2400, lengthMm: 1150 }
+        ]);
+      });
+
+      it('pomija przycięcie odwracające przebieg i ogranicza je do ściany', () => {
+        const inverted = computeCountertopRunsMm(wall([base('b1')]), positions(['b1', 1200]), 50, { endMm: 1000 });
+        const clamped = computeCountertopRunsMm(wall([base('b1')]), positions(['b1', 0]), 50, { startMm: -50, endMm: 9999 });
+
+        expect(inverted).toEqual([{ startMm: 1200, endMm: 1800, lengthMm: 600 }]);
+        expect(clamped).toEqual([{ startMm: 0, endMm: 2400, lengthMm: 2400 }]);
+      });
     });
 
     it('oznacza kolizję w narożniku tylko na szafkach objętych błędem', () => {

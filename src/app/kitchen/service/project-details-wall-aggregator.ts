@@ -34,17 +34,8 @@ export class ProjectDetailsWallAggregator {
         continue;
       }
 
+      // Kwadrat narożny jest częścią blatu ściany-właściciela — narożnik wnosi tylko połączenie i komponenty.
       const wallLabel = `Śc.${corner.wallAIndex + 1}-${corner.wallBIndex + 1}`;
-      this.accumulator.addBoard(maps.boards, {
-        material: `Blat narożny [${wallLabel}]`,
-        thickness: corner.thicknessMm,
-        width: corner.cornerWidthMm,
-        height: corner.cornerDepthMm,
-        quantity: 1,
-        unitCost: corner.materialCost,
-        totalCost: corner.materialCost
-      });
-
       this.addOptionalJob(maps.jobs, `CORNER_COUNTERTOP_JOINT_${wallLabel}`, 'COUNTERTOP', corner.jointCost);
 
       this.aggregateNullableComponents(corner.components, maps.components);

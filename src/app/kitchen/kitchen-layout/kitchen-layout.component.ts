@@ -417,7 +417,8 @@ export class KitchenLayoutComponent {
     return computeCountertopRunsMm(
       { ...wall, cabinets: this.filteredCabinets() },
       this.filteredCabinetPositions(),
-      this.stateService.fillerWidthMm()
+      this.stateService.fillerWidthMm(),
+      this.layoutService.layout().countertopTrimsByWallId.get(wall.id)
     );
   });
 

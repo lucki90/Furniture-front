@@ -496,7 +496,8 @@ describe('ProjectDetailsAggregatorService', () => {
     expect(topWreathBoard?.remarks ?? '').not.toContain('cofnięty 3mm');
   });
 
-  it('should aggregate corner countertops and their components', () => {
+  it('should aggregate corner countertop joints without a separate corner board', () => {
+    // Kwadrat narożny należy do blatu ściany-właściciela — narożnik wnosi tylko połączenie i komponenty.
     const response = {
       walls: [],
       totalWasteCost: 0,
@@ -505,12 +506,13 @@ describe('ProjectDetailsAggregatorService', () => {
         {
           wallAIndex: 0,
           wallBIndex: 1,
+          ownerWallIndex: 0,
           cornerWidthMm: 600,
           cornerDepthMm: 620,
           thicknessMm: 38,
-          materialCost: 150,
+          materialCost: 0,
           jointCost: 25,
-          totalCost: 175,
+          totalCost: 25,
           components: [
             { category: 'COUNTERTOP_ACCESSORY', model: 'MITER_BOLT', quantity: 2, totalPrice: 14, priceEntry: { price: 7 } }
           ],
@@ -521,14 +523,7 @@ describe('ProjectDetailsAggregatorService', () => {
 
     const result = service.aggregate(response, [] as WallWithCabinets[]);
 
-    expect(result.boards).toEqual([
-      jasmine.objectContaining({
-        material: 'Blat narożny [Śc.1-2]',
-        width: 600,
-        height: 620,
-        totalCost: 150
-      })
-    ]);
+    expect(result.boards).toEqual([]);
     expect(result.components).toEqual([
       jasmine.objectContaining({
         name: 'MITER_BOLT',

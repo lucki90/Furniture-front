@@ -128,7 +128,8 @@ export class KitchenFloorPlanComponent {
   ));
 
   readonly wallViews = computed((): FloorPlanWallView[] => {
-    const junctionSides = this.layoutService.layout().junctionSides;
+    const layout = this.layoutService.layout();
+    const junctionSides = layout.junctionSides;
     const conflictIds = this.cornerConflictCabinetIds();
     return this.wallPositions().map(position => {
       const cornerConstraints = this.layoutService.constraintsFor(position.wall.id);
@@ -147,7 +148,8 @@ export class KitchenFloorPlanComponent {
           countertopOverhang: this.COUNTERTOP_OVERHANG,
           countertopStandardDepth: this.COUNTERTOP_STANDARD_DEPTH,
           fillerWidthMm: this.stateService.fillerWidthMm(),
-          cornerConstraints
+          cornerConstraints,
+          countertopTrim: layout.countertopTrimsByWallId.get(position.wall.id)
         })
       };
     });
@@ -249,6 +251,10 @@ export class KitchenFloorPlanComponent {
     walls: WallWithCabinets[],
     topology: WallTopology
   ): CornerCountertopViz | null {
+    // Narożnik, w którym blaty się nie łączą, ma zerowe wymiary — nie ma czego rysować.
+    if (cornerCountertop.cornerWidthMm <= 0 || cornerCountertop.cornerDepthMm <= 0) {
+      return null;
+    }
     const pairIds = [walls[cornerCountertop.wallAIndex]?.id, walls[cornerCountertop.wallBIndex]?.id];
     const corner = topology.corners.find(candidate =>
       pairIds.includes(candidate.a.wallId) && pairIds.includes(candidate.b.wallId));

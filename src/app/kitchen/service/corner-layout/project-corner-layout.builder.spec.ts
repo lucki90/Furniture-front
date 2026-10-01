@@ -97,6 +97,21 @@ describe('buildProjectCornerLayout', () => {
     expect(result.ghosts).toEqual([]);
     expect(result.reservedZones).toEqual([]);
     expect(result.junctionSides.size).toBe(0);
+    expect(result.countertopTrimsByWallId.size).toBe(0);
+  });
+
+  it('G5 z blatami: ściana PRAWA po auto-przesunięciu łączy blat z krawędzią blatu MAIN', () => {
+    const withCountertop = (item: WallWithCabinets): WallWithCabinets =>
+      ({ ...item, countertopConfig: { enabled: true } as WallWithCabinets['countertopConfig'] });
+    const result = layout(
+      withCountertop(wall('MAIN', 1200, base('m1', 0, 600), base('m2', 0, 600))),
+      withCountertop(wall('RIGHT', 2400, base('r1', 0, 600)))
+    );
+
+    // RIGHT zaczyna się za strefą 628 mm, więc blaty łączą się w narożniku MAIN.END ↔ RIGHT.START.
+    expect(xs(result, 'right')).toEqual([628]);
+    expect(result.countertopTrimsByWallId.get('main')).toEqual({ endMm: 1200 });
+    expect(result.countertopTrimsByWallId.get('right')).toEqual({ startMm: 600 });
   });
 
   it('szafka L ostatnia na LEFT → LEFT jest właścicielem: szafka przypięta do narożnika, MAIN startuje za ramieniem', () => {

@@ -113,6 +113,39 @@ describe('KitchenFloorPlanComponent', () => {
     expect(fixture.nativeElement.querySelector('.corner-countertop-rect title')?.textContent).toContain('600x600');
   });
 
+  it('should skip a corner where countertops do not join (zero dimensions from backend)', () => {
+    component.projectResult = {
+      walls: [],
+      wallCount: 2,
+      totalCabinetCount: 0,
+      allFit: true,
+      totalBoardCost: 0,
+      totalComponentCost: 0,
+      totalWasteCost: 0,
+      totalJobCost: 0,
+      totalProjectCost: 0,
+      cornerCountertops: [
+        {
+          wallAIndex: 0,
+          wallBIndex: 1,
+          ownerWallIndex: null,
+          cornerWidthMm: 0,
+          cornerDepthMm: 0,
+          thicknessMm: 0,
+          jointType: 'MITER_JOINT',
+          materialCost: 0,
+          jointCost: 0,
+          totalCost: 0,
+          pricingComplete: true
+        }
+      ]
+    } as MultiWallCalculateResponse;
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.corner-countertop-rect').length).toBe(0);
+  });
+
   it('should skip a corner countertop whose wall pair is not a corner in the current topology', () => {
     component.projectResult = {
       walls: [],
@@ -217,7 +250,10 @@ class KitchenProjectLayoutServiceStub {
     args: { cabinetId1: 'm1', wallType1: 'MAIN', cabinetId2: 'l1', wallType2: 'LEFT', level: 'BASE' }
   };
 
-  readonly layout = signal({ junctionSides: new Map<string, 'LEFT' | 'RIGHT'>() });
+  readonly layout = signal({
+    junctionSides: new Map<string, 'LEFT' | 'RIGHT'>(),
+    countertopTrimsByWallId: new Map<string, { startMm?: number; endMm?: number }>()
+  });
   readonly issues = signal<readonly CornerIssue[]>([this.overlap]);
 
   constraintsFor(): undefined {
