@@ -14,7 +14,6 @@ import { ToastService } from '../core/error/toast.service';
 import { ApiErrorHandler } from '../core/error/api-error-handler.service';
 import { LanguageService } from '../service/language.service';
 import {
-  calculateAdjustedComponentCost,
   calculateAdjustedTotalCost,
   sumAggregatedBoardsCost,
   sumAggregatedComponentsCost,
@@ -627,11 +626,6 @@ export class KitchenPageComponent {
     return calculateAdjustedTotalCost(this.projectResult(), this.includeWasteCost());
   }
 
-  /** Component cost with optional waste cost included. */
-  get adjustedComponentCost(): number {
-    return calculateAdjustedComponentCost(this.projectResult(), this.includeWasteCost());
-  }
-
   /** Sum of all aggregated board costs. */
   get totalAggregatedBoardsCost(): number {
     return sumAggregatedBoardsCost(this.aggregatedBoards());
@@ -639,7 +633,7 @@ export class KitchenPageComponent {
 
   /** Sum of all aggregated component costs. */
   get totalAggregatedComponentsCost(): number {
-    return sumAggregatedComponentsCost(this.aggregatedComponents(), this.includeWasteCost());
+    return sumAggregatedComponentsCost(this.aggregatedComponents());
   }
 
   /** Sum of all aggregated job costs. */

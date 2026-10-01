@@ -1,7 +1,6 @@
 import {
   buildBoardExcelRows,
   buildBoardExcelFilename,
-  calculateAdjustedComponentCost,
   calculateAdjustedTotalCost,
   calculateBomPriceWarning,
   sumAggregatedBoardsCost,
@@ -38,32 +37,18 @@ describe('kitchen-project-summary.utils', () => {
       totalProjectCost: 1000,
       totalWasteCost: 120
     } as any, false)).toBe(880);
-
-    expect(calculateAdjustedComponentCost({
-      totalComponentCost: 300,
-      totalWasteCost: 120
-    } as any, true)).toBe(420);
-    expect(calculateAdjustedComponentCost({
-      totalComponentCost: 300,
-      totalWasteCost: 120
-    } as any, false)).toBe(300);
   });
 
-  it('should sum aggregated costs and skip hidden waste components when needed', () => {
+  it('should sum aggregated board, component and job costs', () => {
     expect(sumAggregatedBoardsCost([
       { totalCost: 100 } as AggregatedBoard,
       { totalCost: 50 } as AggregatedBoard
     ])).toBe(150);
 
     expect(sumAggregatedComponentsCost([
-      { totalCost: 40, isWaste: false } as AggregatedComponent,
-      { totalCost: 15, isWaste: true } as AggregatedComponent
-    ], false)).toBe(40);
-
-    expect(sumAggregatedComponentsCost([
-      { totalCost: 40, isWaste: false } as AggregatedComponent,
-      { totalCost: 15, isWaste: true } as AggregatedComponent
-    ], true)).toBe(55);
+      { totalCost: 40 } as AggregatedComponent,
+      { totalCost: 15 } as AggregatedComponent
+    ])).toBe(55);
 
     expect(sumAggregatedJobsCost([
       { totalCost: 20 } as AggregatedJob,

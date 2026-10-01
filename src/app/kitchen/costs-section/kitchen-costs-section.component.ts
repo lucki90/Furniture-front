@@ -46,7 +46,6 @@ export class KitchenCostsSectionComponent {
   @Input() totalAggregatedBoardsCost = 0;
   @Input() totalAggregatedComponentsCost = 0;
   @Input() totalAggregatedJobsCost = 0;
-  @Input() adjustedComponentCost = 0;
   @Input() adjustedTotalCost = 0;
   @Input() totalWasteCost = 0;
 
@@ -110,6 +109,10 @@ export class KitchenCostsSectionComponent {
 
   onIncludeWasteCostChange(value: boolean): void {
     this.includeWasteCostChange.emit(value);
+  }
+
+  get displayedBoardsCost(): number {
+    return this.totalAggregatedBoardsCost + (this.includeWasteCost ? this.totalWasteCost : 0);
   }
 
 }
