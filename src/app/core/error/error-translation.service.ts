@@ -3,6 +3,7 @@ import { catchError, of } from 'rxjs';
 import { TranslationService } from '../../translation/translation.service';
 import { LanguageService } from '../../service/language.service';
 import { ApiErrorResponse, FieldErrorDetail, TranslatedError } from './api-error.model';
+import { CORNER_ISSUE_MESSAGES_PL } from '../../kitchen/service/corner-layout/corner-issue-messages';
 
 /**
  * Serwis tłumaczenia błędów API.
@@ -83,6 +84,7 @@ export class ErrorTranslationService {
     'json.malformed':        'Nieprawidłowy format żądania',
     'json.invalid.value':    'Nieprawidłowy typ wartości',
     'json.missing.field':    'Brak wymaganego pola: {{field}}',
+    ...CORNER_ISSUE_MESSAGES_PL,
   };
 
   // ─── Public API ────────────────────────────────────────────────────────────

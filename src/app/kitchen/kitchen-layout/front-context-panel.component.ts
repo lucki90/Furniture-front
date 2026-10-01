@@ -10,6 +10,8 @@ import {
 import { CabinetSide, WallType } from '../model/kitchen-project.model';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { KitchenGeometryService } from '../service/kitchen-geometry.service';
+import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
+import { WallCornerConstraints } from '../service/corner-layout/corner-layout.model';
 import { MiniWallPreviewComponent } from './mini-wall-preview.component';
 
 interface WallCardVm {
@@ -28,6 +30,7 @@ interface WallCardVm {
   fits: boolean;
   isActive: boolean;
   previewCabinets: KitchenCabinet[];
+  cornerConstraints?: WallCornerConstraints;
 }
 
 @Component({
@@ -112,7 +115,8 @@ export class FrontContextPanelComponent {
 
   constructor(
     private readonly stateService: KitchenStateService,
-    private readonly geometryService: KitchenGeometryService
+    private readonly geometryService: KitchenGeometryService,
+    private readonly layoutService: KitchenProjectLayoutService
   ) {}
 
   @Input() set visibleCabinets(value: KitchenCabinet[]) {
@@ -150,8 +154,9 @@ export class FrontContextPanelComponent {
         wall,
         wall.id === selectedWallId ? visibleIslandSide : 'FRONT'
       );
-      const usedBottom = this.geometryService.calculateUsedWidth(previewCabinets, 'BOTTOM', fillerWidthMm, wall.type);
-      const usedTop = this.geometryService.calculateUsedWidth(previewCabinets, 'TOP', fillerWidthMm, wall.type);
+      const cornerConstraints = this.layoutService.constraintsFor(wall.id);
+      const usedBottom = this.geometryService.calculateUsedWidth(previewCabinets, 'BOTTOM', fillerWidthMm, wall.type, cornerConstraints);
+      const usedTop = this.geometryService.calculateUsedWidth(previewCabinets, 'TOP', fillerWidthMm, wall.type, cornerConstraints);
 
       return {
         id: wall.id,
@@ -172,7 +177,8 @@ export class FrontContextPanelComponent {
         totalCost: wall.cabinets.reduce((sum, cabinet) => sum + (cabinet.calculatedResult?.totalCost ?? 0), 0),
         fits: usedBottom <= wall.widthMm && usedTop <= wall.widthMm,
         isActive: wall.id === selectedWallId,
-        previewCabinets
+        previewCabinets,
+        cornerConstraints
       };
     });
   });

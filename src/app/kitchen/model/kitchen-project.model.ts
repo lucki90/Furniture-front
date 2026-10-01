@@ -630,7 +630,7 @@ export interface MultiWallCalculateRequest {
   /**
    * Opcjonalna lista połączeń między ścianami (narożniki L).
    * Gdy null lub pusta — ściany traktowane niezależnie.
-   * Auto-wykrywana przez ProjectRequestBuilderService.buildConnections().
+   * Wyliczana z typów ścian przez `resolveWallTopology` (service/corner-layout/wall-topology.resolver.ts).
    */
   connections?: WallConnectionRequest[];
   roomWidthMm?: number;

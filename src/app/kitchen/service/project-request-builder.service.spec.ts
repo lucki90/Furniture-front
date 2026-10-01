@@ -83,7 +83,7 @@ describe('ProjectRequestBuilderService', () => {
   });
 
   describe('buildConnections', () => {
-    it('should create left and right corner connections against the nearest horizontal wall', () => {
+    it('should create left and right corner connections against MAIN', () => {
       const walls: WallWithCabinets[] = [
         buildWall({ id: 'main', type: 'MAIN' }),
         buildWall({ id: 'left', type: 'LEFT' }),
@@ -96,14 +96,16 @@ describe('ProjectRequestBuilderService', () => {
       ]);
     });
 
-    it('should fall back to the next horizontal wall when there is no previous one', () => {
+    it('should use request order indices regardless of wall order (e.g. walls sorted by type after reload)', () => {
       const walls: WallWithCabinets[] = [
         buildWall({ id: 'left', type: 'LEFT' }),
-        buildWall({ id: 'main', type: 'MAIN' })
+        buildWall({ id: 'main', type: 'MAIN' }),
+        buildWall({ id: 'right', type: 'RIGHT' })
       ];
 
       expect(service.buildConnections(walls)).toEqual([
-        { wallIndexA: 1, wallIndexB: 0, connectionType: 'L_CORNER_LEFT' }
+        { wallIndexA: 1, wallIndexB: 0, connectionType: 'L_CORNER_LEFT' },
+        { wallIndexA: 1, wallIndexB: 2, connectionType: 'L_CORNER_RIGHT' }
       ]);
     });
 
@@ -116,7 +118,7 @@ describe('ProjectRequestBuilderService', () => {
       expect(service.buildConnections(walls)).toEqual([]);
     });
 
-    it('should use the nearest previous corner wall as the horizontal anchor when MAIN is absent', () => {
+    it('should connect a side wall only with MAIN or the matching corner wall when MAIN is absent', () => {
       const walls: WallWithCabinets[] = [
         buildWall({ id: 'left-side', type: 'LEFT' }),
         buildWall({ id: 'corner-left', type: 'CORNER_LEFT' }),
@@ -124,8 +126,7 @@ describe('ProjectRequestBuilderService', () => {
       ];
 
       expect(service.buildConnections(walls)).toEqual([
-        { wallIndexA: 1, wallIndexB: 0, connectionType: 'L_CORNER_LEFT' },
-        { wallIndexA: 1, wallIndexB: 2, connectionType: 'L_CORNER_RIGHT' }
+        { wallIndexA: 1, wallIndexB: 0, connectionType: 'L_CORNER_LEFT' }
       ]);
     });
   });
@@ -212,6 +213,40 @@ describe('ProjectRequestBuilderService', () => {
   });
 
   describe('buildProjectWalls', () => {
+    it('should shift the RIGHT wall past the corner zone of MAIN cabinets (auto-offset)', () => {
+      const mainCabinets = [0, 1, 2, 3, 4].map(index => buildCabinet({ id: `m${index}`, name: `m${index}` }));
+      const walls: WallWithCabinets[] = [
+        buildWall({ id: 'main', type: 'MAIN', widthMm: 3000, cabinets: mainCabinets }),
+        buildWall({ id: 'right', type: 'RIGHT', widthMm: 2400, cabinets: [buildCabinet({ id: 'r1', name: 'r1' })] })
+      ];
+
+      const [main, right] = service.buildProjectWalls(walls, settings);
+
+      // MAIN do końca ściany → RIGHT.START zaczyna się za zasięgiem 560 + front 18 i luzem = blenda 30 mm.
+      expect(main.cabinets.map(cabinet => cabinet.positionX)).toEqual([0, 600, 1200, 1800, 2400]);
+      expect(right.cabinets[0].positionX).toBe(608);
+    });
+
+    it('should pin a corner cabinet that is last on LEFT to the corner and shift MAIN past its arm', () => {
+      const walls: WallWithCabinets[] = [
+        buildWall({ id: 'main', type: 'MAIN', widthMm: 3000, cabinets: [buildCabinet({ id: 'm1', name: 'm1' })] }),
+        buildWall({
+          id: 'left', type: 'LEFT', widthMm: 2400, cabinets: [
+            buildCabinet({ id: 'l1', name: 'l1' }),
+            buildCabinet({
+              id: 'corner', name: 'corner', type: KitchenCabinetType.CORNER_CABINET, width: 900, depth: 510,
+              cornerWidthA: 900, cornerWidthB: 900, cornerMechanism: 'FIXED_SHELVES', isUpperCorner: false
+            } as Partial<KitchenCabinet>)
+          ]
+        })
+      ];
+
+      const [main, left] = service.buildProjectWalls(walls, settings);
+
+      expect(left.cabinets.map(cabinet => cabinet.positionX)).toEqual([0, 1500]);
+      expect(main.cabinets[0].positionX).toBe(900);
+    });
+
     it('should position bottom and upper cabinets, map drawers, corners and wall add-ons', () => {
       const baseCabinet = buildCabinet({
         id: 'base-1',

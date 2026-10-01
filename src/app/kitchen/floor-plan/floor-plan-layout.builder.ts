@@ -1,7 +1,9 @@
-import { CabinetPosition, CabinetZone, getCabinetZone, KitchenCabinet, requiresCountertop, WallWithCabinets } from '../model/kitchen-state.model';
+import { CabinetPosition, CabinetZone, getCabinetZone, KitchenCabinet, cabinetRequiresCountertop, WallWithCabinets } from '../model/kitchen-state.model';
 import { WallType } from '../model/kitchen-project.model';
 import { CabinetOnFloorPlan, FloorPlanOpening } from './floor-plan-door-arcs';
 import { buildHorizontalLCornerShape, buildVerticalLCornerShape, HorizontalLCornerShape } from './floor-plan-corner-footprint';
+import { planEndForElevationSide, verticalSegmentTopPx } from './floor-plan-orientation';
+import { WallCornerConstraints } from '../service/corner-layout/corner-layout.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { isBlindType } from '../cabinet-form/model/corner-cabinet.model';
 import { DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
@@ -27,6 +29,8 @@ export interface FloorPlanCabinetsSettings {
   plinthHeightMm: number;
   upperFillerHeightMm: number;
   fillerWidthMm?: number;
+  /** Strefy narożne i przypięcia ściany (`KitchenProjectLayoutService`); brak = ściana bez narożnika. */
+  cornerConstraints?: WallCornerConstraints;
 }
 
 export interface WallPosition {
@@ -71,6 +75,8 @@ export interface FloorPlanLayoutSettings {
   countertopStandardDepth: number;
   /** Globalna szerokosc blendy bocznej (mm). Uzywana do liczenia overhangow LEFT/RIGHT na wyspie. */
   fillerWidthMm?: number;
+  /** Strefy narożne i przypięcia ściany — blat biegnie razem z przesuniętymi szafkami. */
+  cornerConstraints?: WallCornerConstraints;
   roomWidthMm?: number | null;
   roomDepthMm?: number | null;
   islandOffsetXmm?: number;
@@ -281,7 +287,7 @@ function buildLinearCabinetsForWall(
     const cabinetDepth = cabinet.depth * scale;
     const isCorner = cabinet.type === KitchenCabinetType.CORNER_CABINET;
 
-    const isFreestanding = !requiresCountertop(cabinet.type) && zone === 'BOTTOM';
+    const isFreestanding = !cabinetRequiresCountertop(cabinet) && zone === 'BOTTOM';
     const cabinetOnPlan = createCabinetOnFloorPlan(
       cabinet.id,
       cabinet.name,
@@ -348,7 +354,7 @@ function buildIslandCabinetsForWall(
           cabinetDepth,
           getCabinetZone(cabinet),
           cabinet.type === KitchenCabinetType.CORNER_CABINET,
-          !requiresCountertop(cabinet.type) && getCabinetZone(cabinet) === 'BOTTOM',
+          !cabinetRequiresCountertop(cabinet) && getCabinetZone(cabinet) === 'BOTTOM',
           wallThickness,
           cabinetSide,
           undefined,
@@ -371,7 +377,10 @@ function normalizePositiveDimension(value: number | null | undefined): number | 
   return typeof value === 'number' && value > 0 ? value : null;
 }
 
-export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorPlanLayoutSettings, 'wallThickness' | 'countertopOverhang' | 'countertopStandardDepth' | 'fillerWidthMm'>): CountertopOnFloorPlan[] {
+export function buildCountertopsForWall(
+  pos: WallPosition,
+  settings: Pick<FloorPlanLayoutSettings, 'wallThickness' | 'countertopOverhang' | 'countertopStandardDepth' | 'fillerWidthMm' | 'cornerConstraints'>
+): CountertopOnFloorPlan[] {
   const wall = pos.wall;
   if (wall.type === 'ISLAND') {
     if (wall.countertopConfig?.enabled === false) return [];
@@ -387,7 +396,8 @@ export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorP
       plinthHeightMm: DEFAULT_PLINTH_HEIGHT_MM,
       // Countertop runs only depend on the bottom/full lane, so TOP filler is irrelevant here.
       upperFillerHeightMm: DEFAULT_UPPER_FILLER_HEIGHT_MM,
-      fillerWidthMm: settings.fillerWidthMm
+      fillerWidthMm: settings.fillerWidthMm,
+      cornerConstraints: settings.cornerConstraints
     })
   );
   const positionMap = new Map(positions.map(position => [position.cabinetId, position]));
@@ -408,7 +418,7 @@ export function buildCountertopsForWall(pos: WallPosition, settings: Pick<FloorP
     const startMm = geometryPosition.x - addonsBuilder.enclosureOuterWidthMm(cabinet, 'left', fillerWidthMm);
     const endMm = geometryPosition.x + cabinet.width + addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', fillerWidthMm);
 
-    if (requiresCountertop(cabinet.type)) {
+    if (cabinetRequiresCountertop(cabinet)) {
       if (runStartMm === null) {
         runStartMm = startMm;
         runEndMm = endMm;
@@ -483,7 +493,7 @@ export function computeCountertopRunsMm(
       continue;
     }
 
-    if (requiresCountertop(cabinet.type)) {
+    if (cabinetRequiresCountertop(cabinet)) {
       if (!firstCabinet) {
         firstCabinet = cabinet;
         firstPosition = position;
@@ -581,7 +591,7 @@ function computeIslandSideEnclosureMm(wall: WallWithCabinets, side: 'left' | 'ri
   const cabinetSides = ['FRONT', 'BACK'] as const;
   return cabinetSides.reduce((maxMm, cabinetSide) => {
     const sideCabinets = wall.cabinets.filter(cabinet =>
-      (cabinet.cabinetSide ?? 'FRONT') === cabinetSide && requiresCountertop(cabinet.type)
+      (cabinet.cabinetSide ?? 'FRONT') === cabinetSide && cabinetRequiresCountertop(cabinet)
     );
     if (sideCabinets.length === 0) return maxMm;
     const edge = side === 'left' ? sideCabinets[0] : sideCabinets[sideCabinets.length - 1];
@@ -639,7 +649,7 @@ function buildCountertopSegment(
   }
 
   const x = pos.x - countertopDepth;
-  const y = pos.y + startMm * scale;
+  const y = verticalSegmentTopPx(pos.wall.type, pos.y, pos.height, startMm * scale, countertopWidth);
   return {
     x, y,
     width: countertopDepth,
@@ -715,7 +725,7 @@ function createCabinetOnFloorPlan(
     cabinetId,
     name,
     x: pos.x - (frontAlignedDepth && frontAlignedDepth > cabinetDepth ? frontAlignedDepth : cabinetDepth),
-    y: pos.y + posX,
+    y: verticalSegmentTopPx(wallType, pos.y, pos.height, posX, cabinetWidth),
     width: cabinetDepth,
     depth: cabinetWidth,
     zone,
@@ -865,11 +875,13 @@ function applyCornerLFootprint(
     const side: 'LEFT' | 'RIGHT' = wall.type === 'LEFT' ? 'LEFT' : 'RIGHT';
     // wallX = krawędź korpusu przy ścianie: LEFT → lewa (korpus w prawo), RIGHT → prawa (korpus w lewo).
     const wallX = side === 'LEFT' ? cabinetOnPlan.x : cabinetOnPlan.x + cabinetOnPlan.width;
-    const junction: 'START' | 'END' = cabinet.cornerHandedness === 'LEFT'
-      ? 'START'
+    // Strona styku w elewacji (LEFT = od START ściany) → koniec prostokąta na rzucie; ściana RIGHT jest odwrócona.
+    const elevationSide: 'LEFT' | 'RIGHT' = cabinet.cornerHandedness === 'LEFT'
+      ? 'LEFT'
       : cabinet.cornerHandedness === 'RIGHT'
-        ? 'END'
-        : (centerMm <= wall.widthMm / 2 ? 'START' : 'END');
+        ? 'RIGHT'
+        : (centerMm <= wall.widthMm / 2 ? 'LEFT' : 'RIGHT');
+    const junction = planEndForElevationSide(wall.type, elevationSide);
 
     shape = buildVerticalLCornerShape({
       cabinetId: cabinetOnPlan.cabinetId,
@@ -927,6 +939,8 @@ function buildGeometrySettings(
     plinthHeightMm: cabSettings?.plinthHeightMm ?? DEFAULT_PLINTH_HEIGHT_MM,
     countertopThicknessMm: pos.wall.countertopConfig?.thicknessMm ?? DEFAULT_COUNTERTOP_REQUEST.thicknessMm,
     upperFillerHeightMm: cabSettings?.upperFillerHeightMm ?? DEFAULT_UPPER_FILLER_HEIGHT_MM,
-    fillerWidthMm: cabSettings?.fillerWidthMm ?? DEFAULT_FILLER_WIDTH_MM
+    fillerWidthMm: cabSettings?.fillerWidthMm ?? DEFAULT_FILLER_WIDTH_MM,
+    wallWidthMm: pos.wall.widthMm,
+    cornerConstraints: cabSettings?.cornerConstraints
   };
 }

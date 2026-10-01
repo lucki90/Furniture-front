@@ -1,5 +1,6 @@
 import { CabinetZone } from '../model/kitchen-state.model';
 import { CabinetSide, WallType } from '../model/kitchen-project.model';
+import { isReversedAlongPlanY, planSpanAlongY } from './floor-plan-orientation';
 
 /**
  * Rodzaj otwarcia widoczny na rzucie z góry:
@@ -229,12 +230,15 @@ export function buildDoorLeaf(
     }
     case 'RIGHT': {
       // Bieg frontu wzdłuż osi Y; front wychodzi w lewo (frontX = lewa krawędź korpusu).
-      const s0 = cabinet.y + lo * cabinet.depth;
-      const s1 = cabinet.y + hi * cabinet.depth;
+      // Ściana RIGHT ma START (lewą krawędź elewacji) na dole rzutu — ułamki i strona zawiasu są odwrócone.
+      const span = planSpanAlongY(cabinet.wallType, lo, hi);
+      const s0 = cabinet.y + span.top * cabinet.depth;
+      const s1 = cabinet.y + span.bottom * cabinet.depth;
       const radius = s1 - s0;
       const frontX = cabinet.x;
+      const hingeAtTop = (hingeSide === 'LEFT') !== isReversedAlongPlanY(cabinet.wallType);
 
-      if (hingeSide === 'LEFT') {
+      if (hingeAtTop) {
         pathD = `M ${frontX},${s1} A ${radius},${radius} 0 0 1 ${frontX - radius},${s0} L ${frontX},${s0} Z`;
       } else {
         pathD = `M ${frontX},${s0} A ${radius},${radius} 0 0 0 ${frontX - radius},${s1} L ${frontX},${s1} Z`;

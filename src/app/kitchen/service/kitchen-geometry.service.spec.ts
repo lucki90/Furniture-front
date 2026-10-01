@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { KitchenGeometryService, KitchenGeometrySettings } from './kitchen-geometry.service';
 import { KitchenCabinet } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { NO_CORNER_CONSTRAINTS, WallCornerConstraints } from './corner-layout/corner-layout.model';
 
 describe('KitchenGeometryService', () => {
   let service: KitchenGeometryService;
@@ -256,5 +257,96 @@ describe('KitchenGeometryService', () => {
     const result = service.calculateCabinetPositions([passage, upperCabinet], settings);
 
     expect(result[1]).toEqual(jasmine.objectContaining({ cabinetId: 'upper', x: 900, y: 2050 }));
+  });
+
+  describe('ograniczenia narożne', () => {
+    const corner = (overrides: Partial<WallCornerConstraints>): WallCornerConstraints =>
+      ({ ...NO_CORNER_CONSTRAINTS, ...overrides });
+    const upperCab = (id: string) => buildCabinet({
+      id, type: KitchenCabinetType.UPPER_ONE_DOOR, height: 720, depth: 320, positioningMode: 'RELATIVE_TO_CEILING'
+    });
+    const cornerCab = (id: string) => buildCabinet({
+      id, type: KitchenCabinetType.CORNER_CABINET, width: 1000, depth: 510, cornerMechanism: 'BLIND_CORNER', isUpperCorner: false
+    } as Partial<KitchenCabinet>);
+
+    it('strefy na początku ściany przesuwają start pasa dolnego i górnego', () => {
+      const result = service.calculateLinearCabinetPositions(
+        [buildCabinet({ id: 'b1' }), upperCab('u1')],
+        { ...settings, cornerConstraints: corner({ startBottomMm: 628, startTopMm: 388 }) }
+      );
+
+      expect(result.map(position => position.x)).toEqual([628, 388]);
+    });
+
+    it('zabudowa pełnej wysokości omija także strefę górną (G8: x = 388)', () => {
+      const result = service.calculateLinearCabinetPositions(
+        [buildCabinet({ id: 't1', type: KitchenCabinetType.TALL_CABINET, height: 2100 }), buildCabinet({ id: 'b1' })],
+        { ...settings, cornerConstraints: corner({ startTopMm: 388 }) }
+      );
+
+      expect(result.map(position => position.x)).toEqual([388, 988]);
+    });
+
+    it('przypięta szafka narożna stoi przy końcu ściany i nie przesuwa kolejnych szafek', () => {
+      const result = service.calculateLinearCabinetPositions(
+        [buildCabinet({ id: 'b1' }), cornerCab('corner'), buildCabinet({ id: 'b2' })],
+        { ...settings, wallWidthMm: 2400, cornerConstraints: corner({ pinnedEndCabinetIds: ['corner'] }) }
+      );
+
+      expect(result.map(position => position.x)).toEqual([0, 1400, 600]);
+    });
+
+    it('przypięta szafka narożna respektuje strefę końcową swojego pasa', () => {
+      const result = service.calculateLinearCabinetPositions(
+        [cornerCab('corner')],
+        { ...settings, wallWidthMm: 2400, cornerConstraints: corner({ endBottomMm: 900, pinnedEndCabinetIds: ['corner'] }) }
+      );
+
+      expect(result[0].x).toBe(500);
+    });
+
+    it('bez szerokości ściany szafka nie jest przypinana', () => {
+      const result = service.calculateLinearCabinetPositions(
+        [buildCabinet({ id: 'b1' }), cornerCab('corner')],
+        { ...settings, cornerConstraints: corner({ pinnedEndCabinetIds: ['corner'] }) }
+      );
+
+      expect(result.map(position => position.x)).toEqual([0, 600]);
+    });
+
+    it('wisząca szafka liczy kotwicę słupka od przesuniętego startu pasa dolnego', () => {
+      const wideUpper = { ...upperCab('u1'), width: 700 } as KitchenCabinet;
+
+      const shifted = service.calculateLinearCabinetPositions(
+        [buildCabinet({ id: 't1', type: KitchenCabinetType.TALL_CABINET, height: 2200 }), wideUpper],
+        { ...settings, cornerConstraints: corner({ startBottomMm: 628 }) }
+      );
+      const notShifted = service.calculateLinearCabinetPositions(
+        [buildCabinet({ id: 't1', type: KitchenCabinetType.TALL_CABINET, height: 2200 }), { ...wideUpper, width: 600 } as KitchenCabinet],
+        { ...settings, cornerConstraints: corner({ startBottomMm: 628 }) }
+      );
+
+      expect(shifted.map(position => position.x)).toEqual([628, 1228]);
+      expect(notShifted.map(position => position.x)).toEqual([628, 0]);
+    });
+
+    it('zajęta długość pasa dolnego zawiera strefy, przypięte szafki i przesunięcie słupka', () => {
+      const cabinets = [
+        buildCabinet({ id: 't1', type: KitchenCabinetType.TALL_CABINET, height: 2100 }),
+        buildCabinet({ id: 'b1' }),
+        cornerCab('corner')
+      ];
+      const constraints = corner({ startTopMm: 388, endBottomMm: 100, pinnedEndCabinetIds: ['corner'] });
+
+      expect(service.calculateUsedWidth(cabinets, 'BOTTOM', 30, 'LEFT', constraints)).toBe(388 + 1200 + 1000 + 100);
+      expect(service.calculateUsedWidth(cabinets, 'TOP', 30, 'LEFT', constraints)).toBe(600 + 388);
+    });
+
+    it('bez ograniczeń zajęta długość pozostaje sumą szerokości', () => {
+      const cabinets = [buildCabinet({ id: 'b1' }), buildCabinet({ id: 'b2' })];
+
+      expect(service.calculateUsedWidth(cabinets, 'BOTTOM', 30, 'MAIN')).toBe(1200);
+      expect(service.calculateUsedWidth(cabinets, 'BOTTOM', 30, 'MAIN', NO_CORNER_CONSTRAINTS)).toBe(1200);
+    });
   });
 });

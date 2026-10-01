@@ -1,6 +1,7 @@
 import { buildCabinetsForWall, buildCountertopsForWall, buildWallPositions } from './floor-plan-layout.builder';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { NO_CORNER_CONSTRAINTS } from '../service/corner-layout/corner-layout.model';
 
 function createWall(overrides: Partial<WallWithCabinets>): WallWithCabinets {
   return {
@@ -89,6 +90,75 @@ describe('floor-plan-layout.builder', () => {
     expect(roomSizedMain.width).toBeGreaterThan(fallbackMain.width);
   });
 
+  describe('orientacja ścian bocznych (widok z wnętrza: MAIN.START ↔ LEFT.END, MAIN.END ↔ RIGHT.START)', () => {
+    const settings = { svgWidth: 320, svgHeight: 240, wallThickness: 10, padding: 30 };
+    const countertopSettings = { wallThickness: 10, countertopOverhang: 30, countertopStandardDepth: 600 };
+    const base = (id: string) => ({
+      id, type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1
+    } as any);
+
+    function layout() {
+      return buildWallPositions([
+        createWall({ id: 'main', type: 'MAIN', widthMm: 3000 }),
+        createWall({ id: 'left', type: 'LEFT', widthMm: 2000, cabinets: [base('left-first')] }),
+        createWall({ id: 'right', type: 'RIGHT', widthMm: 2000, cabinets: [base('right-first')] })
+      ], settings);
+    }
+
+    it('pierwsza szafka ściany LEFT leży przy jej START — na górze rzutu, z dala od MAIN', () => {
+      const leftPosition = layout().find(position => position.wall.type === 'LEFT')!;
+      const [cabinet] = buildCabinetsForWall(leftPosition, 10);
+
+      expect(cabinet.y).toBeCloseTo(leftPosition.y, 5);
+    });
+
+    it('pierwsza szafka ściany RIGHT leży przy jej START — na dole rzutu, w narożniku z MAIN', () => {
+      const rightPosition = layout().find(position => position.wall.type === 'RIGHT')!;
+      const [cabinet] = buildCabinetsForWall(rightPosition, 10);
+
+      expect(cabinet.y + cabinet.depth).toBeCloseTo(rightPosition.y + rightPosition.height, 5);
+    });
+
+    it('blat ściany RIGHT leży przy narożniku z MAIN razem z szafkami', () => {
+      const rightPosition = layout().find(position => position.wall.type === 'RIGHT')!;
+      const [cabinet] = buildCabinetsForWall(rightPosition, 10);
+      const [countertop] = buildCountertopsForWall(rightPosition, countertopSettings);
+
+      expect(countertop.y + countertop.depth).toBeCloseTo(rightPosition.y + rightPosition.height, 5);
+      expect(countertop.y).toBeLessThanOrEqual(cabinet.y);
+    });
+
+    it('strefa narożna przesuwa szafki i blat ściany RIGHT od narożnika z MAIN', () => {
+      const rightPosition = layout().find(position => position.wall.type === 'RIGHT')!;
+      const cornerConstraints = { ...NO_CORNER_CONSTRAINTS, startBottomMm: 628 };
+
+      const [cabinet] = buildCabinetsForWall(rightPosition, 10, { plinthHeightMm: 100, upperFillerHeightMm: 0, cornerConstraints });
+      const [countertop] = buildCountertopsForWall(rightPosition, { ...countertopSettings, cornerConstraints });
+
+      const wallBottom = rightPosition.y + rightPosition.height;
+      expect(cabinet.y + cabinet.depth).toBeCloseTo(wallBottom - 628 * rightPosition.scale, 5);
+      expect(countertop.y + countertop.depth).toBeLessThan(wallBottom);
+    });
+
+    it('narożnik L przy START ściany RIGHT ma ramię boczne przy MAIN (dół rzutu)', () => {
+      const corner = {
+        id: 'corner-l', type: KitchenCabinetType.CORNER_CABINET, width: 900, depth: 510, height: 720,
+        openingType: 'LEFT', cornerMechanism: 'FIXED_SHELVES', cornerWidthA: 900, cornerWidthB: 900,
+        cornerOpeningType: 'TWO_DOORS', isUpperCorner: false
+      } as any;
+      const positions = buildWallPositions([
+        createWall({ id: 'main', type: 'MAIN', widthMm: 3000 }),
+        createWall({ id: 'right', type: 'RIGHT', widthMm: 2000, cabinets: [corner] })
+      ], settings);
+      const rightPosition = positions.find(position => position.wall.type === 'RIGHT')!;
+
+      const [cabinet] = buildCabinetsForWall(rightPosition, 10);
+      const sideArm = cabinet.cornerBlockingRects![1];
+
+      expect(sideArm.y + sideArm.h).toBeCloseTo(cabinet.y + cabinet.depth, 5);
+    });
+  });
+
   it('should build cabinets for wall with bottom, full and top ordering', () => {
     const [wallPosition] = buildWallPositions([
       createWall({
@@ -138,6 +208,25 @@ describe('floor-plan-layout.builder', () => {
     expect(countertops).toHaveSize(2);
     expect(countertops[0].lengthMm).toBe(805);
     expect(countertops[1].lengthMm).toBe(910);
+  });
+
+  it('should not extend countertop run with an upper corner cabinet (TOP zone)', () => {
+    const settings = { svgWidth: 320, svgHeight: 240, wallThickness: 10, padding: 30 };
+    const countertopSettings = { wallThickness: 10, countertopOverhang: 30, countertopStandardDepth: 600 };
+    const base = { id: 'base-1', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1 } as any;
+    const upperCorner = {
+      id: 'corner-upper', type: KitchenCabinetType.CORNER_CABINET, width: 1000, depth: 320, height: 720,
+      openingType: 'LEFT', isUpperCorner: true, cornerMechanism: 'BLIND_CORNER', cornerWidthA: 1000
+    } as any;
+
+    const [withCorner] = buildWallPositions([createWall({ cabinets: [upperCorner, base] })], settings);
+    const [withoutCorner] = buildWallPositions([createWall({ cabinets: [base] })], settings);
+
+    const countertops = buildCountertopsForWall(withCorner, countertopSettings);
+    const baseline = buildCountertopsForWall(withoutCorner, countertopSettings);
+
+    expect(countertops).toHaveSize(1);
+    expect(countertops[0].lengthMm).toBe(baseline[0].lengthMm);
   });
 
   it('should shift countertop run together with base cabinet gapBefore on a linear wall', () => {

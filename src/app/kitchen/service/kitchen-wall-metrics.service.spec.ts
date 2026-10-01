@@ -5,6 +5,8 @@ import { KitchenWorkspaceStore } from './kitchen-workspace.store';
 import { ProjectSettingsService } from './project-settings.service';
 import { KitchenGeometryService } from './kitchen-geometry.service';
 import { KitchenCabinet, WallWithCabinets } from '../model/kitchen-state.model';
+import { KitchenProjectLayoutService } from './kitchen-project-layout.service';
+import { NO_CORNER_CONSTRAINTS, WallCornerConstraints } from './corner-layout/corner-layout.model';
 
 const WALL_ID = 'w1';
 
@@ -30,8 +32,10 @@ describe('KitchenWallMetricsService', () => {
   let countertopThicknessSig: WritableSignal<number>;
   let upperFillerHeightSig: WritableSignal<number>;
   let geometryServiceSpy: jasmine.SpyObj<KitchenGeometryService>;
+  let constraintsSig: WritableSignal<WallCornerConstraints | undefined>;
 
   beforeEach(() => {
+    constraintsSig = signal<WallCornerConstraints | undefined>(undefined);
     wallsSig = signal<WallWithCabinets[]>([makeWall()]);
     selectedWallIdSig = signal<string | null>(WALL_ID);
     fillerWidthSig = signal(50);
@@ -62,7 +66,11 @@ describe('KitchenWallMetricsService', () => {
             upperFillerHeightMm: upperFillerHeightSig.asReadonly()
           }
         },
-        { provide: KitchenGeometryService, useValue: geometryServiceSpy }
+        { provide: KitchenGeometryService, useValue: geometryServiceSpy },
+        {
+          provide: KitchenProjectLayoutService,
+          useValue: { constraintsFor: (wallId: string | undefined) => (wallId === WALL_ID ? constraintsSig() : undefined) }
+        }
       ]
     });
 
@@ -74,14 +82,14 @@ describe('KitchenWallMetricsService', () => {
       geometryServiceSpy.calculateUsedWidth.and.callFake((_cabs, zone) => zone === 'BOTTOM' ? 1200 : 900);
 
       expect(service.usedWidthBottom()).toBe(1200);
-      expect(geometryServiceSpy.calculateUsedWidth).toHaveBeenCalledWith([], 'BOTTOM', 50, 'MAIN');
+      expect(geometryServiceSpy.calculateUsedWidth).toHaveBeenCalledWith([], 'BOTTOM', 50, 'MAIN', undefined);
     });
 
     it('usedWidthTop wywołuje calculateUsedWidth z typem TOP', () => {
       geometryServiceSpy.calculateUsedWidth.and.callFake((_cabs, zone) => zone === 'TOP' ? 800 : 0);
 
       expect(service.usedWidthTop()).toBe(800);
-      expect(geometryServiceSpy.calculateUsedWidth).toHaveBeenCalledWith([], 'TOP', 50, 'MAIN');
+      expect(geometryServiceSpy.calculateUsedWidth).toHaveBeenCalledWith([], 'TOP', 50, 'MAIN', undefined);
     });
 
     it('cabinetPositions wywołuje calculateCabinetPositions z poprawnymi ustawieniami', () => {
@@ -199,12 +207,12 @@ describe('KitchenWallMetricsService', () => {
   describe('reaktywność — zmiana ustawień projektu', () => {
     it('zmiana fillerWidthMm aktualizuje argumenty calculateUsedWidth', () => {
       service.usedWidthBottom();
-      expect(geometryServiceSpy.calculateUsedWidth).toHaveBeenCalledWith([], 'BOTTOM', 50, 'MAIN');
+      expect(geometryServiceSpy.calculateUsedWidth).toHaveBeenCalledWith([], 'BOTTOM', 50, 'MAIN', undefined);
 
       fillerWidthSig.set(80);
 
       service.usedWidthBottom();
-      expect(geometryServiceSpy.calculateUsedWidth).toHaveBeenCalledWith([], 'BOTTOM', 80, 'MAIN');
+      expect(geometryServiceSpy.calculateUsedWidth).toHaveBeenCalledWith([], 'BOTTOM', 80, 'MAIN', undefined);
     });
 
     it('zmiana plinthHeightMm aktualizuje settings przekazywane do calculateCabinetPositions', () => {
@@ -242,6 +250,32 @@ describe('KitchenWallMetricsService', () => {
 
     it('remainingWidthTop zwraca 0', () => {
       expect(service.remainingWidthTop()).toBe(0);
+    });
+  });
+
+  describe('strefy narożne wybranej ściany', () => {
+    it('ograniczenia narożne trafiają do szerokości zajętej i pozycji razem z szerokością ściany', () => {
+      const constraints: WallCornerConstraints = { ...NO_CORNER_CONSTRAINTS, startBottomMm: 628 };
+      constraintsSig.set(constraints);
+
+      service.usedWidthBottom();
+      service.cabinetPositions();
+
+      expect(geometryServiceSpy.calculateUsedWidth).toHaveBeenCalledWith([], 'BOTTOM', 50, 'MAIN', constraints);
+      expect(geometryServiceSpy.calculateCabinetPositions).toHaveBeenCalledWith(
+        [],
+        jasmine.objectContaining({ wallWidthMm: 3000, cornerConstraints: constraints })
+      );
+    });
+
+    it('zmiana stref narożnych przelicza metryki', () => {
+      geometryServiceSpy.calculateUsedWidth.and.callFake(
+        (_cabs, _zone, _filler, _type, constraints) => 1200 + (constraints?.startBottomMm ?? 0));
+      expect(service.usedWidthBottom()).toBe(1200);
+
+      constraintsSig.set({ ...NO_CORNER_CONSTRAINTS, startBottomMm: 628 });
+
+      expect(service.usedWidthBottom()).toBe(1828);
     });
   });
 });

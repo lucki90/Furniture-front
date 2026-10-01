@@ -1,4 +1,13 @@
-<div *ngIf="isWorkspaceGapViolation || !fitsOnWall || cooktopGapWarning || sideFillerWarning" class="warnings-panel">
+<div *ngIf="isWorkspaceGapViolation || !fitsOnWall || cooktopGapWarning || sideFillerWarning || cornerIssues.length || cornerZoneNotes.length" class="warnings-panel">
+  <div *ngFor="let issue of cornerIssues; trackBy: trackByIssue" class="warning-item"
+       [class.warning-item--danger]="issue.severity === 'ERROR'">
+    <mat-icon aria-hidden="true" class="warning-icon">{{ issue.severity === 'ERROR' ? 'error' : 'warning_amber' }}</mat-icon>
+    {{ issue.message }}
+  </div>
+  <div *ngFor="let note of cornerZoneNotes; trackBy: trackByMessage" class="warning-item warning-item--info">
+    <mat-icon aria-hidden="true" class="warning-icon">turn_slight_right</mat-icon>
+    {{ note }}
+  </div>
   <div *ngIf="isWorkspaceGapViolation" class="warning-item">
     <mat-icon aria-hidden="true" class="warning-icon">warning_amber</mat-icon>
     Przestrzen robocza zbyt mala: <strong>{{ gapMm }} mm</strong>

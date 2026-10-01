@@ -6,6 +6,7 @@ import {
 } from '../model/kitchen-project.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { KitchenStateService } from '../service/kitchen-state.service';
+import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
 import { buildFloorPlanArcs, FloorPlanArc } from './floor-plan-door-arcs';
 import {
   buildCabinetsForWall,
@@ -47,6 +48,7 @@ interface RoomGuideViz {
 })
 export class KitchenFloorPlanComponent {
   private readonly stateService = inject(KitchenStateService);
+  private readonly layoutService = inject(KitchenProjectLayoutService);
   private readonly projectResultSignal = signal<MultiWallCalculateResponse | null>(null);
   // TODO(CODEX): Island offset is currently a visual-only experiment for the top view.
   // If the UX proves valuable, decide whether it should persist in project state or stay as
@@ -193,7 +195,8 @@ export class KitchenFloorPlanComponent {
     return buildCabinetsForWall(pos, this.WALL_THICKNESS, {
       plinthHeightMm: this.stateService.plinthHeightMm(),
       upperFillerHeightMm: this.stateService.upperFillerHeightMm(),
-      fillerWidthMm: this.stateService.fillerWidthMm()
+      fillerWidthMm: this.stateService.fillerWidthMm(),
+      cornerConstraints: this.layoutService.constraintsFor(pos.wall.id)
     });
   }
 
@@ -202,7 +205,8 @@ export class KitchenFloorPlanComponent {
       wallThickness: this.WALL_THICKNESS,
       countertopOverhang: this.COUNTERTOP_OVERHANG,
       countertopStandardDepth: this.COUNTERTOP_STANDARD_DEPTH,
-      fillerWidthMm: this.stateService.fillerWidthMm()
+      fillerWidthMm: this.stateService.fillerWidthMm(),
+      cornerConstraints: this.layoutService.constraintsFor(pos.wall.id)
     });
   }
 

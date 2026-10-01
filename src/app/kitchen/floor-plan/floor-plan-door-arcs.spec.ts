@@ -169,6 +169,37 @@ describe('floor-plan-door-arcs', () => {
     expect(shapes[1].pathD).toBe('M 330,85 A 35,35 0 0 1 365,120 L 330,120 Z');
   });
 
+  it('should place the LEFT hinge at the bottom (MAIN corner side) on a RIGHT wall', () => {
+    // Ściana PRAWA: START (lewa krawędź elewacji) leży na dole rzutu, więc zawias LEWY jest przy dolnej krawędzi.
+    const [arc] = buildCabinetOpeningShapes(createCabinet({
+      wallType: 'RIGHT',
+      x: 250,
+      y: 50,
+      width: 80,
+      depth: 70,
+      opening: { kind: 'SINGLE_DOOR', hingeSide: 'LEFT' }
+    }));
+
+    expect(arc.pathD).toBe('M 250,50 A 70,70 0 0 0 180,120 L 250,120 Z');
+  });
+
+  it('should mirror the openable sub-span of a blind corner on a RIGHT wall', () => {
+    // Front uchylny po prawej stronie elewacji (ułamki 0.5–1) leży na rzucie w GÓRNEJ połowie korpusu.
+    const [arc] = buildCabinetOpeningShapes(createCabinet({
+      wallType: 'RIGHT',
+      x: 250,
+      y: 50,
+      width: 80,
+      depth: 70,
+      opening: { kind: 'SINGLE_DOOR', hingeSide: 'RIGHT', spanStartFraction: 0.5, spanEndFraction: 1 }
+    }));
+
+    expect(arc.bboxY).toBe(50);
+    expect(arc.bboxH).toBe(35);
+    // Zawias PRAWY (od strony END ściany) — przy górnej krawędzi pod-przedziału.
+    expect(arc.pathD).toBe('M 250,85 A 35,35 0 0 1 215,50 L 250,50 Z');
+  });
+
   it('should render a drawer as a pull-out rectangle, not an arc', () => {
     const shapes = buildCabinetOpeningShapes(createCabinet({
       wallType: 'MAIN',

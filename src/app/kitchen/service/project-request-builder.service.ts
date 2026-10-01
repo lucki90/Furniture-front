@@ -4,15 +4,18 @@ import {
   isFreestandingAppliance,
   KitchenCabinet,
   WallWithCabinets,
-  requiresCountertop
+  cabinetRequiresCountertop
 } from '../model/kitchen-state.model';
 import { CabinetSide, ProjectWallRequest, WallConnectionRequest } from '../model/kitchen-project.model';
 import { SegmentRequest, SegmentFormData, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
 import { CountertopRequest } from '../model/countertop.model';
 import { PlinthRequest } from '../model/plinth.model';
 import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.builder';
-import { ProjectWallConnectionBuilder } from './project-wall-connection.builder';
 import { ProjectWallCabinetsBuilder } from './project-wall-cabinets.builder';
+import { resolveWallTopology, toWallConnectionRequests } from './corner-layout/wall-topology.resolver';
+import { resolveWallCornerConstraints } from './corner-layout/project-corner-layout.builder';
+import { createCornerGeometrySettings } from './corner-layout/corner-reach';
+import { DEFAULT_MATERIAL_DEFAULTS } from '../cabinet-form/type-config/request-mapper/kitchen-cabinet-request-mapper';
 import { WallBuildSettings } from './project-request-builder.models';
 import { KitchenGeometryService } from './kitchen-geometry.service';
 
@@ -21,7 +24,6 @@ export type { WallBuildSettings } from './project-request-builder.models';
 @Injectable({ providedIn: 'root' })
 export class ProjectRequestBuilderService {
   private readonly addonsBuilder = new ProjectWallAddonsRequestBuilder();
-  private readonly wallConnectionBuilder = new ProjectWallConnectionBuilder();
   private readonly wallCabinetsBuilder: ProjectWallCabinetsBuilder;
 
   constructor(private readonly geometryService: KitchenGeometryService = new KitchenGeometryService()) {
@@ -34,8 +36,26 @@ export class ProjectRequestBuilderService {
   }
 
   buildProjectWalls(walls: WallWithCabinets[], settings: WallBuildSettings): ProjectWallRequest[] {
+    // Pozycje wysyłane do backendu uwzględniają strefy narożne sąsiednich ścian (auto-przesunięcie).
+    const cornerConstraints = resolveWallCornerConstraints(
+      walls,
+      wall => ({
+        wallType: wall.type,
+        wallHeightMm: wall.heightMm,
+        plinthHeightMm: settings.plinthHeightMm,
+        countertopThicknessMm: settings.countertopThicknessMm,
+        upperFillerHeightMm: settings.upperFillerHeightMm,
+        fillerWidthMm: settings.fillerWidthMm
+      }),
+      createCornerGeometrySettings(
+        settings.fillerWidthMm,
+        (settings.materialDefaults ?? DEFAULT_MATERIAL_DEFAULTS).frontBoardThickness
+      ),
+      this.geometryService
+    );
+
     return walls.map(wall => {
-      const cabinets = this.wallCabinetsBuilder.buildCabinets(wall, settings);
+      const cabinets = this.wallCabinetsBuilder.buildCabinets(wall, settings, cornerConstraints.get(wall.id));
       const leftOverhangMm = wall.type === 'ISLAND'
         ? this.computeIslandSideOverhang(wall, 'left', settings.fillerWidthMm)
         : this.computeLinearSideOverhang(wall.cabinets, 'left', settings.fillerWidthMm);
@@ -59,12 +79,9 @@ export class ProjectRequestBuilderService {
     });
   }
 
-  // TODO(CODEX): Faza 13.6 domknęła klasyczny U-shape (jedno L_CORNER_LEFT + jedno L_CORNER_RIGHT),
-  // ale ta auto-detekcja nadal zakłada najwyżej jedno połączenie dla każdej ściany LEFT/RIGHT.
-  // Przy bardziej niestandardowych układach wielościennych warto docelowo oprzeć to o jawny model
-  // połączeń w UI zamiast o heurystykę "najbliższej" ściany poziomej.
+  /** Połączenia narożne wyliczone z typów ścian; indeksy odpowiadają kolejności `walls` w requeście. */
   buildConnections(walls: WallWithCabinets[]): WallConnectionRequest[] {
-    return this.wallConnectionBuilder.buildConnections(walls);
+    return toWallConnectionRequests(resolveWallTopology(walls), walls);
   }
 
   buildCountertopRequest(wall: WallWithCabinets, leftOverhangMm = 0, rightOverhangMm = 0): CountertopRequest {
@@ -116,7 +133,7 @@ export class ProjectRequestBuilderService {
     // Liczymy overhang TYLKO ze szafek, na ktorych faktycznie lezy blat (requiresCountertop=true).
     // Filtr `!== TOP` byl zbyt szeroki — wlaczal FULL (TALL_CABINET, BASE_FRIDGE), ktore PRZERYWAJA blat,
     // wiec ich enclosure nie powinno wpiywac na overhang segmentu blatu.
-    const supportingCabinets = cabinets.filter(cabinet => requiresCountertop(cabinet.type));
+    const supportingCabinets = cabinets.filter(cabinet => cabinetRequiresCountertop(cabinet));
     if (supportingCabinets.length === 0) {
       return 0;
     }
@@ -136,7 +153,7 @@ export class ProjectRequestBuilderService {
       // pod blatem licza sie TYLKO szafki wymagajace blatu (requiresCountertop).
       // FULL (TALL_CABINET, BASE_FRIDGE) i freestanding AGD NIE utrzymuja blatu wyspy.
       const sideCabinets = wall.cabinets.filter(cabinet =>
-        (cabinet.cabinetSide ?? 'FRONT') === cabinetSide && requiresCountertop(cabinet.type)
+        (cabinet.cabinetSide ?? 'FRONT') === cabinetSide && cabinetRequiresCountertop(cabinet)
       );
       if (sideCabinets.length === 0) {
         return maxOverhang;

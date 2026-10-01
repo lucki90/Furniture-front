@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Output, effect, inject, computed, Input, signal } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
-import { getCabinetZone } from '../model/kitchen-state.model';
+import { cabinetRequiresCountertop, getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import {
   PLATE_THICKNESS_MM,
@@ -14,9 +14,16 @@ import { buildCooktopGapWarning, buildKitchenLayoutMetrics, buildSideFillerWarni
 import { buildVisualCabinetPositions, VisualCabinetPosition } from './kitchen-layout-view-model.builder';
 import { KitchenLayoutCabinetsLayerComponent } from './kitchen-layout-cabinets-layer.component';
 import { KitchenLayoutSurfacesLayerComponent } from './kitchen-layout-surfaces-layer.component';
-import { KitchenLayoutInfoPanelComponent } from './kitchen-layout-info-panel.component';
+import { KitchenLayoutCornerIssueView, KitchenLayoutInfoPanelComponent } from './kitchen-layout-info-panel.component';
 import { FrontContextPanelComponent } from './front-context-panel.component';
-import { CabinetSide } from '../model/kitchen-project.model';
+import { CabinetSide, WallType } from '../model/kitchen-project.model';
+import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
+import {
+  buildCornerZoneNotes,
+  cornerIssueCabinetIds,
+  formatCornerIssueMessage
+} from '../service/corner-layout/corner-issue-messages';
+import { CABINET_TYPE_PICKER_LABELS } from '../cabinet-form/types/cabinet-type-labels';
 
 @Component({
   selector: 'app-kitchen-layout',
@@ -36,6 +43,7 @@ export class KitchenLayoutComponent {
 
   // TODO(CODEX): Komponent layoutu jest bardzo duży i łączy renderowanie, logikę pozycjonowania, interakcje użytkownika oraz szczegóły wielu strategii układu. To kandydat do dalszego podziału na czystsze warstwy: czysta geometria/obliczenia, adapter danych do widoku i lekki komponent prezentacyjny.
   private stateService = inject(KitchenStateService);
+  private readonly layoutService = inject(KitchenProjectLayoutService);
 
   /** ID aktualnie edytowanej szafki - do podświetlenia */
   @Input() editingCabinetId: string | null = null;
@@ -116,6 +124,40 @@ export class KitchenLayoutComponent {
   readonly sideFillerWarning = computed((): KitchenLayoutSideFillerWarning | null => {
     const wall = this.selectedWall();
     return buildSideFillerWarning(wall, this.cabinetPositions(), wall?.widthMm ?? 0);
+  });
+
+  /** Opis stref narożnych wybranej ściany zajętych przez szafki sąsiednich ścian. */
+  readonly cornerZoneNotes = computed((): string[] => {
+    const wall = this.selectedWall();
+    if (!wall) {
+      return [];
+    }
+    return buildCornerZoneNotes(
+      wall,
+      this.layoutService.constraintsFor(wall.id),
+      this.layoutService.layout().topology,
+      type => this.stateService.getWallLabel(type)
+    );
+  });
+
+  /** Problemy narożników dotyczące szafek wybranej ściany. */
+  readonly cornerIssueViews = computed((): KitchenLayoutCornerIssueView[] => {
+    const wall = this.selectedWall();
+    if (!wall) {
+      return [];
+    }
+    const wallCabinetIds = new Set(wall.cabinets.map(cabinet => cabinet.id));
+    const cabinetsById = new Map(this.walls().flatMap(item => item.cabinets).map(cabinet => [cabinet.id, cabinet]));
+    const labels = {
+      cabinetLabel: (cabinetId: string) => {
+        const cabinet = cabinetsById.get(cabinetId);
+        return cabinet ? (cabinet.name || `${CABINET_TYPE_PICKER_LABELS[cabinet.type]} ${cabinet.width}`) : cabinetId;
+      },
+      wallLabel: (type: WallType) => this.stateService.getWallLabel(type)
+    };
+    return this.layoutService.issues()
+      .filter(issue => cornerIssueCabinetIds(issue).some(id => wallCabinetIds.has(id)))
+      .map(issue => ({ severity: issue.severity, message: formatCornerIssueMessage(issue, labels) }));
   });
 
   // Stałe dla elementów wizualnych
@@ -433,7 +475,7 @@ export class KitchenLayoutComponent {
       // Wyklucza wolnostojące AGD — nie wnoszą do długości blatu.
       const segCabs = filteredPositions.filter(cab => {
         const orig = allCabinets.find(c => c.id === cab.cabinetId);
-        if (!orig || !requiresCountertop(orig.type)) return false;
+        if (!orig || !cabinetRequiresCountertop(orig)) return false;
         const cabCenter = cab.x + cab.width / 2;
         return cabCenter >= segStartMm - 1 && cabCenter <= segEndMm + 1;
       });

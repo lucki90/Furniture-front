@@ -1,4 +1,4 @@
-import { getCabinetZone, KitchenCabinet, requiresCountertop, WallWithCabinets } from '../model/kitchen-state.model';
+import { getCabinetZone, KitchenCabinet, cabinetRequiresCountertop, WallWithCabinets } from '../model/kitchen-state.model';
 
 export const MIN_WORKSPACE_GAP_MM = 450;
 const DEFAULT_BOTTOM_CORPUS_HEIGHT_MM = 720;
@@ -222,7 +222,7 @@ export function buildCooktopGapWarning(
 }
 
 function calculateBottomZoneMm(cabinets: KitchenCabinet[], plinthHeightMm: number): number {
-  const bottomCabinets = cabinets.filter(cabinet => requiresCountertop(cabinet.type));
+  const bottomCabinets = cabinets.filter(cabinet => cabinetRequiresCountertop(cabinet));
   const maxHeightMm = bottomCabinets.length > 0
     ? Math.max(...bottomCabinets.map(cabinet => cabinet.height))
     : DEFAULT_BOTTOM_CORPUS_HEIGHT_MM;

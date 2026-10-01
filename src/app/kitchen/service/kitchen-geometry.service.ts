@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.builder';
-import { CabinetPosition, CabinetZone, KitchenCabinet, getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
+import { CabinetPosition, CabinetZone, KitchenCabinet, getCabinetZone, cabinetRequiresCountertop } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { ProjectSettingsConstraints } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { WallType } from '../model/kitchen-project.model';
+import { NO_CORNER_CONSTRAINTS, WallCornerConstraints } from './corner-layout/corner-layout.model';
 
 export interface KitchenGeometrySettings {
   wallType?: WallType;
@@ -12,6 +13,10 @@ export interface KitchenGeometrySettings {
   countertopThicknessMm: number;
   upperFillerHeightMm: number;
   fillerWidthMm: number;
+  /** Szerokość ściany — wymagana do przypięcia szafki narożnej do końca ściany. */
+  wallWidthMm?: number;
+  /** Strefy narożne i przypięcia z `resolveWallCornerConstraints`; brak = ściana bez narożników. */
+  cornerConstraints?: WallCornerConstraints;
 }
 
 @Injectable({
@@ -26,10 +31,14 @@ export class KitchenGeometryService {
     cabinets: KitchenCabinet[],
     zone: Extract<CabinetZone, 'BOTTOM' | 'TOP'>,
     fillerWidthMm: number,
-    wallType?: WallType
+    wallType?: WallType,
+    cornerConstraints?: WallCornerConstraints
   ): number {
     if (wallType === 'ISLAND') {
       return this.calculateIslandUsedWidth(cabinets, zone, fillerWidthMm);
+    }
+    if (cornerConstraints) {
+      return this.calculateCornerAwareUsedWidth(cabinets, zone, fillerWidthMm, cornerConstraints);
     }
 
     let currentX = 0;
@@ -60,8 +69,10 @@ export class KitchenGeometryService {
   /** Public: used by floor-plan layout builder to compute positions per-side. */
   calculateLinearCabinetPositions(cabinets: KitchenCabinet[], settings: KitchenGeometrySettings): CabinetPosition[] {
     const positions: CabinetPosition[] = [];
-    let currentXBottom = 0;
-    let currentXTop = 0;
+    // Strefy narożne na początku ściany przesuwają start obu pasów (widok z wnętrza: START = x 0).
+    const corner = settings.cornerConstraints ?? NO_CORNER_CONSTRAINTS;
+    let currentXBottom = corner.startBottomMm;
+    let currentXTop = corner.startTopMm;
     const countertopHeight = this.calculateCountertopHeight(cabinets, settings);
     const anchors = this.buildAnchorPositions(cabinets, settings);
 
@@ -69,6 +80,7 @@ export class KitchenGeometryService {
       const zone = getCabinetZone(cabinet);
       // Pusta przestrzeń wstawiana PRZED tą szafką (głównie dla wysp). BOTTOM/FULL only.
       const gapBeforeMm = Math.max(0, cabinet.gapBeforeMm ?? 0);
+      const pinnedX = this.pinnedEndX(cabinet, zone, settings);
       let x: number;
       let y: number;
 
@@ -76,9 +88,10 @@ export class KitchenGeometryService {
         case 'FULL': {
           // Słupek / lodówka w zabudowie — zajmuje tylko strefę BOTTOM pod kątem pozycji X.
           // NIE przesuwamy currentXTop: szafki wiszące mogą leżeć nad słupkiem w tym samym X gdy się mieszczą.
+          // Zabudowa pełnej wysokości musi minąć także strefę narożną pasa górnego.
           const leftW = this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
           const rightW = this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
-          x = currentXBottom + gapBeforeMm + leftW;
+          x = Math.max(currentXBottom + gapBeforeMm, corner.startTopMm) + leftW;
           currentXBottom = x + cabinet.width + rightW;
           y = cabinet.type === KitchenCabinetType.PANTRY_PASSAGE ? 0 : settings.plinthHeightMm;
           break;
@@ -93,10 +106,13 @@ export class KitchenGeometryService {
           const effectiveAnchors = (cabinet.positioningMode === 'RELATIVE_TO_COUNTERTOP')
             ? anchors.filter(a => a.blockUpperAbove)
             : anchors;
-          const rawX = this.skipPastConflictingAnchors(currentXTop, leftW, cabinet.width, cabinet.height, settings, effectiveAnchors);
-
-          x = rawX + leftW;
-          currentXTop = x + cabinet.width + rightW;
+          if (pinnedX !== null) {
+            x = pinnedX;
+          } else {
+            const rawX = this.skipPastConflictingAnchors(currentXTop, leftW, cabinet.width, cabinet.height, settings, effectiveAnchors);
+            x = rawX + leftW;
+            currentXTop = x + cabinet.width + rightW;
+          }
 
           if (cabinet.positioningMode === 'RELATIVE_TO_COUNTERTOP') {
             y = countertopHeight + (cabinet.gapFromCountertopMm ?? ProjectSettingsConstraints.UPPER_GAP_FROM_COUNTERTOP_DEFAULT);
@@ -109,9 +125,13 @@ export class KitchenGeometryService {
         }
         case 'BOTTOM':
         default: {
-          const leftW = this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
-          x = currentXBottom + gapBeforeMm + leftW;
-          currentXBottom = x + cabinet.width + this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
+          if (pinnedX !== null) {
+            x = pinnedX;
+          } else {
+            const leftW = this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
+            x = currentXBottom + gapBeforeMm + leftW;
+            currentXBottom = x + cabinet.width + this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
+          }
           y = settings.plinthHeightMm;
           break;
         }
@@ -183,7 +203,8 @@ export class KitchenGeometryService {
     cabinets: KitchenCabinet[],
     settings: KitchenGeometrySettings
   ): Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number; blockUpperAbove: boolean }> {
-    let scanX = 0;
+    const corner = settings.cornerConstraints ?? NO_CORNER_CONSTRAINTS;
+    let scanX = corner.startBottomMm;
     const result: Array<{ xBodyStart: number; xBodyEnd: number; xAfterAnchor: number; tallTop: number; blockUpperAbove: boolean }> = [];
 
     for (const cabinet of cabinets) {
@@ -191,7 +212,9 @@ export class KitchenGeometryService {
       if (zone === 'TOP') continue; // TOP cabs don't advance the bottom X cursor
       const leftW = this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'left', settings.fillerWidthMm);
       const rightW = this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
-      const xBodyStart = scanX + leftW;
+      const pinnedX = this.pinnedEndX(cabinet, zone, settings);
+      const laneStart = zone === 'FULL' ? Math.max(scanX, corner.startTopMm) : scanX;
+      const xBodyStart = pinnedX ?? laneStart + leftW;
       const xBodyEnd = xBodyStart + cabinet.width;
       const xAfterAnchor = xBodyEnd + rightW;
 
@@ -205,7 +228,9 @@ export class KitchenGeometryService {
         // ceilingY, so only blockUpperAbove flag drives repositioning. Added so skipPast... fires.
         result.push({ xBodyStart, xBodyEnd, xAfterAnchor, tallTop: settings.plinthHeightMm + cabinet.height, blockUpperAbove: true });
       }
-      scanX = xAfterAnchor;
+      if (pinnedX === null) {
+        scanX = xAfterAnchor;
+      }
     }
     return result;
   }
@@ -248,8 +273,58 @@ export class KitchenGeometryService {
     return candidateX;
   }
 
+  /**
+   * Szafka narożna przypięta do połączonego końca END stoi w narożniku — przed strefą narożną swojego pasa i swoją
+   * prawą obudową — niezależnie od szafek przed nią. `null` dla szafek nieprzypiętych.
+   */
+  private pinnedEndX(cabinet: KitchenCabinet, zone: CabinetZone, settings: KitchenGeometrySettings): number | null {
+    const corner = settings.cornerConstraints;
+    if (!corner || settings.wallWidthMm === undefined || !corner.pinnedEndCabinetIds.includes(cabinet.id)) {
+      return null;
+    }
+    const endReservationMm = zone === 'TOP' ? corner.endTopMm : corner.endBottomMm;
+    const rightW = this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', settings.fillerWidthMm);
+    return settings.wallWidthMm - endReservationMm - rightW - cabinet.width;
+  }
+
+  /**
+   * Zajęta długość pasa ze strefami narożnymi. Pas dolny liczony jak układ (zabudowa pełnej wysokości respektuje
+   * strefę górną na początku ściany), szafki przypięte do końca i strefa końcowa doliczone osobno. Pas górny — suma
+   * szerokości ze strefami. Bez stref i przypięć wynik jest równy sumie szerokości.
+   */
+  private calculateCornerAwareUsedWidth(
+    cabinets: KitchenCabinet[],
+    zone: Extract<CabinetZone, 'BOTTOM' | 'TOP'>,
+    fillerWidthMm: number,
+    corner: WallCornerConstraints
+  ): number {
+    if (zone === 'TOP') {
+      return this.calculateUsedWidth(cabinets, 'TOP', fillerWidthMm) + corner.startTopMm + corner.endTopMm;
+    }
+
+    let cursor = corner.startBottomMm;
+    let pinnedMm = 0;
+    for (const cabinet of cabinets) {
+      const cabinetZone = getCabinetZone(cabinet);
+      if (cabinetZone !== 'BOTTOM' && cabinetZone !== 'FULL') continue;
+      const occupiedMm = this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'left', fillerWidthMm)
+        + cabinet.width
+        + this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', fillerWidthMm);
+      if (corner.pinnedEndCabinetIds.includes(cabinet.id)) {
+        pinnedMm += occupiedMm;
+        continue;
+      }
+      const gapBeforeMm = Math.max(0, cabinet.gapBeforeMm ?? 0);
+      const laneStart = cabinetZone === 'FULL'
+        ? Math.max(cursor + gapBeforeMm, corner.startTopMm)
+        : cursor + gapBeforeMm;
+      cursor = laneStart + occupiedMm;
+    }
+    return cursor + pinnedMm + corner.endBottomMm;
+  }
+
   private calculateCountertopHeight(cabinets: KitchenCabinet[], settings: KitchenGeometrySettings): number {
-    const baseCabinets = cabinets.filter(cabinet => requiresCountertop(cabinet.type));
+    const baseCabinets = cabinets.filter(cabinet => cabinetRequiresCountertop(cabinet));
     const maxBaseCorpusHeight = baseCabinets.length > 0
       ? Math.max(...baseCabinets.map(cabinet => cabinet.height))
       : 720;

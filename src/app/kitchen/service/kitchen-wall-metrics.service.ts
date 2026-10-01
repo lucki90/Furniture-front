@@ -2,6 +2,7 @@ import { Injectable, computed, inject } from '@angular/core';
 import { KitchenWorkspaceStore } from './kitchen-workspace.store';
 import { ProjectSettingsService } from './project-settings.service';
 import { KitchenGeometryService } from './kitchen-geometry.service';
+import { KitchenProjectLayoutService } from './kitchen-project-layout.service';
 import { CabinetPosition, KitchenCabinet } from '../model/kitchen-state.model';
 
 /**
@@ -15,6 +16,7 @@ export class KitchenWallMetricsService {
   private readonly workspaceStore = inject(KitchenWorkspaceStore);
   private readonly settingsService = inject(ProjectSettingsService);
   private readonly geometryService = inject(KitchenGeometryService);
+  private readonly layoutService = inject(KitchenProjectLayoutService);
 
   private readonly selectedWall = computed(() => {
     const wallId = this.workspaceStore.selectedWallId();
@@ -23,12 +25,16 @@ export class KitchenWallMetricsService {
 
   private readonly cabinets = computed((): KitchenCabinet[] => this.selectedWall()?.cabinets ?? []);
 
+  /** Strefy narożne i przypięcia wybranej ściany; brak dla ścian bez narożnika i wyspy. */
+  readonly cornerConstraints = computed(() => this.layoutService.constraintsFor(this.selectedWall()?.id));
+
   readonly usedWidthBottom = computed(() => {
     return this.geometryService.calculateUsedWidth(
       this.cabinets(),
       'BOTTOM',
       this.settingsService.fillerWidthMm(),
-      this.selectedWall()?.type
+      this.selectedWall()?.type,
+      this.cornerConstraints()
     );
   });
 
@@ -37,7 +43,8 @@ export class KitchenWallMetricsService {
       this.cabinets(),
       'TOP',
       this.settingsService.fillerWidthMm(),
-      this.selectedWall()?.type
+      this.selectedWall()?.type,
+      this.cornerConstraints()
     );
   });
 
@@ -78,7 +85,9 @@ export class KitchenWallMetricsService {
       plinthHeightMm: this.settingsService.plinthHeightMm(),
       countertopThicknessMm: this.settingsService.countertopThicknessMm(),
       upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
-      fillerWidthMm: this.settingsService.fillerWidthMm()
+      fillerWidthMm: this.settingsService.fillerWidthMm(),
+      wallWidthMm: this.selectedWall()?.widthMm,
+      cornerConstraints: this.cornerConstraints()
     });
   });
 }

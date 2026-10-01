@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { KitchenGeometryService } from '../service/kitchen-geometry.service';
+import { WallCornerConstraints } from '../service/corner-layout/corner-layout.model';
 import { KitchenCabinet } from '../model/kitchen-state.model';
 import { WallType } from '../model/kitchen-project.model';
 import { buildVisualCabinetPositions, VisualCabinetPosition } from './kitchen-layout-view-model.builder';
@@ -30,6 +31,8 @@ export class MiniWallPreviewComponent implements OnChanges {
   @Input() countertopThicknessMm = 38;
   @Input() upperFillerHeightMm = 100;
   @Input() fillerWidthMm = 50;
+  /** Strefy narożne i przypięcia ściany — podgląd pokazuje te same pozycje co elewacja. */
+  @Input() cornerConstraints: WallCornerConstraints | undefined;
 
   protected visualPositions: VisualCabinetPosition[] = [];
   protected plinthRuns: Array<{ x: number; width: number; y: number; height: number }> = [];
@@ -49,7 +52,9 @@ export class MiniWallPreviewComponent implements OnChanges {
       plinthHeightMm: this.plinthHeightMm,
       countertopThicknessMm: this.countertopThicknessMm,
       upperFillerHeightMm: this.upperFillerHeightMm,
-      fillerWidthMm: this.fillerWidthMm
+      fillerWidthMm: this.fillerWidthMm,
+      wallWidthMm: this.wallWidthMm,
+      cornerConstraints: this.cornerConstraints
     });
 
     this.visualPositions = buildVisualCabinetPositions({

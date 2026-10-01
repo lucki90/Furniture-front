@@ -13,6 +13,12 @@ export interface KitchenLayoutSideFillerWarningView {
   message: string;
 }
 
+/** Problem narożnika gotowy do wyświetlenia: błąd (kolizja) albo ostrzeżenie. */
+export interface KitchenLayoutCornerIssueView {
+  severity: 'ERROR' | 'WARNING';
+  message: string;
+}
+
 @Component({
   selector: 'app-kitchen-layout-info-panel',
   standalone: true,
@@ -28,4 +34,11 @@ export class KitchenLayoutInfoPanelComponent {
   @Input() wallLength = 0;
   @Input() cooktopGapWarning: KitchenLayoutCooktopGapWarning | null = null;
   @Input() sideFillerWarning: KitchenLayoutSideFillerWarningView | null = null;
+  /** Strefy narożne ściany zajęte przez szafki sąsiednich ścian (informacja). */
+  @Input() cornerZoneNotes: string[] = [];
+  /** Problemy narożników dotyczące szafek ściany. */
+  @Input() cornerIssues: KitchenLayoutCornerIssueView[] = [];
+
+  protected readonly trackByMessage = (_: number, message: string) => message;
+  protected readonly trackByIssue = (_: number, issue: KitchenLayoutCornerIssueView) => issue.message;
 }

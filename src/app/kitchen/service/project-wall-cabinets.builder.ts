@@ -20,6 +20,7 @@ import { CornerMechanismType, isMagicCorner, isLeMans } from '../cabinet-form/mo
 import { WallBuildSettings } from './project-request-builder.models';
 import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.builder';
 import { KitchenGeometryService } from './kitchen-geometry.service';
+import { WallCornerConstraints } from './corner-layout/corner-layout.model';
 
 export class ProjectWallCabinetsBuilder {
   constructor(
@@ -27,12 +28,20 @@ export class ProjectWallCabinetsBuilder {
     private readonly geometryService: KitchenGeometryService
   ) {}
 
-  buildCabinets(wall: WallWithCabinets, settings: WallBuildSettings): ProjectCabinetRequest[] {
+  /**
+   * @param cornerConstraints strefy narożne i przypięcia ściany z `resolveWallCornerConstraints`; brak = ściana bez
+   *                          narożników (wyspa nigdy ich nie ma)
+   */
+  buildCabinets(
+    wall: WallWithCabinets,
+    settings: WallBuildSettings,
+    cornerConstraints?: WallCornerConstraints
+  ): ProjectCabinetRequest[] {
     if (wall.type === 'ISLAND') {
       return this.buildIslandCabinets(wall, settings);
     }
 
-    return this.buildCabinetsForSide(wall, wall.cabinets, settings, 'FRONT');
+    return this.buildCabinetsForSide(wall, wall.cabinets, settings, 'FRONT', cornerConstraints);
   }
 
   private buildIslandCabinets(wall: WallWithCabinets, settings: WallBuildSettings): ProjectCabinetRequest[] {
@@ -63,7 +72,8 @@ export class ProjectWallCabinetsBuilder {
     wall: WallWithCabinets,
     cabinets: KitchenCabinet[],
     settings: WallBuildSettings,
-    cabinetSide: CabinetSide
+    cabinetSide: CabinetSide,
+    cornerConstraints?: WallCornerConstraints
   ): ProjectCabinetRequest[] {
     const { plinthHeightMm, countertopThicknessMm, upperFillerHeightMm, fillerWidthMm } = settings;
     const materialDefaults = settings.materialDefaults ?? DEFAULT_MATERIAL_DEFAULTS;
@@ -77,7 +87,9 @@ export class ProjectWallCabinetsBuilder {
       plinthHeightMm,
       countertopThicknessMm,
       upperFillerHeightMm,
-      fillerWidthMm
+      fillerWidthMm,
+      wallWidthMm: wall.widthMm,
+      cornerConstraints
     });
     // Key: cabinet.id (stable UI id). CabinetPosition.cabinetId === cabinet.id (set in geometry service).
     const positionMap = new Map(positions.map(p => [p.cabinetId, p]));

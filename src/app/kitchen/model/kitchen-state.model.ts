@@ -373,6 +373,15 @@ export function getCabinetZone(cabinet: KitchenCabinet): CabinetZone {
   return 'BOTTOM';
 }
 
+/**
+ * Czy szafka projektu jest przykryta blatem: reguła typu zawężona o strefę szafki.
+ * Górna szafka narożna ma typ CORNER_CABINET, ale wisi (strefa TOP), więc nie ma blatu.
+ * Analogicznie do backendu: KitchenCabinetZoneResolver.requiresCountertop().
+ */
+export function cabinetRequiresCountertop(cabinet: KitchenCabinet): boolean {
+  return requiresCountertop(cabinet.type) && getCabinetZone(cabinet) !== 'TOP';
+}
+
 export interface CabinetCalculationResult {
   totalCost: number;
   boardCosts: number;

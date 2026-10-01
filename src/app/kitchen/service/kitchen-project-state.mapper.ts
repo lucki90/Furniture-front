@@ -3,7 +3,7 @@ import { KitchenCabinetStateFactory } from './kitchen-cabinet-state.factory';
 import { ProjectWallAddonsRequestBuilder } from './project-wall-addons-request.builder';
 import { KitchenProjectDetailResponse, WallDetailResponse } from '../model/kitchen-project.model';
 import { CountertopConfig, KitchenCabinet, PlinthConfig, WallWithCabinets } from '../model/kitchen-state.model';
-import { requiresCountertop } from '../model/kitchen-state.model';
+import { cabinetRequiresCountertop } from '../model/kitchen-state.model';
 
 const DEFAULT_SIDE_OVERHANG_EXTRA_MM = 5;
 
@@ -143,7 +143,7 @@ export class KitchenProjectStateMapper {
       const sides: Array<'FRONT' | 'BACK'> = ['FRONT', 'BACK'];
       return sides.reduce((maxOverhang, cabinetSide) => {
         const sideCabinets = cabinets.filter(cab =>
-          (cab.cabinetSide ?? 'FRONT') === cabinetSide && requiresCountertop(cab.type)
+          (cab.cabinetSide ?? 'FRONT') === cabinetSide && cabinetRequiresCountertop(cab)
         );
         if (sideCabinets.length === 0) return maxOverhang;
         const edge = side === 'left' ? sideCabinets[0] : sideCabinets[sideCabinets.length - 1];
@@ -153,7 +153,7 @@ export class KitchenProjectStateMapper {
     // Liniowo: enclosure skrajnej szafki, na ktorej faktycznie lezy blat (requiresCountertop=true).
     // Filtr `!== TOP` byl zbyt szeroki — wlaczal FULL (TALL_CABINET, BASE_FRIDGE), ktore PRZERYWAJA blat.
     // Recover MUSI byc symetryczny z `computeLinearSideOverhang` w ProjectRequestBuilderService.
-    const supporting = cabinets.filter(cab => requiresCountertop(cab.type));
+    const supporting = cabinets.filter(cab => cabinetRequiresCountertop(cab));
     if (supporting.length === 0) return 0;
     const edge = side === 'left' ? supporting[0] : supporting[supporting.length - 1];
     return this.addonsBuilder.enclosureOuterWidthMm(edge, side, fillerWidthMm);
