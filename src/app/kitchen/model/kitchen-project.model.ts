@@ -689,6 +689,14 @@ export interface MultiWallCalculateResponse {
    */
   totalCornerCountertopCost?: number;
   islandWarnings?: string[];
+  /** Ostrzeżenia układu narożników (`warning.corner.*`) z argumentami komunikatu; null = brak. */
+  layoutWarnings?: LayoutWarning[] | null;
+}
+
+/** Ostrzeżenie układu projektu z backendu — klucz tłumaczenia i argumenty do placeholderów `{{klucz}}`. */
+export interface LayoutWarning {
+  code: string;
+  arguments?: Record<string, string>;
 }
 
 /**

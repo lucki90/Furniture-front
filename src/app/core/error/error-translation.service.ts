@@ -3,7 +3,10 @@ import { catchError, of } from 'rxjs';
 import { TranslationService } from '../../translation/translation.service';
 import { LanguageService } from '../../service/language.service';
 import { ApiErrorResponse, FieldErrorDetail, TranslatedError } from './api-error.model';
-import { CORNER_ISSUE_MESSAGES_PL } from '../../kitchen/service/corner-layout/corner-issue-messages';
+import {
+  CORNER_ISSUE_MESSAGES_PL,
+  localizeCornerIssueArgs
+} from '../../kitchen/service/corner-layout/corner-issue-messages';
 
 /**
  * Serwis tłumaczenia błędów API.
@@ -32,8 +35,8 @@ export class ErrorTranslationService {
     });
   }
 
-  /** Kategorie tłumaczeń błędów ładowane z backendu */
-  private readonly ERROR_CATEGORIES = ['ex', 'field', 'wall', 'json', 'validation', 'ARGUMENT_LABEL'];
+  /** Kategorie tłumaczeń błędów ładowane z backendu (`warning` — ostrzeżenia układu, np. narożników) */
+  private readonly ERROR_CATEGORIES = ['ex', 'field', 'wall', 'json', 'validation', 'warning', 'ARGUMENT_LABEL'];
 
   /** Tłumaczenia załadowane z backendu (sygnał) */
   private readonly backendTranslations = signal<Record<string, string>>({});
@@ -153,13 +156,14 @@ export class ErrorTranslationService {
 
   private translate(
     code: string,
-    args?: Record<string, string>,
+    rawArgs?: Record<string, string>,
     backendMessage?: string,
     field?: string,
     errorId?: string,
   ): TranslatedError {
     const backend = this.backendTranslations();
     const template = backend[code] ?? this.HARDCODED_FALLBACKS[code];
+    const args = rawArgs ? localizeCornerIssueArgs(code, rawArgs) : rawArgs;
 
     if (template) {
       const message = args ? this.interpolate(template, args) : template;

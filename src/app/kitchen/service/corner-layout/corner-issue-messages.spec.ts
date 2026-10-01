@@ -3,7 +3,8 @@ import {
   buildCornerZoneNotes,
   CORNER_ISSUE_MESSAGES_PL,
   cornerIssueCabinetIds,
-  formatCornerIssueMessage
+  formatCornerIssueMessage,
+  localizeCornerIssueArgs
 } from './corner-issue-messages';
 import { testProject, testWall } from './corner-layout.test-fixtures';
 
@@ -53,6 +54,22 @@ describe('corner-issue-messages', () => {
     expect(formatCornerIssueMessage(issue, labels)).toContain('zasłania szafka Szafka L3 (Lewa)');
   });
 
+  describe('localizeCornerIssueArgs', () => {
+    it('zamienia typy ścian i strony z backendu na polskie nazwy dla kodów narożnika', () => {
+      const localized = localizeCornerIssueArgs('warning.corner.handedness.mismatch', {
+        cabinetId: 'magic', wallType: 'MAIN', expected: 'RIGHT', actual: 'LEFT'
+      });
+
+      expect(localized).toEqual({ cabinetId: 'magic', wallType: 'Ściana główna', expected: 'prawej', actual: 'lewej' });
+    });
+
+    it('nie zmienia argumentów innych kodów', () => {
+      const args = { actual: 'LEFT', wallType: 'MAIN' };
+
+      expect(localizeCornerIssueArgs('ex.segment.height.mismatch', args)).toBe(args);
+    });
+  });
+
   describe('buildCornerZoneNotes', () => {
     const project = testProject(testWall('MAIN', 3000), testWall('LEFT', 2400), testWall('RIGHT', 2400));
     const wallOf = (id: string) => project.walls.find(wall => wall.id === id)!;
@@ -61,14 +78,16 @@ describe('corner-issue-messages', () => {
       const notes = buildCornerZoneNotes(
         wallOf('left'), { ...NO_CORNER_CONSTRAINTS, endBottomMm: 628, endTopMm: 388 }, project.topology, labels.wallLabel);
 
-      expect(notes).toEqual(['Prawy koniec ściany: szafki ściany Główna zajmują 628 mm w strefie dolnej i 388 mm w strefie górnej.']);
+      expect(notes).toEqual([
+        'Prawy koniec ściany: narożnik z „Główna” — szafki sąsiedniej ściany zajmują 628 mm w strefie dolnej i 388 mm w strefie górnej.'
+      ]);
     });
 
     it('opisuje strefę na lewym końcu ściany RIGHT', () => {
       const notes = buildCornerZoneNotes(
         wallOf('right'), { ...NO_CORNER_CONSTRAINTS, startTopMm: 388 }, project.topology, labels.wallLabel);
 
-      expect(notes).toEqual(['Lewy koniec ściany: szafki ściany Główna zajmują 388 mm w strefie górnej.']);
+      expect(notes).toEqual(['Lewy koniec ściany: narożnik z „Główna” — szafki sąsiedniej ściany zajmują 388 mm w strefie górnej.']);
     });
 
     it('bez stref albo bez ograniczeń → brak notatek', () => {

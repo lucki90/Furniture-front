@@ -10,13 +10,20 @@ import {
   UpdateKitchenProjectRequest
 } from '../model/kitchen-project.model';
 import { SaveProjectDialogResult } from '../save-project-dialog/save-project-dialog.component';
+import { ErrorTranslationService } from '../../core/error/error-translation.service';
 
 describe('KitchenProjectWorkflowFacade', () => {
   let facade: KitchenProjectWorkflowFacade;
   let kitchenService: jasmine.SpyObj<KitchenService>;
   let aggregatorService: jasmine.SpyObj<ProjectDetailsAggregatorService>;
+  let errorTranslation: jasmine.SpyObj<ErrorTranslationService>;
 
   beforeEach(() => {
+    errorTranslation = jasmine.createSpyObj<ErrorTranslationService>('ErrorTranslationService', ['translateFieldError']);
+    errorTranslation.translateFieldError.and.callFake(error => ({
+      message: `przetłumaczone: ${error.code}`,
+      details: []
+    }));
     kitchenService = jasmine.createSpyObj<KitchenService>('KitchenService', [
       'createProject',
       'updateProject',
@@ -32,7 +39,8 @@ describe('KitchenProjectWorkflowFacade', () => {
       providers: [
         KitchenProjectWorkflowFacade,
         { provide: KitchenService, useValue: kitchenService },
-        { provide: ProjectDetailsAggregatorService, useValue: aggregatorService }
+        { provide: ProjectDetailsAggregatorService, useValue: aggregatorService },
+        { provide: ErrorTranslationService, useValue: errorTranslation }
       ]
     });
 
@@ -125,6 +133,29 @@ describe('KitchenProjectWorkflowFacade', () => {
         'CORNER_COUNTERTOP.JOINT',
         'warning.island.clearance.insufficient'
       ]);
+      done();
+    });
+  });
+
+  it('should append translated corner layout warnings to pricing warnings', (done) => {
+    const response = {
+      walls: [],
+      cornerCountertops: null,
+      layoutWarnings: [{
+        code: 'warning.corner.front.blocked',
+        arguments: { cabinetId: 'main-1', wallType: 'MAIN', blockingCabinetId: 'left-1', blockingWallType: 'LEFT' }
+      }]
+    } as unknown as MultiWallCalculateResponse;
+    kitchenService.calculateMultiWall.and.returnValue(of(response));
+    aggregatorService.aggregate.and.returnValue({} as any);
+    aggregatorService.collectCornerCountertopPricingWarnings.and.returnValue([]);
+
+    facade.calculateProject({ walls: [] } as any, [], {}).subscribe(result => {
+      expect(errorTranslation.translateFieldError).toHaveBeenCalledWith({
+        code: 'warning.corner.front.blocked',
+        arguments: { cabinetId: 'main-1', wallType: 'MAIN', blockingCabinetId: 'left-1', blockingWallType: 'LEFT' }
+      });
+      expect(result.pricingWarnings).toEqual(['przetłumaczone: warning.corner.front.blocked']);
       done();
     });
   });

@@ -2,9 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { KitchenService } from './kitchen.service';
 import { ProjectDetailsAggregatorService, AggregationResult } from './project-details-aggregator.service';
+import { ErrorTranslationService } from '../../core/error/error-translation.service';
 import {
   CreateKitchenProjectRequest,
   KitchenProjectDetailResponse,
+  LayoutWarning,
   MultiWallCalculateRequest,
   MultiWallCalculateResponse,
   ProjectStatus,
@@ -46,6 +48,7 @@ export interface KitchenProjectCalculationResult {
 export class KitchenProjectWorkflowFacade {
   private kitchenService = inject(KitchenService);
   private aggregatorService = inject(ProjectDetailsAggregatorService);
+  private errorTranslation = inject(ErrorTranslationService);
 
   saveProject(
     projectId: number | null,
@@ -80,7 +83,11 @@ export class KitchenProjectWorkflowFacade {
       map(response => ({
         response,
         aggregation: this.aggregatorService.aggregate(response, frontendWalls, bomTranslations),
-        pricingWarnings: collectProjectPricingWarnings(response, this.aggregatorService)
+        pricingWarnings: collectProjectPricingWarnings(
+          response,
+          this.aggregatorService,
+          warning => this.errorTranslation.translateFieldError({ code: warning.code, arguments: warning.arguments }).message
+        )
       }))
     );
   }
@@ -105,9 +112,11 @@ export function mapResponseToProjectInfo(
 
 export function collectProjectPricingWarnings(
   response: MultiWallCalculateResponse,
-  aggregatorService: Pick<ProjectDetailsAggregatorService, 'collectPricingWarnings' | 'collectCornerCountertopPricingWarnings'>
+  aggregatorService: Pick<ProjectDetailsAggregatorService, 'collectPricingWarnings' | 'collectCornerCountertopPricingWarnings'>,
+  translateLayoutWarning: (warning: LayoutWarning) => string = warning => warning.code
 ): string[] {
   const wallWarnings = response.walls.flatMap(wall => aggregatorService.collectPricingWarnings(wall));
   const cornerWarnings = aggregatorService.collectCornerCountertopPricingWarnings(response.cornerCountertops);
-  return [...new Set([...wallWarnings, ...cornerWarnings, ...(response.islandWarnings ?? [])])];
+  const layoutWarnings = (response.layoutWarnings ?? []).map(translateLayoutWarning);
+  return [...new Set([...wallWarnings, ...cornerWarnings, ...(response.islandWarnings ?? []), ...layoutWarnings])];
 }

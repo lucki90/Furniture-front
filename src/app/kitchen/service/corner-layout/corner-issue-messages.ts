@@ -1,6 +1,6 @@
 import { CornerIssue, CornerIssueCode, WallCornerConstraints, WallTopology } from './corner-layout.model';
 import { cornerAt } from './wall-topology.resolver';
-import { WallType } from '../../model/kitchen-project.model';
+import { WALL_TYPES, WallType } from '../../model/kitchen-project.model';
 import { WallWithCabinets } from '../../model/kitchen-state.model';
 
 /**
@@ -38,6 +38,28 @@ export interface CornerIssueLabels {
 const CABINET_ARGS = ['cabinetId', 'cabinetId1', 'cabinetId2', 'blockingCabinetId'];
 const WALL_ARGS = ['wallType', 'wallType1', 'wallType2', 'blockingWallType'];
 const SIDE_LABELS: Record<string, string> = { LEFT: 'lewej', RIGHT: 'prawej' };
+
+/**
+ * Argumenty komunikatu narożnika z backendu z czytelnymi nazwami ścian i stron (backend wysyła typy, np. `MAIN`).
+ * Dla innych kodów zwraca argumenty bez zmian.
+ */
+export function localizeCornerIssueArgs(code: string, args: Record<string, string>): Record<string, string> {
+  if (!(code in CORNER_ISSUE_MESSAGES_PL)) {
+    return args;
+  }
+  const localized: Record<string, string> = { ...args };
+  for (const key of WALL_ARGS) {
+    if (localized[key]) {
+      localized[key] = WALL_TYPES.find(wallType => wallType.value === localized[key])?.label ?? localized[key];
+    }
+  }
+  for (const key of ['expected', 'actual']) {
+    if (localized[key]) {
+      localized[key] = SIDE_LABELS[localized[key]] ?? localized[key];
+    }
+  }
+  return localized;
+}
 
 /** Identyfikatory szafek, których dotyczy problem. */
 export function cornerIssueCabinetIds(issue: CornerIssue): string[] {
@@ -91,7 +113,7 @@ export function buildCornerZoneNotes(
       topMm > 0 ? `${topMm} mm w strefie górnej` : null
     ].filter((part): part is string => part !== null);
     const side = end === 'START' ? 'Lewy koniec ściany' : 'Prawy koniec ściany';
-    notes.push(`${side}: szafki ściany ${wallLabel(partner.wallType)} zajmują ${parts.join(' i ')}.`);
+    notes.push(`${side}: narożnik z „${wallLabel(partner.wallType)}” — szafki sąsiedniej ściany zajmują ${parts.join(' i ')}.`);
   }
   return notes;
 }
