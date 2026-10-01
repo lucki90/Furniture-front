@@ -60,7 +60,6 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   fillerWidthMm = 50;
   frontGapMm = 2;
   supportHeightReductionMm = 30;
-  supportWidthReductionMm = 50;
 
   // Form values — grubości płyt szuflad
   ballSlideSevrollDrawerThicknessMm = 18;  // konfigurowalna (16–22mm)
@@ -318,7 +317,6 @@ export class SettingsComponent implements OnInit, AfterViewInit {
         this.fillerWidthMm = settings.defaultFillerWidthMm ?? 50;
         this.frontGapMm = settings.defaultFrontGapMm ?? 2;
         this.supportHeightReductionMm = settings.defaultSupportHeightReductionMm ?? 30;
-        this.supportWidthReductionMm = settings.defaultSupportWidthReductionMm ?? 50;
         // Wymiary techniczne
         this.hdfThicknessMm = settings.hdfThicknessMm ?? 3;
         this.hdfGrooveDistanceMm = settings.hdfGrooveDistanceMm ?? 20;
@@ -387,7 +385,6 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       defaultFillerWidthMm: this.fillerWidthMm,
       defaultFrontGapMm: this.frontGapMm,
       defaultSupportHeightReductionMm: this.supportHeightReductionMm,
-      defaultSupportWidthReductionMm: this.supportWidthReductionMm,
       hdfThicknessMm: this.hdfThicknessMm,
       hdfGrooveDistanceMm: this.hdfGrooveDistanceMm,
       hdfGrooveDepthMm: this.hdfGrooveDepthMm,
@@ -438,8 +435,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
           plinthSetbackMm: updated.defaultPlinthSetbackMm ?? 60,
           fillerWidthMm: updated.defaultFillerWidthMm ?? 50,
           frontGapMm: updated.defaultFrontGapMm ?? 2,
-          supportHeightReductionMm: updated.defaultSupportHeightReductionMm ?? 30,
-          supportWidthReductionMm: updated.defaultSupportWidthReductionMm ?? 50
+          supportHeightReductionMm: updated.defaultSupportHeightReductionMm ?? 30
         });
         this.kitchenStateService.setMaterialDefaults(updated);
 

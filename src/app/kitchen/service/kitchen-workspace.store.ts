@@ -283,8 +283,7 @@ export class KitchenWorkspaceStore {
         plinthSetbackMm: this.settingsService.plinthSetbackMm(),
         fillerWidthMm: this.settingsService.fillerWidthMm(),
         frontGapMm: this.settingsService.frontGapMm(),
-        supportHeightReductionMm: this.settingsService.supportHeightReductionMm(),
-        supportWidthReductionMm: this.settingsService.supportWidthReductionMm()
+        supportHeightReductionMm: this.settingsService.supportHeightReductionMm()
       },
       projectMetadata: {
         roomWidthMm: this.metadataService.currentProjectRoomWidthMm(),

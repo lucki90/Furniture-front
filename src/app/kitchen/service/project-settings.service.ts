@@ -28,7 +28,6 @@ export class ProjectSettingsService {
   private _fillerWidthMm = signal<number>(50);
   private _frontGapMm = signal<number>(2);
   private _supportHeightReductionMm = signal<number>(30);
-  private _supportWidthReductionMm = signal<number>(50);
 
   // ============ MATERIAL DEFAULTS ============
 
@@ -52,7 +51,6 @@ export class ProjectSettingsService {
   private _globalDefaultFillerWidthMm = 50;
   private _globalDefaultFrontGapMm = 2;
   private _globalDefaultSupportHeightReductionMm = 30;
-  private _globalDefaultSupportWidthReductionMm = 50;
 
   // ============ PUBLIC READONLY SIGNALS ============
 
@@ -65,7 +63,6 @@ export class ProjectSettingsService {
   readonly fillerWidthMm = this._fillerWidthMm.asReadonly();
   readonly frontGapMm = this._frontGapMm.asReadonly();
   readonly supportHeightReductionMm = this._supportHeightReductionMm.asReadonly();
-  readonly supportWidthReductionMm = this._supportWidthReductionMm.asReadonly();
 
   // ============ COMPUTED ============
 
@@ -96,7 +93,6 @@ export class ProjectSettingsService {
     fillerWidthMm?: number;
     frontGapMm?: number;
     supportHeightReductionMm?: number;
-    supportWidthReductionMm?: number;
   }): void {
     if (settings.plinthHeightMm !== undefined) this._plinthHeightMm.set(settings.plinthHeightMm);
     if (settings.countertopThicknessMm !== undefined) this._countertopThicknessMm.set(settings.countertopThicknessMm);
@@ -106,7 +102,6 @@ export class ProjectSettingsService {
     if (settings.fillerWidthMm !== undefined) this._fillerWidthMm.set(settings.fillerWidthMm);
     if (settings.frontGapMm !== undefined) this._frontGapMm.set(settings.frontGapMm);
     if (settings.supportHeightReductionMm !== undefined) this._supportHeightReductionMm.set(settings.supportHeightReductionMm);
-    if (settings.supportWidthReductionMm !== undefined) this._supportWidthReductionMm.set(settings.supportWidthReductionMm);
   }
 
   /**
@@ -123,7 +118,6 @@ export class ProjectSettingsService {
     fillerWidthMm?: number;
     frontGapMm?: number;
     supportHeightReductionMm?: number;
-    supportWidthReductionMm?: number;
   }): void {
     // Zapamiętaj jako globalne defaults
     this._globalDefaultPlinthHeightMm = settings.plinthHeightMm;
@@ -134,7 +128,6 @@ export class ProjectSettingsService {
     if (settings.fillerWidthMm !== undefined) this._globalDefaultFillerWidthMm = settings.fillerWidthMm;
     if (settings.frontGapMm !== undefined) this._globalDefaultFrontGapMm = settings.frontGapMm;
     if (settings.supportHeightReductionMm !== undefined) this._globalDefaultSupportHeightReductionMm = settings.supportHeightReductionMm;
-    if (settings.supportWidthReductionMm !== undefined) this._globalDefaultSupportWidthReductionMm = settings.supportWidthReductionMm;
 
     // Zastosuj od razu do live signals
     this.updateProjectSettings(settings);

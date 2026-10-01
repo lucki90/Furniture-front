@@ -15,7 +15,6 @@ export interface WorkspaceSnapshot {
     fillerWidthMm: number;
     frontGapMm: number;
     supportHeightReductionMm: number;
-    supportWidthReductionMm: number;
   };
   projectMetadata: {
     roomWidthMm: number | null;

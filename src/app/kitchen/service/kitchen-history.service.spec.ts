@@ -15,8 +15,7 @@ function makeSnapshot(tag: string): WorkspaceSnapshot {
       plinthSetbackMm: 60,
       fillerWidthMm: 50,
       frontGapMm: 2,
-      supportHeightReductionMm: 30,
-      supportWidthReductionMm: 50
+      supportHeightReductionMm: 30
     },
     projectMetadata: {
       roomWidthMm: null,
