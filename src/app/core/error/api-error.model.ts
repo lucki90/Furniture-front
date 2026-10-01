@@ -53,7 +53,8 @@ export interface FieldErrorDetail {
 
 /** Opcjonalne formatowanie argumentów błędu na potrzeby konkretnego widoku. */
 export interface ApiErrorDisplayOptions {
-  formatArgument?: (key: string, value: string) => string;
+  /** Formatuje wartość argumentu; `args` to wszystkie argumenty komunikatu (np. do pominięcia powtórzonej informacji). */
+  formatArgument?: (key: string, value: string, args?: Readonly<Record<string, string>>) => string;
 }
 
 /**

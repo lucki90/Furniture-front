@@ -14,6 +14,7 @@ import {
 } from '../model/kitchen-project.model';
 import { SaveProjectDialogResult } from '../save-project-dialog/save-project-dialog.component';
 import { WallWithCabinets } from '../model/kitchen-state.model';
+import { createKitchenValidationErrorOptions } from './kitchen-validation-error-options';
 
 export interface KitchenProjectSaveRequestBuilders {
   buildCreateRequest(dialogResult: SaveProjectDialogResult): CreateKitchenProjectRequest;
@@ -79,6 +80,8 @@ export class KitchenProjectWorkflowFacade {
     frontendWalls: WallWithCabinets[],
     bomTranslations: Record<string, string>
   ): Observable<KitchenProjectCalculationResult> {
+    // Ostrzeżenia układu wskazują szafki numerami z kart ścian, jak błędy walidacji.
+    const displayOptions = createKitchenValidationErrorOptions(frontendWalls);
     return this.kitchenService.calculateMultiWall(request).pipe(
       map(response => ({
         response,
@@ -86,7 +89,8 @@ export class KitchenProjectWorkflowFacade {
         pricingWarnings: collectProjectPricingWarnings(
           response,
           this.aggregatorService,
-          warning => this.errorTranslation.translateFieldError({ code: warning.code, arguments: warning.arguments }).message
+          warning => this.errorTranslation.translateFieldError(
+            { code: warning.code, arguments: warning.arguments }, undefined, displayOptions).message
         )
       }))
     );

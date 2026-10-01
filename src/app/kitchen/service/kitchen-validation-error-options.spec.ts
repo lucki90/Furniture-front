@@ -35,6 +35,36 @@ describe('createKitchenValidationErrorOptions', () => {
     expect(options.formatArgument?.('cabinetId', 'front-2')).toBe('#2 (Wyspa kuchenna, strona FRONT)');
   });
 
+  it('skips the wall context when the message has its own wall argument for that cabinet', () => {
+    const options = createKitchenValidationErrorOptions([
+      wall([cabinet('main-4', 'Zlew')], 'MAIN'),
+      wall([cabinet('left-9')], 'LEFT')
+    ]);
+    const args = { cabinetId1: 'main-4', wallType1: 'MAIN', cabinetId2: 'left-9', wallType2: 'LEFT' };
+
+    expect(options.formatArgument?.('cabinetId1', 'main-4', args)).toBe('#1 „Zlew”');
+    expect(options.formatArgument?.('cabinetId2', 'left-9', args)).toBe('#1');
+    expect(options.formatArgument?.('cabinetId', 'main-4', args)).toBe('#1 „Zlew” (Ściana główna)');
+  });
+
+  it('formats the blocking cabinet of a corner warning', () => {
+    const options = createKitchenValidationErrorOptions([
+      wall([cabinet('main-4')], 'MAIN'),
+      wall([cabinet('left-9')], 'LEFT')
+    ]);
+    const args = { cabinetId: 'main-4', wallType: 'MAIN', blockingCabinetId: 'left-9', blockingWallType: 'LEFT' };
+
+    expect(options.formatArgument?.('cabinetId', 'main-4', args)).toBe('#1');
+    expect(options.formatArgument?.('blockingCabinetId', 'left-9', args)).toBe('#1');
+    expect(options.formatArgument?.('blockingCabinetId', 'left-9')).toBe('#1 (Ściana lewa)');
+  });
+
+  it('skips a name equal to the cabinet id (loaded project without a user name)', () => {
+    const options = createKitchenValidationErrorOptions([wall([cabinet('cabinet-1', 'cabinet-1')])]);
+
+    expect(options.formatArgument?.('cabinetId', 'cabinet-1')).toBe('#1 (Ściana główna)');
+  });
+
   it('leaves non-cabinet arguments and unknown cabinet ids unchanged', () => {
     const options = createKitchenValidationErrorOptions([wall([cabinet('cabinet-1')])]);
 

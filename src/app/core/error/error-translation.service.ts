@@ -210,7 +210,7 @@ export class ErrorTranslationService {
     }
 
     return Object.fromEntries(
-      Object.entries(args).map(([key, value]) => [key, displayOptions.formatArgument!(key, value)])
+      Object.entries(args).map(([key, value]) => [key, displayOptions.formatArgument!(key, value, args)])
     );
   }
 

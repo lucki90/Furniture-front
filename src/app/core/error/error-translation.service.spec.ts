@@ -62,6 +62,23 @@ describe('ErrorTranslationService display options', () => {
       'Szafka 2: #4'
     ]);
   });
+
+  it('passes all localized arguments to the formatter, e.g. to skip a repeated wall label', () => {
+    const received: Array<Readonly<Record<string, string>> | undefined> = [];
+    const [translated] = service.translateApiError(apiError({
+      code: 'ex.cabinets.overlap.cross.wall',
+      arguments: { cabinetId1: 'cabinet-3', wallType1: 'MAIN', cabinetId2: 'cabinet-8', wallType2: 'LEFT', level: 'BASE' }
+    }), {
+      formatArgument: (key, value, args) => {
+        received.push(args);
+        return displayOptions.formatArgument!(key, value, args);
+      }
+    });
+
+    expect(received[0]).toEqual(jasmine.objectContaining({ wallType1: 'Ściana główna', wallType2: 'Ściana lewa' }));
+    expect(translated.message).toContain('#2 „Zlew” (Ściana główna)');
+    expect(translated.message).toContain('#3 (Ściana lewa)');
+  });
 });
 
 function apiError(overrides: Pick<ApiErrorResponse, 'code' | 'arguments'> & Partial<ApiErrorResponse>): ApiErrorResponse {

@@ -101,7 +101,7 @@ describe('KitchenProjectWorkflowFacade', () => {
 
   it('should calculate a project and merge wall plus corner pricing warnings', (done) => {
     const request = { walls: [] } as any;
-    const frontendWalls = [{ id: 'wall-1' }] as any;
+    const frontendWalls = [{ id: 'wall-1', type: 'MAIN', widthMm: 3000, heightMm: 2600, cabinets: [] }] as any;
     const response = {
       walls: [{ wallType: 'MAIN' }, { wallType: 'LEFT' }],
       cornerCountertops: [{ wallAIndex: 0, wallBIndex: 1 }],
@@ -154,7 +154,7 @@ describe('KitchenProjectWorkflowFacade', () => {
       expect(errorTranslation.translateFieldError).toHaveBeenCalledWith({
         code: 'warning.corner.front.blocked',
         arguments: { cabinetId: 'main-1', wallType: 'MAIN', blockingCabinetId: 'left-1', blockingWallType: 'LEFT' }
-      });
+      }, undefined, jasmine.objectContaining({ formatArgument: jasmine.any(Function) }));
       expect(result.pricingWarnings).toEqual(['przetłumaczone: warning.corner.front.blocked']);
       done();
     });

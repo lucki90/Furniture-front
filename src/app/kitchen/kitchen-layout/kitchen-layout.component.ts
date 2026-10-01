@@ -31,6 +31,7 @@ import {
 } from '../service/corner-layout/corner-issue-messages';
 import { CABINET_TYPE_PICKER_LABELS } from '../cabinet-form/types/cabinet-type-labels';
 import { cornerAt } from '../service/corner-layout/wall-topology.resolver';
+import { buildCabinetLabels, CabinetLabel } from '../service/kitchen-validation-error-options';
 
 @Component({
   selector: 'app-kitchen-layout',
@@ -160,18 +161,19 @@ export class KitchenLayoutComponent {
       return [];
     }
     const wallCabinetIds = new Set(wall.cabinets.map(cabinet => cabinet.id));
-    const cabinetsById = new Map(this.walls().flatMap(item => item.cabinets).map(cabinet => [cabinet.id, cabinet]));
+    const cabinetLabels = this.cabinetLabels();
     const labels = {
-      cabinetLabel: (cabinetId: string) => {
-        const cabinet = cabinetsById.get(cabinetId);
-        return cabinet ? describeCabinet(cabinet) : cabinetId;
-      },
+      // Numer z karty ściany, jak w komunikatach z backendu; ściana jest osobnym argumentem komunikatu.
+      cabinetLabel: (cabinetId: string) => cabinetLabels.get(cabinetId)?.cabinet ?? cabinetId,
       wallLabel: (type: WallType) => this.stateService.getWallLabel(type)
     };
     return this.layoutService.issues()
       .filter(issue => cornerIssueCabinetIds(issue).some(id => wallCabinetIds.has(id)))
       .map(issue => ({ severity: issue.severity, message: formatCornerIssueMessage(issue, labels) }));
   });
+
+  /** Numery i nazwy szafek z kart ścian — wspólne z komunikatami błędów i ostrzeżeń. */
+  private readonly cabinetLabels = computed(() => buildCabinetLabels(this.walls()));
 
   /** Szafki sąsiednich ścian przy narożnikach i strefy narożne wybranej ściany. */
   readonly cornerGhostLayer = computed((): CornerGhostLayerView => {
@@ -202,7 +204,7 @@ export class KitchenLayoutComponent {
       feetHeightMmFor: wallId => wallsById.get(wallId)?.plinthConfig?.heightMm ?? this.stateService.plinthHeightMm(),
       countertopDepthMmFor: wallId =>
         wallsById.get(wallId)?.countertopConfig?.manualDepthMm ?? COUNTERTOP_DEPTH_DEFAULT_MM,
-      cabinetLabel: ghost => describeCabinet(ghost.cabinet),
+      cabinetLabel: ghost => describeCabinet(ghost.cabinet, this.cabinetLabels()),
       wallLabel: type => this.stateService.getWallLabel(type)
     });
   });
@@ -854,7 +856,9 @@ export class KitchenLayoutComponent {
   }
 }
 
-/** Nazwa szafki do komunikatów: własna nazwa albo typ i szerokość. */
-function describeCabinet(cabinet: KitchenCabinet): string {
-  return cabinet.name || `${CABINET_TYPE_PICKER_LABELS[cabinet.type]} ${cabinet.width}`;
+/** Opis szafki w podpisie cienia: numer z karty ściany (z nazwą użytkownika), typ i szerokość. */
+function describeCabinet(cabinet: KitchenCabinet, labels: ReadonlyMap<string, CabinetLabel>): string {
+  const number = labels.get(cabinet.id)?.cabinet;
+  const type = `${CABINET_TYPE_PICKER_LABELS[cabinet.type]} ${cabinet.width}`;
+  return number ? `${number} — ${type}` : type;
 }
