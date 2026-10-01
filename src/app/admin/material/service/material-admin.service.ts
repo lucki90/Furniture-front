@@ -28,6 +28,7 @@ import {
 export class MaterialAdminService {
 
   private readonly baseUrl = `${environment.apiUrl}/admin/materials`;
+  private readonly optionsUrl = `${environment.apiUrl}/materials/options`;
   private readonly boardPricesUrl = `${environment.apiUrl}/prices/boards`;
 
   constructor(private readonly http: HttpClient) {}
@@ -45,24 +46,24 @@ export class MaterialAdminService {
   // ============ OPTIONS ============
 
   getMaterialOptions(): Observable<MaterialOption[]> {
-    return this.http.get<MaterialOption[]>(`${this.baseUrl}/options/materials`);
+    return this.http.get<MaterialOption[]>(`${this.optionsUrl}/materials`);
   }
 
   getComponentOptions(): Observable<ComponentOption[]> {
-    return this.http.get<ComponentOption[]>(`${this.baseUrl}/options/components`);
+    return this.http.get<ComponentOption[]>(`${this.optionsUrl}/components`);
   }
 
   getJobOptions(): Observable<JobOption[]> {
-    return this.http.get<JobOption[]>(`${this.baseUrl}/options/jobs`);
+    return this.http.get<JobOption[]>(`${this.optionsUrl}/jobs`);
   }
 
   /**
    * Returns distinct active color options for a given material (for settings color dropdowns).
-   * Calls GET /admin/materials/options/board-colors?materialCode=X
+   * Calls GET /materials/options/board-colors?materialCode=X
    */
   getBoardColorOptions(materialCode: string): Observable<BoardColorOptionResponse[]> {
     const params = new HttpParams().set('materialCode', materialCode);
-    return this.http.get<BoardColorOptionResponse[]>(`${this.baseUrl}/options/board-colors`, { params });
+    return this.http.get<BoardColorOptionResponse[]>(`${this.optionsUrl}/board-colors`, { params });
   }
 
   // ============ BOARD VARIANTS ============
