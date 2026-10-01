@@ -45,14 +45,14 @@ describe('resolveCornerCountertopTrims', () => {
     expect(trims.size).toBe(0);
   });
 
-  it('narożnik L: blat LEFT pokrywa ramię B za kwadratem narożnym', () => {
+  it('narożnik L: ramię B jest podparciem blatu LEFT, który kończy się na krawędzi blatu MAIN', () => {
     const trims = trimsOf(
       withCountertop(testWall('MAIN', 3000, lCorner('mc', 0, 900, 900), base('m2', 900, 600))),
       withCountertop(testWall('LEFT', 2400, base('l1', 900, 600)))
     );
 
     expect(trims.get('main')).toEqual({ startMm: 0 });
-    expect(trims.get('left')).toEqual({ endMm: 1800 });
+    expect(trims.get('left')).toEqual({ endMm: 1800, supports: [{ startMm: 1500, endMm: 2400 }] });
   });
 
   it('ślepy narożnik: blat LEFT kończy się na krawędzi blatu MAIN nad częścią ślepą', () => {
@@ -71,7 +71,7 @@ describe('resolveCornerCountertopTrims', () => {
     );
 
     expect(trims.get('left')).toEqual({ endMm: 2400 });
-    expect(trims.get('main')).toEqual({ startMm: 600 });
+    expect(trims.get('main')).toEqual({ startMm: 600, supports: [{ startMm: 0, endMm: 900 }] });
   });
 
   it('narożnik MAIN.END ↔ RIGHT.START: blat MAIN do końca ściany, RIGHT od krawędzi blatu MAIN', () => {

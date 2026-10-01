@@ -262,12 +262,25 @@ describe('floor-plan-layout.builder', () => {
         ]);
       });
 
-      it('pomija przycięcie odwracające przebieg i ogranicza je do ściany', () => {
-        const inverted = computeCountertopRunsMm(wall([base('b1')]), positions(['b1', 1200]), 50, { endMm: 1000 });
+      it('przebieg w całości pod blatem sąsiedniej ściany znika, a przycięcie poza ścianą jest ograniczane', () => {
+        const covered = computeCountertopRunsMm(wall([base('b1')]), positions(['b1', 1200]), 50, { endMm: 1000 });
         const clamped = computeCountertopRunsMm(wall([base('b1')]), positions(['b1', 0]), 50, { startMm: -50, endMm: 9999 });
 
-        expect(inverted).toEqual([{ startMm: 1200, endMm: 1800, lengthMm: 600 }]);
+        expect(covered).toEqual([]);
         expect(clamped).toEqual([{ startMm: 0, endMm: 2400, lengthMm: 2400 }]);
+      });
+
+      it('wirtualne podparcie bez szafek daje blat nad ramieniem szafki L sąsiedniej ściany', () => {
+        const runs = computeCountertopRunsMm(wall([]), [], 50, { endMm: 1800, supports: [{ startMm: 1500, endMm: 2400 }] });
+
+        expect(runs).toEqual([{ startMm: 1500, endMm: 1800, lengthMm: 300 }]);
+      });
+
+      it('podparcie dalej od szafek wydłuża ich przebieg — luka jest pod jednym blatem', () => {
+        const runs = computeCountertopRunsMm(
+          wall([base('b1')]), positions(['b1', 0]), 50, { endMm: 1800, supports: [{ startMm: 1500, endMm: 2400 }] });
+
+        expect(runs).toEqual([{ startMm: 0, endMm: 1800, lengthMm: 1800 }]);
       });
     });
 

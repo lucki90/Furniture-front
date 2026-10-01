@@ -1,24 +1,40 @@
 import { cabinetRequiresCountertop, WallWithCabinets } from '../../model/kitchen-state.model';
-import { CornerFootprint, CornerGeometrySettings, WallCornerEndpoint, WallTopology } from './corner-layout.model';
+import { CornerFootprint, CornerGeometrySettings, WallCorner, WallCornerEndpoint, WallTopology } from './corner-layout.model';
 import { buildCornerFootprints, CabinetPositionsByWallId } from './corner-footprint.builder';
 import { resolveCornerOwnership } from './corner-ownership.resolver';
+import { resolveCornerJointConfig } from './corner-joint-config';
 
 /** Tolerancja dopasowania szafki ściany dostawionej do strefy narożnej (zaokrąglenia pozycji). */
 const CORNER_ZONE_TOLERANCE_MM = 1;
 /** Głębokość blatu bez ręcznej wartości — jak w `ProjectWallAddonsRequestBuilder.buildCountertopRequest`. */
 const DEFAULT_COUNTERTOP_DEPTH_MM = 600;
 
-/** Wymuszone końce przebiegu blatu wzdłuż ściany (mm od START); brak wartości — koniec wynika z szafek. */
-export interface CountertopRunTrim {
-  startMm?: number;
-  endMm?: number;
+/** Odcinek wzdłuż ściany (mm od START). */
+export interface CountertopSupportMm {
+  startMm: number;
+  endMm: number;
 }
 
 /**
- * Przycięcia przebiegów blatu w narożnikach, tak aby kwadrat narożny należał tylko do jednej ściany: blat
- * ściany-właściciela dochodzi do ściany, a blat ściany dostawionej kończy się na krawędzi blatu właściciela.
- * Narożnik łączy blaty, gdy właściciel ma szafkę z blatem stojącą w narożniku, a najbliższa szafka z blatem ściany
- * dostawionej stoi nie dalej niż sięgają szafki właściciela wzdłuż tej ściany, powiększone o luz narożny.
+ * Ograniczenia przebiegu blatu ściany z narożników (mm od START):
+ * - `startMm` / `endMm` — wymuszone końce przebiegu; brak wartości — koniec wynika z szafek,
+ * - `supports` — wirtualne podparcia blatu (ramię szafki L sąsiedniej ściany), liczone jak szafki z blatem.
+ */
+export interface CountertopRunTrim {
+  startMm?: number;
+  endMm?: number;
+  supports?: readonly CountertopSupportMm[];
+}
+
+/**
+ * Przycięcia przebiegów blatu w narożnikach. Narożnik łączy blaty, gdy właściciel ma szafkę z blatem stojącą
+ * w narożniku, a ściana dostawiona ma podparcie blatu w strefie narożnej: ramię szafki L właściciela albo najbliższą
+ * szafkę z blatem nie dalej niż sięgają szafki właściciela wzdłuż tej ściany, powiększone o luz narożny.
+ *
+ * - Ramię szafki L właściciela jest wirtualnym podparciem blatu ściany dostawionej (blat nad ramieniem powstaje także
+ *   bez jej szafek).
+ * - Blat przechodzący (wybór użytkownika z `resolveCornerJointConfig`, bez niego właściciel) dochodzi do ściany;
+ *   blat drugiej ściany kończy się na jego krawędzi, a przy cięciu 45° też dochodzi do ściany.
  *
  * Spójne z backendem: `CornerRunTrimResolver` (część blatu). Cokoły przycina tylko backend.
  */
@@ -33,44 +49,66 @@ export function resolveCornerCountertopTrims(
   for (const corner of topology.corners) {
     const footprints = buildCornerFootprints(corner, walls, positionsByWallId, 'BASE', settings);
     const ownerWallId = resolveCornerOwnership(corner, footprints).ownerWallId;
-    const [ownerEnd, partnerEnd] = ownerWallId === corner.a.wallId ? [corner.a, corner.b] : [corner.b, corner.a];
+    const [ownerEnd, partnerEnd] = sidesOf(corner, ownerWallId);
     const owner = walls.find(wall => wall.id === ownerEnd.wallId);
     const partner = walls.find(wall => wall.id === partnerEnd.wallId);
     if (!owner || !partner || !countertopEnabled(owner) || !countertopEnabled(partner)) {
       continue;
     }
 
+    const ownerIsWallA = ownerWallId === corner.a.wallId;
     const withCountertop = footprints.filter(footprint => cabinetRequiresCountertop(footprint.cabinet));
     const ownerAtCorner = withCountertop.filter(footprint =>
       footprint.wallId === owner.id && footprint.nearEdgeMm < footprint.reachMm);
+    const ownerArm = ownerAtCorner.find(hasPartnerWallArm);
     const partnerNearest = withCountertop
       .filter(footprint => footprint.wallId === partner.id)
       .sort((left, right) => left.nearEdgeMm - right.nearEdgeMm)[0];
-    // TODO(naroznik-blat-ramie-L, BE-27): bez szafek z blatem na ścianie dostawionej narożnik się nie łączy, więc
-    // część ramienia B szafki L poza kwadratem narożnym nie ma blatu. W praktyce to dwa prostokątne blaty łączone na
-    // łyżwę albo pod kątem 45° — do zaplanowania razem z mechanizmem łączenia blatów (spójnie z backendem).
-    if (!joined(ownerAtCorner, partnerNearest, ownerWallId === corner.a.wallId, settings)) {
+    if (ownerAtCorner.length === 0
+      || (!ownerArm && !partnerInCornerZone(ownerAtCorner, partnerNearest, ownerIsWallA, settings))) {
       continue;
     }
 
-    setTrim(trims, owner, ownerEnd, 0);
-    setTrim(trims, partner, partnerEnd, countertopDepthMm(owner));
+    if (ownerArm) {
+      addSupport(trims, partner, partnerEnd, partnerAxisExtentMm([ownerArm], ownerIsWallA));
+    }
+
+    const joint = resolveCornerJointConfig(corner, walls);
+    const [passingEnd, joiningEnd] = sidesOf(corner, joint.passThroughWallId ?? ownerWallId);
+    const passing = passingEnd.wallId === owner.id ? owner : partner;
+    const joining = passing === owner ? partner : owner;
+    setTrim(trims, passing, passingEnd, 0);
+    setTrim(trims, joining, joiningEnd, joint.type === 'MITER_45' ? 0 : countertopDepthMm(passing));
   }
   return trims;
 }
 
-function joined(
+/** Końce narożnika: najpierw ściany wskazanej, potem drugiej. */
+function sidesOf(corner: WallCorner, firstWallId: string): [WallCornerEndpoint, WallCornerEndpoint] {
+  return firstWallId === corner.a.wallId ? [corner.a, corner.b] : [corner.b, corner.a];
+}
+
+function hasPartnerWallArm(footprint: CornerFootprint): boolean {
+  return footprint.rects.length > 1;
+}
+
+function partnerInCornerZone(
   ownerAtCorner: readonly CornerFootprint[],
   partnerNearest: CornerFootprint | undefined,
   ownerIsWallA: boolean,
   settings: CornerGeometrySettings
 ): boolean {
-  if (ownerAtCorner.length === 0 || !partnerNearest) {
+  if (!partnerNearest) {
     return false;
   }
-  const occupancyMm = Math.max(...ownerAtCorner.flatMap(footprint =>
-    footprint.rects.map(rect => ownerIsWallA ? rect.vMax : rect.uMax)));
+  const occupancyMm = partnerAxisExtentMm(ownerAtCorner, ownerIsWallA);
   return partnerNearest.nearEdgeMm <= occupancyMm + settings.cornerClearanceMm + CORNER_ZONE_TOLERANCE_MM;
+}
+
+/** Jak daleko od narożnika sięgają szafki właściciela wzdłuż ściany dostawionej (ramię szafki L albo zasięg). */
+function partnerAxisExtentMm(ownerFootprints: readonly CornerFootprint[], ownerIsWallA: boolean): number {
+  return Math.max(0, ...ownerFootprints.flatMap(footprint =>
+    footprint.rects.map(rect => ownerIsWallA ? rect.vMax : rect.uMax)));
 }
 
 function setTrim(
@@ -85,11 +123,24 @@ function setTrim(
     : { ...current, endMm: wall.widthMm - distanceFromCornerMm });
 }
 
+function addSupport(
+  trims: Map<string, CountertopRunTrim>,
+  wall: WallWithCabinets,
+  endpoint: WallCornerEndpoint,
+  lengthFromCornerMm: number
+): void {
+  const current = trims.get(wall.id) ?? {};
+  const support = endpoint.end === 'START'
+    ? { startMm: 0, endMm: lengthFromCornerMm }
+    : { startMm: wall.widthMm - lengthFromCornerMm, endMm: wall.widthMm };
+  trims.set(wall.id, { ...current, supports: [...(current.supports ?? []), support] });
+}
+
 function countertopEnabled(wall: WallWithCabinets): boolean {
   return wall.countertopConfig?.enabled === true;
 }
 
-/** Głębokość blatu wysyłana do backendu (`manualDepthMm`) — krawędź blatu właściciela w narożniku. */
+/** Głębokość blatu wysyłana do backendu (`manualDepthMm`) — krawędź blatu przechodzącego w narożniku. */
 function countertopDepthMm(wall: WallWithCabinets): number {
   return wall.countertopConfig?.manualDepthMm ?? wall.islandDepthMm ?? DEFAULT_COUNTERTOP_DEPTH_MM;
 }

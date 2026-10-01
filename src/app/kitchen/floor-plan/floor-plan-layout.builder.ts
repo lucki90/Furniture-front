@@ -6,7 +6,7 @@ import { planEndForElevationSide, verticalSegmentTopPx } from './floor-plan-orie
 import { CornerJunctionSide, WallCornerConstraints, WallTopology } from '../service/corner-layout/corner-layout.model';
 import { resolveCornerJunctionSide } from '../service/corner-layout/corner-junction-side.resolver';
 import { resolveWallTopology } from '../service/corner-layout/wall-topology.resolver';
-import { CountertopRunTrim } from '../service/corner-layout/corner-run-trims';
+import { CountertopRunTrim, CountertopSupportMm } from '../service/corner-layout/corner-run-trims';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { isBlindType } from '../cabinet-form/model/corner-cabinet.model';
 import { DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
@@ -504,81 +504,80 @@ export function buildCountertopsForWall(
 }
 
 /**
- * Przebiegi blatu ściany wzdłuż szafek z blatem, przerywane słupkami i wolnostojącym AGD. Przycięcie z narożnika
- * zmienia początek pierwszego i koniec ostatniego przebiegu (jak backend: `CountertopCalculationService`);
- * przycięcie, które odwróciłoby przebieg, jest pomijane.
+ * Przebiegi blatu ściany wzdłuż szafek z blatem i wirtualnych podparć z narożników (ramię szafki L sąsiedniej
+ * ściany), przerywane słupkami i wolnostojącym AGD. Przycięcie z narożnika wymusza początek pierwszego i koniec
+ * ostatniego przebiegu (jak backend: `CountertopCalculationService`); przebieg, który po przycięciu znika, leży pod
+ * blatem sąsiedniej ściany i nie jest rysowany.
  */
 export function computeCountertopRunsMm(
   wall: Pick<WallWithCabinets, 'widthMm' | 'countertopConfig'> & { cabinets: KitchenCabinet[] },
-  cabinetPositions: CabinetPosition[],
+  cabinetPositions: readonly CabinetPosition[],
   fillerWidthMm = DEFAULT_FILLER_WIDTH_MM,
   trim?: CountertopRunTrim
 ): CountertopRunMm[] {
-  const positionMap = new Map(cabinetPositions.map(position => [position.cabinetId, position]));
   const sideExtra = wall.countertopConfig?.sideOverhangExtraMm ?? DEFAULT_SIDE_OVERHANG_EXTRA_MM;
   const result: CountertopRunMm[] = [];
-
-  let firstCabinet: KitchenCabinet | null = null;
-  let lastCabinet: KitchenCabinet | null = null;
-  let firstPosition: CabinetPosition | null = null;
-  let lastPosition: CabinetPosition | null = null;
+  let run: { startMm: number; endMm: number } | null = null;
 
   const flushRun = () => {
-    if (!firstCabinet || !lastCabinet || !firstPosition || !lastPosition) {
+    if (!run) {
       return;
     }
-
-    const rawStartMm = firstPosition.x
-      - addonsBuilder.enclosureOuterWidthMm(firstCabinet, 'left', fillerWidthMm)
-      - sideExtra;
-    const rawEndMm = lastPosition.x
-      + lastCabinet.width
-      + addonsBuilder.enclosureOuterWidthMm(lastCabinet, 'right', fillerWidthMm)
-      + sideExtra;
-    const startMm = Math.max(0, rawStartMm);
-    const endMm = Math.min(wall.widthMm, rawEndMm);
-
+    const startMm = Math.max(0, run.startMm - sideExtra);
+    const endMm = Math.min(wall.widthMm, run.endMm + sideExtra);
     if (endMm > startMm) {
-      result.push({
-        startMm,
-        endMm,
-        lengthMm: endMm - startMm
-      });
+      result.push({ startMm, endMm, lengthMm: endMm - startMm });
     }
-
-    firstCabinet = null;
-    lastCabinet = null;
-    firstPosition = null;
-    lastPosition = null;
+    run = null;
   };
 
-  for (const cabinet of wall.cabinets) {
-    if (getCabinetZone(cabinet) === 'TOP') {
+  for (const item of countertopRunItems(wall.cabinets, cabinetPositions, fillerWidthMm, trim?.supports ?? [])) {
+    if (!item.withCountertop) {
+      flushRun();
       continue;
     }
-
-    const position = positionMap.get(cabinet.id);
-    if (!position) {
-      continue;
-    }
-
-    if (cabinetRequiresCountertop(cabinet)) {
-      if (!firstCabinet) {
-        firstCabinet = cabinet;
-        firstPosition = position;
-      }
-      lastCabinet = cabinet;
-      lastPosition = position;
-      continue;
-    }
-
-    flushRun();
+    run = run
+      ? { startMm: run.startMm, endMm: Math.max(run.endMm, item.endMm) }
+      : { startMm: item.startMm, endMm: item.endMm };
   }
 
   flushRun();
   return applyCountertopRunTrim(result, trim, wall.widthMm);
 }
 
+interface CountertopRunItem {
+  startMm: number;
+  endMm: number;
+  withCountertop: boolean;
+}
+
+/** Szafki dolne (z obudowami) i wirtualne podparcia blatu, posortowane wzdłuż ściany. */
+function countertopRunItems(
+  cabinets: readonly KitchenCabinet[],
+  cabinetPositions: readonly CabinetPosition[],
+  fillerWidthMm: number,
+  supports: readonly CountertopSupportMm[]
+): CountertopRunItem[] {
+  const positionMap = new Map(cabinetPositions.map(position => [position.cabinetId, position]));
+  const cabinetItems = cabinets.flatMap(cabinet => {
+    const position = positionMap.get(cabinet.id);
+    if (!position || getCabinetZone(cabinet) === 'TOP') {
+      return [];
+    }
+    return [{
+      startMm: position.x - addonsBuilder.enclosureOuterWidthMm(cabinet, 'left', fillerWidthMm),
+      endMm: position.x + cabinet.width + addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', fillerWidthMm),
+      withCountertop: cabinetRequiresCountertop(cabinet)
+    }];
+  });
+  const supportItems = supports.map(support => ({ ...support, withCountertop: true }));
+  return [...cabinetItems, ...supportItems].sort((left, right) => left.startMm - right.startMm);
+}
+
+/**
+ * Wymusza początek pierwszego i koniec ostatniego przebiegu; przebiegi leżące w całości za wymuszonym końcem
+ * (pod blatem sąsiedniej ściany) znikają.
+ */
 function applyCountertopRunTrim(
   runs: CountertopRunMm[],
   trim: CountertopRunTrim | undefined,
@@ -588,19 +587,17 @@ function applyCountertopRunTrim(
     return runs;
   }
   const clamp = (valueMm: number) => Math.max(0, Math.min(wallWidthMm, valueMm));
-  const trimmed = runs.map(run => ({ ...run }));
-  const first = trimmed[0];
-  const last = trimmed[trimmed.length - 1];
-  if (trim.startMm !== undefined) {
-    first.startMm = clamp(trim.startMm);
-  }
-  if (trim.endMm !== undefined) {
-    last.endMm = clamp(trim.endMm);
-  }
-  if (trimmed.some(run => run.endMm <= run.startMm)) {
-    return runs;
-  }
-  return trimmed.map(run => ({ ...run, lengthMm: run.endMm - run.startMm }));
+  const startMm = trim.startMm !== undefined ? clamp(trim.startMm) : undefined;
+  const endMm = trim.endMm !== undefined ? clamp(trim.endMm) : undefined;
+  const lastIndex = runs.length - 1;
+
+  return runs
+    .map((run, index) => ({
+      startMm: startMm === undefined ? run.startMm : index === 0 ? startMm : Math.max(run.startMm, startMm),
+      endMm: endMm === undefined ? run.endMm : index === lastIndex ? endMm : Math.min(run.endMm, endMm)
+    }))
+    .filter(run => run.endMm > run.startMm)
+    .map(run => ({ ...run, lengthMm: run.endMm - run.startMm }));
 }
 
 function buildIslandCountertop(
