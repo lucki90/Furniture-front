@@ -206,6 +206,44 @@ describe('KitchenProjectStateMapper', () => {
       jointType: 'MITER_JOINT',
       edgeType: 'POSTFORMED'
     }));
+    expect(result.walls[0].countertopConfig?.cornerJoint).toBeUndefined();
+  });
+
+  it('odtwarza zapisane połączenie blatów w narożniku', () => {
+    const result = mapper.mapProject({
+      id: 57,
+      name: 'Narożnik z cięciem 45°',
+      status: 'DRAFT',
+      version: 1,
+      totalCost: 0,
+      totalBoardsCost: 0,
+      totalComponentsCost: 0,
+      totalJobsCost: 0,
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      walls: [
+        {
+          id: 1,
+          wallType: 'LEFT',
+          widthMm: 2400,
+          heightMm: 2600,
+          wallCost: 0,
+          cabinetCount: 0,
+          usedWidthMm: 0,
+          remainingWidthMm: 2400,
+          cabinets: [],
+          countertop: {
+            enabled: true,
+            depthMm: 600,
+            thicknessMm: 38,
+            materialType: 'LAMINATE',
+            cornerJoint: { type: 'MITER_45', passThrough: 'THIS_WALL' }
+          }
+        } as any
+      ]
+    } as KitchenProjectDetailResponse);
+
+    expect(result.walls[0].countertopConfig?.cornerJoint).toEqual({ type: 'MITER_45', passThrough: 'THIS_WALL' });
   });
 
   it('should leave countertopConfig undefined when backend did not send countertop info', () => {

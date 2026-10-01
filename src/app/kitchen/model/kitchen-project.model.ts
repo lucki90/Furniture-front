@@ -3,7 +3,7 @@ import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { OpeningType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { SegmentRequest } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
-import { CountertopRequest, CountertopResponse } from './countertop.model';
+import { CornerJointType, CountertopRequest, CountertopResponse } from './countertop.model';
 import { PlinthRequest, PlinthResponse } from './plinth.model';
 import { FillerPanelRequest, FillerPanelResponse } from './filler-panel.model';
 import { EnclosureConfig } from '../cabinet-form/model/enclosure.model';
@@ -595,7 +595,10 @@ export interface WallConnectionRequest {
   wallIndexA: number;
   wallIndexB: number;
   connectionType: WallConnectionType;
-  /** Domyślnie MITER_JOINT — cięcie 45° */
+  /**
+   * Starsza podpowiedź sposobu łączenia blatów (`CountertopJointType`); frontend jej nie wysyła. Połączenie blatów
+   * w narożniku jest w `CountertopRequest.cornerJoint` ściany bocznej.
+   */
   cornerJointType?: string;
 }
 
@@ -613,7 +616,7 @@ export interface CornerCountertopResponse {
   /** Głębokość narożnego segmentu = głębokość blatu ściany A (depthA, ~600mm). */
   cornerDepthMm: number;
   thicknessMm: number;
-  jointType: string;
+  jointType: CornerJointType;
   materialCost: number;
   jointCost: number;
   totalCost: number;

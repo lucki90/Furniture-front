@@ -28,6 +28,29 @@ export const COUNTERTOP_JOINT_OPTIONS: { value: CountertopJointType; label: stri
   { value: 'SEAMLESS', label: 'Bezszwowe', description: 'Tylko dla Corian/compact' }
 ];
 
+/**
+ * Sposób łączenia blatów w narożniku. Spójne z backendem: `CornerJointType`.
+ * - `LYZWA` — blat przechodzący dochodzi do ściany, dosuwany do jego frontu (frezowanie łyżwy),
+ * - `MITER_45` — oba blaty dochodzą do ściany i są cięte po przekątnej narożnika,
+ * - `ALUMINUM_STRIP` — geometria jak łyżwa, połączenie listwą aluminiową.
+ */
+export type CornerJointType = 'LYZWA' | 'MITER_45' | 'ALUMINUM_STRIP';
+
+/**
+ * Który blat przechodzi przez narożnik — z punktu widzenia ściany bocznej (LEFT/RIGHT), w której konfiguracji
+ * zapisane jest połączenie. `AUTO` — reguła z układu narożnika.
+ */
+export type CornerPassThrough = 'AUTO' | 'THIS_WALL' | 'NEIGHBOR';
+
+/**
+ * Połączenie blatów w narożniku zapisane w konfiguracji blatu ściany bocznej narożnika. Brak pola albo wartości —
+ * ustawienia domyślne (łyżwa, blat przechodzący z reguły). Spójne z backendem: `CornerJointRequest`.
+ */
+export interface CornerJointSettings {
+  type?: CornerJointType;
+  passThrough?: CornerPassThrough;
+}
+
 export type CountertopEdgeType = 'ABS_EDGE' | 'WOOD_EDGE' | 'ALUMINUM_EDGE' | 'POSTFORMED' | 'PROFILED' | 'NONE';
 
 export const COUNTERTOP_EDGE_OPTIONS: { value: CountertopEdgeType; label: string }[] = [
@@ -64,6 +87,7 @@ export interface CountertopRequest {
   leftEdgeType: CountertopEdgeType;
   rightEdgeType: CountertopEdgeType;
   backEdgeType: CountertopEdgeType;
+  cornerJoint?: CornerJointSettings;
 }
 
 export const DEFAULT_COUNTERTOP_REQUEST: CountertopRequest = {
@@ -125,6 +149,8 @@ export interface CountertopResponse {
   leftEdgeType?: CountertopEdgeType;
   rightEdgeType?: CountertopEdgeType;
   backEdgeType?: CountertopEdgeType;
+  /** Zapisane połączenie blatów w narożniku (ściana boczna narożnika); brak — ustawienia domyślne. */
+  cornerJoint?: CornerJointSettings | null;
   islandSurfaceM2?: number;
   segments: CountertopSegmentResponse[];
   segmentCount: number;

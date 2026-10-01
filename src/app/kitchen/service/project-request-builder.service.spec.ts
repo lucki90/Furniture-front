@@ -177,6 +177,22 @@ describe('ProjectRequestBuilderService', () => {
         backEdgeType: DEFAULT_COUNTERTOP_REQUEST.backEdgeType
       });
     });
+
+    it('przekazuje połączenie blatów w narożniku, także przy wyłączonym blacie', () => {
+      const cornerJoint = { type: 'MITER_45' as const, passThrough: 'NEIGHBOR' as const };
+
+      const enabled = service.buildCountertopRequest(buildWall({ countertopConfig: { enabled: true, cornerJoint } }));
+      const disabled = service.buildCountertopRequest(buildWall({ countertopConfig: { enabled: false, cornerJoint } }));
+
+      expect(enabled.cornerJoint).toEqual(cornerJoint);
+      expect(disabled).toEqual({ ...DEFAULT_COUNTERTOP_REQUEST, enabled: false, cornerJoint });
+    });
+
+    it('nie dodaje pola cornerJoint, gdy ściana nie ma połączenia narożnego', () => {
+      const result = service.buildCountertopRequest(buildWall({ countertopConfig: { enabled: true } }));
+
+      expect('cornerJoint' in result).toBeFalse();
+    });
   });
 
   describe('buildPlinthRequest', () => {

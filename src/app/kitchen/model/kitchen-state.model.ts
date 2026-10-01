@@ -4,7 +4,7 @@ import { WallType, PositioningMode, CabinetSide, IslandAdjacentSide, MaterialReq
 import { SegmentFormData } from '../cabinet-form/model/segment.model';
 import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model';
 import { CabinetVisualConfig } from '../cabinet-form/model/cabinet-visual-elements.model';
-import { CountertopMaterialType, CountertopJointType, CountertopEdgeType } from './countertop.model';
+import { CountertopMaterialType, CountertopJointType, CountertopEdgeType, CornerJointSettings } from './countertop.model';
 import { FeetType, PlinthMaterialType } from './plinth.model';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import { CargoBrand, CargoVariant } from '../cabinet-form/types/base-cargo/cargo-cabinet.model';
@@ -433,6 +433,11 @@ export interface CountertopConfig {
   edgeType?: CountertopEdgeType;
   /** Naddatek boczny z każdej strony ponad blendy (mm). Default: 5mm. */
   sideOverhangExtraMm?: number;
+  /**
+   * Połączenie blatów w narożniku, w którym ta ściana jest ścianą boczną (LEFT/RIGHT). Rozstrzyga je
+   * `resolveCornerJointConfig()`; brak — ustawienia domyślne.
+   */
+  cornerJoint?: CornerJointSettings;
 }
 
 /**

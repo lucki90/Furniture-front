@@ -104,7 +104,8 @@ export class KitchenProjectStateMapper {
       backOverhangMm: wallResp.countertop.backOverhangMm ?? 0,
       sideOverhangExtraMm,
       jointType: wallResp.countertop.jointType,
-      edgeType: wallResp.countertop.frontEdgeType
+      edgeType: wallResp.countertop.frontEdgeType,
+      ...(wallResp.countertop.cornerJoint ? { cornerJoint: { ...wallResp.countertop.cornerJoint } } : {})
     };
   }
 

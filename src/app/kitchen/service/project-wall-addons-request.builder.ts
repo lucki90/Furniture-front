@@ -1,5 +1,5 @@
 import { KitchenCabinet, WallWithCabinets } from '../model/kitchen-state.model';
-import { CountertopRequest, DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
+import { CornerJointSettings, CountertopRequest, DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
 import { PlinthRequest, DEFAULT_PLINTH_REQUEST, pickFeetTypeForPlinthHeight } from '../model/plinth.model';
 import { PLATE_THICKNESS_MM } from '../kitchen-layout/kitchen-layout.constants';
 
@@ -17,7 +17,8 @@ export class ProjectWallAddonsRequestBuilder {
   buildCountertopRequest(wall: WallWithCabinets, leftOverhangMm = 0, rightOverhangMm = 0): CountertopRequest {
     const config = wall.countertopConfig;
     if (!config || !config.enabled) {
-      return { ...DEFAULT_COUNTERTOP_REQUEST, enabled: false };
+      // Połączenie narożne zostaje w zapisie także przy wyłączonym blacie — po ponownym włączeniu wraca ustawienie.
+      return { ...DEFAULT_COUNTERTOP_REQUEST, enabled: false, ...cornerJointOf(config?.cornerJoint) };
     }
 
     const jointType = config.jointType ?? DEFAULT_COUNTERTOP_REQUEST.jointType;
@@ -48,7 +49,8 @@ export class ProjectWallAddonsRequestBuilder {
       frontEdgeType: edgeType,
       leftEdgeType: DEFAULT_COUNTERTOP_REQUEST.leftEdgeType,
       rightEdgeType: DEFAULT_COUNTERTOP_REQUEST.rightEdgeType,
-      backEdgeType: DEFAULT_COUNTERTOP_REQUEST.backEdgeType
+      backEdgeType: DEFAULT_COUNTERTOP_REQUEST.backEdgeType,
+      ...cornerJointOf(config.cornerJoint)
     };
   }
 
@@ -70,4 +72,9 @@ export class ProjectWallAddonsRequestBuilder {
       setbackMm: config?.setbackMm ?? DEFAULT_PLINTH_REQUEST.setbackMm
     };
   }
+}
+
+/** Pole `cornerJoint` requestu tylko wtedy, gdy ściana ma zapisane połączenie narożne. */
+function cornerJointOf(cornerJoint: CornerJointSettings | undefined): Pick<CountertopRequest, 'cornerJoint'> {
+  return cornerJoint ? { cornerJoint: { ...cornerJoint } } : {};
 }
