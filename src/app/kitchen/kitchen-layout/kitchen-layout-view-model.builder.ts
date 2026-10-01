@@ -89,6 +89,7 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       widthAMm: (cabinetData?.cornerWidthA as number | undefined) ?? position.width,
       widthBMm: cornerWidthB,
       frontUchylnyWidthMm: cabinetData?.cornerFrontUchylnyWidthMm as number | undefined,
+      handleType: isCornerBlind ? cabinetData?.cornerHandleType as string | undefined : undefined,
       handedness: resolvedHandedness
     } : undefined;
     const cargoVariant = cabinetData?.cargoVariant as string | undefined;
@@ -143,6 +144,7 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       carcassEdgeX: Math.max(1, Math.round(PLATE_THICKNESS_MM * input.scale)),
       carcassEdgeY: Math.max(1, Math.round(PLATE_THICKNESS_MM * input.scaleVert)),
       scaleVert: input.scaleVert,
+      openingType: originalCabinet?.openingType,
       cargoVariant,
       pantryPassageFrontType: cabinetData?.pantryPassageFrontType as string | undefined,
       pantryAttachedPlinthHeightPx: cabinetType === KitchenCabinetType.PANTRY_PASSAGE ? feetHeightPx : undefined,
@@ -268,7 +270,41 @@ function generateVisualElements(ctx: CabinetRenderContext & { type: KitchenCabin
   const fronts: DisplayFront[] = [];
   const handles: DisplayHandle[] = [];
   CABINET_RENDER_REGISTRY[ctx.type]?.(ctx, fronts, handles);
-  return { fronts, handles };
+  return { fronts, handles: applyOpeningVisualization(ctx, handles) };
+}
+
+/**
+ * Dopasowuje techniczne pozycje uchwytów z rendererów do sposobu otwierania wybranego przez użytkownika.
+ * Nie zmienia geometrii frontów: CLICK/PUSH_TO_OPEN i NONE ukrywają okucia, a MILLED zachowuje pozycję
+ * krawędzi chwytu, ale renderuje ją jako frez zamiast wystającego uchwytu.
+ */
+function applyOpeningVisualization(ctx: CabinetRenderContext, handles: DisplayHandle[]): DisplayHandle[] {
+  const openingType = ctx.cornerConfig?.blind && ctx.cornerConfig.handleType
+    ? mapCornerHandleType(ctx.cornerConfig.handleType)
+    : ctx.openingType;
+
+  switch (openingType) {
+    case 'CLICK':
+    case 'NONE':
+    case 'PUSH_TO_OPEN':
+      return [];
+    case 'MILLED':
+      return handles.map(handle => ({ ...handle, type: 'MILLING' }));
+    default:
+      // HANDLE oraz historyczne wartości bez osobnej semantyki zachowują dotychczasowy widoczny uchwyt.
+      return handles;
+  }
+}
+
+function mapCornerHandleType(handleType: string): string {
+  switch (handleType) {
+    case 'SCREWED':
+      return 'HANDLE';
+    case 'PUSH_TO_OPEN':
+      return 'PUSH_TO_OPEN';
+    default:
+      return handleType;
+  }
 }
 
 function calculateEnclosureDisplayWidth(type: string | undefined, fillerMm: number, scale: number): number {

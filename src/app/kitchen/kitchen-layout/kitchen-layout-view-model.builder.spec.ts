@@ -27,6 +27,29 @@ function createPosition(overrides: Partial<CabinetPosition> = {}): CabinetPositi
 }
 
 describe('kitchen-layout-view-model.builder', () => {
+  function buildSingleCabinet(cabinetOverrides: Partial<KitchenCabinet>) {
+    const cabinet = createCabinet(cabinetOverrides);
+    return buildVisualCabinetPositions({
+      cabinetPositions: [createPosition({
+        cabinetId: cabinet.id,
+        width: cabinet.width,
+        height: cabinet.height
+      })],
+      cabinets: [cabinet],
+      scale: 0.1,
+      wallWidth: 200,
+      wallDisplayHeight: 180,
+      scaleVert: 0.1,
+      feetHeightMm: 100,
+      fillerWidthMm: 50,
+      standardBottomHeight: 720,
+      standardTopHeight: 720,
+      standardBottomDepth: 560,
+      standardTopDepth: 320,
+      frontGap: 1
+    })[0];
+  }
+
   it('should build bottom cabinet view model with feet, front elements and enclosure widths', () => {
     const [position] = buildVisualCabinetPositions({
       cabinetPositions: [createPosition()],
@@ -139,6 +162,28 @@ describe('kitchen-layout-view-model.builder', () => {
     expect(position.feet).toEqual([]);
     expect(position.displayY).toBe(-10);
     expect(position.isOverflow).toBeTrue();
+  });
+
+  it('should visualize a furniture handle only for HANDLE opening type', () => {
+    const position = buildSingleCabinet({ openingType: 'HANDLE' });
+
+    expect(position.handles).toHaveSize(1);
+    expect(position.handles[0].type).toBe('BAR');
+  });
+
+  it('should visualize MILLED opening as a recessed milling line', () => {
+    const position = buildSingleCabinet({ openingType: 'MILLED' });
+
+    expect(position.handles).toHaveSize(1);
+    expect(position.handles[0].type).toBe('MILLING');
+  });
+
+  it('should hide handle geometry for CLICK and NONE opening types', () => {
+    for (const openingType of ['CLICK', 'NONE'] as const) {
+      const position = buildSingleCabinet({ openingType });
+
+      expect(position.handles).withContext(openingType).toEqual([]);
+    }
   });
 
   it('should compute oven separator only when lower section exists', () => {
@@ -357,6 +402,27 @@ describe('kitchen-layout-view-model.builder', () => {
     expect(active).toBeDefined();
     expect(blind).toBeDefined();
     expect(active!.width).toBeCloseTo(blind!.width, 0);
+  });
+
+  it('should use the Type B corner handle type instead of the generic opening type', () => {
+    const pushToOpen = buildCorner({
+      openingType: 'HANDLE',
+      cornerWidthA: 1000,
+      cornerMechanism: 'BLIND_CORNER',
+      cornerFrontUchylnyWidthMm: 500,
+      cornerHandleType: 'PUSH_TO_OPEN'
+    } as Partial<KitchenCabinet>);
+    const milled = buildCorner({
+      openingType: 'HANDLE',
+      cornerWidthA: 1000,
+      cornerMechanism: 'BLIND_CORNER',
+      cornerFrontUchylnyWidthMm: 500,
+      cornerHandleType: 'MILLED'
+    } as Partial<KitchenCabinet>);
+
+    expect(pushToOpen.handles).toEqual([]);
+    expect(milled.handles).toHaveSize(1);
+    expect(milled.handles[0].type).toBe('MILLING');
   });
 
   it('should render upper corner (isUpperCorner variant) in the TOP zone as an L-shape front', () => {

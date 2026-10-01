@@ -98,8 +98,11 @@
               [attr.x2]="handle.x2"
               [attr.y1]="handle.y1"
               [attr.y2]="handle.y2"
+              [class.handle-line--milled]="handle.type === 'MILLING'"
               class="handle-line"
-              stroke-linecap="round"/>
+              stroke-linecap="round">
+      <svg:title>{{ handle.type === 'MILLING' ? 'Uchwyt frezowany' : 'Uchwyt meblowy' }}</svg:title>
+    </svg:line>
   </svg:g>
 
   <svg:line *ngIf="pos.ovenSeparatorDisplayY"
