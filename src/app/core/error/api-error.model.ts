@@ -51,6 +51,11 @@ export interface FieldErrorDetail {
   arguments?: Record<string, string>;
 }
 
+/** Opcjonalne formatowanie argumentów błędu na potrzeby konkretnego widoku. */
+export interface ApiErrorDisplayOptions {
+  formatArgument?: (key: string, value: string) => string;
+}
+
 /**
  * Przetłumaczony błąd gotowy do wyświetlenia w UI.
  */

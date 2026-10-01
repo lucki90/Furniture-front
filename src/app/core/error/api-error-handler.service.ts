@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { ApiErrorResponse, TranslatedError } from './api-error.model';
+import { ApiErrorDisplayOptions, ApiErrorResponse, TranslatedError } from './api-error.model';
 import { ErrorTranslationService } from './error-translation.service';
 import { ToastService } from './toast.service';
 
@@ -32,10 +32,10 @@ export class ApiErrorHandler {
    * Obsługuje dowolny błąd z bloku `error:` subskrypcji.
    * Automatycznie wykrywa format (ApiErrorResponse / błąd sieciowy / inny).
    */
-  handle(err: unknown): void {
+  handle(err: unknown, displayOptions?: ApiErrorDisplayOptions): void {
     const apiError = this.translation.extractApiError(err);
     if (apiError) {
-      this.handleApiError(apiError);
+      this.handleApiError(apiError, displayOptions);
       return;
     }
 
@@ -54,8 +54,8 @@ export class ApiErrorHandler {
   /**
    * Obsługuje typowany ApiErrorResponse (gdy już wyciągnięto z HttpErrorResponse).
    */
-  handleApiError(error: ApiErrorResponse): void {
-    const translatedErrors = this.translation.translateApiError(error);
+  handleApiError(error: ApiErrorResponse, displayOptions?: ApiErrorDisplayOptions): void {
+    const translatedErrors = this.translation.translateApiError(error, displayOptions);
 
     if (translatedErrors.length === 0) {
       this.toast.error('Wystąpił nieoczekiwany błąd.');

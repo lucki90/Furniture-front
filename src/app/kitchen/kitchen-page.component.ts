@@ -37,6 +37,7 @@ import { KitchenService } from './service/kitchen.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
 import { CuttingLayoutService } from './service/cutting-layout.service';
+import { createKitchenValidationErrorOptions } from './service/kitchen-validation-error-options';
 
 export function resolveKitchenPageInitialView(
   storedView: string | null,
@@ -566,7 +567,7 @@ export class KitchenPageComponent {
       },
       error: (err) => {
         console.error('Multi-wall calculation error:', err);
-        this.errorHandler.handle(err);
+        this.errorHandler.handle(err, createKitchenValidationErrorOptions(this.stateService.walls()));
         this.isCalculatingProject.set(false);
       }
     });

@@ -19,7 +19,7 @@ import { LanguageService } from '../service/language.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
-import { EMPTY, of } from 'rxjs';
+import { EMPTY, of, throwError } from 'rxjs';
 
 // Stub dostarcza wszystkie sygnały konsumowane przez KitchenPageComponent.
 class KitchenStateServiceStub {
@@ -196,6 +196,34 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
     expect(secondService).not.toBe(firstService);
 
     secondFixture.destroy();
+  });
+
+  it('uses current cabinet order when displaying a project calculation error', () => {
+    const state = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
+    state.totalCabinetCount.set(2);
+    state.walls.set([{
+      id: 'wall-1',
+      type: 'MAIN',
+      widthMm: 3600,
+      heightMm: 2600,
+      cabinets: [
+        { id: 'cabinet-1' },
+        { id: 'cabinet-7', name: 'Zlew' }
+      ]
+    }]);
+
+    const backendError = { error: { code: 'ex.cabinet.exceeds.wall.width' } };
+    const workflow = TestBed.inject(KitchenProjectWorkflowFacade);
+    const errorHandler = TestBed.inject(ApiErrorHandler);
+    spyOn(workflow, 'calculateProject').and.returnValue(throwError(() => backendError));
+    const handleSpy = spyOn(errorHandler, 'handle');
+    spyOn(console, 'error');
+
+    component.calculateProject();
+
+    const displayOptions = handleSpy.calls.mostRecent().args[1];
+    expect(displayOptions?.formatArgument?.('cabinetId', 'cabinet-7')).toBe('#2 „Zlew” (Ściana główna)');
+    expect(component.isCalculatingProject()).toBeFalse();
   });
 
   describe('sygnały widoku (FE-35 OnPush migration)', () => {
