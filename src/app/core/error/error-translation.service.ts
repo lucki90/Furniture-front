@@ -2,7 +2,7 @@ import { Injectable, effect, inject, signal } from '@angular/core';
 import { catchError, of } from 'rxjs';
 import { TranslationService } from '../../translation/translation.service';
 import { LanguageService } from '../../service/language.service';
-import { ApiErrorResponse, FieldErrorDetail, TranslatedError } from './api-error.model';
+import { ApiErrorDisplayOptions, ApiErrorResponse, FieldErrorDetail, TranslatedError } from './api-error.model';
 import {
   CORNER_ISSUE_MESSAGES_PL,
   localizeCornerIssueArgs
@@ -106,19 +106,23 @@ export class ErrorTranslationService {
   /**
    * Tłumaczy jeden błąd z `errors[]` na gotowy do wyświetlenia obiekt.
    */
-  translateFieldError(err: FieldErrorDetail, errorId?: string): TranslatedError {
-    return this.translate(err.code, err.arguments, err.message, err.field, errorId);
+  translateFieldError(
+    err: FieldErrorDetail,
+    errorId?: string,
+    displayOptions?: ApiErrorDisplayOptions
+  ): TranslatedError {
+    return this.translate(err.code, err.arguments, err.message, err.field, errorId, displayOptions);
   }
 
   /**
    * Tłumaczy odpowiedź ApiErrorResponse na listę gotowych do wyświetlenia błędów.
    */
-  translateApiError(error: ApiErrorResponse): TranslatedError[] {
+  translateApiError(error: ApiErrorResponse, displayOptions?: ApiErrorDisplayOptions): TranslatedError[] {
     if (error.errors && error.errors.length > 0) {
-      return error.errors.map(e => this.translateFieldError(e, error.errorId));
+      return error.errors.map(e => this.translateFieldError(e, error.errorId, displayOptions));
     }
     if (error.code) {
-      return [this.translate(error.code, error.arguments, error.message, undefined, error.errorId)];
+      return [this.translate(error.code, error.arguments, error.message, undefined, error.errorId, displayOptions)];
     }
     // Fallback: użyj kodu z title jeśli nic innego nie ma
     const titleCode = error.title.toLowerCase().replace(/_/g, '.');
@@ -160,32 +164,69 @@ export class ErrorTranslationService {
     backendMessage?: string,
     field?: string,
     errorId?: string,
+    displayOptions?: ApiErrorDisplayOptions,
   ): TranslatedError {
     const backend = this.backendTranslations();
     const template = backend[code] ?? this.HARDCODED_FALLBACKS[code];
     const args = rawArgs ? localizeCornerIssueArgs(code, rawArgs) : rawArgs;
+    const displayArgs = args ? this.formatArgumentValues(args, displayOptions) : undefined;
 
     if (template) {
-      const message = args ? this.interpolate(template, args) : template;
+      const message = displayArgs ? this.interpolate(template, displayArgs) : template;
       // Pokaż argumenty jako szczegóły tylko gdy szablon ich nie zawiera
-      const templateHasArgs = args && Object.keys(args).some(k => template.includes(`{{${k}}}`));
-      const details = !templateHasArgs && args ? this.formatArgs(args) : [];
+      const templateHasArgs = displayArgs && Object.keys(displayArgs).some(k => template.includes(`{{${k}}}`));
+      const details = !templateHasArgs && displayArgs ? this.formatArgs(displayArgs) : [];
       return { message, details, field, errorId };
     }
 
     // Brak tłumaczenia — priorytet 3: angielski komunikat z backendu
     if (backendMessage) {
-      return { message: backendMessage, details: args ? this.formatArgs(args) : [], field, errorId };
+      return {
+        message: args && displayArgs
+          ? this.replaceFormattedArgumentValues(backendMessage, args, displayArgs)
+          : backendMessage,
+        details: displayArgs ? this.formatArgs(displayArgs) : [],
+        field,
+        errorId
+      };
     }
 
     // Priorytet 4: sformatowany kod (ostateczność)
     console.warn(`[ErrorTranslation] Missing translation for code: ${code}`);
     return {
       message: this.formatCodeAsMessage(code),
-      details: args ? this.formatArgs(args) : [],
+      details: displayArgs ? this.formatArgs(displayArgs) : [],
       field,
       errorId,
     };
+  }
+
+  private formatArgumentValues(
+    args: Record<string, string>,
+    displayOptions?: ApiErrorDisplayOptions
+  ): Record<string, string> {
+    if (!displayOptions?.formatArgument) {
+      return args;
+    }
+
+    return Object.fromEntries(
+      Object.entries(args).map(([key, value]) => [key, displayOptions.formatArgument!(key, value)])
+    );
+  }
+
+  private replaceFormattedArgumentValues(
+    message: string,
+    rawArgs: Record<string, string>,
+    displayArgs: Record<string, string>
+  ): string {
+    return Object.entries(rawArgs)
+      .sort(([, left], [, right]) => right.length - left.length)
+      .reduce((result, [key, rawValue]) => {
+        const displayValue = displayArgs[key];
+        return rawValue && displayValue !== rawValue
+          ? result.split(rawValue).join(displayValue)
+          : result;
+      }, message);
   }
 
   private interpolate(template: string, args: Record<string, string>): string {

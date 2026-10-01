@@ -14,7 +14,6 @@ import { ToastService } from '../core/error/toast.service';
 import { ApiErrorHandler } from '../core/error/api-error-handler.service';
 import { LanguageService } from '../service/language.service';
 import {
-  calculateAdjustedComponentCost,
   calculateAdjustedTotalCost,
   sumAggregatedBoardsCost,
   sumAggregatedComponentsCost,
@@ -37,6 +36,7 @@ import { KitchenService } from './service/kitchen.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
 import { CuttingLayoutService } from './service/cutting-layout.service';
+import { createKitchenValidationErrorOptions } from './service/kitchen-validation-error-options';
 
 export function resolveKitchenPageInitialView(
   storedView: string | null,
@@ -566,7 +566,7 @@ export class KitchenPageComponent {
       },
       error: (err) => {
         console.error('Multi-wall calculation error:', err);
-        this.errorHandler.handle(err);
+        this.errorHandler.handle(err, createKitchenValidationErrorOptions(this.stateService.walls()));
         this.isCalculatingProject.set(false);
       }
     });
@@ -626,11 +626,6 @@ export class KitchenPageComponent {
     return calculateAdjustedTotalCost(this.projectResult(), this.includeWasteCost());
   }
 
-  /** Component cost with optional waste cost included. */
-  get adjustedComponentCost(): number {
-    return calculateAdjustedComponentCost(this.projectResult(), this.includeWasteCost());
-  }
-
   /** Sum of all aggregated board costs. */
   get totalAggregatedBoardsCost(): number {
     return sumAggregatedBoardsCost(this.aggregatedBoards());
@@ -638,7 +633,7 @@ export class KitchenPageComponent {
 
   /** Sum of all aggregated component costs. */
   get totalAggregatedComponentsCost(): number {
-    return sumAggregatedComponentsCost(this.aggregatedComponents(), this.includeWasteCost());
+    return sumAggregatedComponentsCost(this.aggregatedComponents());
   }
 
   /** Sum of all aggregated job costs. */

@@ -118,6 +118,19 @@ describe('KitchenLayoutCabinetsLayerComponent', () => {
     expect(root.textContent).toContain('d+10');
   });
 
+  it('renders a milled handle with a distinct style and accessible title', () => {
+    host.positions = [{
+      ...basePosition,
+      handles: [{ type: 'MILLING', x1: 20, y1: 60, x2: 40, y2: 60 }]
+    }];
+    fixture.detectChanges();
+
+    const handle = fixture.nativeElement.querySelector('.handle-line') as SVGLineElement;
+
+    expect(handle.classList).toContain('handle-line--milled');
+    expect(handle.querySelector('title')?.textContent).toBe('Uchwyt frezowany');
+  });
+
   it('emits selected cabinet id on cabinet click', () => {
     host.positions = [basePosition];
     fixture.detectChanges();

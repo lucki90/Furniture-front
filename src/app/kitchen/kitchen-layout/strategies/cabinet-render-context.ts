@@ -19,7 +19,7 @@ export interface DisplayFront {
  * Wspólna definicja używana przez komponent i strategii renderowania.
  */
 export interface DisplayHandle {
-  type: 'BAR' | 'KNOB';
+  type: 'BAR' | 'KNOB' | 'MILLING';
   x1: number;
   y1: number;
   x2?: number;
@@ -43,6 +43,8 @@ export interface CabinetRenderContext {
   carcassEdgeY: number;
   /** SCALE_VERT() — skala pionowa mm→px, potrzebna dla piekarnika (oven slot height). */
   scaleVert: number;
+  /** Sposób otwierania frontu: HANDLE | CLICK | MILLED | NONE. */
+  openingType?: string;
   // Dane specyficzne dla typów
   cargoVariant?: string;
   pantryPassageFrontType?: string;
@@ -94,6 +96,8 @@ export interface CabinetRenderContext {
     widthBMm?: number;
     /** Type B: szerokość frontu uchylnego (otwieranego) w mm. */
     frontUchylnyWidthMm?: number;
+    /** Type B: SCREWED | MILLED | PUSH_TO_OPEN. */
+    handleType?: string;
     /**
      * Strona styku/narożnika wewnętrznego ('LEFT' | 'RIGHT' | null).
      * Type B: strona aktywnego (uchylnego) frontu.

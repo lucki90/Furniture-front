@@ -32,23 +32,12 @@ export function calculateAdjustedTotalCost(projectResult: MultiWallCalculateResp
   return includeWasteCost ? projectResult.totalProjectCost : projectResult.totalProjectCost - waste;
 }
 
-export function calculateAdjustedComponentCost(projectResult: MultiWallCalculateResponse | null, includeWasteCost: boolean): number {
-  if (!projectResult) {
-    return 0;
-  }
-
-  const waste = projectResult.totalWasteCost ?? 0;
-  return includeWasteCost ? projectResult.totalComponentCost + waste : projectResult.totalComponentCost;
-}
-
 export function sumAggregatedBoardsCost(boards: AggregatedBoard[]): number {
   return boards.reduce((sum, board) => sum + board.totalCost, 0);
 }
 
-export function sumAggregatedComponentsCost(components: AggregatedComponent[], includeWasteCost: boolean): number {
-  return components
-    .filter(component => !component.isWaste || includeWasteCost)
-    .reduce((sum, component) => sum + component.totalCost, 0);
+export function sumAggregatedComponentsCost(components: AggregatedComponent[]): number {
+  return components.reduce((sum, component) => sum + component.totalCost, 0);
 }
 
 export function sumAggregatedJobsCost(jobs: AggregatedJob[]): number {

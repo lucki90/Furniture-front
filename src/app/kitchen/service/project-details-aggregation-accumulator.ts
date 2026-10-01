@@ -78,7 +78,7 @@ export class ProjectDetailsAggregationAccumulator {
 
     return {
       boards: Array.from(maps.boards.values()),
-      components: [...Array.from(maps.components.values()), ...wasteDetails],
+      components: Array.from(maps.components.values()),
       jobs: Array.from(maps.jobs.values()),
       wasteCost: response.totalWasteCost ?? 0,
       wasteDetails

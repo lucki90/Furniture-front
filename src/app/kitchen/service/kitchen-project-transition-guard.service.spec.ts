@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { EMPTY, of, Subject, throwError } from 'rxjs';
@@ -32,6 +33,7 @@ describe('KitchenProjectTransitionGuardService', () => {
       'setProjectInfo',
       'markProjectAsClean'
     ]);
+    Object.defineProperty(stateService, 'walls', { value: signal([]) });
     requestsFacade = jasmine.createSpyObj<KitchenProjectRequestsFacade>('KitchenProjectRequestsFacade', [
       'buildMultiWallProjectRequest',
       'buildUpdateProjectRequest'
@@ -197,7 +199,10 @@ describe('KitchenProjectTransitionGuardService', () => {
     });
 
     expect(savingChanges).toEqual([true, false]);
-    expect(errorHandler.handle).toHaveBeenCalledWith(backendError);
+    expect(errorHandler.handle).toHaveBeenCalledWith(
+      backendError,
+      jasmine.objectContaining({ formatArgument: jasmine.any(Function) })
+    );
     expect(service.isTransitioning()).toBeFalse();
   });
 

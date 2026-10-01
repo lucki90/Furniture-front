@@ -12,6 +12,7 @@ import {
 import { KitchenProjectWorkflowFacade } from './kitchen-project-workflow.facade';
 import { KitchenStateService } from './kitchen-state.service';
 import { KitchenProjectRequestsFacade } from './kitchen-project-requests.facade';
+import { createKitchenValidationErrorOptions } from './kitchen-validation-error-options';
 
 export interface KitchenProjectTransitionHooks {
   onProceed: () => void;
@@ -156,7 +157,7 @@ export class KitchenProjectTransitionGuardService {
         error: err => {
           console.error('Error saving project:', err);
           finishSaving();
-          this.errorHandler.handle(err);
+          this.errorHandler.handle(err, createKitchenValidationErrorOptions(this.stateService.walls()));
         }
       });
     });

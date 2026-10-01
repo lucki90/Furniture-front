@@ -138,7 +138,10 @@ describe('ProjectDetailsAggregatorService', () => {
     expect(upperFillerBoard?.totalCost).toBe(40);
 
     expect(result.components.some(component => component.name === 'CLIP_TOP')).toBeTrue();
-    expect(result.components.some(component => component.name === 'WASTE' && component.isWaste)).toBeTrue();
+    expect(result.components.some(component => component.isWaste)).toBeFalse();
+    expect(result.wasteDetails).toEqual([
+      jasmine.objectContaining({ name: 'WASTE', type: 'SHEET_WASTE', totalCost: 22, isWaste: true })
+    ]);
     expect(result.jobs.some(job => job.name === 'COUNTERTOP_CUTTING' && job.totalCost === 30)).toBeTrue();
     expect(result.jobs.some(job => job.name === 'PLINTH_CUTTING' && job.totalCost === 15)).toBeTrue();
     expect(result.wasteCost).toBe(22);

@@ -166,6 +166,94 @@ describe('KitchenCostsSectionComponent', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Brak płyt do wyświetlenia');
   });
+
+  it('renders sheet waste under boards and keeps it out of components', () => {
+    component.projectResult = {
+      allFit: true,
+      wallCount: 1,
+      totalCabinetCount: 1,
+      walls: []
+    } as any;
+    component.aggregatedBoards = [{
+      material: 'PŁYTA_MDF',
+      thickness: 18,
+      width: 600,
+      height: 720,
+      quantity: 1,
+      unitCost: 80,
+      totalCost: 80
+    }];
+    component.aggregatedComponents = [{
+      name: 'Zawias',
+      type: 'HINGE',
+      quantity: 2,
+      unitCost: 10,
+      totalCost: 20
+    }];
+    component.wasteDetails = [{
+      name: 'Odpad MDF',
+      type: 'SHEET_WASTE',
+      quantity: 1,
+      unitCost: 15,
+      totalCost: 15,
+      isWaste: true
+    }];
+
+    fixture.detectChanges();
+
+    const bomTabs = Array.from(
+      fixture.nativeElement.querySelectorAll('.bom-panel .pill-tab') as NodeListOf<HTMLButtonElement>
+    );
+    const boardsTab = bomTabs.find(button => button.textContent?.includes('Płyty')) as HTMLButtonElement;
+    const componentsTab = bomTabs.find(button => button.textContent?.includes('Komponenty')) as HTMLButtonElement;
+
+    expect(boardsTab.textContent).toContain('2');
+    expect(componentsTab.textContent).toContain('1');
+    expect(fixture.nativeElement.querySelector('.waste-section').textContent).toContain('Odpad MDF');
+
+    componentsTab.click();
+    fixture.detectChanges();
+
+    const componentsText = fixture.nativeElement.querySelector('.bom-scroll-area').textContent;
+    expect(componentsText).toContain('Zawias');
+    expect(componentsText).not.toContain('Odpad MDF');
+  });
+
+  it('adds selected sheet waste only to the boards total', () => {
+    component.projectResult = {
+      allFit: true,
+      wallCount: 1,
+      totalCabinetCount: 1,
+      walls: []
+    } as any;
+    component.totalAggregatedBoardsCost = 100;
+    component.totalAggregatedComponentsCost = 40;
+    component.totalWasteCost = 15;
+    component.wasteDetails = [{
+      name: 'Odpad MDF',
+      type: 'SHEET_WASTE',
+      quantity: 1,
+      unitCost: 15,
+      totalCost: 15,
+      isWaste: true
+    }];
+
+    fixture.detectChanges();
+
+    let metrics = fixture.nativeElement.querySelectorAll('.summary-metric-value');
+    expect(metrics[0].textContent).toContain('100');
+    expect(metrics[1].textContent).toContain('40');
+    expect(fixture.nativeElement.querySelector('.bom-total-value').textContent).toContain('100.00');
+
+    fixture.componentRef.setInput('includeWasteCost', true);
+    fixture.detectChanges();
+
+    metrics = fixture.nativeElement.querySelectorAll('.summary-metric-value');
+    expect(metrics[0].textContent).toContain('115');
+    expect(metrics[1].textContent).toContain('40');
+    expect(fixture.nativeElement.querySelector('.bom-total-value').textContent).toContain('115.00');
+  });
+
   it('renders countertop and enclosure diagnostics in walls tab', () => {
     component.projectResult = {
       allFit: true,
