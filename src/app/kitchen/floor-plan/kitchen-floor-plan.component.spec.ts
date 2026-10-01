@@ -3,7 +3,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { KitchenFloorPlanComponent } from './kitchen-floor-plan.component';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
-import { WallWithCabinets } from '../model/kitchen-state.model';
+import { KitchenCabinet, WallWithCabinets } from '../model/kitchen-state.model';
+import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
+import { CORNER_ISSUE_CODES, CornerIssue } from '../service/corner-layout/corner-layout.model';
+import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 
 describe('KitchenFloorPlanComponent', () => {
   let fixture: ComponentFixture<KitchenFloorPlanComponent>;
@@ -110,6 +113,38 @@ describe('KitchenFloorPlanComponent', () => {
     expect(fixture.nativeElement.querySelector('.corner-countertop-rect title')?.textContent).toContain('600x600');
   });
 
+  it('should skip a corner countertop whose wall pair is not a corner in the current topology', () => {
+    component.projectResult = {
+      walls: [],
+      wallCount: 3,
+      totalCabinetCount: 0,
+      allFit: true,
+      totalBoardCost: 0,
+      totalComponentCost: 0,
+      totalWasteCost: 0,
+      totalJobCost: 0,
+      totalProjectCost: 0,
+      cornerCountertops: [
+        {
+          wallAIndex: 1,
+          wallBIndex: 2,
+          cornerWidthMm: 600,
+          cornerDepthMm: 600,
+          thicknessMm: 38,
+          jointType: 'MITER_JOINT',
+          materialCost: 120,
+          jointCost: 15,
+          totalCost: 135,
+          pricingComplete: true
+        }
+      ]
+    } as MultiWallCalculateResponse;
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.corner-countertop-rect').length).toBe(0);
+  });
+
   it('should show island nudge controls when an island wall exists', () => {
     stateService.walls.set([
       buildWall('main', 'MAIN', 3000),
@@ -132,6 +167,63 @@ describe('KitchenFloorPlanComponent', () => {
     expect(fixture.nativeElement.querySelector('.room-outline-label')?.textContent).toContain('4200 x 3100 mm');
   });
 });
+
+describe('KitchenFloorPlanComponent - corner collisions', () => {
+  let fixture: ComponentFixture<KitchenFloorPlanComponent>;
+  let component: KitchenFloorPlanComponent;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [KitchenFloorPlanComponent],
+      providers: [
+        { provide: KitchenStateService, useClass: KitchenStateServiceStub },
+        { provide: KitchenProjectLayoutService, useClass: KitchenProjectLayoutServiceStub }
+      ]
+    }).compileComponents();
+
+    const stateService = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
+    stateService.walls.set([
+      { ...buildWall('main', 'MAIN', 3000), cabinets: [buildBase('m1'), buildBase('m2')] },
+      { ...buildWall('left', 'LEFT', 2200), cabinets: [buildBase('l1')] }
+    ]);
+    fixture = TestBed.createComponent(KitchenFloorPlanComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('marks cabinets from a corner error on both walls and renders them red', () => {
+    const collided = component.wallViews()
+      .flatMap(view => view.cabinets)
+      .filter(cabinet => cabinet.hasCornerCollision)
+      .map(cabinet => cabinet.cabinetId);
+
+    expect(collided).toEqual(['m1', 'l1']);
+    const redRects = fixture.nativeElement.querySelectorAll('.cabinet-rect[fill="#ffcdd2"]');
+    expect(redRects.length).toBe(2);
+  });
+
+  it('keeps the same wall views between change detections', () => {
+    const first = component.wallViews();
+    fixture.detectChanges();
+
+    expect(component.wallViews()).toBe(first);
+  });
+});
+
+class KitchenProjectLayoutServiceStub {
+  private readonly overlap: CornerIssue = {
+    code: CORNER_ISSUE_CODES.CABINETS_OVERLAP_CROSS_WALL,
+    severity: 'ERROR',
+    args: { cabinetId1: 'm1', wallType1: 'MAIN', cabinetId2: 'l1', wallType2: 'LEFT', level: 'BASE' }
+  };
+
+  readonly layout = signal({ junctionSides: new Map<string, 'LEFT' | 'RIGHT'>() });
+  readonly issues = signal<readonly CornerIssue[]>([this.overlap]);
+
+  constraintsFor(): undefined {
+    return undefined;
+  }
+}
 
 class KitchenStateServiceStub {
   readonly walls = signal<WallWithCabinets[]>([
@@ -165,4 +257,16 @@ function buildWall(id: string, type: WallWithCabinets['type'], widthMm: number):
     heightMm: 2600,
     cabinets: []
   };
+}
+
+function buildBase(id: string): KitchenCabinet {
+  return {
+    id,
+    type: KitchenCabinetType.BASE_ONE_DOOR,
+    width: 600,
+    depth: 560,
+    height: 720,
+    openingType: 'LEFT',
+    shelfQuantity: 1
+  } as unknown as KitchenCabinet;
 }

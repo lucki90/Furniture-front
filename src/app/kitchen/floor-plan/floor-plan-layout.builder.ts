@@ -3,7 +3,9 @@ import { WallType } from '../model/kitchen-project.model';
 import { CabinetOnFloorPlan, FloorPlanOpening } from './floor-plan-door-arcs';
 import { buildHorizontalLCornerShape, buildVerticalLCornerShape, HorizontalLCornerShape } from './floor-plan-corner-footprint';
 import { planEndForElevationSide, verticalSegmentTopPx } from './floor-plan-orientation';
-import { WallCornerConstraints } from '../service/corner-layout/corner-layout.model';
+import { CornerJunctionSide, WallCornerConstraints, WallTopology } from '../service/corner-layout/corner-layout.model';
+import { resolveCornerJunctionSide } from '../service/corner-layout/corner-junction-side.resolver';
+import { resolveWallTopology } from '../service/corner-layout/wall-topology.resolver';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { isBlindType } from '../cabinet-form/model/corner-cabinet.model';
 import { DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
@@ -31,6 +33,10 @@ export interface FloorPlanCabinetsSettings {
   fillerWidthMm?: number;
   /** Strefy narożne i przypięcia ściany (`KitchenProjectLayoutService`); brak = ściana bez narożnika. */
   cornerConstraints?: WallCornerConstraints;
+  /** Strona styku szafek narożnych z topologii projektu; bez wpisu — wnioskowana z położenia. */
+  cornerJunctionSides?: ReadonlyMap<string, CornerJunctionSide>;
+  /** Szafki objęte błędem narożnika (kolizja z szafką sąsiedniej ściany, dwie szafki narożne). */
+  cornerConflictCabinetIds?: ReadonlySet<string>;
 }
 
 export interface WallPosition {
@@ -44,6 +50,8 @@ export interface WallPosition {
   labelY: number;
   isHorizontal: boolean;
   scale: number;
+  /** Ściana na linii bazowej rzutu (na dole): MAIN albo zastępująca ją połączona CORNER_LEFT/RIGHT (D2). */
+  isBaseLine?: boolean;
 }
 
 export interface CountertopOnFloorPlan {
@@ -96,6 +104,12 @@ export function buildWallPositions(
   const island = walls.find(wall => wall.type === 'ISLAND');
 
   const mainWidthMm = mainWall?.widthMm ?? 3000;
+  // D2: bez ściany MAIN połączona ściana CORNER_LEFT/RIGHT przejmuje jej miejsce na dole rzutu.
+  const topology = resolveWallTopology(walls);
+  const baseCornerLeft = !mainWall && cornerLeft && isCornerWallA(topology, cornerLeft) ? cornerLeft : undefined;
+  const baseCornerRight = !mainWall && cornerRight && isCornerWallA(topology, cornerRight) ? cornerRight : undefined;
+  const baseLineWidthMm = mainWall?.widthMm
+    ?? (((baseCornerLeft?.widthMm ?? 0) + (baseCornerRight?.widthMm ?? 0)) || 3000);
   const cornerLeftWidthMm = cornerLeft?.widthMm ?? 0;
   const cornerRightWidthMm = cornerRight?.widthMm ?? 0;
   const islandWidthMm = island?.widthMm ?? 0;
@@ -149,7 +163,7 @@ export function buildWallPositions(
   }
 
   if (leftWall) {
-    const mainWidth = (mainWall?.widthMm ?? 3000) * scale;
+    const mainWidth = baseLineWidthMm * scale;
     const height = leftWall.widthMm * scale;
     const x = centerX - mainWidth / 2 - settings.wallThickness;
     positions.push({
@@ -167,7 +181,7 @@ export function buildWallPositions(
   }
 
   if (rightWall) {
-    const mainWidth = (mainWall?.widthMm ?? 3000) * scale;
+    const mainWidth = baseLineWidthMm * scale;
     const height = rightWall.widthMm * scale;
     const x = centerX + mainWidth / 2;
     positions.push({
@@ -184,8 +198,12 @@ export function buildWallPositions(
     });
   }
 
-  if (cornerLeft) {
-    const mainWidth = (mainWall?.widthMm ?? 3000) * scale;
+  if (baseCornerLeft) {
+    const width = baseCornerLeft.widthMm * scale;
+    const x = centerX - baseLineWidthMm * scale / 2;
+    positions.push(baseLineWallPosition(baseCornerLeft, x, width, centerY, settings.wallThickness, scale));
+  } else if (cornerLeft) {
+    const mainWidth = baseLineWidthMm * scale;
     const leftHeight = (leftWall?.widthMm ?? 0) * scale;
     const width = cornerLeft.widthMm * scale;
     positions.push({
@@ -202,8 +220,12 @@ export function buildWallPositions(
     });
   }
 
-  if (cornerRight) {
-    const mainWidth = (mainWall?.widthMm ?? 3000) * scale;
+  if (baseCornerRight) {
+    const width = baseCornerRight.widthMm * scale;
+    const x = centerX + baseLineWidthMm * scale / 2 - width;
+    positions.push(baseLineWallPosition(baseCornerRight, x, width, centerY, settings.wallThickness, scale));
+  } else if (cornerRight) {
+    const mainWidth = baseLineWidthMm * scale;
     const rightHeight = (rightWall?.widthMm ?? 0) * scale;
     const width = cornerRight.widthMm * scale;
     positions.push({
@@ -239,6 +261,34 @@ export function buildWallPositions(
   }
 
   return positions;
+}
+
+/** Ściana A narożnika (MAIN albo zastępująca ją CORNER_LEFT/RIGHT) — rysowana na linii bazowej rzutu. */
+function isCornerWallA(topology: WallTopology, wall: WallWithCabinets): boolean {
+  return topology.corners.some(corner => corner.a.wallId === wall.id);
+}
+
+function baseLineWallPosition(
+  wall: WallWithCabinets,
+  x: number,
+  width: number,
+  centerY: number,
+  wallThickness: number,
+  scale: number
+): WallPosition {
+  return {
+    wall,
+    x,
+    y: centerY - wallThickness,
+    width,
+    height: wallThickness,
+    rotation: 0,
+    labelX: x + width / 2,
+    labelY: centerY + 12,
+    isHorizontal: true,
+    scale,
+    isBaseLine: true
+  };
 }
 
 export function buildCabinetsForWall(
@@ -305,7 +355,10 @@ function buildLinearCabinetsForWall(
       classifyFloorPlanOpening(cabinet)
     );
 
-    applyCornerLFootprint(cabinetOnPlan, cabinet, wall, geometryPosition.x, scale);
+    if (cabSettings?.cornerConflictCabinetIds?.has(cabinet.id)) {
+      cabinetOnPlan.hasCornerCollision = true;
+    }
+    applyCornerLFootprint(cabinetOnPlan, cabinet, pos, geometryPosition.x, cabSettings?.cornerJunctionSides);
 
     switch (zone) {
       case 'BOTTOM':
@@ -808,31 +861,30 @@ function classifyCornerOpening(cabinet: KitchenCabinet & { type: KitchenCabinetT
 }
 
 /**
- * Dla szafki narożnej Type A (L-kształt, NIE ślepej) na ścianie poziomej MAIN dokleja do
- * `CabinetOnFloorPlan` obrys „L" (`cornerFootprintPath`) oraz gotowe łuki otwierania frontów
- * spotykające się w rogu wewnętrznym „L" (`cornerDoorArcs`).
+ * Dla szafki narożnej Type A (L-kształt, NIE ślepej) dokleja do `CabinetOnFloorPlan` obrys „L"
+ * (`cornerFootprintPath`) oraz gotowe łuki otwierania frontów spotykające się w rogu wewnętrznym „L"
+ * (`cornerDoorArcs`).
  *
- * <p>Strona styku (ramię boczne) liczona wg `cornerHandedness`, a w razie braku — z położenia szafki
- * na ścianie (Q1 „z połączenia ścian": lewa połowa → styk LEWY/START). Obsługiwane są ściany pozioma
- * MAIN i pionowe LEFT/RIGHT. Type B (ślepy), CORNER_LEFT/RIGHT i ISLAND zostają prostokątem — patrz TODO.</p>
+ * <p>Strona styku (ramię boczne) pochodzi z `cornerHandedness`, a w razie braku — z topologii narożników projektu
+ * (`junctionSides`); dla szafki poza narożnikiem — z położenia na ścianie. Ramię boczne leży wzdłuż sąsiedniej
+ * ściany, której szafki zaczynają się za strefą narożną, więc narożnik jest widoczny po obu stronach styku.
+ * Obsługiwane są ściany na linii bazowej (MAIN i połączona CORNER_LEFT/RIGHT wg D2) oraz pionowe LEFT/RIGHT.</p>
  */
 function applyCornerLFootprint(
   cabinetOnPlan: CabinetOnFloorPlan,
   cabinet: KitchenCabinet,
-  wall: WallWithCabinets,
+  pos: WallPosition,
   geometryXmm: number,
-  scale: number
+  junctionSides?: ReadonlyMap<string, CornerJunctionSide>
 ): void {
   if (cabinet.type !== KitchenCabinetType.CORNER_CABINET) {
     return;
   }
-  // TODO(naroznik-floor-L): obsłużyć CORNER_LEFT/RIGHT (poziome, pozycjonowane od góry) i wyspę —
-  // obecnie obrys „L" rysujemy na MAIN oraz ścianach pionowych LEFT/RIGHT.
-  // TODO(naroznik-cross-wall): narożnik L jest dziś rysowany tylko na ścianie, na której dodano szafkę.
-  // Po przełączeniu na ścianę sąsiednią (styk L/U) „druga połowa" narożnika powinna być od razu widoczna
-  // po obu stronach styku. Wymaga świadomości `connections` całego układu + wykrywania szafek/kolizji
-  // przez granicę ścian (cross-wall). Patrz backlog ROADMAP_ANALIZA.md §5 (Visual / Floor + Blat / Walidacja).
-  if (wall.type !== 'MAIN' && wall.type !== 'LEFT' && wall.type !== 'RIGHT') {
+  const wall = pos.wall;
+  const onBaseLine = wall.type === 'MAIN' || pos.isBaseLine === true;
+  // TODO(naroznik-floor-L): CORNER_LEFT/RIGHT niepołączone narożnikiem (rysowane u góry rzutu, FE-58) i wyspa
+  // zostają prostokątem.
+  if (!onBaseLine && wall.type !== 'LEFT' && wall.type !== 'RIGHT') {
     return;
   }
   // Ślepy narożnik (Type B) jest prostokątny — bez obrysu „L".
@@ -848,17 +900,20 @@ function applyCornerLFootprint(
   // Tylko TWO_DOORS daje front na obu ramionach (2 łuki). BIFOLD (harmonijka na ramieniu głównym)
   // i BLIND (ramię boczne bez frontu — mapowane na ONE_DOOR) mają jeden front → 1 łuk.
   const doubleDoor = cabinet.cornerOpeningType === 'TWO_DOORS';
-  const armSidePx = armSideMm * scale;
-  const centerMm = geometryXmm + cabinet.width / 2;
+  const armSidePx = armSideMm * pos.scale;
+  // Strona styku w elewacji (LEFT = od START ściany).
+  const elevationSide: CornerJunctionSide = cabinet.cornerHandedness === 'LEFT'
+    ? 'LEFT'
+    : cabinet.cornerHandedness === 'RIGHT'
+      ? 'RIGHT'
+      : resolveCornerJunctionSide(cabinet.id, junctionSides, {
+        x: geometryXmm,
+        width: cabinet.width,
+        wallWidth: wall.widthMm
+      });
 
   let shape: HorizontalLCornerShape | null;
-  if (wall.type === 'MAIN') {
-    const junction: 'LEFT' | 'RIGHT' = cabinet.cornerHandedness === 'LEFT'
-      ? 'LEFT'
-      : cabinet.cornerHandedness === 'RIGHT'
-        ? 'RIGHT'
-        : (centerMm <= wall.widthMm / 2 ? 'LEFT' : 'RIGHT');
-
+  if (onBaseLine) {
     shape = buildHorizontalLCornerShape({
       cabinetId: cabinetOnPlan.cabinetId,
       x: cabinetOnPlan.x,
@@ -866,7 +921,7 @@ function applyCornerLFootprint(
       armMainPx: cabinetOnPlan.width,
       armSidePx,
       depthPx: cabinetOnPlan.depth,
-      junction,
+      junction: elevationSide,
       doubleDoor
     });
   } else {
@@ -875,12 +930,7 @@ function applyCornerLFootprint(
     const side: 'LEFT' | 'RIGHT' = wall.type === 'LEFT' ? 'LEFT' : 'RIGHT';
     // wallX = krawędź korpusu przy ścianie: LEFT → lewa (korpus w prawo), RIGHT → prawa (korpus w lewo).
     const wallX = side === 'LEFT' ? cabinetOnPlan.x : cabinetOnPlan.x + cabinetOnPlan.width;
-    // Strona styku w elewacji (LEFT = od START ściany) → koniec prostokąta na rzucie; ściana RIGHT jest odwrócona.
-    const elevationSide: 'LEFT' | 'RIGHT' = cabinet.cornerHandedness === 'LEFT'
-      ? 'LEFT'
-      : cabinet.cornerHandedness === 'RIGHT'
-        ? 'RIGHT'
-        : (centerMm <= wall.widthMm / 2 ? 'LEFT' : 'RIGHT');
+    // Strona styku w elewacji → koniec prostokąta na rzucie; ściana RIGHT jest odwrócona.
     const junction = planEndForElevationSide(wall.type, elevationSide);
 
     shape = buildVerticalLCornerShape({

@@ -25,7 +25,7 @@
               [class.editing]="isEditing(cab.cabinetId)"
               [style.display]="!showUpperCabinets && cab.zone === 'TOP' ? 'none' : null"
               class="cabinet-rect cabinet-corner-path">
-      <svg:title>{{ cab.name || cab.cabinetId }} (narozna L)</svg:title>
+      <svg:title>{{ cab.name || cab.cabinetId }} (narozna L){{ cab.hasCornerCollision ? ' — kolizja w narożniku' : '' }}</svg:title>
     </svg:path>
     <ng-template #cabinetRect>
       <svg:rect
@@ -42,7 +42,7 @@
         class="cabinet-rect"
         rx="1">
         <svg:title>{{ cab.name || cab.cabinetId }} ({{ cab.isCorner ? 'narozna' : cab.zone === 'FULL' ? 'slupek' :
-          cab.zone === 'TOP' ? 'gorna' : 'dolna' }})
+          cab.zone === 'TOP' ? 'gorna' : 'dolna' }}){{ cab.hasCornerCollision ? ' — kolizja w narożniku' : '' }}
         </svg:title>
       </svg:rect>
     </ng-template>

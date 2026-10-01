@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, Input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, Input, output, signal } from '@angular/core';
 import {
   CornerCountertopResponse,
   MultiWallCalculateResponse
@@ -7,7 +7,7 @@ import {
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
-import { buildFloorPlanArcs, FloorPlanArc } from './floor-plan-door-arcs';
+import { buildFloorPlanArcs, CabinetOnFloorPlan, FloorPlanArc } from './floor-plan-door-arcs';
 import {
   buildCabinetsForWall,
   buildCountertopsForWall,
@@ -15,6 +15,9 @@ import {
   CountertopOnFloorPlan,
   WallPosition
 } from './floor-plan-layout.builder';
+import { WallTopology } from '../service/corner-layout/corner-layout.model';
+import { cornerIssueCabinetIds } from '../service/corner-layout/corner-issue-messages';
+import { resolveWallTopology } from '../service/corner-layout/wall-topology.resolver';
 import { FloorPlanOverlayLayerComponent } from './floor-plan-overlay-layer.component';
 import { FloorPlanWallGroupComponent } from './floor-plan-wall-group.component';
 
@@ -28,6 +31,13 @@ interface CornerCountertopViz {
   miterX2: number;
   miterY2: number;
   label: string;
+}
+
+/** Ściana na rzucie z gotowymi szafkami i blatami — stabilna referencja dla szablonu. */
+interface FloorPlanWallView {
+  position: WallPosition;
+  cabinets: CabinetOnFloorPlan[];
+  countertops: CountertopOnFloorPlan[];
 }
 
 interface RoomGuideViz {
@@ -44,7 +54,8 @@ interface RoomGuideViz {
   standalone: true,
   imports: [CommonModule, FloorPlanWallGroupComponent, FloorPlanOverlayLayerComponent],
   templateUrl: './kitchen-floor-plan.component.html',
-  styleUrls: ['./kitchen-floor-plan.component.css']
+  styleUrls: ['./kitchen-floor-plan.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class KitchenFloorPlanComponent {
   private readonly stateService = inject(KitchenStateService);
@@ -106,6 +117,42 @@ export class KitchenFloorPlanComponent {
     })
   );
 
+  /** Narożniki z typów ścian — te same, które wyznaczają położenie ścian na rzucie. */
+  private readonly topology = computed((): WallTopology => resolveWallTopology(this.walls()));
+
+  /** Szafki objęte błędem narożnika — podświetlane na czerwono. */
+  private readonly cornerConflictCabinetIds = computed((): ReadonlySet<string> => new Set(
+    this.layoutService.issues()
+      .filter(issue => issue.severity === 'ERROR')
+      .flatMap(issue => cornerIssueCabinetIds(issue))
+  ));
+
+  readonly wallViews = computed((): FloorPlanWallView[] => {
+    const junctionSides = this.layoutService.layout().junctionSides;
+    const conflictIds = this.cornerConflictCabinetIds();
+    return this.wallPositions().map(position => {
+      const cornerConstraints = this.layoutService.constraintsFor(position.wall.id);
+      return {
+        position,
+        cabinets: buildCabinetsForWall(position, this.WALL_THICKNESS, {
+          plinthHeightMm: this.stateService.plinthHeightMm(),
+          upperFillerHeightMm: this.stateService.upperFillerHeightMm(),
+          fillerWidthMm: this.stateService.fillerWidthMm(),
+          cornerConstraints,
+          cornerJunctionSides: junctionSides,
+          cornerConflictCabinetIds: conflictIds
+        }),
+        countertops: buildCountertopsForWall(position, {
+          wallThickness: this.WALL_THICKNESS,
+          countertopOverhang: this.COUNTERTOP_OVERHANG,
+          countertopStandardDepth: this.COUNTERTOP_STANDARD_DEPTH,
+          fillerWidthMm: this.stateService.fillerWidthMm(),
+          cornerConstraints
+        })
+      };
+    });
+  });
+
   readonly roomGuide = computed((): RoomGuideViz | null => {
     const roomWidthMm = normalizePositiveDimension(this.roomWidthMm());
     const roomDepthMm = normalizePositiveDimension(this.roomDepthMm());
@@ -138,9 +185,10 @@ export class KitchenFloorPlanComponent {
 
     const positions = this.wallPositions();
     const walls = this.walls();
+    const topology = this.topology();
 
     return projectResult.cornerCountertops
-      .map(cornerCountertop => this.buildCornerViz(cornerCountertop, positions, walls))
+      .map(cornerCountertop => this.buildCornerViz(cornerCountertop, positions, walls, topology))
       .filter((corner): corner is CornerCountertopViz => corner !== null);
   });
 
@@ -149,7 +197,7 @@ export class KitchenFloorPlanComponent {
       return [];
     }
 
-    const cabinets = this.wallPositions().flatMap(position => this.getCabinetsForWall(position));
+    const cabinets = this.wallViews().flatMap(view => view.cabinets);
     return buildFloorPlanArcs(cabinets);
   });
 
@@ -191,50 +239,30 @@ export class KitchenFloorPlanComponent {
     return this.stateService.getWallLabel(type as never);
   }
 
-  getCabinetsForWall(pos: WallPosition) {
-    return buildCabinetsForWall(pos, this.WALL_THICKNESS, {
-      plinthHeightMm: this.stateService.plinthHeightMm(),
-      upperFillerHeightMm: this.stateService.upperFillerHeightMm(),
-      fillerWidthMm: this.stateService.fillerWidthMm(),
-      cornerConstraints: this.layoutService.constraintsFor(pos.wall.id)
-    });
-  }
-
-  getCountertopsForWall(pos: WallPosition): CountertopOnFloorPlan[] {
-    return buildCountertopsForWall(pos, {
-      wallThickness: this.WALL_THICKNESS,
-      countertopOverhang: this.COUNTERTOP_OVERHANG,
-      countertopStandardDepth: this.COUNTERTOP_STANDARD_DEPTH,
-      fillerWidthMm: this.stateService.fillerWidthMm(),
-      cornerConstraints: this.layoutService.constraintsFor(pos.wall.id)
-    });
-  }
-
+  /**
+   * Blat narożny z odpowiedzi backendu rysowany w narożniku z topologii ścian. Indeksy z odpowiedzi wskazują tylko
+   * parę ścian requestu; para spoza bieżącej topologii (np. nieaktualny wynik po zmianie ścian) nie jest rysowana.
+   */
   private buildCornerViz(
     cornerCountertop: CornerCountertopResponse,
     positions: WallPosition[],
-    walls: WallWithCabinets[]
+    walls: WallWithCabinets[],
+    topology: WallTopology
   ): CornerCountertopViz | null {
-    const wallA = walls[cornerCountertop.wallAIndex];
-    const wallB = walls[cornerCountertop.wallBIndex];
-    if (!wallA || !wallB) {
+    const pairIds = [walls[cornerCountertop.wallAIndex]?.id, walls[cornerCountertop.wallBIndex]?.id];
+    const corner = topology.corners.find(candidate =>
+      pairIds.includes(candidate.a.wallId) && pairIds.includes(candidate.b.wallId));
+    if (!corner) {
       return null;
     }
 
-    const horizontal = positions.find(position => position.wall.id === wallA.id);
-    const vertical = positions.find(position => position.wall.id === wallB.id);
+    const horizontal = positions.find(position => position.wall.id === corner.a.wallId);
+    const vertical = positions.find(position => position.wall.id === corner.b.wallId);
     if (!horizontal || !vertical) {
       return null;
     }
 
-    const side = wallB.type === 'LEFT'
-      ? 'left'
-      : wallB.type === 'RIGHT'
-        ? 'right'
-        : null;
-    if (!side) {
-      return null;
-    }
+    const side = corner.connectionType === 'L_CORNER_LEFT' ? 'left' : 'right';
 
     const scale = horizontal.scale;
     const widthPx = cornerCountertop.cornerWidthMm * scale;

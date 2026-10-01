@@ -37,18 +37,18 @@
     </g>
     }
 
-    @for (pos of wallPositions(); track pos.wall.id) {
+    @for (view of wallViews(); track view.position.wall.id) {
     <g
       (wallRemoved)="onRemoveWall($event)"
       (wallSelected)="onWallClick($event)"
-      [cabinets]="getCabinetsForWall(pos)"
+      [cabinets]="view.cabinets"
       [canRemoveWall]="canRemoveWall()"
-      [countertops]="getCountertopsForWall(pos)"
+      [countertops]="view.countertops"
       [editingCabinetId]="editingCabinetId"
-      [selected]="isSelected(pos.wall.id)"
+      [selected]="isSelected(view.position.wall.id)"
       [showCountertop]="showCountertop()"
       [showUpperCabinets]="showUpperCabinets()"
-      [wallPosition]="pos"
+      [wallPosition]="view.position"
       appFloorPlanWallGroup>
     </g>
     }

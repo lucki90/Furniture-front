@@ -40,6 +40,8 @@ export interface CabinetOnFloorPlan {
   isCorner: boolean;
   isFreestanding: boolean;
   hasDepthCollision?: boolean;
+  /** Szafka koliduje w narożniku z szafką sąsiedniej ściany (błąd z układu projektu). */
+  hasCornerCollision?: boolean;
   wallType: WallType;
   cabinetSide?: CabinetSide;
   isReversed?: boolean;

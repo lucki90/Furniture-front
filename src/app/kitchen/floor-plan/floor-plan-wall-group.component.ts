@@ -130,7 +130,7 @@ export class FloorPlanWallGroupComponent {
   }
 
   protected getCabinetFill(cab: CabinetOnFloorPlan): string {
-    if (cab.hasDepthCollision) {
+    if (cab.hasDepthCollision || cab.hasCornerCollision) {
       return '#ffcdd2';
     }
     if (this.isEditing(cab.cabinetId)) {
@@ -154,7 +154,7 @@ export class FloorPlanWallGroupComponent {
   }
 
   protected getCabinetStroke(cab: CabinetOnFloorPlan): string {
-    if (cab.hasDepthCollision) {
+    if (cab.hasDepthCollision || cab.hasCornerCollision) {
       return '#c62828';
     }
     if (this.isEditing(cab.cabinetId)) {

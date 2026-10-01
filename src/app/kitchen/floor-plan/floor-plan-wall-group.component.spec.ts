@@ -207,4 +207,28 @@ describe('FloorPlanWallGroupComponent', () => {
     expect(cabinet.getAttribute('fill')).toBe('#ffcdd2');
     expect(cabinet.getAttribute('stroke')).toBe('#c62828');
   });
+
+  it('renders corner collision cabinets with red stroke and a collision note', () => {
+    host.cabinets = [
+      {
+        cabinetId: 'cab-1',
+        name: 'Narożna kolizja',
+        x: 40,
+        y: 70,
+        width: 50,
+        depth: 25,
+        zone: 'BOTTOM' as const,
+        isCorner: false,
+        isFreestanding: false,
+        wallType: 'MAIN' as const,
+        hasCornerCollision: true
+      }
+    ];
+    fixture.detectChanges();
+
+    const cabinet = fixture.nativeElement.querySelector('.cabinet-rect') as SVGRectElement;
+    expect(cabinet.getAttribute('fill')).toBe('#ffcdd2');
+    expect(cabinet.getAttribute('stroke')).toBe('#c62828');
+    expect(cabinet.querySelector('title')?.textContent).toContain('kolizja w narożniku');
+  });
 });

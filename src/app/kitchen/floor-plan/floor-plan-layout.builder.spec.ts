@@ -159,6 +159,94 @@ describe('floor-plan-layout.builder', () => {
     });
   });
 
+  describe('narożniki z topologii (Etap 5 planu narożników)', () => {
+    const settings = { svgWidth: 320, svgHeight: 240, wallThickness: 10, padding: 30 };
+    const cabinetSettings = { plinthHeightMm: 100, upperFillerHeightMm: 0 };
+    const base = (id: string) => ({
+      id, type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, depth: 560, height: 720, openingType: 'LEFT', shelfQuantity: 1
+    } as any);
+    const lCorner = (id: string) => ({
+      id, type: KitchenCabinetType.CORNER_CABINET, width: 900, depth: 510, height: 720,
+      openingType: 'LEFT', cornerMechanism: 'FIXED_SHELVES', cornerWidthA: 900, cornerWidthB: 900,
+      cornerOpeningType: 'TWO_DOORS', isUpperCorner: false
+    } as any);
+
+    it('D2: bez MAIN połączona ściana CORNER_LEFT stoi na linii bazowej i styka się ze ścianą LEFT', () => {
+      const positions = buildWallPositions([
+        createWall({ id: 'corner-left', type: 'CORNER_LEFT', widthMm: 2400 }),
+        createWall({ id: 'left', type: 'LEFT', widthMm: 2000 })
+      ], settings);
+      const cornerLeft = positions.find(position => position.wall.type === 'CORNER_LEFT')!;
+      const left = positions.find(position => position.wall.type === 'LEFT')!;
+
+      expect(cornerLeft.isBaseLine).toBeTrue();
+      // Jak przy MAIN: ściana pionowa kończy się na górnej krawędzi ściany bazowej.
+      expect(cornerLeft.y).toBeCloseTo(left.y + left.height, 5);
+      expect(cornerLeft.x).toBeCloseTo(left.x + left.width, 5);
+    });
+
+    it('D2: przy ścianie MAIN ściana CORNER_LEFT nie jest połączona i zostaje nad ścianą LEFT', () => {
+      const positions = buildWallPositions([
+        createWall({ id: 'main', type: 'MAIN', widthMm: 3000 }),
+        createWall({ id: 'corner-left', type: 'CORNER_LEFT', widthMm: 1200 }),
+        createWall({ id: 'left', type: 'LEFT', widthMm: 2000 })
+      ], settings);
+      const cornerLeft = positions.find(position => position.wall.type === 'CORNER_LEFT')!;
+      const left = positions.find(position => position.wall.type === 'LEFT')!;
+
+      expect(cornerLeft.isBaseLine).toBeUndefined();
+      expect(cornerLeft.y + cornerLeft.height).toBeLessThanOrEqual(left.y);
+    });
+
+    it('D2: szafka L na połączonej ścianie CORNER_RIGHT dostaje obrys „L” po stronie narożnika', () => {
+      const positions = buildWallPositions([
+        createWall({ id: 'corner-right', type: 'CORNER_RIGHT', widthMm: 2400, cabinets: [base('b1'), lCorner('corner-l')] }),
+        createWall({ id: 'right', type: 'RIGHT', widthMm: 2000 })
+      ], settings);
+      const cornerRight = positions.find(position => position.wall.type === 'CORNER_RIGHT')!;
+
+      const cabinets = buildCabinetsForWall(cornerRight, 10, {
+        ...cabinetSettings,
+        cornerJunctionSides: new Map([['corner-l', 'RIGHT' as const]])
+      });
+      const corner = cabinets.find(cabinet => cabinet.cabinetId === 'corner-l')!;
+      const sideArm = corner.cornerBlockingRects![1];
+
+      expect(corner.cornerFootprintPath).toBeDefined();
+      expect(sideArm.x + sideArm.w).toBeCloseTo(corner.x + corner.width, 5);
+    });
+
+    it('strona styku szafki L z topologii ma pierwszeństwo przed położeniem na ścianie', () => {
+      const [main] = buildWallPositions([
+        createWall({ id: 'main', type: 'MAIN', widthMm: 3000, cabinets: [lCorner('corner-l')] })
+      ], settings);
+
+      const [byPosition] = buildCabinetsForWall(main, 10, cabinetSettings);
+      const [byTopology] = buildCabinetsForWall(main, 10, {
+        ...cabinetSettings,
+        cornerJunctionSides: new Map([['corner-l', 'RIGHT' as const]])
+      });
+
+      expect(byPosition.cornerBlockingRects![1].x).toBeCloseTo(byPosition.x, 5);
+      const sideArm = byTopology.cornerBlockingRects![1];
+      expect(sideArm.x + sideArm.w).toBeCloseTo(byTopology.x + byTopology.width, 5);
+    });
+
+    it('oznacza kolizję w narożniku tylko na szafkach objętych błędem', () => {
+      const [main] = buildWallPositions([
+        createWall({ id: 'main', type: 'MAIN', widthMm: 3000, cabinets: [base('m1'), base('m2')] })
+      ], settings);
+
+      const cabinets = buildCabinetsForWall(main, 10, {
+        ...cabinetSettings,
+        cornerConflictCabinetIds: new Set(['m1'])
+      });
+
+      expect(cabinets.find(cabinet => cabinet.cabinetId === 'm1')?.hasCornerCollision).toBeTrue();
+      expect(cabinets.find(cabinet => cabinet.cabinetId === 'm2')?.hasCornerCollision).toBeUndefined();
+    });
+  });
+
   it('should build cabinets for wall with bottom, full and top ordering', () => {
     const [wallPosition] = buildWallPositions([
       createWall({
