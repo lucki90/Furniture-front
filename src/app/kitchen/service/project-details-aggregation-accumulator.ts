@@ -25,7 +25,8 @@ export class ProjectDetailsAggregationAccumulator {
       board.color ?? '',
       board.veneerX ?? 0,
       board.veneerY ?? 0,
-      board.veneerColor ?? ''
+      board.veneerColor ?? '',
+      board.remarks ?? ''
     ].join('_');
 
     const existing = map.get(key);
