@@ -46,6 +46,9 @@ export function resolveCornerCountertopTrims(
     const partnerNearest = withCountertop
       .filter(footprint => footprint.wallId === partner.id)
       .sort((left, right) => left.nearEdgeMm - right.nearEdgeMm)[0];
+    // TODO(naroznik-blat-ramie-L, BE-27): bez szafek z blatem na ścianie dostawionej narożnik się nie łączy, więc
+    // część ramienia B szafki L poza kwadratem narożnym nie ma blatu. W praktyce to dwa prostokątne blaty łączone na
+    // łyżwę albo pod kątem 45° — do zaplanowania razem z mechanizmem łączenia blatów (spójnie z backendem).
     if (!joined(ownerAtCorner, partnerNearest, ownerWallId === corner.a.wallId, settings)) {
       continue;
     }

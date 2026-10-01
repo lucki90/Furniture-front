@@ -206,6 +206,12 @@ export function buildWallPositions(
     const x = centerX - baseLineWidthMm * scale / 2;
     positions.push(baseLineWallPosition(baseCornerLeft, x, width, centerY, settings.wallThickness, scale));
   } else if (cornerLeft) {
+    // TODO(naroznik-floor-L, FE-58): ściana „Narożnik lewy” (CORNER_LEFT) łączy się w topologii tylko wtedy, gdy projekt
+    // NIE ma ściany głównej (MAIN) — zastępuje ją wtedy na dole rzutu (gałąź wyżej). Gdy MAIN istnieje, ściana LEWA łączy
+    // się z MAIN, a CORNER_LEFT nie łączy się z niczym: nie ma stref narożnych, walidacji kolizji, cieni na elewacji ani
+    // przycięć blatu. Rzut rysuje ją wtedy umownie nad ścianą LEWĄ, a jej szafki — po zewnętrznej stronie linii ściany
+    // (poza pomieszczeniem). Do ustalenia, czym ta ściana ma być w takim projekcie (np. trzecie ramię kuchni przy
+    // START ściany LEWEJ) i z którą ścianą się łączy. Analogicznie CORNER_RIGHT poniżej.
     const mainWidth = baseLineWidthMm * scale;
     const leftHeight = (leftWall?.widthMm ?? 0) * scale;
     const width = cornerLeft.widthMm * scale;
@@ -228,6 +234,7 @@ export function buildWallPositions(
     const x = centerX + baseLineWidthMm * scale / 2 - width;
     positions.push(baseLineWallPosition(baseCornerRight, x, width, centerY, settings.wallThickness, scale));
   } else if (cornerRight) {
+    // TODO(naroznik-floor-L, FE-58): niepołączona CORNER_RIGHT — jak CORNER_LEFT wyżej (rysowana nad ścianą PRAWĄ).
     const mainWidth = baseLineWidthMm * scale;
     const rightHeight = (rightWall?.widthMm ?? 0) * scale;
     const width = cornerRight.widthMm * scale;
@@ -915,8 +922,8 @@ function applyCornerLFootprint(
   }
   const wall = pos.wall;
   const onBaseLine = wall.type === 'MAIN' || pos.isBaseLine === true;
-  // TODO(naroznik-floor-L): CORNER_LEFT/RIGHT niepołączone narożnikiem (rysowane u góry rzutu, FE-58) i wyspa
-  // zostają prostokątem.
+  // TODO(naroznik-floor-L, FE-58): szafka narożna na niepołączonej ścianie CORNER_LEFT/RIGHT (opis w
+  // `buildWallPositions`) i na wyspie zostaje prostokątem — bez obrysu „L”.
   if (!onBaseLine && wall.type !== 'LEFT' && wall.type !== 'RIGHT') {
     return;
   }

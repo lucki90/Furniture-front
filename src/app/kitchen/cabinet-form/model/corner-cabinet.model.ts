@@ -139,6 +139,12 @@ export function computeBlindCornerWidthFromFormula(
   handleType: CornerHandleType,
   frontUchylnyWidthMm: number
 ): number {
+  // TODO(naroznik-slepy-zasieg, FE-64): stała 580 − 50 = 530 to zasięg szafki sąsiedniej ściany, która zasłania część
+  // ślepą: 510 mm głębokości + 20 mm frontu. W projekcie kuchni znamy rzeczywistą szafkę sąsiada (topologia
+  // narożników, `ProjectCornerLayout`). Typowa szafka 560 mm z frontem 18 mm ma zasięg 578 mm, więc podpowiadana
+  // szerokość wychodzi o 48 mm za mała, a po zapisie walidacja zgłasza `warning.corner.blind.part.too.short`.
+  // Do zrobienia: w formularzu szafki projektu brać zasięg sąsiada z układu narożnika; stałą zostawić dla szafki bez
+  // sąsiada (np. kalkulator pojedynczej szafki).
   const x = CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
   return 580 - 50 + x + frontUchylnyWidthMm + 4;
 }
