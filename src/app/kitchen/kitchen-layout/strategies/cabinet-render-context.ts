@@ -47,7 +47,7 @@ export interface CabinetRenderContext {
   openingType?: string;
   // Dane specyficzne dla typów
   cargoVariant?: string;
-  pantryPassageFrontType?: string;
+  pantryPassageFrontType?: 'ONE_DOOR' | 'TWO_DOORS';
   pantryAttachedPlinthHeightPx?: number;
   drawerQuantity?: number;
   segments?: SegmentFormData[];

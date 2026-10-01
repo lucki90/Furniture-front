@@ -2,6 +2,11 @@ import { CabinetRenderContext, DisplayFront, DisplayHandle } from '../cabinet-re
 import { renderDoubleDoor } from './double-door.renderer';
 import { renderSingleDoor } from './single-door.renderer';
 
+/**
+ * Renderuje portal przejscia do spizarni bez podzialow klasycznego korpusu.
+ * Pelnowysokosciowe drzwi korzystaja ze wspolnych prymitywow frontow, a osobna
+ * linia pokazuje zalamanie cokolu przymocowanego bezposrednio do skrzydla.
+ */
 export function renderPantryPassage(
   ctx: CabinetRenderContext,
   fronts: DisplayFront[],
