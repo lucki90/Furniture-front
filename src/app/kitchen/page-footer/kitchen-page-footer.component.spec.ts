@@ -77,4 +77,41 @@ describe('KitchenPageFooterComponent', () => {
     expect((buttons[1] as HTMLButtonElement).disabled).toBeTrue();
     expect((buttons[2] as HTMLButtonElement).disabled).toBeTrue();
   });
+
+  it('shows Excel export only after calculation results are available', () => {
+    component.projectResult = null;
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.footer-actions-aux button')).toBeNull();
+
+    fixture.componentRef.setInput('projectResult', {
+      wallCount: 1,
+      totalCabinetCount: 2
+    } as any);
+    fixture.detectChanges();
+
+    const excelButton = fixture.nativeElement.querySelector('.footer-actions-aux button') as HTMLButtonElement;
+    expect(excelButton).not.toBeNull();
+    expect(excelButton.textContent).toContain('Excel');
+  });
+
+  it('disables the Excel action and exposes its busy state while exporting', () => {
+    spyOn(component.downloadExcel, 'emit');
+    component.projectResult = {
+      wallCount: 1,
+      totalCabinetCount: 2
+    } as any;
+    component.isExcelExporting = true;
+    fixture.detectChanges();
+
+    const excelButton = fixture.nativeElement.querySelector('.footer-actions-aux button') as HTMLButtonElement;
+    expect(excelButton.disabled).toBeTrue();
+    expect(excelButton.title).toBe('Generowanie pliku...');
+    expect(excelButton.textContent).toContain('Generowanie...');
+    expect(excelButton.querySelector('mat-icon')?.textContent).toContain('autorenew');
+
+    excelButton.click();
+
+    expect(component.downloadExcel.emit).not.toHaveBeenCalled();
+  });
 });

@@ -43,7 +43,7 @@ export const CABINET_RENDER_REGISTRY: Partial<Record<KitchenCabinetType, Cabinet
 
   // Slupek
   [KitchenCabinetType.TALL_CABINET]:                 renderTallCabinet,
-  // TODO: replace with a dedicated frame-only renderer (doors to floor + attached plinth) before production polish.
+  // Dedykowany renderer portalu: drzwi do podlogi + linia zalamania zintegrowanego cokolu.
   [KitchenCabinetType.PANTRY_PASSAGE]:               renderPantryPassage,
 
   // Szafka narozna (dolna i gorna wariant isUpperCorner) - front wg typu otwarcia / slepego panelu

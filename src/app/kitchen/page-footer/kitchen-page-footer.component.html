@@ -19,17 +19,17 @@
       <ng-container *ngIf="projectResult">
         <button
           (click)="downloadExcel.emit()"
-          [disabled]="isExporting"
-          [title]="isExporting ? 'Generowanie pliku...' : 'Pobierz liste plyt do zamowienia (.xlsx)'"
+          [disabled]="isExcelExporting"
+          [title]="isExcelExporting ? 'Generowanie pliku...' : 'Pobierz liste plyt do zamowienia (.xlsx)'"
           class="btn-footer btn-footer-secondary"
           type="button">
-          <ng-container *ngIf="isExporting; else excelIcon">
+          <ng-container *ngIf="isExcelExporting; else excelIcon">
             <mat-icon aria-hidden="true" class="btn-footer-icon btn-footer-icon--spinning">autorenew</mat-icon>
           </ng-container>
           <ng-template #excelIcon>
             <mat-icon aria-hidden="true" class="btn-footer-icon">table_chart</mat-icon>
           </ng-template>
-          <span class="btn-footer-text">{{ isExporting ? 'Generowanie...' : 'Excel' }}</span>
+          <span class="btn-footer-text">{{ isExcelExporting ? 'Generowanie...' : 'Excel' }}</span>
         </button>
       </ng-container>
     </div>

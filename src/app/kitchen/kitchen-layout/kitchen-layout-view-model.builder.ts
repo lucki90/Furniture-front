@@ -151,7 +151,7 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
       scaleVert: input.scaleVert,
       openingType: originalCabinet?.openingType,
       cargoVariant,
-      pantryPassageFrontType: cabinetData?.pantryPassageFrontType as string | undefined,
+      pantryPassageFrontType: cabinetData?.pantryPassageFrontType as CabinetRenderContext['pantryPassageFrontType'],
       pantryAttachedPlinthHeightPx: cabinetType === KitchenCabinetType.PANTRY_PASSAGE ? feetHeightPx : undefined,
       drawerQuantity,
       segments,
