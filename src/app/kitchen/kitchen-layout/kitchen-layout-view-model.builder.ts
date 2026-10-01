@@ -6,6 +6,8 @@ import { CabinetRenderContext, DisplayFront, DisplayHandle } from './strategies/
 import { OVEN_HEIGHT_COMPACT_MM, OVEN_HEIGHT_STANDARD_MM, PLATE_THICKNESS_MM } from './kitchen-layout.constants';
 import { CornerMechanismType, isBlindType } from '../cabinet-form/model/corner-cabinet.model';
 import { FrontMountingType } from '../../shared/model/front-mounting-type';
+import { CornerJunctionSide } from '../service/corner-layout/corner-layout.model';
+import { resolveCornerJunctionSide } from '../service/corner-layout/corner-junction-side.resolver';
 
 export interface DisplayFoot {
   x: number;
@@ -62,6 +64,8 @@ export interface KitchenLayoutViewModelInput {
   standardBottomDepth: number;
   standardTopDepth: number;
   frontGap: number;
+  /** Strona styku szafek narożnych z topologii projektu; bez wpisu — wnioskowana z położenia. */
+  cornerJunctionSides?: ReadonlyMap<string, CornerJunctionSide>;
 }
 
 export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput): VisualCabinetPosition[] {
@@ -77,11 +81,15 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
     const cornerMechanism = cabinetData?.cornerMechanism as CornerMechanismType | undefined;
     const isCornerBlind = cornerMechanism ? isBlindType(cornerMechanism) : false;
     const rawHandedness = cabinetData?.cornerHandedness as string | null | undefined;
-    // Type A (L-kształt) zwykle nie ma jawnego cornerHandedness — wnioskujemy stronę styku
-    // (ramienia prostopadłego) z położenia szafki na ścianie. Type B zostawia stronę aktywnego frontu.
+    // Type A (L-kształt) zwykle nie ma jawnego cornerHandedness — stronę styku (ramienia prostopadłego)
+    // bierzemy z topologii narożników projektu. Type B zostawia stronę aktywnego frontu.
     const resolvedHandedness = rawHandedness
       ?? (isCorner && !isCornerBlind
-        ? inferCornerJunctionSide(position.x * input.scale, position.width * input.scale, input.wallWidth)
+        ? resolveCornerJunctionSide(position.cabinetId, input.cornerJunctionSides, {
+          x: position.x * input.scale,
+          width: position.width * input.scale,
+          wallWidth: input.wallWidth
+        })
         : null);
     const cornerConfig = isCorner ? {
       blind: isCornerBlind,
@@ -101,15 +109,12 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
 
     const displayX = position.x * input.scale;
     const displayWidth = position.width * input.scale;
-    const displayHeight = Math.round(position.height * input.scaleVert);
     const frontMountingType = originalCabinet?.frontMountingType ?? 'OVERLAY';
 
     const feetHeightPx = Math.round(input.feetHeightMm * input.scaleVert);
-    const displayY = resolveDisplayY(zone, position, displayHeight, feetHeightPx, input.wallDisplayHeight, input.scaleVert);
+    const { displayY, displayHeight, feetHeight, bodyHeight } = resolveCabinetVerticalBox(
+      zone, cabinetType, position, input.feetHeightMm, input.scaleVert, input.wallDisplayHeight);
     const isOverflow = displayX + displayWidth > input.wallWidth;
-    const hasFeet = (zone === 'BOTTOM' || zone === 'FULL') && cabinetType !== KitchenCabinetType.PANTRY_PASSAGE;
-    const feetHeight = hasFeet ? feetHeightPx : 0;
-    const bodyHeight = zone === 'FULL' ? displayHeight - feetHeight : displayHeight;
     const feet = generateFeet(displayX, displayY + bodyHeight, displayWidth, feetHeight, input.wallDisplayHeight);
 
     const ovenConfig = cabinetType === KitchenCabinetType.BASE_OVEN ? {
@@ -218,15 +223,32 @@ export function buildVisualCabinetPositions(input: KitchenLayoutViewModelInput):
   });
 }
 
+/** Położenie szafki w pionie na elewacji (px): górna krawędź, wysokość, nóżki i korpus. */
+export interface CabinetVerticalBox {
+  displayY: number;
+  displayHeight: number;
+  feetHeight: number;
+  bodyHeight: number;
+}
+
 /**
- * Wnioskuje stronę styku (ramienia prostopadłego) szafki narożnej Type A na podstawie położenia.
- * Szafka w lewej połowie ściany łączy się ze ścianą po lewej → styk po lewej; analogicznie prawa.
- * Używane gdy brak jawnego `cornerHandedness` (preparer Type A go nie ustawia).
- * Wszystkie argumenty w jednostkach wyświetlania (px), spójnie z `wallWidth`.
+ * Pionowe położenie szafki na elewacji. Wspólne dla szafek ściany i cieni szafek sąsiednich ścian przy narożniku.
  */
-function inferCornerJunctionSide(displayX: number, displayWidth: number, wallWidth: number): 'LEFT' | 'RIGHT' {
-  const center = displayX + displayWidth / 2;
-  return center <= wallWidth / 2 ? 'LEFT' : 'RIGHT';
+export function resolveCabinetVerticalBox(
+  zone: CabinetZone,
+  cabinetType: KitchenCabinetType,
+  position: CabinetPosition,
+  feetHeightMm: number,
+  scaleVert: number,
+  wallDisplayHeight: number
+): CabinetVerticalBox {
+  const displayHeight = Math.round(position.height * scaleVert);
+  const feetHeightPx = Math.round(feetHeightMm * scaleVert);
+  const displayY = resolveDisplayY(zone, position, displayHeight, feetHeightPx, wallDisplayHeight, scaleVert);
+  const hasFeet = (zone === 'BOTTOM' || zone === 'FULL') && cabinetType !== KitchenCabinetType.PANTRY_PASSAGE;
+  const feetHeight = hasFeet ? feetHeightPx : 0;
+  const bodyHeight = zone === 'FULL' ? displayHeight - feetHeight : displayHeight;
+  return { displayY, displayHeight, feetHeight, bodyHeight };
 }
 
 function resolveDisplayY(

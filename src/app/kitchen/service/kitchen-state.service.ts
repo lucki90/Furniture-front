@@ -110,6 +110,8 @@ export class KitchenStateService {
   readonly remainingWidth = this.wallMetrics.remainingWidth;
   readonly remainingWidthBottom = this.wallMetrics.remainingWidthBottom;
   readonly remainingWidthTop = this.wallMetrics.remainingWidthTop;
+  readonly freeSpaceStartBottom = this.wallMetrics.freeSpaceStartBottom;
+  readonly freeSpaceStartTop = this.wallMetrics.freeSpaceStartTop;
   readonly cabinetPositions = this.wallMetrics.cabinetPositions;
 
   readonly totalCabinetCount = computed(() => {

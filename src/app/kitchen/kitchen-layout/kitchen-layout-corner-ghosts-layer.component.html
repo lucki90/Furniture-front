@@ -1,0 +1,32 @@
+<svg:rect *ngFor="let zone of reservedZones; trackBy: trackByKey"
+          [attr.height]="zone.rect.height"
+          [attr.width]="zone.rect.width"
+          [attr.x]="zone.rect.x"
+          [attr.y]="zone.rect.y"
+          class="corner-reserved-zone">
+  <svg:title>{{ zone.title }}</svg:title>
+</svg:rect>
+
+<svg:g *ngFor="let ghost of ghosts; trackBy: trackByKey"
+       [attr.data-cabinet-id]="ghost.cabinetId"
+       [class.corner-ghost--conflict]="ghost.conflict"
+       class="corner-ghost">
+  <svg:title>{{ ghost.title }}</svg:title>
+  <svg:rect *ngIf="ghost.countertop as countertop"
+            [attr.height]="countertop.height"
+            [attr.width]="countertop.width"
+            [attr.x]="countertop.x"
+            [attr.y]="countertop.y"
+            class="corner-ghost-countertop"/>
+  <svg:rect [attr.height]="ghost.body.height"
+            [attr.width]="ghost.body.width"
+            [attr.x]="ghost.body.x"
+            [attr.y]="ghost.body.y"
+            class="corner-ghost-body"/>
+  <svg:rect *ngIf="ghost.front as front"
+            [attr.height]="front.height"
+            [attr.width]="front.width"
+            [attr.x]="front.x"
+            [attr.y]="front.y"
+            class="corner-ghost-front"/>
+</svg:g>

@@ -587,6 +587,55 @@
   stroke-dasharray: 4 2;
 }
 
+/* Narożnik: szafki sąsiedniej ściany i strefa narożna */
+.corner-ghosts-layer {
+  pointer-events: none;
+}
+
+.corner-hatch-line {
+  stroke: #90a4ae;
+  stroke-width: 1;
+}
+
+.corner-reserved-zone {
+  fill: url(#cornerZoneHatch);
+  fill-opacity: 0.6;
+  stroke: #90a4ae;
+  stroke-width: 0.5;
+  stroke-dasharray: 2 2;
+}
+
+.corner-ghost-body {
+  fill: #90a4ae;
+  fill-opacity: 0.22;
+  stroke: #607d8b;
+  stroke-opacity: 0.7;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+.corner-ghost-front {
+  fill: #ffffff;
+  fill-opacity: 0.35;
+  stroke: #607d8b;
+  stroke-opacity: 0.7;
+  stroke-width: 0.75;
+}
+
+.corner-ghost-countertop {
+  fill: #6d4c41;
+  fill-opacity: 0.3;
+}
+
+.corner-ghost--conflict .corner-ghost-body {
+  fill: #ef9a9a;
+  fill-opacity: 0.3;
+  stroke: #d32f2f;
+  stroke-opacity: 1;
+  stroke-width: 1.5;
+  stroke-dasharray: none;
+}
+
 /* Floor line */
 .floor-line {
   stroke: #5d4037;

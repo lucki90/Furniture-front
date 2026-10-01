@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Output, effect, inject, computed, Input, signal } from '@angular/core';
 import { CommonModule } from "@angular/common";
 import { KitchenStateService } from '../service/kitchen-state.service';
-import { cabinetRequiresCountertop, getCabinetZone, requiresCountertop } from '../model/kitchen-state.model';
+import { cabinetRequiresCountertop, getCabinetZone, KitchenCabinet, requiresCountertop } from '../model/kitchen-state.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import {
   PLATE_THICKNESS_MM,
@@ -11,6 +11,12 @@ import {
 } from './kitchen-layout.constants';
 import { computeCountertopRunsMm } from '../floor-plan/floor-plan-layout.builder';
 import { buildCooktopGapWarning, buildKitchenLayoutMetrics, buildSideFillerWarning, KitchenLayoutSideFillerWarning } from './kitchen-layout-metrics';
+import { KitchenLayoutCornerGhostsLayerComponent } from './kitchen-layout-corner-ghosts-layer.component';
+import {
+  buildCornerGhostLayer,
+  CornerGhostLayerView,
+  EMPTY_CORNER_GHOST_LAYER
+} from './kitchen-layout-corner-ghosts.builder';
 import { buildVisualCabinetPositions, VisualCabinetPosition } from './kitchen-layout-view-model.builder';
 import { KitchenLayoutCabinetsLayerComponent } from './kitchen-layout-cabinets-layer.component';
 import { KitchenLayoutSurfacesLayerComponent } from './kitchen-layout-surfaces-layer.component';
@@ -24,6 +30,7 @@ import {
   formatCornerIssueMessage
 } from '../service/corner-layout/corner-issue-messages';
 import { CABINET_TYPE_PICKER_LABELS } from '../cabinet-form/types/cabinet-type-labels';
+import { cornerAt } from '../service/corner-layout/wall-topology.resolver';
 
 @Component({
   selector: 'app-kitchen-layout',
@@ -34,6 +41,7 @@ import { CABINET_TYPE_PICKER_LABELS } from '../cabinet-form/types/cabinet-type-l
   imports: [
     CommonModule,
     KitchenLayoutCabinetsLayerComponent,
+    KitchenLayoutCornerGhostsLayerComponent,
     KitchenLayoutSurfacesLayerComponent,
     KitchenLayoutInfoPanelComponent,
     FrontContextPanelComponent
@@ -123,7 +131,12 @@ export class KitchenLayoutComponent {
    */
   readonly sideFillerWarning = computed((): KitchenLayoutSideFillerWarning | null => {
     const wall = this.selectedWall();
-    return buildSideFillerWarning(wall, this.cabinetPositions(), wall?.widthMm ?? 0);
+    const topology = this.layoutService.layout().topology;
+    const cornerEnds = {
+      start: !!wall && !!cornerAt(topology, wall.id, 'START'),
+      end: !!wall && !!cornerAt(topology, wall.id, 'END')
+    };
+    return buildSideFillerWarning(wall, this.cabinetPositions(), wall?.widthMm ?? 0, cornerEnds);
   });
 
   /** Opis stref narożnych wybranej ściany zajętych przez szafki sąsiednich ścian. */
@@ -151,13 +164,47 @@ export class KitchenLayoutComponent {
     const labels = {
       cabinetLabel: (cabinetId: string) => {
         const cabinet = cabinetsById.get(cabinetId);
-        return cabinet ? (cabinet.name || `${CABINET_TYPE_PICKER_LABELS[cabinet.type]} ${cabinet.width}`) : cabinetId;
+        return cabinet ? describeCabinet(cabinet) : cabinetId;
       },
       wallLabel: (type: WallType) => this.stateService.getWallLabel(type)
     };
     return this.layoutService.issues()
       .filter(issue => cornerIssueCabinetIds(issue).some(id => wallCabinetIds.has(id)))
       .map(issue => ({ severity: issue.severity, message: formatCornerIssueMessage(issue, labels) }));
+  });
+
+  /** Szafki sąsiednich ścian przy narożnikach i strefy narożne wybranej ściany. */
+  readonly cornerGhostLayer = computed((): CornerGhostLayerView => {
+    const wall = this.selectedWall();
+    if (!wall || wall.type === 'ISLAND') {
+      return EMPTY_CORNER_GHOST_LAYER;
+    }
+    const layout = this.layoutService.layout();
+    const ghosts = layout.ghosts.filter(ghost => ghost.wallId === wall.id);
+    const reservedZones = layout.reservedZones.filter(zone => zone.wallId === wall.id);
+    if (ghosts.length === 0 && reservedZones.length === 0) {
+      return EMPTY_CORNER_GHOST_LAYER;
+    }
+
+    const metrics = this.layoutMetrics();
+    const wallsById = new Map(this.walls().map(item => [item.id, item]));
+    return buildCornerGhostLayer({
+      ghosts,
+      reservedZones,
+      scale: this.scaleFactor(),
+      scaleVert: metrics.scaleVert,
+      wallDisplayHeight: this.WALL_DISPLAY_HEIGHT,
+      topZone: { y: this.topZoneY, height: metrics.topZoneHeight },
+      counterZone: { y: metrics.counterZoneY, height: metrics.counterZoneHeight },
+      bottomZone: { y: metrics.bottomZoneY, height: metrics.bottomZoneHeight },
+      showUpperCabinets: this.showUpperCabinets(),
+      showCountertop: this.showCountertop(),
+      feetHeightMmFor: wallId => wallsById.get(wallId)?.plinthConfig?.heightMm ?? this.stateService.plinthHeightMm(),
+      countertopDepthMmFor: wallId =>
+        wallsById.get(wallId)?.countertopConfig?.manualDepthMm ?? COUNTERTOP_DEPTH_DEFAULT_MM,
+      cabinetLabel: ghost => describeCabinet(ghost.cabinet),
+      wallLabel: type => this.stateService.getWallLabel(type)
+    });
   });
 
   // Stałe dla elementów wizualnych
@@ -356,7 +403,8 @@ export class KitchenLayoutComponent {
       standardTopHeight: this.STANDARD_TOP_HEIGHT,
       standardBottomDepth: this.STANDARD_BOTTOM_DEPTH,
       standardTopDepth: this.STANDARD_TOP_DEPTH,
-      frontGap: this.FRONT_GAP
+      frontGap: this.FRONT_GAP,
+      cornerJunctionSides: this.layoutService.layout().junctionSides
     });
   });
 
@@ -565,9 +613,9 @@ export class KitchenLayoutComponent {
     return segs.length > 0 ? segs[0] : null;
   });
 
-  // Pozostałe miejsce - dolne szafki
+  // Pozostałe miejsce - dolne szafki (między szafkami od START a strefą narożną END i szafkami przypiętymi)
   readonly remainingBottomSpaceX = computed(() => {
-    return this.usedWidthBottom() * this.scaleFactor();
+    return this.stateService.freeSpaceStartBottom() * this.scaleFactor();
   });
 
   readonly remainingBottomSpaceWidth = computed(() => {
@@ -576,7 +624,7 @@ export class KitchenLayoutComponent {
 
   // Pozostałe miejsce - górne szafki
   readonly remainingTopSpaceX = computed(() => {
-    return this.usedWidthTop() * this.scaleFactor();
+    return this.stateService.freeSpaceStartTop() * this.scaleFactor();
   });
 
   readonly remainingTopSpaceWidth = computed(() => {
@@ -803,4 +851,9 @@ export class KitchenLayoutComponent {
       this.selectCabinet.emit(cabinetId);
     }
   }
+}
+
+/** Nazwa szafki do komunikatów: własna nazwa albo typ i szerokość. */
+function describeCabinet(cabinet: KitchenCabinet): string {
+  return cabinet.name || `${CABINET_TYPE_PICKER_LABELS[cabinet.type]} ${cabinet.width}`;
 }

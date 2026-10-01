@@ -348,5 +348,23 @@ describe('KitchenGeometryService', () => {
       expect(service.calculateUsedWidth(cabinets, 'BOTTOM', 30, 'MAIN')).toBe(1200);
       expect(service.calculateUsedWidth(cabinets, 'BOTTOM', 30, 'MAIN', NO_CORNER_CONSTRAINTS)).toBe(1200);
     });
+
+    it('wolne miejsce zaczyna się za szafkami od START, przed strefą END i szafką przypiętą', () => {
+      const cabinets = [
+        buildCabinet({ id: 't1', type: KitchenCabinetType.TALL_CABINET, height: 2100 }),
+        buildCabinet({ id: 'b1' }),
+        cornerCab('corner')
+      ];
+      const constraints = corner({ startTopMm: 388, endBottomMm: 100, endTopMm: 50, pinnedEndCabinetIds: ['corner'] });
+
+      expect(service.calculateFreeSpaceStartMm(cabinets, 'BOTTOM', 30, 'LEFT', constraints)).toBe(388 + 1200);
+      expect(service.calculateFreeSpaceStartMm(cabinets, 'TOP', 30, 'LEFT', constraints)).toBe(388 + 600);
+    });
+
+    it('bez ograniczeń wolne miejsce zaczyna się na końcu zajętej długości', () => {
+      const cabinets = [buildCabinet({ id: 'b1' }), buildCabinet({ id: 'b2' })];
+
+      expect(service.calculateFreeSpaceStartMm(cabinets, 'BOTTOM', 30, 'MAIN')).toBe(1200);
+    });
   });
 });

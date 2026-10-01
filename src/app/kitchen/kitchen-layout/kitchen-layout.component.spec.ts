@@ -5,6 +5,9 @@ import { CabinetPosition, WallWithCabinets } from '../model/kitchen-state.model'
 import { CabinetSide } from '../model/kitchen-project.model';
 import { KitchenStateService } from '../service/kitchen-state.service';
 import { KitchenLayoutComponent } from './kitchen-layout.component';
+import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
+import { ProjectCornerLayout } from '../service/corner-layout/project-corner-layout.builder';
+import { base } from '../service/corner-layout/corner-layout.test-fixtures';
 
 describe('KitchenLayoutComponent', () => {
   let component: KitchenLayoutComponent;
@@ -152,6 +155,88 @@ describe('KitchenLayoutComponent', () => {
 
 });
 
+describe('KitchenLayoutComponent — narożnik z sąsiednią ścianą', () => {
+  let component: KitchenLayoutComponent;
+  let fixture: ComponentFixture<KitchenLayoutComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [KitchenLayoutComponent],
+      providers: [
+        { provide: KitchenStateService, useClass: KitchenStateServiceStub },
+        { provide: KitchenProjectLayoutService, useClass: KitchenProjectLayoutServiceStub }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(KitchenLayoutComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('rysuje szafkę ściany LEWEJ i strefę narożną przy lewej krawędzi ściany głównej', () => {
+    const layer = component.cornerGhostLayer();
+
+    expect(layer.ghosts.map(ghost => ghost.cabinetId)).toEqual(['l1']);
+    expect(layer.ghosts[0].body.x).toBe(0);
+    expect(layer.ghosts[0].body.width).toBeCloseTo(578 * component.scaleFactor(), 5);
+    expect(layer.reservedZones.length).toBe(1);
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('g.corner-ghosts-layer g.corner-ghost')?.getAttribute('data-cabinet-id')).toBe('l1');
+    expect(root.querySelector('rect.corner-reserved-zone')).not.toBeNull();
+  });
+
+  it('nie ostrzega o blendzie bocznej przy krawędzi połączonej narożnikiem', () => {
+    expect(component.sideFillerWarning()).toBeNull();
+  });
+
+  it('ukrycie szafek górnych nie chowa cienia szafki dolnej', () => {
+    component.showUpperCabinets.set(false);
+    fixture.detectChanges();
+
+    expect(component.cornerGhostLayer().ghosts.length).toBe(1);
+  });
+});
+
+class KitchenProjectLayoutServiceStub {
+  private readonly leftCabinet = base('l1', 1800, 600);
+
+  readonly layout = signal<ProjectCornerLayout>({
+    topology: {
+      corners: [{
+        id: 'wall-1:START',
+        connectionType: 'L_CORNER_LEFT',
+        a: { wallId: 'wall-1', wallType: 'MAIN', end: 'START' },
+        b: { wallId: 'wall-2', wallType: 'LEFT', end: 'END' }
+      }]
+    },
+    constraintsByWallId: new Map(),
+    positionsByWallId: new Map(),
+    issues: [],
+    ghosts: [{
+      wallId: 'wall-1',
+      wallEnd: 'START',
+      sourceWallId: 'wall-2',
+      sourceWallType: 'LEFT',
+      cabinet: this.leftCabinet.cabinet,
+      sourcePosition: { cabinetId: 'l1', x: 1800, y: 0, width: 600, height: 720 },
+      kind: 'SIDE_PROFILE',
+      startMm: 0,
+      endMm: 578,
+      frontStartMm: null,
+      frontEndMm: null,
+      conflict: false
+    }],
+    reservedZones: [{ wallId: 'wall-1', wallEnd: 'START', level: 'BASE', startMm: 0, endMm: 628 }],
+    junctionSides: new Map()
+  });
+  readonly issues = computed(() => this.layout().issues);
+
+  constraintsFor(): undefined {
+    return undefined;
+  }
+}
+
 class KitchenStateServiceStub {
   readonly showCountertop = signal(true);
   readonly showUpperCabinets = signal(true);
@@ -168,6 +253,8 @@ class KitchenStateServiceStub {
   readonly usedWidthTop = signal(0);
   readonly remainingWidthBottom = signal(2600);
   readonly remainingWidthTop = signal(3000);
+  readonly freeSpaceStartBottom = signal(400);
+  readonly freeSpaceStartTop = signal(0);
 
   private readonly cabinet = {
     id: 'base-1',

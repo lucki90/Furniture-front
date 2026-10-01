@@ -181,6 +181,33 @@ describe('kitchen-layout-metrics', () => {
       expect(buildSideFillerWarning(cornerRight, spans, 3600)?.sides).toEqual(['left']);
     });
 
+    it('suppresses exactly the edge connected by a corner in the project topology (FE-61)', () => {
+      const spans = [
+        { cabinetId: 'left', x: 0, width: 800 },
+        { cabinetId: 'right', x: 2800, width: 800 }
+      ];
+      const cabinets = [createCabinet({ id: 'left' }), createCabinet({ id: 'right' })];
+
+      // Ściana LEWA: END łączy się z MAIN → ostrzeżenie zostaje tylko przy ścianie bocznej (lewa krawędź).
+      expect(buildSideFillerWarning(createWall('LEFT', cabinets), spans, 3600, { start: false, end: true })?.sides)
+        .toEqual(['left']);
+      // Ściana PRAWA: START łączy się z MAIN.
+      expect(buildSideFillerWarning(createWall('RIGHT', cabinets), spans, 3600, { start: true, end: false })?.sides)
+        .toEqual(['right']);
+      // MAIN w układzie U: oba końce w narożnikach.
+      expect(buildSideFillerWarning(createWall('MAIN', cabinets), spans, 3600, { start: true, end: true })).toBeNull();
+    });
+
+    it('keeps both edges for a wall without corners in the topology', () => {
+      const spans = [
+        { cabinetId: 'left', x: 0, width: 800 },
+        { cabinetId: 'right', x: 2800, width: 800 }
+      ];
+      const wall = createWall('LEFT', [createCabinet({ id: 'left' }), createCabinet({ id: 'right' })]);
+
+      expect(buildSideFillerWarning(wall, spans, 3600, { start: false, end: false })?.sides).toEqual(['left', 'right']);
+    });
+
     it('returns null for islands and for empty layouts', () => {
       const island = createWall('ISLAND', [createCabinet({ id: 'left' })]);
       expect(buildSideFillerWarning(island, [{ cabinetId: 'left', x: 0, width: 800 }], 3600)).toBeNull();

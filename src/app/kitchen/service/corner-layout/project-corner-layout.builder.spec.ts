@@ -77,6 +77,28 @@ describe('buildProjectCornerLayout', () => {
     expect(errors(result)).toEqual([]);
   });
 
+  it('G3: elewacja LEFT widzi ramię szafki L w strefie narożnej, a szafka L styka się po lewej stronie MAIN', () => {
+    const result = layout(
+      wall('MAIN', 3000, lCorner('l-corner', 0, 900, 900), base('m2', 0, 600)),
+      wall('LEFT', 2400, base('l1', 0, 600), base('l2', 0, 600))
+    );
+
+    expect(result.ghosts.map(ghost => [ghost.wallId, ghost.cabinet.id, ghost.kind, ghost.startMm, ghost.endMm]))
+      .toEqual([['left', 'l-corner', 'L_ARM', 1500, 2400]]);
+    expect(result.reservedZones).toEqual([
+      { wallId: 'left', wallEnd: 'END', level: 'BASE', startMm: 1500, endMm: 2400 }
+    ]);
+    expect(result.junctionSides.get('l-corner')).toBe('LEFT');
+  });
+
+  it('projekt bez narożników nie ma cieni, stref ani stron styku', () => {
+    const result = layout(wall('MAIN', 3000, lCorner('l-corner', 0, 900, 900)));
+
+    expect(result.ghosts).toEqual([]);
+    expect(result.reservedZones).toEqual([]);
+    expect(result.junctionSides.size).toBe(0);
+  });
+
   it('szafka L ostatnia na LEFT → LEFT jest właścicielem: szafka przypięta do narożnika, MAIN startuje za ramieniem', () => {
     const result = layout(
       wall('MAIN', 3000, base('m1', 0, 600), base('m2', 0, 600)),

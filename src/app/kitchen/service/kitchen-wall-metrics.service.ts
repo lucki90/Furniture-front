@@ -78,6 +78,12 @@ export class KitchenWallMetricsService {
     return wall ? wall.widthMm - this.usedWidthTop() : 0;
   });
 
+  /** Początek wolnego miejsca pasa dolnego — przed strefą narożną END i szafkami przypiętymi do narożnika. */
+  readonly freeSpaceStartBottom = computed(() => this.freeSpaceStart('BOTTOM'));
+
+  /** Początek wolnego miejsca pasa górnego — przed strefą narożną END i szafkami przypiętymi do narożnika. */
+  readonly freeSpaceStartTop = computed(() => this.freeSpaceStart('TOP'));
+
   readonly cabinetPositions = computed((): CabinetPosition[] => {
     return this.geometryService.calculateCabinetPositions(this.cabinets(), {
       wallType: this.selectedWall()?.type,
@@ -90,4 +96,14 @@ export class KitchenWallMetricsService {
       cornerConstraints: this.cornerConstraints()
     });
   });
+
+  private freeSpaceStart(zone: 'BOTTOM' | 'TOP'): number {
+    return this.geometryService.calculateFreeSpaceStartMm(
+      this.cabinets(),
+      zone,
+      this.settingsService.fillerWidthMm(),
+      this.selectedWall()?.type,
+      this.cornerConstraints()
+    );
+  }
 }

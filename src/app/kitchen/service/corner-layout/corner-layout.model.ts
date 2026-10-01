@@ -1,5 +1,5 @@
 import { WallConnectionType, WallType } from '../../model/kitchen-project.model';
-import { KitchenCabinet } from '../../model/kitchen-state.model';
+import { CabinetPosition, KitchenCabinet } from '../../model/kitchen-state.model';
 
 /**
  * Koniec ściany w widoku z wnętrza kuchni: START = lewa krawędź elewacji (x = 0),
@@ -134,3 +134,43 @@ export interface CornerIssue {
   severity: CornerIssueSeverity;
   args: Readonly<Record<string, string>>;
 }
+
+/**
+ * Rodzaj cienia szafki sąsiedniej ściany na elewacji:
+ * - `SIDE_PROFILE` — bok szafki stojącej w przekroju przy narożniku (do głębokości szafek oglądanej ściany),
+ * - `L_ARM` — ramię szafki L wzdłuż oglądanej ściany: bok w kwadracie narożnym i front ramienia za nim.
+ */
+export type CornerGhostKind = 'SIDE_PROFILE' | 'L_ARM';
+
+/**
+ * Szafka sąsiedniej ściany widoczna na elewacji ściany `wallId` przy narożniku. Odcinki są w mm wzdłuż ściany
+ * `wallId`, liczone od jej START; położenie w pionie wynika z pozycji szafki na jej własnej ścianie.
+ */
+export interface CornerGhost {
+  wallId: string;
+  wallEnd: WallEnd;
+  sourceWallId: string;
+  sourceWallType: WallType;
+  cabinet: KitchenCabinet;
+  sourcePosition: CabinetPosition;
+  kind: CornerGhostKind;
+  startMm: number;
+  endMm: number;
+  /** Front ramienia szafki L; `null` dla boku szafki. */
+  frontStartMm: number | null;
+  frontEndMm: number | null;
+  /** Szafka koliduje z szafką oglądanej ściany (błąd narożnika). */
+  conflict: boolean;
+}
+
+/** Strefa narożna ściany zajęta przez szafki sąsiedniej ściany (mm wzdłuż ściany, od jej START). */
+export interface CornerReservedZone {
+  wallId: string;
+  wallEnd: WallEnd;
+  level: CornerLevel;
+  startMm: number;
+  endMm: number;
+}
+
+/** Strona elewacji, po której szafka narożna styka się z sąsiednią ścianą. */
+export type CornerJunctionSide = 'LEFT' | 'RIGHT';

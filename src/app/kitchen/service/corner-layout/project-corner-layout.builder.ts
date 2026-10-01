@@ -4,8 +4,11 @@ import { KitchenGeometryService, KitchenGeometrySettings, kitchenGeometrySharedS
 import {
   CORNER_LEVELS,
   CornerGeometrySettings,
+  CornerGhost,
   CornerIssue,
+  CornerJunctionSide,
   CornerLevel,
+  CornerReservedZone,
   NO_CORNER_CONSTRAINTS,
   WallCorner,
   WallCornerConstraints,
@@ -13,6 +16,8 @@ import {
   WallTopology
 } from './corner-layout.model';
 import { buildCornerFootprints, CabinetPositionsByWallId, isCornerCabinetAtCorner } from './corner-footprint.builder';
+import { buildCornerGhosts, buildCornerReservedZones } from './corner-ghosts.builder';
+import { resolveCornerJunctionSides } from './corner-junction-side.resolver';
 import { detectCornerIssues } from './corner-issues.detector';
 import { isCabinetOnCornerLevel, maxCabinetReachMm } from './corner-reach';
 import { resolveCornerReservationMm } from './corner-reservation';
@@ -26,6 +31,12 @@ export interface ProjectCornerLayout {
   /** Pozycje szafek ścian liniowych (bez wyspy) po uwzględnieniu ograniczeń. */
   positionsByWallId: CabinetPositionsByWallId;
   issues: readonly CornerIssue[];
+  /** Szafki sąsiednich ścian widoczne na elewacjach przy narożnikach. */
+  ghosts: readonly CornerGhost[];
+  /** Strefy narożne ścian dostawionych (dół i góra osobno). */
+  reservedZones: readonly CornerReservedZone[];
+  /** Strona styku szafek narożnych stojących w narożniku. */
+  junctionSides: ReadonlyMap<string, CornerJunctionSide>;
 }
 
 /** Ustawienia geometrii konkretnej ściany (wysokość, cokół, blat, blenda). */
@@ -57,12 +68,7 @@ export function buildProjectCornerLayout(
 
   if (topology.corners.length === 0) {
     const positionsByWallId = layoutWalls(linearWalls, new Map(), geometrySettingsFor, geometry);
-    return {
-      topology,
-      constraintsByWallId: new Map(),
-      positionsByWallId,
-      issues: detectCornerIssues(walls, topology, positionsByWallId, cornerSettings)
-    };
+    return completeLayout(topology, walls, new Map(), positionsByWallId, cornerSettings);
   }
 
   const owners = resolveCornerOwners(topology, walls);
@@ -78,11 +84,25 @@ export function buildProjectCornerLayout(
     positionsByWallId = layoutWalls(linearWalls, constraints, geometrySettingsFor, geometry);
   }
 
+  return completeLayout(topology, walls, constraints, positionsByWallId, cornerSettings);
+}
+
+function completeLayout(
+  topology: WallTopology,
+  walls: readonly WallWithCabinets[],
+  constraintsByWallId: ReadonlyMap<string, WallCornerConstraints>,
+  positionsByWallId: CabinetPositionsByWallId,
+  cornerSettings: CornerGeometrySettings
+): ProjectCornerLayout {
+  const issues = detectCornerIssues(walls, topology, positionsByWallId, cornerSettings);
   return {
     topology,
-    constraintsByWallId: constraints,
+    constraintsByWallId,
     positionsByWallId,
-    issues: detectCornerIssues(walls, topology, positionsByWallId, cornerSettings)
+    issues,
+    ghosts: buildCornerGhosts(topology, walls, positionsByWallId, issues, cornerSettings),
+    reservedZones: buildCornerReservedZones(walls, constraintsByWallId),
+    junctionSides: resolveCornerJunctionSides(topology, walls, positionsByWallId, cornerSettings)
   };
 }
 

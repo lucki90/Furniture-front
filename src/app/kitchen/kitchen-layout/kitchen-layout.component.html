@@ -23,7 +23,7 @@
       </div>
 
       <div
-        *ngIf="filteredCabinetPositions().length === 0 && ghostVisualPositions().length === 0; else wallVisualization"
+        *ngIf="filteredCabinetPositions().length === 0 && ghostVisualPositions().length === 0 && cornerGhostLayer().ghosts.length === 0; else wallVisualization"
         class="empty-state">
         Dodaj szafki, aby zobaczyc wizualizacje
       </div>
@@ -115,6 +115,10 @@
                   <stop offset="0%" style="stop-color:#8d6e63;stop-opacity:1"/>
                   <stop offset="100%" style="stop-color:#6d4c41;stop-opacity:1"/>
                 </linearGradient>
+                <pattern height="6" id="cornerZoneHatch" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"
+                         width="6">
+                  <line class="corner-hatch-line" x1="0" x2="0" y1="0" y2="6"/>
+                </pattern>
               </defs>
 
               <rect
@@ -158,6 +162,14 @@
                 [showCabinetLabels]="showCabinetLabels()"
                 [showUpperCabinets]="showUpperCabinets()"
                 appKitchenLayoutCabinetsLayer>
+              </g>
+
+              <g
+                *ngIf="cornerGhostLayer() as cornerLayer"
+                [ghosts]="cornerLayer.ghosts"
+                [reservedZones]="cornerLayer.reservedZones"
+                appKitchenLayoutCornerGhostsLayer
+                class="corner-ghosts-layer">
               </g>
 
               <g

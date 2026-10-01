@@ -58,6 +58,32 @@ export class KitchenGeometryService {
     return currentX;
   }
 
+  /**
+   * Początek wolnego miejsca pasa: zajęta szerokość bez strefy narożnej END i szafek przypiętych do narożnika END.
+   * Wolne miejsce leży między szafkami płynącymi od START a narożnikiem; jego szerokość to `ściana − zajęte`.
+   */
+  calculateFreeSpaceStartMm(
+    cabinets: KitchenCabinet[],
+    zone: Extract<CabinetZone, 'BOTTOM' | 'TOP'>,
+    fillerWidthMm: number,
+    wallType?: WallType,
+    cornerConstraints?: WallCornerConstraints
+  ): number {
+    const usedMm = this.calculateUsedWidth(cabinets, zone, fillerWidthMm, wallType, cornerConstraints);
+    if (!cornerConstraints || wallType === 'ISLAND') {
+      return usedMm;
+    }
+
+    const endReservationMm = zone === 'BOTTOM' ? cornerConstraints.endBottomMm : cornerConstraints.endTopMm;
+    const pinnedMm = cabinets
+      .filter(cabinet => cornerConstraints.pinnedEndCabinetIds.includes(cabinet.id) && this.isInLane(cabinet, zone))
+      .reduce((sum, cabinet) => sum
+        + this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'left', fillerWidthMm)
+        + cabinet.width
+        + this.addonsBuilder.enclosureOuterWidthMm(cabinet, 'right', fillerWidthMm), 0);
+    return usedMm - endReservationMm - pinnedMm;
+  }
+
   calculateCabinetPositions(cabinets: KitchenCabinet[], settings: KitchenGeometrySettings): CabinetPosition[] {
     if (settings.wallType === 'ISLAND') {
       return this.calculateIslandCabinetPositions(cabinets, settings);
@@ -321,6 +347,11 @@ export class KitchenGeometryService {
       cursor = laneStart + occupiedMm;
     }
     return cursor + pinnedMm + corner.endBottomMm;
+  }
+
+  private isInLane(cabinet: KitchenCabinet, zone: Extract<CabinetZone, 'BOTTOM' | 'TOP'>): boolean {
+    const cabinetZone = getCabinetZone(cabinet);
+    return cabinetZone === zone || cabinetZone === 'FULL';
   }
 
   private calculateCountertopHeight(cabinets: KitchenCabinet[], settings: KitchenGeometrySettings): number {

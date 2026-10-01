@@ -383,6 +383,42 @@ describe('kitchen-layout-view-model.builder', () => {
     expect(doors[0].hingesSide).toBe('LEFT');
   });
 
+  it('should take the Type A junction side from the project topology instead of the position', () => {
+    // Szafka w lewej połowie ściany, ale topologia mówi: narożnik na END → styk po prawej.
+    const position = buildVisualCabinetPositions({
+      cabinetPositions: [createPosition({ cabinetId: 'corner-1', width: 900, height: 720 })],
+      cabinets: [
+        createCabinet({
+          id: 'corner-1',
+          type: KitchenCabinetType.CORNER_CABINET,
+          width: 900,
+          height: 720,
+          depth: 560,
+          cornerWidthA: 900,
+          cornerWidthB: 600,
+          cornerMechanism: 'FIXED_SHELVES',
+          cornerOpeningType: 'TWO_DOORS',
+          isUpperCorner: false
+        } as Partial<KitchenCabinet>)
+      ],
+      scale: 0.1,
+      wallWidth: 200,
+      wallDisplayHeight: 180,
+      scaleVert: 0.1,
+      feetHeightMm: 100,
+      fillerWidthMm: 50,
+      standardBottomHeight: 720,
+      standardTopHeight: 720,
+      standardBottomDepth: 560,
+      standardTopDepth: 320,
+      frontGap: 1,
+      cornerJunctionSides: new Map([['corner-1', 'RIGHT' as const]])
+    })[0];
+
+    const doors = position.fronts.filter(front => front.type === 'DOOR_SINGLE');
+    expect(doors[0].hingesSide).toBe('LEFT');
+  });
+
   it('should render Type B blind corner as active front + fixed blind panel with a single handle', () => {
     const position = buildCorner({
       cornerWidthA: 1000,

@@ -20,6 +20,14 @@ export interface KitchenLayoutSideFillerWarning {
   message: string;
 }
 
+/** Końce ściany połączone narożnikiem z sąsiednią ścianą (START = lewa krawędź elewacji). */
+export interface KitchenLayoutCornerEnds {
+  start: boolean;
+  end: boolean;
+}
+
+export const NO_CORNER_ENDS: KitchenLayoutCornerEnds = { start: false, end: false };
+
 /** Minimalna pozycja/szerokość szafki potrzebna do wykrycia szafek skrajnych przy ścianie. */
 export interface KitchenLayoutCabinetSpan {
   cabinetId: string;
@@ -38,18 +46,17 @@ export interface KitchenLayoutCabinetSpan {
  * <p>Reguły wygaszania:</p>
  * <ul>
  *   <li>ISLAND → pomijamy (wyspa nie ma ścian bocznych; używa paneli bocznych).</li>
- *   <li>CORNER_LEFT → wygaszamy lewą stronę (łączy się z sąsiednią ścianą, nie ze ścianą boczną).</li>
- *   <li>CORNER_RIGHT → wygaszamy prawą stronę.</li>
+ *   <li>Koniec ściany połączony narożnikiem (topologia projektu) → wygaszamy tę stronę: relacje szafek w narożniku
+ *   sprawdzają reguły narożnika (luz narożny, zasłonięty front).</li>
+ *   <li>CORNER_LEFT / CORNER_RIGHT → wygaszamy lewą / prawą stronę także bez modelowanej ściany sąsiedniej, bo typ
+ *   ściany oznacza narożnik po tej stronie.</li>
  * </ul>
- *
- * TODO(uklad-L-U): dla ścian LEFT/RIGHT (pionowych w układzie L/U) krawędź stykająca się z narożnikiem jest
- * wykrywana tylko heurystycznie po typie ściany — możliwe nadmiarowe ostrzeżenie po stronie wewnętrznego narożnika.
- * Docelowo powiązać z modelem połączeń ścian (WallConnection), aby wygaszać dokładnie krawędź narożną.
  */
 export function buildSideFillerWarning(
   selectedWall: WallWithCabinets | undefined,
   spans: KitchenLayoutCabinetSpan[],
-  wallWidthMm: number
+  wallWidthMm: number,
+  cornerEnds: KitchenLayoutCornerEnds = NO_CORNER_ENDS
 ): KitchenLayoutSideFillerWarning | null {
   if (!selectedWall || selectedWall.type === 'ISLAND' || spans.length === 0 || wallWidthMm <= 0) {
     return null;
@@ -70,13 +77,13 @@ export function buildSideFillerWarning(
 
   const sides: ('left' | 'right')[] = [];
 
-  const leftConnectedToWall = selectedWall.type === 'CORNER_LEFT';
+  const leftConnectedToWall = cornerEnds.start || selectedWall.type === 'CORNER_LEFT';
   const leftGapMm = leftSpan.x;
   if (!leftConnectedToWall && leftGapMm < SIDE_WALL_CLEARANCE_MM && hasNoSideFiller(cabinetsById.get(leftSpan.cabinetId), 'left')) {
     sides.push('left');
   }
 
-  const rightConnectedToWall = selectedWall.type === 'CORNER_RIGHT';
+  const rightConnectedToWall = cornerEnds.end || selectedWall.type === 'CORNER_RIGHT';
   const rightGapMm = wallWidthMm - (rightSpan.x + rightSpan.width);
   if (!rightConnectedToWall && rightGapMm < SIDE_WALL_CLEARANCE_MM && hasNoSideFiller(cabinetsById.get(rightSpan.cabinetId), 'right')) {
     sides.push('right');
