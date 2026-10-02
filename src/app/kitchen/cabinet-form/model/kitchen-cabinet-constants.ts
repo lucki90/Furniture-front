@@ -62,10 +62,9 @@ export const KitchenCabinetConstraints = {
     WIDTH_MAX: 600,
     HEIGHT_MIN: 680,
     HEIGHT_MAX: 760,
-    // Depth is variant-specific (validated on backend):
-    //   MECHANISM: 510-560mm (Blum mechanism requirement)
-    //   DRAWERS:   300-560mm
-    DEPTH_MIN: 300,
+    // Głębokość zależy od wariantu i odzwierciedla backendowy kontrakt walidacji.
+    DEPTH_MECHANISM_MIN: 510,
+    DEPTH_DRAWERS_MIN: 300,
     DEPTH_MAX: 560,
     DRAWER_MIN: 2,
     DRAWER_MAX: 3

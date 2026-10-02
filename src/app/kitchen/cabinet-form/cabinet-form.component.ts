@@ -551,6 +551,7 @@ export class CabinetFormComponent implements OnChanges {
     this.form.get('drawerQuantity')?.updateValueAndValidity({ emitEvent: false });
     this.form.get('drawerModel')?.updateValueAndValidity({ emitEvent: false });
     this.form.get('cargoBrand')?.updateValueAndValidity({ emitEvent: false });
+    this.form.get('depth')?.updateValueAndValidity({ emitEvent: false });
     this.cdr.markForCheck();
   }
 

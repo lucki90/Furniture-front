@@ -19,11 +19,7 @@ export class BaseCargoCabinetValidator implements KitchenCabinetValidator {
       Validators.max(this.constraints.HEIGHT_MAX)
     ]);
 
-    form.get('depth')?.setValidators([
-      Validators.required,
-      Validators.min(this.constraints.DEPTH_MIN),
-      Validators.max(this.constraints.DEPTH_MAX)
-    ]);
+    form.get('depth')?.setValidators([this.cargoDepthValidator(form)]);
 
     form.get('drawerQuantity')?.setValidators([
       this.cargoDrawerQuantityValidator(form)
@@ -42,6 +38,30 @@ export class BaseCargoCabinetValidator implements KitchenCabinetValidator {
     form.get('drawerModel')?.updateValueAndValidity();
     form.get('cargoBrand')?.updateValueAndValidity();
     form.updateValueAndValidity();
+  }
+
+  private cargoDepthValidator(form: FormGroup) {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (control.value === null || control.value === undefined || control.value === '') {
+        return { required: true };
+      }
+
+      const value = Number(control.value);
+      if (Number.isNaN(value)) {
+        return { required: true };
+      }
+
+      const minimum = form.get('cargoVariant')?.value === 'DRAWERS'
+        ? this.constraints.DEPTH_DRAWERS_MIN
+        : this.constraints.DEPTH_MECHANISM_MIN;
+      if (value < minimum) {
+        return { min: { min: minimum, actual: value } };
+      }
+      if (value > this.constraints.DEPTH_MAX) {
+        return { max: { max: this.constraints.DEPTH_MAX, actual: value } };
+      }
+      return null;
+    };
   }
 
   private cargoDrawerQuantityValidator(form: FormGroup) {

@@ -19,6 +19,7 @@ import { PantryPassageCabinetValidator } from './types/pantry-passage/pantry-pas
 import { MaterialPresetService } from '../service/material-preset.service';
 import { TranslationService } from '../../translation/translation.service';
 import { LanguageService } from '../../service/language.service';
+import { BaseCargoCabinetValidator } from './types/base-cargo/base-cargo-cabinet-validator';
 
 describe('CabinetFormComponent', () => {
   let component: CabinetFormComponent;
@@ -265,6 +266,20 @@ describe('CabinetFormComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('System szuflad');
     expect(fixture.nativeElement.textContent).not.toContain('Marka mechanizmu');
     expect(component.form.get('drawerModel')?.value).toBe('ANTARO_TANDEMBOX');
+  });
+
+  it('revalidates cargo depth when the variant changes', () => {
+    component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_CARGO);
+    new BaseCargoCabinetValidator().validate(component.form);
+    component.form.get('depth')?.setValue(300);
+
+    expect(component.form.get('depth')?.errors?.['min']?.min).toBe(510);
+
+    component.form.get('cargoVariant')?.setValue('DRAWERS');
+    expect(component.form.get('depth')?.valid).toBeTrue();
+
+    component.form.get('cargoVariant')?.setValue('MECHANISM');
+    expect(component.form.get('depth')?.errors?.['min']?.min).toBe(510);
   });
 
   it('shows a strong usability warning for cargo drawers up to 200 mm', () => {
