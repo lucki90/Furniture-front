@@ -25,7 +25,8 @@ import {
   CornerJointGeometryPx,
   cornerJointLabel,
   cornerJointPoints,
-  cutCountertopsAtMiter,
+  cutWallCountertopsAtMiterCorners,
+  miterCornerGeometriesPx,
   toSvgPoints
 } from './floor-plan-corner-joints';
 
@@ -127,17 +128,12 @@ export class KitchenFloorPlanComponent {
    * Narożniki z cięciem 45° (z układu narożników frontu) w geometrii rzutu — blaty obu ścian są tam przycinane po
    * przekątnej. Głębokość jak rysowanych blatów (`COUNTERTOP_STANDARD_DEPTH`).
    */
-  private readonly miterCorners = computed((): CornerJointGeometryPx[] => {
-    const positions = this.wallPositions();
-    const corners = this.topology().corners;
-    return this.layoutService.layout().countertopJoints
-      .filter(joint => joint.type === 'MITER_45')
-      .map(joint => corners.find(corner => corner.id === joint.cornerId))
-      .map(corner => corner
-        ? cornerJointGeometryPx(corner, positions, this.COUNTERTOP_STANDARD_DEPTH, this.COUNTERTOP_STANDARD_DEPTH)
-        : null)
-      .filter((geometry): geometry is CornerJointGeometryPx => geometry !== null);
-  });
+  private readonly miterCorners = computed((): CornerJointGeometryPx[] => miterCornerGeometriesPx(
+    this.layoutService.layout().countertopJoints,
+    this.topology().corners,
+    this.wallPositions(),
+    this.COUNTERTOP_STANDARD_DEPTH
+  ));
 
   readonly wallViews = computed((): FloorPlanWallView[] => {
     const layout = this.layoutService.layout();
@@ -156,7 +152,7 @@ export class KitchenFloorPlanComponent {
           cornerJunctionSides: junctionSides,
           cornerConflictCabinetIds: conflictIds
         }),
-        countertops: cutAtMiterCorners(position.wall.id, buildCountertopsForWall(position, {
+        countertops: cutWallCountertopsAtMiterCorners(position.wall.id, buildCountertopsForWall(position, {
           wallThickness: this.WALL_THICKNESS,
           countertopOverhang: this.COUNTERTOP_OVERHANG,
           countertopStandardDepth: this.COUNTERTOP_STANDARD_DEPTH,
@@ -295,20 +291,6 @@ export class KitchenFloorPlanComponent {
       label: `${cornerCountertop.cornerWidthMm}x${cornerCountertop.cornerDepthMm}mm`
     };
   }
-}
-
-/** Blaty ściany przycięte po przekątnej w jej narożnikach z cięciem 45°. */
-function cutAtMiterCorners(
-  wallId: string,
-  countertops: CountertopOnFloorPlan[],
-  miterCorners: readonly CornerJointGeometryPx[]
-): CountertopOnFloorPlan[] {
-  return miterCorners.reduce((current, geometry) => {
-    if (geometry.wallAId === wallId) {
-      return cutCountertopsAtMiter(current, geometry, 'A');
-    }
-    return geometry.wallBId === wallId ? cutCountertopsAtMiter(current, geometry, 'B') : current;
-  }, countertops);
 }
 
 function normalizePositiveDimension(value: number | null | undefined): number | null {

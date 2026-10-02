@@ -9,6 +9,7 @@ import { KitchenStateService } from './kitchen-state.service';
 import { KitchenProjectPricingFacade } from './kitchen-project-pricing.facade';
 import { KitchenProjectExportFacade } from './kitchen-project-export.facade';
 import { ToastService } from '../../core/error/toast.service';
+import { OfferViewsService } from '../offer-views/offer-views.service';
 
 const SAMPLE_LOAD_RESULT = {
   breakdown: { finalPrice: 1500, discountPct: 10, offerNotes: 'testowa oferta', manualPriceOverride: null } as any,
@@ -45,6 +46,7 @@ describe('KitchenPagePricingService', () => {
         { provide: KitchenStateService, useValue: { currentProjectId: projectId } },
         { provide: KitchenProjectPricingFacade, useValue: pricingFacade },
         { provide: KitchenProjectExportFacade, useValue: exportFacade },
+        { provide: OfferViewsService, useValue: jasmine.createSpyObj('OfferViewsService', ['render']) },
         { provide: ToastService, useValue: toast },
         { provide: MatDialog, useValue: dialog }
       ]

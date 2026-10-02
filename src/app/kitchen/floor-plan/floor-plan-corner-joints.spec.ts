@@ -5,8 +5,11 @@ import {
   cornerJointLabel,
   cornerJointPoints,
   cutCountertopsAtMiter,
+  cutWallCountertopsAtMiterCorners,
+  miterCornerGeometriesPx,
   toSvgPoints
 } from './floor-plan-corner-joints';
+import { CountertopCornerJoint } from '../service/corner-layout/corner-run-trims';
 import { CountertopOnFloorPlan, WallPosition } from './floor-plan-layout.builder';
 
 /**
@@ -88,5 +91,22 @@ describe('floor-plan-corner-joints', () => {
     expect(main.polygonPoints).toBe('100,200 160,140 220,140 220,200');
     expect(left.polygonPoints).toBe('100,20 160,20 160,140 100,200');
     expect(far.polygonPoints).toBeUndefined();
+  });
+
+  it('geometria cięć 45° tylko dla narożników z takim złączem, a blaty ściany przycina ten narożnik, w którym leży', () => {
+    const joints: CountertopCornerJoint[] = [
+      { cornerId: 'main:left', type: 'MITER_45', ruleOwnerWallId: 'main', passingWallId: 'main' },
+      { cornerId: 'main:right', type: 'LYZWA', ruleOwnerWallId: 'main', passingWallId: 'main' }
+    ];
+    const miters = miterCornerGeometriesPx(
+      joints, [corner('L_CORNER_LEFT'), corner('L_CORNER_RIGHT')], positions, 600);
+
+    expect(miters.length).toBe(1);
+    expect(miters[0].wallBId).toBe('left');
+
+    const [left] = cutWallCountertopsAtMiterCorners('left', [countertop(100, 20, 60, 180)], miters);
+    const [right] = cutWallCountertopsAtMiterCorners('right', [countertop(340, 20, 60, 180)], miters);
+    expect(left.polygonPoints).toBe('100,20 160,20 160,140 100,200');
+    expect(right.polygonPoints).toBeUndefined();
   });
 });

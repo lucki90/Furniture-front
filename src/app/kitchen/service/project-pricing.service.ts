@@ -37,11 +37,19 @@ export interface UpdatePricingRequest {
   offerNotes: string | null;
 }
 
+/** Widok poglądowy do oferty: podpis i obraz PNG w Base64 (bez prefiksu `data:`). */
+export interface OfferViewImage {
+  title: string;
+  pngBase64: string;
+}
+
 export interface OfferOptionsRequest {
   showCostDetails: boolean;
   frontDescription?: string;
   countertopDescription?: string;
   hardwareDescription?: string;
+  /** Rzut z góry i widoki ścian; brak = oferta bez strony widoków. */
+  views?: OfferViewImage[];
 }
 
 const BASE_URL = `${environment.apiUrl}/kitchen/projects`;

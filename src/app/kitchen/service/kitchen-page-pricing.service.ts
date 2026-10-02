@@ -1,26 +1,28 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject } from 'rxjs';
-import { takeUntil, finalize } from 'rxjs/operators';
+import { from, of, Subject } from 'rxjs';
+import { takeUntil, finalize, switchMap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
-import { PricingBreakdown, OfferOptionsRequest } from './project-pricing.service';
+import { PricingBreakdown, OfferOptionsRequest, OfferViewImage } from './project-pricing.service';
 import { KitchenProjectPricingFacade, PricingFormState, PricingLoadResult } from './kitchen-project-pricing.facade';
 import { KitchenProjectExportFacade } from './kitchen-project-export.facade';
 import { KitchenStateService } from './kitchen-state.service';
 import { ToastService } from '../../core/error/toast.service';
-import { OfferOptionsDialogComponent } from '../offer-options-dialog/offer-options-dialog.component';
+import { OfferDialogOptions, OfferOptionsDialogComponent } from '../offer-options-dialog/offer-options-dialog.component';
 import { buildPricingViewStateFromResult } from '../kitchen-page-view-state';
+import { OfferViewsService } from '../offer-views/offer-views.service';
 
-const DEFAULT_OFFER_OPTIONS: OfferOptionsRequest = {
+const DEFAULT_OFFER_OPTIONS: OfferDialogOptions = {
   showCostDetails: true,
   frontDescription: '',
   countertopDescription: '',
-  hardwareDescription: 'Blum'
+  hardwareDescription: 'Blum',
+  includeViews: true
 };
 
 /**
  * Zarządza stanem wyceny projektu: sygnały UI, ładowanie/zapis przez API,
- * pobieranie PDF oferty z dialogiem opcji.
+ * pobieranie PDF oferty z dialogiem opcji (z widokami poglądowymi rysowanymi przed wysłaniem).
  * Wydzielony z KitchenPageComponent (FE-36).
  */
 @Injectable()
@@ -28,6 +30,7 @@ export class KitchenPagePricingService {
   private stateService = inject(KitchenStateService);
   private pricingFacade = inject(KitchenProjectPricingFacade);
   private exportFacade = inject(KitchenProjectExportFacade);
+  private offerViews = inject(OfferViewsService);
   private dialog = inject(MatDialog);
   private toast = inject(ToastService);
   private destroyRef = inject(DestroyRef);
@@ -41,7 +44,7 @@ export class KitchenPagePricingService {
   readonly pricingManualOverride = signal<number | null>(null);
   readonly pricingOfferNotes = signal('');
 
-  private lastOfferOptions: OfferOptionsRequest = { ...DEFAULT_OFFER_OPTIONS };
+  private lastOfferOptions: OfferDialogOptions = { ...DEFAULT_OFFER_OPTIONS };
   private cancelPricingRequest$ = new Subject<void>();
   private cancelPdfRequest$ = new Subject<void>();
 
@@ -91,11 +94,13 @@ export class KitchenPagePricingService {
     dialogRef.afterClosed().pipe(
       takeUntil(this.cancelPdfRequest$),
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(options => {
-      if (!options) return;
-      this.lastOfferOptions = options;
+    ).subscribe((dialogOptions: OfferDialogOptions | undefined) => {
+      if (!dialogOptions) return;
+      this.lastOfferOptions = dialogOptions;
+      const { includeViews, ...options } = dialogOptions;
       this.isPdfDownloading.set(true);
-      this.exportFacade.downloadOfferPdf({ projectId: id, options }).pipe(
+      (includeViews ? from(this.prepareOfferViews()) : of([])).pipe(
+        switchMap(views => this.exportFacade.downloadOfferPdf({ projectId: id, options: withViews(options, views) })),
         takeUntil(this.cancelPdfRequest$),
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.isPdfDownloading.set(false))
@@ -126,6 +131,22 @@ export class KitchenPagePricingService {
     this.pricingOfferNotes.set('');
   }
 
+  /**
+   * Widoki z bieżącego stanu edytora. Cena oferty pochodzi z zapisanego projektu, więc przy niezapisanych zmianach
+   * rysunek może się z nią nie zgadzać — ostrzegamy. Błąd rysowania nie blokuje oferty: powstaje bez widoków.
+   */
+  private async prepareOfferViews(): Promise<OfferViewImage[]> {
+    if (this.stateService.hasUnsavedChanges()) {
+      this.toast.warning('Projekt ma niezapisane zmiany — widoki pokażą stan edytora, a cena zapisany projekt.');
+    }
+    try {
+      return await this.offerViews.render();
+    } catch {
+      this.toast.warning('Nie udało się przygotować widoków poglądowych — oferta powstanie bez rysunków.');
+      return [];
+    }
+  }
+
   private buildFormState(): PricingFormState {
     return {
       discountPct: this.pricingDiscountPct(),
@@ -143,4 +164,8 @@ export class KitchenPagePricingService {
     this.pricingManualOverride.set(state.pricingManualOverride);
     this.pricingOfferNotes.set(state.pricingOfferNotes);
   }
+}
+
+function withViews(options: OfferOptionsRequest, views: OfferViewImage[]): OfferOptionsRequest {
+  return views.length > 0 ? { ...options, views } : options;
 }

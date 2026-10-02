@@ -1,5 +1,6 @@
 import { CornerJointType } from '../model/countertop.model';
 import { WallCorner } from '../service/corner-layout/corner-layout.model';
+import { CountertopCornerJoint } from '../service/corner-layout/corner-run-trims';
 import { CountertopOnFloorPlan, WallPosition } from './floor-plan-layout.builder';
 
 export interface PointPx {
@@ -101,6 +102,37 @@ export function cornerJointLabel(jointType: CornerJointType | undefined): string
  * Przy cięciu 45° oba blaty dochodzą do ściany, więc ich prostokąty nakładają się w kwadracie narożnym. Rysunek
  * przycina je po przekątnej narożnika: każdy blat zachowuje część po swojej stronie linii złącza.
  */
+/**
+ * Narożniki z cięciem 45° (z układu narożników frontu) w geometrii rzutu — blaty obu ścian są tam przycinane po
+ * przekątnej. Głębokość jak rysowanych blatów.
+ */
+export function miterCornerGeometriesPx(
+  joints: readonly CountertopCornerJoint[],
+  corners: readonly WallCorner[],
+  positions: readonly WallPosition[],
+  countertopDepthMm: number
+): CornerJointGeometryPx[] {
+  return joints
+    .filter(joint => joint.type === 'MITER_45')
+    .map(joint => corners.find(corner => corner.id === joint.cornerId))
+    .map(corner => corner ? cornerJointGeometryPx(corner, positions, countertopDepthMm, countertopDepthMm) : null)
+    .filter((geometry): geometry is CornerJointGeometryPx => geometry !== null);
+}
+
+/** Blaty ściany przycięte po przekątnej w jej narożnikach z cięciem 45°. */
+export function cutWallCountertopsAtMiterCorners(
+  wallId: string,
+  countertops: CountertopOnFloorPlan[],
+  miterCorners: readonly CornerJointGeometryPx[]
+): CountertopOnFloorPlan[] {
+  return miterCorners.reduce((current, geometry) => {
+    if (geometry.wallAId === wallId) {
+      return cutCountertopsAtMiter(current, geometry, 'A');
+    }
+    return geometry.wallBId === wallId ? cutCountertopsAtMiter(current, geometry, 'B') : current;
+  }, countertops);
+}
+
 export function cutCountertopsAtMiter(
   countertops: readonly CountertopOnFloorPlan[],
   geometry: CornerJointGeometryPx,
