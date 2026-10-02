@@ -1,0 +1,37 @@
+.price-toolbar {
+  margin-bottom: 10px;
+}
+
+.category-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--info-bg);
+  color: var(--info-color);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.row-warn-icon {
+  width: 12px;
+  height: 12px;
+  font-size: 12px;
+  vertical-align: middle;
+  margin-right: 2px;
+  color: var(--warning-color);
+}
+
+.row-extra-info {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.status-ok {
+  color: #388e3c;
+}
+
+.status-err {
+  color: #c62828;
+}

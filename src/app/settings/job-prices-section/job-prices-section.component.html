@@ -1,0 +1,57 @@
+<app-price-edit-table
+  (bulkSave)="saveBulk($event)"
+  (retry)="load()"
+  (save)="savePrice($event)"
+  [emptyText]="(categoryFilter || variantFilter) ? 'Brak prac dla wybranych filtrów.' : 'Brak prac.'"
+  [error]="error"
+  [loading]="loading"
+  [rowClassFn]="rowClass"
+  [rows]="filteredJobPrices"
+  priceField="pricePerUnit"
+  priceLabel="Cena / jedn."
+  priceUnit="zł">
+
+  <ng-template #toolbar>
+    <div class="settings-toolbar settings-toolbar--filters price-toolbar">
+      <label class="settings-toolbar-label">Kategoria:</label>
+      <select (ngModelChange)="onCategoryChange($event)"
+              [ngModel]="categoryFilter"
+              class="form-control form-control--compact settings-filter-control settings-filter-control--wide">
+        <option value="">— wszystkie —</option>
+        <option *ngFor="let category of categories; trackBy: trackByValue" [value]="category">
+          {{ category }}
+        </option>
+      </select>
+      <label class="settings-toolbar-label">Wariant:</label>
+      <select (ngModelChange)="onVariantChange($event)"
+              [ngModel]="variantFilter"
+              class="form-control form-control--compact settings-filter-control settings-filter-control--wide">
+        <option value="">— wszystkie —</option>
+        <option *ngFor="let variant of variants; trackBy: trackByValue" [value]="variant">{{ variant }}</option>
+      </select>
+      <span *ngIf="categoryFilter || variantFilter" class="settings-toolbar-count">
+        {{ filteredJobPrices.length }} / {{ jobPrices.length }} pozycji
+      </span>
+    </div>
+  </ng-template>
+
+  <ng-template #headers>
+    <th>Kategoria</th>
+    <th>Praca</th>
+    <th>Wariant</th>
+    <th>Próg gr.</th>
+    <th>Jedn.</th>
+  </ng-template>
+
+  <ng-template #rowCells let-price>
+    <td><span class="category-chip">{{ price.jobCategory }}</span></td>
+    <td>
+      <mat-icon *ngIf="!price.jobActive" aria-hidden="true" class="row-warn-icon"
+                title="Praca nieaktywna">warning_amber</mat-icon>
+      {{ price.jobCode }}
+    </td>
+    <td>{{ price.variantCode }}</td>
+    <td>{{ price.thicknessThresholdMm != null ? price.thicknessThresholdMm + ' mm' : '—' }}</td>
+    <td>{{ price.unit || '—' }}</td>
+  </ng-template>
+</app-price-edit-table>

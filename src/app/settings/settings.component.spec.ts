@@ -6,8 +6,6 @@ import { LanguageService } from '../service/language.service';
 import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
 import { MaterialPresetService } from '../kitchen/service/material-preset.service';
 import { TranslationService } from '../translation/translation.service';
-import { ComponentPriceService } from './component-price.service';
-import { JobPriceService } from './job-price.service';
 import { DEFAULT_USER_SETTINGS } from './settings.model';
 import { SettingsService } from './settings.service';
 import { SettingsComponent } from './settings.component';
@@ -23,8 +21,6 @@ describe('SettingsComponent — rzaz', () => {
       providers: [
         { provide: SettingsService, useValue: settingsService },
         { provide: KitchenStateService, useValue: { setGlobalDefaults: () => {}, setMaterialDefaults: () => {} } },
-        { provide: ComponentPriceService, useValue: {} },
-        { provide: JobPriceService, useValue: {} },
         { provide: TranslationService, useValue: { getByCategories: () => of({}) } },
         { provide: LanguageService, useValue: { lang: signal('pl') } },
         { provide: MaterialAdminService, useValue: {} },

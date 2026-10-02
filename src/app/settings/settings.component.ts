@@ -8,10 +8,6 @@ import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
 import { DEFAULT_MATERIAL_PRESET_CODE, SettingsOptions, UpdateUserSettingsRequest } from './settings.model';
 import { FormFieldComponent } from '../shared/form-field/form-field.component';
 import { BoardPrice } from './board-price.service';
-import { ComponentPriceService, ComponentPrice } from './component-price.service';
-import { JobPriceService, JobPrice } from './job-price.service';
-import { forkJoin } from 'rxjs';
-import { PriceEditTableComponent, PriceSaveEvent, BulkSaveEvent } from './price-edit-table/price-edit-table.component';
 import { TranslationService } from '../translation/translation.service';
 import { LanguageService } from '../service/language.service';
 import { MaterialAdminService } from '../admin/material/service/material-admin.service';
@@ -21,23 +17,25 @@ import { CompanyInfoSectionComponent } from './company-info-section/company-info
 import { MaterialPresetResponse, MaterialPresetService } from '../kitchen/service/material-preset.service';
 import { DEFAULT_GRAIN_DIRECTIONS, EffectiveGrainDirections, GrainDirections, userGrainDirections } from '../shared/model/grain-direction';
 import { GrainDirectionFieldsComponent } from '../shared/grain-direction-fields/grain-direction-fields.component';
+import { ComponentPricesSectionComponent } from './component-prices-section/component-prices-section.component';
+import { JobPricesSectionComponent } from './job-prices-section/job-prices-section.component';
 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, FormFieldComponent, PriceEditTableComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent, GrainDirectionFieldsComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, FormFieldComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent, GrainDirectionFieldsComponent, ComponentPricesSectionComponent, JobPricesSectionComponent],
 })
 export class SettingsComponent implements OnInit, AfterViewInit {
 
   @ViewChild(CompanyInfoSectionComponent) companyInfoSection?: CompanyInfoSectionComponent;
 
-  // TODO(CODEX): Ten komponent urósł do roli "ekranu wszystkiego" dla ustawień: ładuje dane, trzyma ogromny lokalny stan, składa request zapisu, zarządza cennikami i spina child komponenty przez @ViewChild. To już wyraźny kandydat do dalszego podziału, bo koszt zmian i ryzyko regresji będą rosnąć przy każdym nowym ustawieniu.
+  // TODO(CODEX): Cenniki i dane firmy są już wydzielone do child komponentów, ale ten ekran nadal ładuje opcje,
+  // trzyma duży stan ustawień użytkownika i ręcznie składa request zapisu. Kolejne etapy powinny rozdzielić model formularza
+  // od orkiestracji zapisu, żeby nowe ustawienia nie powiększały tej klasy.
   private settingsService = inject(SettingsService);
   private kitchenStateService = inject(KitchenStateService);
-  private componentPriceService = inject(ComponentPriceService);
-  private jobPriceService = inject(JobPriceService);
   private translationService = inject(TranslationService);
   private languageService = inject(LanguageService);
   private materialAdminService = inject(MaterialAdminService);
@@ -119,30 +117,6 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   // boardPrices — utrzymywane TYLKO dla przebudowy list kolorów materiałów; zarządzane przez BoardPricesSectionComponent
   private boardPrices: BoardPrice[] = [];
 
-  // Cennik komponentów
-  componentPrices: ComponentPrice[] = [];
-  filteredComponentPrices: ComponentPrice[] = [];
-  componentPricesLoading = false;
-  componentPricesError: string | null = null;
-  componentCategoryFilter = '';
-  componentModelFilter = '';
-
-  // Cennik prac
-  jobPrices: JobPrice[] = [];
-  filteredJobPrices: JobPrice[] = [];
-  jobPricesLoading = false;
-  jobPricesError: string | null = null;
-  jobCategoryFilter = '';
-  jobVariantFilter = '';
-
-  /** Row-class function passed to PriceEditTableComponent. */
-  readonly componentRowClass = (cp: ComponentPrice): string =>
-    (!cp.componentActive || !cp.variantActive) ? 'inactive' : '';
-
-  /** Row-class function for job price table. */
-  readonly jobRowClass = (jp: JobPrice): string =>
-    (!jp.jobActive || !jp.variantActive) ? 'inactive' : '';
-
   // UI states
   loading = false;
   saving = false;
@@ -169,8 +143,6 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     this.loadSettings();
     this.loadMaterialOptions();
     this.loadMaterialPresets();
-    this.loadComponentPrices();
-    this.loadJobPrices();
   }
 
   ngAfterViewInit(): void {
@@ -486,196 +458,6 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   onBoardPricesChanged(prices: BoardPrice[]): void {
     this.boardPrices = prices;
     this.rebuildColorOptions();
-  }
-
-  // ── Cennik komponentów ─────────────────────────────────────────────────────
-
-  loadComponentPrices(): void {
-    this.componentPricesLoading = true;
-    this.componentPricesError = null;
-    this.componentPriceService.list().subscribe({
-      next: (prices) => {
-        this.componentPrices = prices;
-        this.componentPricesLoading = false;
-        this.recomputeComponentFilter();
-      },
-      error: () => {
-        this.componentPricesError = 'Nie udało się załadować cennika komponentów.';
-        this.componentPricesLoading = false;
-      }
-    });
-  }
-
-  get componentCategories(): string[] {
-    const seen = new Set<string>();
-    const result: string[] = [];
-    for (const cp of this.componentPrices) {
-      if (!seen.has(cp.category)) {
-        seen.add(cp.category);
-        result.push(cp.category);
-      }
-    }
-    return result.sort();
-  }
-
-  /** Distinct model codes for the currently selected category (or all categories). */
-  get componentModels(): string[] {
-    const seen = new Set<string>();
-    const result: string[] = [];
-    const source = this.componentCategoryFilter
-      ? this.componentPrices.filter(cp => cp.category === this.componentCategoryFilter)
-      : this.componentPrices;
-    for (const cp of source) {
-      if (!seen.has(cp.modelCode)) {
-        seen.add(cp.modelCode);
-        result.push(cp.modelCode);
-      }
-    }
-    return result.sort();
-  }
-
-  private recomputeComponentFilter(): void {
-    let result = this.componentPrices;
-    if (this.componentCategoryFilter) {
-      result = result.filter(cp => cp.category === this.componentCategoryFilter);
-    }
-    if (this.componentModelFilter) {
-      result = result.filter(cp => cp.modelCode === this.componentModelFilter);
-    }
-    this.filteredComponentPrices = result;
-  }
-
-  onComponentCategoryChange(cat: string): void {
-    this.componentCategoryFilter = cat;
-    this.componentModelFilter = '';
-    this.recomputeComponentFilter();
-  }
-
-  onComponentModelFilterChange(model: string): void {
-    this.componentModelFilter = model;
-    this.recomputeComponentFilter();
-  }
-
-  onComponentPriceSave(event: PriceSaveEvent): void {
-    this.componentPriceService.update(event.id, { pricePerUnit: event.price }).subscribe({
-      next: (updated) => {
-        this.componentPrices = this.componentPrices.map(p => p.id === updated.id ? updated : p);
-        this.recomputeComponentFilter();
-        event.complete(true);
-      },
-      error: () => event.complete(false),
-    });
-  }
-
-  // ── Cennik prac ────────────────────────────────────────────────────────────
-
-  loadJobPrices(): void {
-    this.jobPricesLoading = true;
-    this.jobPricesError = null;
-    this.jobPriceService.list().subscribe({
-      next: (prices) => {
-        this.jobPrices = prices;
-        this.jobPricesLoading = false;
-        this.recomputeJobFilter();
-      },
-      error: () => {
-        this.jobPricesError = 'Nie udało się załadować cennika prac.';
-        this.jobPricesLoading = false;
-      }
-    });
-  }
-
-  get jobCategories(): string[] {
-    const seen = new Set<string>();
-    const result: string[] = [];
-    for (const jp of this.jobPrices) {
-      if (!seen.has(jp.jobCategory)) {
-        seen.add(jp.jobCategory);
-        result.push(jp.jobCategory);
-      }
-    }
-    return result.sort();
-  }
-
-  /** Distinct variant codes for the currently selected category (or all categories). */
-  get jobVariants(): string[] {
-    const seen = new Set<string>();
-    const result: string[] = [];
-    const source = this.jobCategoryFilter
-      ? this.jobPrices.filter(jp => jp.jobCategory === this.jobCategoryFilter)
-      : this.jobPrices;
-    for (const jp of source) {
-      if (!seen.has(jp.variantCode)) {
-        seen.add(jp.variantCode);
-        result.push(jp.variantCode);
-      }
-    }
-    return result.sort();
-  }
-
-  private recomputeJobFilter(): void {
-    let result = this.jobPrices;
-    if (this.jobCategoryFilter) {
-      result = result.filter(jp => jp.jobCategory === this.jobCategoryFilter);
-    }
-    if (this.jobVariantFilter) {
-      result = result.filter(jp => jp.variantCode === this.jobVariantFilter);
-    }
-    this.filteredJobPrices = result;
-  }
-
-  onJobCategoryChange(cat: string): void {
-    this.jobCategoryFilter = cat;
-    this.jobVariantFilter = '';
-    this.recomputeJobFilter();
-  }
-
-  onJobVariantFilterChange(variant: string): void {
-    this.jobVariantFilter = variant;
-    this.recomputeJobFilter();
-  }
-
-  onJobPriceSave(event: PriceSaveEvent): void {
-    this.jobPriceService.update(event.id, { pricePerUnit: event.price }).subscribe({
-      next: (updated) => {
-        this.jobPrices = this.jobPrices.map(p => p.id === updated.id ? updated : p);
-        this.recomputeJobFilter();
-        event.complete(true);
-      },
-      error: () => event.complete(false),
-    });
-  }
-
-  onComponentBulkSave(event: BulkSaveEvent): void {
-    const requests = event.ids.map(id =>
-      this.componentPriceService.update(id, { pricePerUnit: event.price })
-    );
-    forkJoin(requests).subscribe({
-      next: (updated) => {
-        updated.forEach(u => {
-          this.componentPrices = this.componentPrices.map(p => p.id === u.id ? u : p);
-        });
-        this.recomputeComponentFilter();
-        event.complete(true);
-      },
-      error: () => event.complete(false),
-    });
-  }
-
-  onJobBulkSave(event: BulkSaveEvent): void {
-    const requests = event.ids.map(id =>
-      this.jobPriceService.update(id, { pricePerUnit: event.price })
-    );
-    forkJoin(requests).subscribe({
-      next: (updated) => {
-        updated.forEach(u => {
-          this.jobPrices = this.jobPrices.map(p => p.id === u.id ? u : p);
-        });
-        this.recomputeJobFilter();
-        event.complete(true);
-      },
-      error: () => event.complete(false),
-    });
   }
 
   isSectionCollapsed(id: string): boolean {

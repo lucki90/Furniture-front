@@ -546,74 +546,7 @@
           <span aria-hidden="true" class="panel-header-toggle-indicator">▾</span>
         </button>
         <div *ngIf="!isSectionCollapsed('sec-comp-prices')" class="panel-body">
-          <app-price-edit-table
-            (bulkSave)="onComponentBulkSave($event)"
-            (retry)="loadComponentPrices()"
-            (save)="onComponentPriceSave($event)"
-            [emptyText]="(componentCategoryFilter || componentModelFilter) ? 'Brak komponentów dla wybranych filtrów.' : 'Brak komponentów.'"
-            [error]="componentPricesError"
-            [loading]="componentPricesLoading"
-            [rowClassFn]="componentRowClass"
-            [rows]="filteredComponentPrices"
-            priceField="pricePerUnit"
-            priceLabel="Cena / jedn."
-            priceUnit="zł">
-
-            <ng-template #toolbar>
-              <div class="settings-toolbar settings-toolbar--filters price-toolbar">
-                <label class="settings-toolbar-label">Kategoria:</label>
-                <select (ngModelChange)="onComponentCategoryChange($event)"
-                        [ngModel]="componentCategoryFilter"
-                        class="form-control form-control--compact settings-filter-control settings-filter-control--wide">
-                  <option value="">— wszystkie —</option>
-                  <option *ngFor="let cat of componentCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}
-                  </option>
-                </select>
-                <label class="settings-toolbar-label">Model:</label>
-                <select (ngModelChange)="onComponentModelFilterChange($event)"
-                        [ngModel]="componentModelFilter"
-                        class="form-control form-control--compact settings-filter-control settings-filter-control--wide">
-                  <option value="">— wszystkie —</option>
-                  <option *ngFor="let m of componentModels; trackBy: trackByIndex" [value]="m">{{ m }}</option>
-                </select>
-                <span *ngIf="componentCategoryFilter || componentModelFilter" class="settings-toolbar-count">
-                  {{ filteredComponentPrices.length }} / {{ componentPrices.length }} pozycji
-                </span>
-              </div>
-            </ng-template>
-
-            <ng-template #headers>
-              <th>Kategoria</th>
-              <th>Komponent</th>
-              <th>Model</th>
-              <th>Jedn.</th>
-              <th>Aktywny</th>
-            </ng-template>
-
-            <ng-template #rowCells let-cp>
-              <td><span class="category-chip">{{ cp.category }}</span></td>
-              <td>
-                <mat-icon *ngIf="!cp.componentActive" aria-hidden="true" class="row-warn-icon"
-                          title="Komponent nieaktywny">warning_amber
-                </mat-icon>
-                {{ cp.componentCode }}
-              </td>
-              <td>
-                {{ cp.modelCode }}
-                <span *ngIf="cp.additionalInfo" class="row-extra-info">({{ cp.additionalInfo }})</span>
-              </td>
-              <td>{{ cp.unit || '—' }}</td>
-              <td>
-                <mat-icon *ngIf="cp.componentActive && cp.variantActive" aria-hidden="true"
-                          class="row-warn-icon status-ok">check_circle
-                </mat-icon>
-                <mat-icon *ngIf="!cp.componentActive || !cp.variantActive" aria-hidden="true"
-                          class="row-warn-icon status-err">cancel
-                </mat-icon>
-              </td>
-            </ng-template>
-
-          </app-price-edit-table>
+          <app-component-prices-section></app-component-prices-section>
         </div>
       </section>
 
@@ -627,63 +560,7 @@
           <span aria-hidden="true" class="panel-header-toggle-indicator">▾</span>
         </button>
         <div *ngIf="!isSectionCollapsed('sec-job-prices')" class="panel-body">
-          <app-price-edit-table
-            (bulkSave)="onJobBulkSave($event)"
-            (retry)="loadJobPrices()"
-            (save)="onJobPriceSave($event)"
-            [emptyText]="(jobCategoryFilter || jobVariantFilter) ? 'Brak prac dla wybranych filtrów.' : 'Brak prac.'"
-            [error]="jobPricesError"
-            [loading]="jobPricesLoading"
-            [rowClassFn]="jobRowClass"
-            [rows]="filteredJobPrices"
-            priceField="pricePerUnit"
-            priceLabel="Cena / jedn."
-            priceUnit="zł">
-
-            <ng-template #toolbar>
-              <div class="settings-toolbar settings-toolbar--filters price-toolbar">
-                <label class="settings-toolbar-label">Kategoria:</label>
-                <select (ngModelChange)="onJobCategoryChange($event)"
-                        [ngModel]="jobCategoryFilter"
-                        class="form-control form-control--compact settings-filter-control settings-filter-control--wide">
-                  <option value="">— wszystkie —</option>
-                  <option *ngFor="let cat of jobCategories; trackBy: trackByIndex" [value]="cat">{{ cat }}</option>
-                </select>
-                <label class="settings-toolbar-label">Wariant:</label>
-                <select (ngModelChange)="onJobVariantFilterChange($event)"
-                        [ngModel]="jobVariantFilter"
-                        class="form-control form-control--compact settings-filter-control settings-filter-control--wide">
-                  <option value="">— wszystkie —</option>
-                  <option *ngFor="let v of jobVariants; trackBy: trackByIndex" [value]="v">{{ v }}</option>
-                </select>
-                <span *ngIf="jobCategoryFilter || jobVariantFilter" class="settings-toolbar-count">
-                  {{ filteredJobPrices.length }} / {{ jobPrices.length }} pozycji
-                </span>
-              </div>
-            </ng-template>
-
-            <ng-template #headers>
-              <th>Kategoria</th>
-              <th>Praca</th>
-              <th>Wariant</th>
-              <th>Próg gr.</th>
-              <th>Jedn.</th>
-            </ng-template>
-
-            <ng-template #rowCells let-jp>
-              <td><span class="category-chip">{{ jp.jobCategory }}</span></td>
-              <td>
-                <mat-icon *ngIf="!jp.jobActive" aria-hidden="true" class="row-warn-icon" title="Praca nieaktywna">
-                  warning_amber
-                </mat-icon>
-                {{ jp.jobCode }}
-              </td>
-              <td>{{ jp.variantCode }}</td>
-              <td>{{ jp.thicknessThresholdMm != null ? jp.thicknessThresholdMm + ' mm' : '—' }}</td>
-              <td>{{ jp.unit || '—' }}</td>
-            </ng-template>
-
-          </app-price-edit-table>
+          <app-job-prices-section></app-job-prices-section>
         </div>
       </section>
 

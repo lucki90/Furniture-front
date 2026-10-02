@@ -1,0 +1,65 @@
+<app-price-edit-table
+  (bulkSave)="saveBulk($event)"
+  (retry)="load()"
+  (save)="savePrice($event)"
+  [emptyText]="(categoryFilter || modelFilter) ? 'Brak komponentów dla wybranych filtrów.' : 'Brak komponentów.'"
+  [error]="error"
+  [loading]="loading"
+  [rowClassFn]="rowClass"
+  [rows]="filteredComponentPrices"
+  priceField="pricePerUnit"
+  priceLabel="Cena / jedn."
+  priceUnit="zł">
+
+  <ng-template #toolbar>
+    <div class="settings-toolbar settings-toolbar--filters price-toolbar">
+      <label class="settings-toolbar-label">Kategoria:</label>
+      <select (ngModelChange)="onCategoryChange($event)"
+              [ngModel]="categoryFilter"
+              class="form-control form-control--compact settings-filter-control settings-filter-control--wide">
+        <option value="">— wszystkie —</option>
+        <option *ngFor="let category of categories; trackBy: trackByValue" [value]="category">
+          {{ category }}
+        </option>
+      </select>
+      <label class="settings-toolbar-label">Model:</label>
+      <select (ngModelChange)="onModelChange($event)"
+              [ngModel]="modelFilter"
+              class="form-control form-control--compact settings-filter-control settings-filter-control--wide">
+        <option value="">— wszystkie —</option>
+        <option *ngFor="let model of models; trackBy: trackByValue" [value]="model">{{ model }}</option>
+      </select>
+      <span *ngIf="categoryFilter || modelFilter" class="settings-toolbar-count">
+        {{ filteredComponentPrices.length }} / {{ componentPrices.length }} pozycji
+      </span>
+    </div>
+  </ng-template>
+
+  <ng-template #headers>
+    <th>Kategoria</th>
+    <th>Komponent</th>
+    <th>Model</th>
+    <th>Jedn.</th>
+    <th>Aktywny</th>
+  </ng-template>
+
+  <ng-template #rowCells let-price>
+    <td><span class="category-chip">{{ price.category }}</span></td>
+    <td>
+      <mat-icon *ngIf="!price.componentActive" aria-hidden="true" class="row-warn-icon"
+                title="Komponent nieaktywny">warning_amber</mat-icon>
+      {{ price.componentCode }}
+    </td>
+    <td>
+      {{ price.modelCode }}
+      <span *ngIf="price.additionalInfo" class="row-extra-info">({{ price.additionalInfo }})</span>
+    </td>
+    <td>{{ price.unit || '—' }}</td>
+    <td>
+      <mat-icon *ngIf="price.componentActive && price.variantActive" aria-hidden="true"
+                class="row-warn-icon status-ok">check_circle</mat-icon>
+      <mat-icon *ngIf="!price.componentActive || !price.variantActive" aria-hidden="true"
+                class="row-warn-icon status-err">cancel</mat-icon>
+    </td>
+  </ng-template>
+</app-price-edit-table>
