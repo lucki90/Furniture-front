@@ -46,12 +46,11 @@ export class ProjectDetailsWallAggregator {
     for (const cabinet of cabinets) {
       const cabinetRef = `Sz.${++state.globalCabinetIdx}`;
       const cabinetJobs = cabinet.jobs ?? [];
-      const hingeMilling = cabinetJobs.find((job: Job) => job.type === 'HINGE_MILLING');
       const grooveForHdf = cabinetJobs.find((job: Job) => job.type === 'GROOVE_FOR_HDF');
       const isSinkCabinet = cabinet.kitchenCabinetType === 'BASE_SINK';
       const cornerMechanism = (cabinet as { cornerMechanism?: string }).cornerMechanism ?? null;
 
-      this.aggregateCabinetBoards(cabinet, cabinetRef, hingeMilling, grooveForHdf, isSinkCabinet, cornerMechanism, state);
+      this.aggregateCabinetBoards(cabinet, cabinetRef, grooveForHdf, isSinkCabinet, cornerMechanism, state);
       this.aggregateStandardComponents(cabinet.components, state.maps);
       this.aggregateJobs(cabinet.jobs, state.maps);
     }
@@ -60,7 +59,6 @@ export class ProjectDetailsWallAggregator {
   private aggregateCabinetBoards(
     cabinet: CabinetLike,
     cabinetRef: string,
-    hingeMilling: Job | undefined,
     grooveForHdf: Job | undefined,
     isSinkCabinet: boolean,
     cornerMechanism: string | null,
@@ -69,7 +67,7 @@ export class ProjectDetailsWallAggregator {
     if (!cabinet.boards) return;
 
     for (const board of cabinet.boards) {
-      const remarks = buildBoardRemarks(board, hingeMilling, grooveForHdf, isSinkCabinet, cornerMechanism);
+      const remarks = buildBoardRemarks(board, grooveForHdf, isSinkCabinet, cornerMechanism);
 
       this.accumulator.addBoard(state.maps.boards, {
         material: board.boardName,

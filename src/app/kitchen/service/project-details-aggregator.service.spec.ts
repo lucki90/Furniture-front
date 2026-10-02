@@ -26,6 +26,8 @@ describe('ProjectDetailsAggregatorService', () => {
                   boardThickness: 18,
                   sideX: 500,
                   sideY: 700,
+                  hingeCountPerPiece: 2,
+                  hingeEdgeLengthMm: 500,
                   quantity: 1,
                   totalPrice: 100,
                   color: 'WHITE',
@@ -130,7 +132,7 @@ describe('ProjectDetailsAggregatorService', () => {
 
     expect(frontBoard?.boardLabel).toBe('Front z backendu');
     expect(frontBoard?.veneerEdgeLabel).toBe('przód');
-    expect(frontBoard?.remarks).toContain('puszki');
+    expect(frontBoard?.remarks).toContain('Puszki zawiasów: 2 na front, wzdłuż krawędzi');
     expect(frontBoard?.cabinetRefs).toEqual(['Sz.1']);
     expect(sideBoard?.remarks).toContain('Frezowanie nutu pod HDF');
     expect(plinthBoard?.thickness).toBe(21);
@@ -406,6 +408,8 @@ describe('ProjectDetailsAggregatorService', () => {
                   boardThickness: 18,
                   sideX: 713,
                   sideY: 596,
+                  hingeCountPerPiece: 2,
+                  hingeEdgeLengthMm: 713,
                   quantity: 1,
                   totalPrice: 100,
                   veneerX: 0,
@@ -437,7 +441,7 @@ describe('ProjectDetailsAggregatorService', () => {
     const frontBoard = result.boards.find(board => board.material === 'FRONT_NAME');
     const topWreathBoard = result.boards.find(board => board.material === 'TOP_WREATH_NAME');
 
-    expect(frontBoard?.remarks).toContain('puszki');
+    expect(frontBoard?.remarks).toContain('Puszki zawiasów: 2 na front, wzdłuż krawędzi');
     expect(frontBoard?.remarks).toContain('Szafka pod zlew: górna puszka zawiasu 150mm od góry');
     expect(topWreathBoard?.remarks).toContain('Pasek przedni cofnięty 3mm względem boków (szafka pod zlew)');
   });
@@ -458,6 +462,8 @@ describe('ProjectDetailsAggregatorService', () => {
                   boardThickness: 18,
                   sideX: 713,
                   sideY: 596,
+                  hingeCountPerPiece: 2,
+                  hingeEdgeLengthMm: 713,
                   quantity: 1,
                   totalPrice: 100,
                   veneerX: 0,
@@ -490,7 +496,7 @@ describe('ProjectDetailsAggregatorService', () => {
     const topWreathBoard = result.boards.find(board => board.material === 'TOP_WREATH_NAME');
 
     // Standard hinge remark IS present
-    expect(frontBoard?.remarks).toContain('puszki');
+    expect(frontBoard?.remarks).toContain('Puszki zawiasów: 2 na front, wzdłuż krawędzi');
     // Sink-specific remarks NOT present
     expect(frontBoard?.remarks ?? '').not.toContain('Szafka pod zlew');
     expect(topWreathBoard?.remarks ?? '').not.toContain('cofnięty 3mm');

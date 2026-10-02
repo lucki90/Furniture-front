@@ -3,26 +3,29 @@ import { Board, Job } from '../cabinet-form/model/kitchen-cabinet-form.model';
 /**
  * Buduje auto-uwagi dla płyty BOM (Excel / zestawienie) na podstawie jej typu i kontekstu szafki.
  * Funkcja czysta — bez zależności Angular DI, łatwa do testowania jednostkowego.
+ *
+ * Krawędzie obróbek pochodzą z backendu: puszki zawiasów z adnotacji frontu (`hingeCountPerPiece`,
+ * `hingeEdgeLengthMm`), nut pod HDF z wysokości boku w zleceniu frezowania (`sideHeightMm`). Uwaga nie zgaduje
+ * osi płyty — `sideX`/`sideY` nie mówią, która krawędź jest pionowa.
  */
 export function buildBoardRemarks(
   board: Board,
-  hingeMilling: Job | undefined,
   grooveForHdf: Job | undefined,
   isSinkCabinet: boolean,
   cornerMechanism: string | null = null
 ): string {
   const parts: string[] = [];
   const boardName = board.boardName;
-  const boardSideY = board.sideY;
 
-  if (boardName === 'FRONT_NAME' && hingeMilling) {
-    const hingeCount = Math.round(hingeMilling.quantity);
-    const hingeWord = hingeCount === 1 ? 'puszka' : hingeCount < 5 ? 'puszki' : 'puszek';
-    parts.push(`${hingeCount} ${hingeWord} na długość ${boardSideY}mm`);
+  if (board.hingeCountPerPiece && board.hingeEdgeLengthMm) {
+    parts.push(`Puszki zawiasów: ${board.hingeCountPerPiece} na front, wzdłuż krawędzi ${board.hingeEdgeLengthMm} mm`);
   }
 
   if (boardName === 'SIDE_NAME' && grooveForHdf) {
-    parts.push(`Frezowanie nutu pod HDF na boku ${boardSideY}mm`);
+    const grooveLengthMm = jobInfoNumber(grooveForHdf, 'sideHeightMm');
+    parts.push(grooveLengthMm
+      ? `Frezowanie nutu pod HDF wzdłuż krawędzi ${grooveLengthMm} mm`
+      : 'Frezowanie nutu pod HDF');
   }
 
   // Auto-uwagi specyficzne dla szafki pod zlewozmywak (BASE_SINK) — str. 41 książki Wasiak v.2.3
@@ -54,6 +57,13 @@ export function buildBoardRemarks(
   }
 
   return parts.join('; ');
+}
+
+/** Liczba z `additionalInfo` zlecenia w formacie `klucz=wartość`; `null`, gdy brak lub nie jest dodatnia. */
+function jobInfoNumber(job: Job, key: string): number | null {
+  const entry = job.additionalInfo?.find(info => info.startsWith(`${key}=`));
+  const value = entry ? Number(entry.slice(key.length + 1)) : NaN;
+  return Number.isFinite(value) && value > 0 ? value : null;
 }
 
 /** Iter.6 (Faza 1): nota producenta dla mechanizmu narożnego (doc §13). Null gdy brak ograniczeń. */

@@ -88,6 +88,9 @@ export interface Board {
   /** Faktyczna pisownia pól serializowanych przez Jacksona. */
   lshapeCutoutLengthAMm?: number | null;
   lshapeCutoutLengthBMm?: number | null;
+  /** Puszki zawiasów w jednej sztuce frontu i długość krawędzi, wzdłuż której są wiercone (backend). */
+  hingeCountPerPiece?: number | null;
+  hingeEdgeLengthMm?: number | null;
 }
 
 export interface Component {
