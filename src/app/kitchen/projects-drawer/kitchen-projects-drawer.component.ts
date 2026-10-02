@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -10,7 +11,9 @@ import {
   Output,
   SimpleChanges,
   ViewChild,
-  inject
+  computed,
+  inject,
+  signal
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../core/error/toast.service';
@@ -36,7 +39,8 @@ interface StatusFilterVm {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './kitchen-projects-drawer.component.html',
-  styleUrls: ['./kitchen-projects-drawer.component.css']
+  styleUrls: ['./kitchen-projects-drawer.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
   @ViewChild('searchInput') private readonly searchInput?: ElementRef<HTMLInputElement>;
@@ -60,14 +64,27 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
     ...PROJECT_STATUSES.map(status => ({ value: status.value, label: getStatusLabel(status.value) }))
   ];
 
-  projects: KitchenProjectListResponse[] = [];
-  visibleProjects: KitchenProjectListResponse[] = [];
-  loading = false;
-  error: string | null = null;
-  searchQuery = '';
-  activeStatus: ProjectStatus | null = null;
-  cloningProjectId: number | null = null;
-  deletingProjectId: number | null = null;
+  readonly projects = signal<KitchenProjectListResponse[]>([]);
+  readonly loading = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly searchQuery = signal('');
+  readonly activeStatus = signal<ProjectStatus | null>(null);
+  readonly cloningProjectId = signal<number | null>(null);
+  readonly deletingProjectId = signal<number | null>(null);
+
+  readonly visibleProjects = computed(() => {
+    const query = this.searchQuery().trim().toLocaleLowerCase();
+    const status = this.activeStatus();
+    return this.projects().filter(project => {
+      const matchesStatus = status === null || project.status === status;
+      const matchesSearch = query.length === 0 || project.name.toLocaleLowerCase().includes(query);
+      return matchesStatus && matchesSearch;
+    });
+  });
+
+  readonly projectsCountLabel = computed(
+    () => `${this.visibleProjects().length} z ${this.projects().length} projektow`
+  );
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['open']?.currentValue === true) {
@@ -91,21 +108,18 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
   }
 
   loadProjects(): void {
-    this.loading = true;
-    this.error = null;
+    this.loading.set(true);
+    this.error.set(null);
 
     this.kitchenService.getProjects().subscribe({
       next: projects => {
-        this.projects = [...projects].sort(
-          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        );
-        this.updateVisibleProjects();
-        this.loading = false;
+        this.projects.set(this.sortByUpdatedAtDesc(projects));
+        this.loading.set(false);
       },
       error: err => {
         console.error('Error loading projects drawer list:', err);
-        this.error = 'Nie udalo sie wczytac listy projektow';
-        this.loading = false;
+        this.error.set('Nie udalo sie wczytac listy projektow');
+        this.loading.set(false);
       }
     });
   }
@@ -114,26 +128,24 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
     this.closeRequested.emit();
   }
 
-  onSearchChange(): void {
-    this.error = null;
-    this.updateVisibleProjects();
+  onSearchChange(query: string): void {
+    this.searchQuery.set(query);
+    this.error.set(null);
   }
 
   resetFilters(): void {
-    this.searchQuery = '';
-    this.activeStatus = null;
-    this.error = null;
-    this.updateVisibleProjects();
+    this.searchQuery.set('');
+    this.activeStatus.set(null);
+    this.error.set(null);
   }
 
   selectStatus(status: ProjectStatus | null): void {
-    this.activeStatus = this.activeStatus === status ? null : status;
-    this.error = null;
-    this.updateVisibleProjects();
+    this.activeStatus.update(active => active === status ? null : status);
+    this.error.set(null);
   }
 
   isStatusActive(status: ProjectStatus | null): boolean {
-    return this.activeStatus === status;
+    return this.activeStatus() === status;
   }
 
   requestCreateProject(): void {
@@ -151,31 +163,32 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
   }
 
   cloneProject(projectId: number): void {
-    if (this.cloningProjectId !== null || this.isBusy()) {
+    if (this.cloningProjectId() !== null || this.isBusy()) {
       return;
     }
 
-    this.cloningProjectId = projectId;
+    this.cloningProjectId.set(projectId);
     this.kitchenService.cloneProject(projectId).subscribe({
       next: cloned => {
-        this.cloningProjectId = null;
-        this.error = null;
+        this.cloningProjectId.set(null);
+        this.error.set(null);
         const clonedListItem = this.mapProjectDetailToListItem(cloned);
-        this.projects = [clonedListItem, ...this.projects.filter(project => project.id !== clonedListItem.id)];
-        this.projects.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-        this.updateVisibleProjects();
+        this.projects.update(projects => this.sortByUpdatedAtDesc([
+          clonedListItem,
+          ...projects.filter(project => project.id !== clonedListItem.id)
+        ]));
         this.toast.success('Projekt zostal sklonowany');
       },
       error: err => {
         console.error('Error cloning project from drawer:', err);
-        this.error = 'Nie udalo sie sklonowac projektu';
-        this.cloningProjectId = null;
+        this.error.set('Nie udalo sie sklonowac projektu');
+        this.cloningProjectId.set(null);
       }
     });
   }
 
   confirmDelete(project: KitchenProjectListResponse): void {
-    if (project.id === this.currentProjectId || this.deletingProjectId !== null || this.isBusy()) {
+    if (project.id === this.currentProjectId || this.deletingProjectId() !== null || this.isBusy()) {
       return;
     }
 
@@ -187,19 +200,18 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
         return;
       }
 
-      this.deletingProjectId = project.id;
+      this.deletingProjectId.set(project.id);
       this.kitchenService.deleteProject(project.id).subscribe({
         next: () => {
-          this.projects = this.projects.filter(item => item.id !== project.id);
-          this.updateVisibleProjects();
-          this.deletingProjectId = null;
-          this.error = null;
+          this.projects.update(projects => projects.filter(item => item.id !== project.id));
+          this.deletingProjectId.set(null);
+          this.error.set(null);
           this.toast.success('Projekt zostal usuniety');
         },
         error: err => {
           console.error('Error deleting project from drawer:', err);
-          this.error = 'Nie udalo sie usunac projektu';
-          this.deletingProjectId = null;
+          this.error.set('Nie udalo sie usunac projektu');
+          this.deletingProjectId.set(null);
         }
       });
     });
@@ -254,10 +266,6 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
     });
   }
 
-  get projectsCountLabel(): string {
-    return `${this.visibleProjects.length} z ${this.projects.length} projektow`;
-  }
-
   wallCountLabel(count: number): string {
     return this.pluralize(count, 'sciana', 'sciany', 'scian');
   }
@@ -266,13 +274,8 @@ export class KitchenProjectsDrawerComponent implements OnChanges, OnDestroy {
     return this.pluralize(count, 'szafka', 'szafki', 'szafek');
   }
 
-  private updateVisibleProjects(): void {
-    const query = this.searchQuery.trim().toLocaleLowerCase();
-    this.visibleProjects = this.projects.filter(project => {
-      const matchesStatus = this.activeStatus === null || project.status === this.activeStatus;
-      const matchesSearch = query.length === 0 || project.name.toLocaleLowerCase().includes(query);
-      return matchesStatus && matchesSearch;
-    });
+  private sortByUpdatedAtDesc(projects: readonly KitchenProjectListResponse[]): KitchenProjectListResponse[] {
+    return [...projects].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
 
   private mapProjectDetailToListItem(project: KitchenProjectDetailResponse): KitchenProjectListResponse {

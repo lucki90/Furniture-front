@@ -33,8 +33,8 @@
           <span aria-hidden="true" class="drawer-search__icon">&#8981;</span>
           <input
             #searchInput
-            (ngModelChange)="onSearchChange()"
-            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange($event)"
+            [ngModel]="searchQuery()"
             class="form-control form-control--compact"
             placeholder="Szukaj projektu..."
             type="search">
@@ -55,17 +55,17 @@
     </header>
 
     <div class="projects-drawer__body">
-      <div *ngIf="loading" class="drawer-state drawer-state--loading">
+      <div *ngIf="loading()" class="drawer-state drawer-state--loading">
         <div class="spinner spinner--sm"></div>
         <p>Wczytywanie projektow...</p>
       </div>
 
-      <div *ngIf="!loading && error" class="drawer-state drawer-state--error">
-        <p>{{ error }}</p>
+      <div *ngIf="!loading() && error()" class="drawer-state drawer-state--error">
+        <p>{{ error() }}</p>
         <button (click)="loadProjects()" class="btn btn-outline" type="button">Sproboj ponownie</button>
       </div>
 
-      <div *ngIf="!loading && !error && projects.length === 0" class="drawer-state drawer-state--empty">
+      <div *ngIf="!loading() && !error() && projects().length === 0" class="drawer-state drawer-state--empty">
         <p>Nie masz jeszcze zadnego projektu.</p>
         <button
           (click)="requestCreateProject()"
@@ -76,15 +76,15 @@
         </button>
       </div>
 
-      <div *ngIf="!loading && !error && projects.length > 0 && visibleProjects.length === 0"
+      <div *ngIf="!loading() && !error() && projects().length > 0 && visibleProjects().length === 0"
            class="drawer-state drawer-state--empty">
         <p>Brak projektow pasujacych do wyszukiwania lub filtra.</p>
         <button (click)="resetFilters()" class="btn btn-outline" type="button">Resetuj filtry</button>
       </div>
 
-      <div *ngIf="!loading && !error && visibleProjects.length > 0" class="drawer-projects-list">
+      <div *ngIf="!loading() && !error() && visibleProjects().length > 0" class="drawer-projects-list">
         <article
-          *ngFor="let project of visibleProjects; trackBy: trackByProjectId"
+          *ngFor="let project of visibleProjects(); trackBy: trackByProjectId"
           [class.drawer-project-card--current]="isCurrentProject(project.id)"
           class="drawer-project-card">
           <div class="drawer-project-card__header">
@@ -131,18 +131,18 @@
 
             <button
               (click)="cloneProject(project.id)"
-              [disabled]="isTransitioning || cloningProjectId === project.id || deletingProjectId !== null"
+              [disabled]="isTransitioning || cloningProjectId() === project.id || deletingProjectId() !== null"
               class="btn btn-outline btn-sm"
               type="button">
-              {{ cloningProjectId === project.id ? 'Klonuje...' : 'Klonuj' }}
+              {{ cloningProjectId() === project.id ? 'Klonuje...' : 'Klonuj' }}
             </button>
 
             <button
               (click)="confirmDelete(project)"
-              [disabled]="isTransitioning || isCurrentProject(project.id) || deletingProjectId === project.id || cloningProjectId !== null"
+              [disabled]="isTransitioning || isCurrentProject(project.id) || deletingProjectId() === project.id || cloningProjectId() !== null"
               class="btn btn-outline-danger btn-sm"
               type="button">
-              {{ deletingProjectId === project.id ? 'Usuwam...' : 'Usun' }}
+              {{ deletingProjectId() === project.id ? 'Usuwam...' : 'Usun' }}
             </button>
           </div>
         </article>
@@ -150,7 +150,7 @@
     </div>
 
     <footer class="projects-drawer__footer">
-      <span class="projects-drawer__count">{{ projectsCountLabel }}</span>
+      <span class="projects-drawer__count">{{ projectsCountLabel() }}</span>
       <button (click)="requestClose()" class="btn btn-outline" type="button">Zamknij</button>
     </footer>
   </aside>

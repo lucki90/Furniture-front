@@ -1,5 +1,6 @@
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
 import { ToastService } from '../../core/error/toast.service';
 import { ConfirmDialogService } from '../../shared/confirm-dialog/confirm-dialog.service';
 import { BodyScrollLockService } from '../../shared/dom/body-scroll-lock.service';
@@ -58,11 +59,23 @@ const CLONED: KitchenProjectDetailResponse = {
   updatedAt: '2026-05-13T10:00:00'
 };
 
+/** Rodzic jak `KitchenPageComponent`: OnPush, więc odpowiedź HTTP sama go nie odświeża. */
+@Component({
+  standalone: true,
+  imports: [KitchenProjectsDrawerComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: '<app-kitchen-projects-drawer [open]="open()"></app-kitchen-projects-drawer>'
+})
+class OnPushHostComponent {
+  readonly open = signal(false);
+}
+
 describe('KitchenProjectsDrawerComponent', () => {
   let fixture: ComponentFixture<KitchenProjectsDrawerComponent>;
   let component: KitchenProjectsDrawerComponent;
   let kitchenService: jasmine.SpyObj<KitchenService>;
   let bodyScrollLock: jasmine.SpyObj<BodyScrollLockService>;
+  let confirmDialog: jasmine.SpyObj<ConfirmDialogService>;
 
   beforeEach(async () => {
     kitchenService = jasmine.createSpyObj<KitchenService>('KitchenService', ['getProjects', 'cloneProject', 'deleteProject']);
@@ -70,12 +83,13 @@ describe('KitchenProjectsDrawerComponent', () => {
     kitchenService.cloneProject.and.returnValue(of(CLONED));
     kitchenService.deleteProject.and.returnValue(of(void 0));
     bodyScrollLock = jasmine.createSpyObj<BodyScrollLockService>('BodyScrollLockService', ['lock', 'unlock']);
+    confirmDialog = jasmine.createSpyObj<ConfirmDialogService>('ConfirmDialogService', ['confirm']);
 
     await TestBed.configureTestingModule({
       imports: [KitchenProjectsDrawerComponent],
       providers: [
         { provide: KitchenService, useValue: kitchenService },
-        { provide: ConfirmDialogService, useValue: jasmine.createSpyObj('ConfirmDialogService', ['confirm']) },
+        { provide: ConfirmDialogService, useValue: confirmDialog },
         { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success']) },
         { provide: BodyScrollLockService, useValue: bodyScrollLock }
       ]
@@ -90,7 +104,7 @@ describe('KitchenProjectsDrawerComponent', () => {
     fixture.detectChanges();
 
     expect(kitchenService.getProjects).toHaveBeenCalled();
-    expect(component.visibleProjects.length).toBe(2);
+    expect(component.visibleProjects().length).toBe(2);
     expect(bodyScrollLock.lock).toHaveBeenCalled();
   });
 
@@ -108,11 +122,29 @@ describe('KitchenProjectsDrawerComponent', () => {
     fixture.componentRef.setInput('open', true);
     fixture.detectChanges();
 
-    component.searchQuery = 'loft';
-    component.onSearchChange();
+    component.onSearchChange('loft');
 
-    expect(component.visibleProjects.length).toBe(1);
-    expect(component.visibleProjects[0].id).toBe(2);
+    expect(component.visibleProjects().length).toBe(1);
+    expect(component.visibleProjects()[0].id).toBe(2);
+    expect(component.projectsCountLabel()).toBe('1 z 2 projektow');
+  });
+
+  it('toggles status filter and resets filters', () => {
+    fixture.componentRef.setInput('open', true);
+    fixture.detectChanges();
+
+    component.selectStatus('ACCEPTED');
+    expect(component.visibleProjects().map(project => project.id)).toEqual([2]);
+
+    component.selectStatus('ACCEPTED');
+    expect(component.activeStatus()).toBeNull();
+    expect(component.visibleProjects().length).toBe(2);
+
+    component.onSearchChange('brak');
+    component.selectStatus('DRAFT');
+    component.resetFilters();
+    expect(component.searchQuery()).toBe('');
+    expect(component.visibleProjects().length).toBe(2);
   });
 
   it('emits open request for non-current project', () => {
@@ -146,7 +178,40 @@ describe('KitchenProjectsDrawerComponent', () => {
     component.cloneProject(1);
 
     expect(kitchenService.cloneProject).toHaveBeenCalledWith(1);
-    expect(component.projects[0].id).toBe(99);
+    expect(component.projects()[0].id).toBe(99);
     expect(component.openProjectRequested.emit).not.toHaveBeenCalled();
+  });
+
+  it('removes deleted project from the rendered list', () => {
+    confirmDialog.confirm.and.returnValue(of(true));
+    fixture.componentRef.setInput('open', true);
+    fixture.detectChanges();
+
+    component.confirmDelete(PROJECTS[1]);
+    fixture.detectChanges();
+
+    expect(kitchenService.deleteProject).toHaveBeenCalledWith(2);
+    expect(component.deletingProjectId()).toBeNull();
+    const cards = (fixture.nativeElement as HTMLElement).querySelectorAll('.drawer-project-card');
+    expect(cards.length).toBe(1);
+  });
+
+  it('renders projects that arrive asynchronously inside an OnPush parent', () => {
+    const response = new Subject<KitchenProjectListResponse[]>();
+    kitchenService.getProjects.and.returnValue(response);
+    const hostFixture = TestBed.createComponent(OnPushHostComponent);
+    const element = hostFixture.nativeElement as HTMLElement;
+    hostFixture.detectChanges();
+
+    hostFixture.componentInstance.open.set(true);
+    hostFixture.detectChanges();
+    expect(element.querySelector('.drawer-state--loading')).not.toBeNull();
+
+    response.next(PROJECTS);
+    hostFixture.detectChanges();
+
+    expect(element.querySelector('.drawer-state--loading')).toBeNull();
+    expect(element.querySelectorAll('.drawer-project-card').length).toBe(2);
+    expect(element.querySelector('.projects-drawer__count')?.textContent).toContain('2 z 2');
   });
 });
