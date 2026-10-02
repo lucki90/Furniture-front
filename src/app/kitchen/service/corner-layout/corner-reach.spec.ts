@@ -44,20 +44,26 @@ describe('corner-reach', () => {
   });
 
   describe('createCornerGeometrySettings', () => {
-    it('bez ustawień → front 18 mm, luz i blenda 50 mm', () => {
+    it('bez ustawień → front 18 mm, luz i blenda 50 mm, wcięcie łyżwy 30 mm', () => {
       expect(createCornerGeometrySettings(undefined, null)).toEqual(CORNER_TEST_SETTINGS);
     });
 
     it('luz narożny pochodzi z ustawienia szerokości blendy', () => {
       expect(createCornerGeometrySettings(40, 19)).toEqual({
-        defaultFrontThicknessMm: 19, cornerClearanceMm: 40, enclosureFillerWidthMm: 40
+        defaultFrontThicknessMm: 19, cornerClearanceMm: 40, enclosureFillerWidthMm: 40, lyzwaRecessMm: 30
       });
     });
 
     it('zerowa blenda jest świadomym ustawieniem, a zerowy front — brakiem wartości', () => {
       expect(createCornerGeometrySettings(0, 0)).toEqual({
-        defaultFrontThicknessMm: 18, cornerClearanceMm: 0, enclosureFillerWidthMm: 0
+        defaultFrontThicknessMm: 18, cornerClearanceMm: 0, enclosureFillerWidthMm: 0, lyzwaRecessMm: 30
       });
+    });
+
+    it('wcięcie łyżwy z ustawień użytkownika, także zerowe', () => {
+      expect(createCornerGeometrySettings(50, 18, 25).lyzwaRecessMm).toBe(25);
+      expect(createCornerGeometrySettings(50, 18, 0).lyzwaRecessMm).toBe(0);
+      expect(createCornerGeometrySettings(50, 18, null).lyzwaRecessMm).toBe(30);
     });
   });
 

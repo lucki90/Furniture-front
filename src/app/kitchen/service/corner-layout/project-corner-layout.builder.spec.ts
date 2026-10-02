@@ -100,7 +100,7 @@ describe('buildProjectCornerLayout', () => {
     expect(result.countertopTrimsByWallId.size).toBe(0);
   });
 
-  it('G5 z blatami: ściana PRAWA po auto-przesunięciu łączy blat z krawędzią blatu MAIN', () => {
+  it('G5 z blatami: ściana PRAWA po auto-przesunięciu wchodzi blatem na wcięcie łyżwy w blacie MAIN', () => {
     const withCountertop = (item: WallWithCabinets): WallWithCabinets =>
       ({ ...item, countertopConfig: { enabled: true } as WallWithCabinets['countertopConfig'] });
     const result = layout(
@@ -111,7 +111,7 @@ describe('buildProjectCornerLayout', () => {
     // RIGHT zaczyna się za strefą 628 mm, więc blaty łączą się w narożniku MAIN.END ↔ RIGHT.START.
     expect(xs(result, 'right')).toEqual([628]);
     expect(result.countertopTrimsByWallId.get('main')).toEqual({ endMm: 1200 });
-    expect(result.countertopTrimsByWallId.get('right')).toEqual({ startMm: 600 });
+    expect(result.countertopTrimsByWallId.get('right')).toEqual({ startMm: 570 });
   });
 
   it('szafka L ostatnia na LEFT → LEFT jest właścicielem: szafka przypięta do narożnika, MAIN startuje za ramieniem', () => {

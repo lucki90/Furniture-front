@@ -8,11 +8,8 @@
       class="corner-countertop-rect">
       <svg:title>Połączenie blatów {{ corner.label }}: {{ corner.jointLabel }}</svg:title>
     </svg:rect>
-    <svg:line
-      [attr.x1]="corner.jointLine.x1"
-      [attr.x2]="corner.jointLine.x2"
-      [attr.y1]="corner.jointLine.y1"
-      [attr.y2]="corner.jointLine.y2"
+    <svg:polyline
+      [attr.points]="corner.jointPoints"
       [class.corner-joint-line--strip]="corner.jointType === 'ALUMINUM_STRIP'"
       class="corner-miter-line"/>
     <svg:text

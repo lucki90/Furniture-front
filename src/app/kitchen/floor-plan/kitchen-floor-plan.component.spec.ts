@@ -250,6 +250,7 @@ class KitchenProjectLayoutServiceStub {
     args: { cabinetId1: 'm1', wallType1: 'MAIN', cabinetId2: 'l1', wallType2: 'LEFT', level: 'BASE' }
   };
 
+  readonly cornerSettings = signal({ lyzwaRecessMm: 30 });
   readonly layout = signal({
     junctionSides: new Map<string, 'LEFT' | 'RIGHT'>(),
     countertopTrimsByWallId: new Map<string, { startMm?: number; endMm?: number }>(),

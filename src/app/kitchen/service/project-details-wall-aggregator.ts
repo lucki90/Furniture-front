@@ -124,10 +124,11 @@ export class ProjectDetailsWallAggregator {
     if (!wall.countertop?.enabled || !wall.countertop.segments) return;
 
     for (const segment of wall.countertop.segments) {
+      // Formatka z zapasem na docięcie (`cutLengthMm`); starsza odpowiedź bez pola — długość segmentu.
       this.accumulator.addBoard(maps.boards, {
         material: `BLAT_${wall.countertop.materialType}`,
         thickness: segment.thicknessMm,
-        width: segment.lengthMm,
+        width: segment.cutLengthMm ?? segment.lengthMm,
         height: segment.depthMm,
         quantity: 1,
         unitCost: segment.materialCost,

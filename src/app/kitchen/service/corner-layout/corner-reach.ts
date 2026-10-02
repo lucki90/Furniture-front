@@ -4,6 +4,7 @@ import { CornerGeometrySettings, CornerLevel } from './corner-layout.model';
 
 const FALLBACK_FRONT_THICKNESS_MM = 18;
 const FALLBACK_FILLER_WIDTH_MM = 50;
+const FALLBACK_LYZWA_RECESS_MM = 30;
 
 /**
  * Ustawienia geometrii narożnika z ustawień projektu — jedyne miejsce fallbacków na froncie.
@@ -12,13 +13,20 @@ const FALLBACK_FILLER_WIDTH_MM = 50;
  */
 export function createCornerGeometrySettings(
   fillerWidthMm: number | null | undefined,
-  frontBoardThicknessMm: number | null | undefined
+  frontBoardThicknessMm: number | null | undefined,
+  lyzwaRecessMm?: number | null
 ): CornerGeometrySettings {
   const filler = typeof fillerWidthMm === 'number' && fillerWidthMm >= 0 ? fillerWidthMm : FALLBACK_FILLER_WIDTH_MM;
   const front = typeof frontBoardThicknessMm === 'number' && frontBoardThicknessMm > 0
     ? frontBoardThicknessMm
     : FALLBACK_FRONT_THICKNESS_MM;
-  return { defaultFrontThicknessMm: front, cornerClearanceMm: filler, enclosureFillerWidthMm: filler };
+  const recess = typeof lyzwaRecessMm === 'number' && lyzwaRecessMm >= 0 ? lyzwaRecessMm : FALLBACK_LYZWA_RECESS_MM;
+  return {
+    defaultFrontThicknessMm: front,
+    cornerClearanceMm: filler,
+    enclosureFillerWidthMm: filler,
+    lyzwaRecessMm: recess
+  };
 }
 
 /**

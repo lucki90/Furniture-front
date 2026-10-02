@@ -52,8 +52,9 @@ export interface CornerCountertopLayout {
  *
  * - Ramię szafki L właściciela jest wirtualnym podparciem blatu ściany dostawionej (blat nad ramieniem powstaje także
  *   bez jej szafek).
- * - Blat przechodzący (wybór użytkownika z `resolveCornerJointConfig`, bez niego właściciel) dochodzi do ściany;
- *   blat drugiej ściany kończy się na jego krawędzi, a przy cięciu 45° też dochodzi do ściany.
+ * - Blat przechodzący (żeński; wybór użytkownika z `resolveCornerJointConfig`, bez niego właściciel) dochodzi do
+ *   ściany; blat drugiej ściany (męski) przy łyżwie wchodzi za jego front na głębokość wcięcia
+ *   (`CornerGeometrySettings.lyzwaRecessMm`), przy listwie kończy się na froncie, a przy cięciu 45° dochodzi do ściany.
  *
  * Spójne z backendem: `CornerRunTrimResolver` (część blatu). Cokoły przycina tylko backend.
  */
@@ -108,10 +109,25 @@ export function resolveCornerCountertopLayout(
     const passing = passingEnd.wallId === owner.id ? owner : partner;
     const joining = passing === owner ? partner : owner;
     setTrim(trims, passing, passingEnd, 0);
-    setTrim(trims, joining, joiningEnd, joint.type === 'MITER_45' ? 0 : countertopDepthMm(passing));
+    setTrim(trims, joining, joiningEnd, joiningEndMm(joint.type, countertopDepthMm(passing), settings));
     joints.push({ cornerId: corner.id, type: joint.type, ruleOwnerWallId: ownerWallId, passingWallId: passing.id });
   }
   return { trimsByWallId: trims, joints };
+}
+
+/**
+ * Odległość końca blatu dochodzącego (męskiego) od narożnika: głębokość blatu przechodzącego (żeńskiego) minus wcięcie
+ * przy łyżwie, sama głębokość przy listwie, 0 przy cięciu 45°.
+ */
+function joiningEndMm(type: CornerJointType, passingDepthMm: number, settings: CornerGeometrySettings): number {
+  switch (type) {
+    case 'MITER_45':
+      return 0;
+    case 'LYZWA':
+      return Math.max(0, passingDepthMm - settings.lyzwaRecessMm);
+    default:
+      return passingDepthMm;
+  }
 }
 
 /** Końce narożnika: najpierw ściany wskazanej, potem drugiej. */

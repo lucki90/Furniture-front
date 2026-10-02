@@ -51,6 +51,8 @@ export interface CornerGeometrySettings {
   defaultFrontThicknessMm: number;
   cornerClearanceMm: number;
   enclosureFillerWidthMm: number;
+  /** Wcięcie łyżwy: o ile blat męski (dochodzący) wchodzi w blat żeński (przechodzący) za jego front. */
+  lyzwaRecessMm: number;
 }
 
 /**

@@ -87,6 +87,8 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   wasteMdfEnabled = false;
   grainContinuityEnabled = false;
   cuttingKerfMm = 3;
+  countertopLyzwaRecessMm = 30;
+  countertopCutAllowanceMm = 0;
   cuttingOptimizationPriority: UpdateUserSettingsRequest['cuttingOptimizationPriority'] = 'LEAST_WASTE';
 
   // Form values — marże i rabaty
@@ -341,6 +343,8 @@ export class SettingsComponent implements OnInit, AfterViewInit {
         this.wasteMdfEnabled = settings.wasteMdfEnabled ?? false;
         this.grainContinuityEnabled = settings.grainContinuityEnabled ?? false;
         this.cuttingKerfMm = settings.cuttingKerfMm ?? 3;
+        this.countertopLyzwaRecessMm = settings.countertopLyzwaRecessMm ?? 30;
+        this.countertopCutAllowanceMm = settings.countertopCutAllowanceMm ?? 0;
         this.cuttingOptimizationPriority = settings.cuttingOptimizationPriority ?? 'LEAST_WASTE';
         // Marże i rabaty
         this.markupMaterialsPct = Number(settings.markupMaterialsPct ?? 0);
@@ -407,6 +411,8 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       wasteMdfEnabled: this.wasteMdfEnabled,
       grainContinuityEnabled: this.grainContinuityEnabled,
       cuttingKerfMm: this.cuttingKerfMm,
+      countertopLyzwaRecessMm: this.countertopLyzwaRecessMm,
+      countertopCutAllowanceMm: this.countertopCutAllowanceMm,
       cuttingOptimizationPriority: this.cuttingOptimizationPriority,
       markupMaterialsPct: this.markupMaterialsPct,
       markupComponentsPct: this.markupComponentsPct,
@@ -442,6 +448,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
           supportWidthReductionMm: updated.defaultSupportWidthReductionMm ?? 50
         });
         this.kitchenStateService.setMaterialDefaults(updated);
+        this.kitchenStateService.setCountertopJointDefaults(updated);
 
         this.saving = false;
         this.savedSuccess = true;

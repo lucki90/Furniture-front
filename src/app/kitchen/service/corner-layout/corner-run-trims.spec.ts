@@ -14,6 +14,7 @@ import {
 /**
  * Przycięcia blatu w narożniku — te same przypadki co backend (`CornerRunTrimResolverTest`). Ściany: MAIN 3000 mm
  * i LEFT 2400 mm, narożnik `MAIN.START ↔ LEFT.END`; szafki dolne 560 mm (zasięg 578), narożne 510 mm (zasięg 528).
+ * Domyślne złącze to łyżwa z wcięciem 30 mm: blat ściany dostawionej wchodzi 30 mm za front blatu przechodzącego.
  */
 describe('resolveCornerCountertopTrims', () => {
   const withCountertop = (item: CornerTestWall, config: Partial<CountertopConfig> = {}): CornerTestWall => ({
@@ -26,14 +27,14 @@ describe('resolveCornerCountertopTrims', () => {
     return resolveCornerCountertopTrims(project.topology, project.walls, project.positionsByWallId, CORNER_TEST_SETTINGS);
   };
 
-  it('szafka MAIN w narożniku, LEFT za luzem narożnym: blat MAIN do ściany, LEFT do krawędzi blatu MAIN', () => {
+  it('szafka MAIN w narożniku, LEFT za luzem narożnym: blat MAIN do ściany, LEFT 30 mm za front blatu MAIN', () => {
     const trims = trimsOf(
       withCountertop(testWall('MAIN', 3000, base('m1', 0, 600), base('m2', 600, 600))),
       withCountertop(testWall('LEFT', 2400, base('l1', 1172, 600)))
     );
 
     expect(trims.get('main')).toEqual({ startMm: 0 });
-    expect(trims.get('left')).toEqual({ endMm: 1800 });
+    expect(trims.get('left')).toEqual({ endMm: 1830 });
   });
 
   it('szafki ściany dostawionej daleko od narożnika — bez przycięć', () => {
@@ -45,43 +46,43 @@ describe('resolveCornerCountertopTrims', () => {
     expect(trims.size).toBe(0);
   });
 
-  it('narożnik L: ramię B jest podparciem blatu LEFT, który kończy się na krawędzi blatu MAIN', () => {
+  it('narożnik L: ramię B jest podparciem blatu LEFT, który wchodzi na wcięcie w blacie MAIN', () => {
     const trims = trimsOf(
       withCountertop(testWall('MAIN', 3000, lCorner('mc', 0, 900, 900), base('m2', 900, 600))),
       withCountertop(testWall('LEFT', 2400, base('l1', 900, 600)))
     );
 
     expect(trims.get('main')).toEqual({ startMm: 0 });
-    expect(trims.get('left')).toEqual({ endMm: 1800, supports: [{ startMm: 1500, endMm: 2400 }] });
+    expect(trims.get('left')).toEqual({ endMm: 1830, supports: [{ startMm: 1500, endMm: 2400 }] });
   });
 
-  it('ślepy narożnik: blat LEFT kończy się na krawędzi blatu MAIN nad częścią ślepą', () => {
+  it('ślepy narożnik: blat LEFT wchodzi na wcięcie w blacie MAIN nad częścią ślepą', () => {
     const trims = trimsOf(
       withCountertop(testWall('MAIN', 3000, blindCorner('mb', 0, 1000, 500))),
       withCountertop(testWall('LEFT', 2400, base('l1', 1272, 600)))
     );
 
-    expect(trims.get('left')).toEqual({ endMm: 1800 });
+    expect(trims.get('left')).toEqual({ endMm: 1830 });
   });
 
-  it('szafka L ostatnia na LEFT: LEFT jest właścicielem, blat MAIN zaczyna się na krawędzi blatu LEFT', () => {
+  it('szafka L ostatnia na LEFT: LEFT jest właścicielem, blat MAIN zaczyna się 30 mm za frontem blatu LEFT', () => {
     const trims = trimsOf(
       withCountertop(testWall('MAIN', 3000, base('m1', 900, 600))),
       withCountertop(testWall('LEFT', 2400, base('l1', 0, 600), lCorner('lc', 1500, 900, 900)))
     );
 
     expect(trims.get('left')).toEqual({ endMm: 2400 });
-    expect(trims.get('main')).toEqual({ startMm: 600, supports: [{ startMm: 0, endMm: 900 }] });
+    expect(trims.get('main')).toEqual({ startMm: 570, supports: [{ startMm: 0, endMm: 900 }] });
   });
 
-  it('narożnik MAIN.END ↔ RIGHT.START: blat MAIN do końca ściany, RIGHT od krawędzi blatu MAIN', () => {
+  it('narożnik MAIN.END ↔ RIGHT.START: blat MAIN do końca ściany, RIGHT od wcięcia w blacie MAIN', () => {
     const trims = trimsOf(
       withCountertop(testWall('MAIN', 3000, base('m1', 2400, 600))),
       withCountertop(testWall('RIGHT', 2400, base('r1', 628, 600)))
     );
 
     expect(trims.get('main')).toEqual({ endMm: 3000 });
-    expect(trims.get('right')).toEqual({ startMm: 600 });
+    expect(trims.get('right')).toEqual({ startMm: 570 });
   });
 
   it('ręczna głębokość blatu właściciela wyznacza koniec blatu ściany dostawionej', () => {
@@ -90,7 +91,7 @@ describe('resolveCornerCountertopTrims', () => {
       withCountertop(testWall('LEFT', 2400, base('l1', 1172, 600)))
     );
 
-    expect(trims.get('left')).toEqual({ endMm: 1750 });
+    expect(trims.get('left')).toEqual({ endMm: 1780 });
   });
 
   it('wyłączony blat którejś ściany albo słupek w narożniku — bez przycięć', () => {

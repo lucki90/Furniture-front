@@ -56,4 +56,26 @@ describe('SettingsComponent — rzaz', () => {
       cuttingOptimizationPriority: 'FEWEST_CUTS'
     }));
   });
+
+  it('wczytuje i zapisuje wcięcie łyżwy oraz zapas na docięcie blatu', () => {
+    settingsService.getSettings.and.returnValue(of({
+      ...DEFAULT_USER_SETTINGS,
+      countertopLyzwaRecessMm: 25,
+      countertopCutAllowanceMm: 10
+    }));
+    settingsService.updateSettings.and.returnValue(NEVER);
+
+    component.loadSettings();
+
+    expect(component.countertopLyzwaRecessMm).toBe(25);
+    expect(component.countertopCutAllowanceMm).toBe(10);
+
+    component.countertopCutAllowanceMm = 15;
+    component.saveSettings();
+
+    expect(settingsService.updateSettings).toHaveBeenCalledWith(jasmine.objectContaining({
+      countertopLyzwaRecessMm: 25,
+      countertopCutAllowanceMm: 15
+    }));
+  });
 });

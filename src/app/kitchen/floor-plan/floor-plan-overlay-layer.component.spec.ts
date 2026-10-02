@@ -26,7 +26,7 @@ class TestHostComponent {
     y: 30,
     widthPx: 24,
     depthPx: 24,
-    jointLine: { x1: 20, y1: 54, x2: 44, y2: 30 },
+    jointPoints: '20,54 44,30',
     jointType: 'MITER_45',
     jointLabel: '45°',
     label: '600×600mm'
@@ -63,7 +63,7 @@ describe('FloorPlanOverlayLayerComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('.corner-countertop-rect')).not.toBeNull();
     expect(root.querySelector('.corner-countertop-label')?.textContent).toContain('45°');
-    expect(root.querySelector('.corner-miter-line')?.getAttribute('x2')).toBe('44');
+    expect(root.querySelector('.corner-miter-line')?.getAttribute('points')).toBe('20,54 44,30');
   });
 
   it('rysuje listwę aluminiową grubszą, pełną linią', () => {

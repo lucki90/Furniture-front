@@ -542,6 +542,28 @@ describe('ProjectDetailsAggregatorService', () => {
     ]);
   });
 
+  it('formatka blatu ma długość z zapasem na docięcie (cutLengthMm), a bez pola — długość segmentu', () => {
+    const wall = (segment: Record<string, unknown>) => ({
+      cabinets: [],
+      countertop: { enabled: true, materialType: 'LAMINATE', segments: [segment], components: [] }
+    });
+    const response = {
+      walls: [
+        wall({ thicknessMm: 38, lengthMm: 1200, cutLengthMm: 1240, depthMm: 600, materialCost: 74.4 }),
+        wall({ thicknessMm: 28, lengthMm: 900, depthMm: 600, materialCost: 54 })
+      ],
+      totalWasteCost: 0,
+      globalWasteComponents: []
+    } as unknown as MultiWallCalculateResponse;
+
+    const widths = service.aggregate(response, [] as WallWithCabinets[]).boards
+      .filter(board => board.material === 'BLAT_LAMINATE')
+      .map(board => board.width)
+      .sort((left, right) => left - right);
+
+    expect(widths).toEqual([900, 1240]);
+  });
+
   it('nazywa pracę przy złączu narożnym według typu złącza', () => {
     const corner = (jointType: string | undefined, wallAIndex: number) => ({
       wallAIndex,

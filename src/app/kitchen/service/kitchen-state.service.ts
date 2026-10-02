@@ -217,6 +217,10 @@ export class KitchenStateService {
     this.settingsService.setMaterialDefaults(settings);
   }
 
+  setCountertopJointDefaults(settings: Parameters<ProjectSettingsService['setCountertopJointDefaults']>[0]): void {
+    this.settingsService.setCountertopJointDefaults(settings);
+  }
+
   updateCountertopConfig(wallId: string, config: CountertopConfig): void {
     this.workspaceStore.updateCountertopConfig(wallId, config);
   }

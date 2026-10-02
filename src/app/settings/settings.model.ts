@@ -44,6 +44,10 @@ export interface UserSettings {
   cuttingKerfMm: number;
   cuttingOptimizationPriority: CuttingOptimizationPriority;
 
+  // Łączenie blatów: wcięcie łyżwy i zapas na docięcie formatki
+  countertopLyzwaRecessMm: number;
+  countertopCutAllowanceMm: number;
+
   // Marże i rabaty
   markupMaterialsPct: number;
   markupComponentsPct: number;
@@ -113,6 +117,8 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   grainContinuityEnabled: false,
   cuttingKerfMm: 3,
   cuttingOptimizationPriority: 'LEAST_WASTE',
+  countertopLyzwaRecessMm: 30,
+  countertopCutAllowanceMm: 0,
   markupMaterialsPct: 0,
   markupComponentsPct: 0,
   markupJobsPct: 0,

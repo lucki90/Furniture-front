@@ -172,6 +172,7 @@
 }
 
 .corner-miter-line {
+  fill: none;
   stroke: #4e342e;
   stroke-width: 1.5;
   stroke-dasharray: 4 3;

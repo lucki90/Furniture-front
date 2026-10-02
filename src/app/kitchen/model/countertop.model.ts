@@ -123,6 +123,8 @@ export const DEFAULT_COUNTERTOP_REQUEST: CountertopRequest = {
 export interface CountertopSegmentResponse {
   segmentIndex: number;
   lengthMm: number;
+  /** Długość formatki do rozkroju i wyceny: `lengthMm` plus zapas na docięcie na obu końcach. */
+  cutLengthMm?: number;
   depthMm: number;
   thicknessMm: number;
   materialType: CountertopMaterialType;

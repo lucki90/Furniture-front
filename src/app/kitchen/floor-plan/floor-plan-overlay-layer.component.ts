@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CornerJointType } from '../model/countertop.model';
-import { LinePx } from './floor-plan-corner-joints';
 import { FloorPlanArc } from './floor-plan-door-arcs';
 
 export interface CornerCountertopOverlay {
@@ -9,8 +8,8 @@ export interface CornerCountertopOverlay {
   y: number;
   widthPx: number;
   depthPx: number;
-  /** Linia złącza: przekątna przy cięciu 45°, front blatu przechodzącego przy łyżwie i listwie. */
-  jointLine: LinePx;
+  /** Szew złącza (`points` łamanej): przekątna przy 45°, front blatu przechodzącego przy listwie, wcięcie przy łyżwie. */
+  jointPoints: string;
   jointType: CornerJointType;
   /** Krótka nazwa złącza na rysunku („45°”, „łyżwa”, „listwa”). */
   jointLabel: string;

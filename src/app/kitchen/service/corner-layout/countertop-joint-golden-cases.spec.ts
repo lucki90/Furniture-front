@@ -14,8 +14,8 @@ import {
  * Przypadki wzorcowe K1–K7 łączenia blatów w narożniku — te same nazwy i wartości co backend
  * (`CountertopJointGoldenCasesTest`), patrz `_docs/plan-laczenie-blatow.md`.
  *
- * MAIN 3000 mm i LEFT 2400 mm, narożnik `MAIN.START ↔ LEFT.END`; blat 600 mm, bez naddatku bocznego. Przebieg blatu
- * to odcinek od początku pierwszego do końca ostatniego przebiegu, w mm od START ściany.
+ * MAIN 3000 mm i LEFT 2400 mm, narożnik `MAIN.START ↔ LEFT.END`; blat 600 mm, bez naddatku bocznego, wcięcie łyżwy
+ * 30 mm. Przebieg blatu to odcinek od początku pierwszego do końca ostatniego przebiegu, w mm od START ściany.
  */
 describe('Łączenie blatów w narożniku — przypadki wzorcowe K1–K7', () => {
   interface Run {
@@ -46,18 +46,18 @@ describe('Łączenie blatów w narożniku — przypadki wzorcowe K1–K7', () =>
   const leftBeforeCornerZone = (cornerJoint?: CornerJointSettings) =>
     withCountertop(testWall('LEFT', 2400, base('l1', 1172, 600)), cornerJoint);
 
-  it('K1: łyżwa — blat MAIN do ściany, LEFT do krawędzi blatu MAIN', () => {
+  it('K1: łyżwa — blat MAIN (żeński) do ściany, LEFT (męski) 30 mm za front blatu MAIN', () => {
     const runs = runsOf(mainWithCornerCabinet(), leftBeforeCornerZone());
 
     expect(runs.get('main')).toEqual({ startMm: 0, endMm: 1200 });
-    expect(runs.get('left')).toEqual({ startMm: 1172, endMm: 1800 });
+    expect(runs.get('left')).toEqual({ startMm: 1172, endMm: 1830 });
   });
 
-  it('K2: łyżwa, przechodzi blat LEFT — LEFT do ściany, MAIN od krawędzi blatu LEFT', () => {
+  it('K2: łyżwa, przechodzi blat LEFT — LEFT do ściany, MAIN od wcięcia za frontem blatu LEFT', () => {
     const runs = runsOf(mainWithCornerCabinet(), leftBeforeCornerZone({ passThrough: 'THIS_WALL' }));
 
     expect(runs.get('left')).toEqual({ startMm: 1172, endMm: 2400 });
-    expect(runs.get('main')).toEqual({ startMm: 600, endMm: 1200 });
+    expect(runs.get('main')).toEqual({ startMm: 570, endMm: 1200 });
   });
 
   it('K3: cięcie 45° — oba blaty dochodzą do ściany', () => {
@@ -67,11 +67,11 @@ describe('Łączenie blatów w narożniku — przypadki wzorcowe K1–K7', () =>
     expect(runs.get('left')).toEqual({ startMm: 1172, endMm: 2400 });
   });
 
-  it('K4: szafka L na MAIN, LEFT bez szafek — blat LEFT nad ramieniem do krawędzi blatu MAIN', () => {
+  it('K4: szafka L na MAIN, LEFT bez szafek — blat LEFT nad ramieniem, 30 mm za front blatu MAIN', () => {
     const runs = runsOf(mainWithLCorner(), withCountertop(testWall('LEFT', 2400)));
 
     expect(runs.get('main')).toEqual({ startMm: 0, endMm: 1500 });
-    expect(runs.get('left')).toEqual({ startMm: 1500, endMm: 1800 });
+    expect(runs.get('left')).toEqual({ startMm: 1500, endMm: 1830 });
   });
 
   it('K4b: jak K4, cięcie 45° — blat LEFT nad całym ramieniem do ściany', () => {
@@ -80,20 +80,20 @@ describe('Łączenie blatów w narożniku — przypadki wzorcowe K1–K7', () =>
     expect(runs.get('left')).toEqual({ startMm: 1500, endMm: 2400 });
   });
 
-  it('K5: szafka L na MAIN, szafki LEFT daleko — jeden przebieg LEFT od szafek do krawędzi blatu MAIN', () => {
+  it('K5: szafka L na MAIN, szafki LEFT daleko — jeden przebieg LEFT od szafek do wcięcia w blacie MAIN', () => {
     const runs = runsOf(mainWithLCorner(), withCountertop(testWall('LEFT', 2400, base('l1', 0, 600))));
 
-    expect(runs.get('left')).toEqual({ startMm: 0, endMm: 1800 });
+    expect(runs.get('left')).toEqual({ startMm: 0, endMm: 1830 });
   });
 
-  it('K6: listwa aluminiowa — geometria jak K1', () => {
+  it('K6: listwa aluminiowa — styk na froncie blatu MAIN, bez wcięcia', () => {
     const runs = runsOf(mainWithCornerCabinet(), leftBeforeCornerZone({ type: 'ALUMINUM_STRIP' }));
 
     expect(runs.get('main')).toEqual({ startMm: 0, endMm: 1200 });
     expect(runs.get('left')).toEqual({ startMm: 1172, endMm: 1800 });
   });
 
-  it('K7: stary projekt bez cornerJoint — wynik jak w planie narożników', () => {
+  it('K7: stary projekt bez cornerJoint — domyślna łyżwa jak K1', () => {
     const legacyLeft = testWall('LEFT', 2400, base('l1', 1172, 600));
     const runs = runsOf(mainWithCornerCabinet(), {
       ...legacyLeft,
@@ -101,6 +101,6 @@ describe('Łączenie blatów w narożniku — przypadki wzorcowe K1–K7', () =>
     });
 
     expect(runs.get('main')).toEqual({ startMm: 0, endMm: 1200 });
-    expect(runs.get('left')).toEqual({ startMm: 1172, endMm: 1800 });
+    expect(runs.get('left')).toEqual({ startMm: 1172, endMm: 1830 });
   });
 });

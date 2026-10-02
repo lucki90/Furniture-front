@@ -40,6 +40,10 @@ export class ProjectSettingsService {
   //   UI: panel "Nadpisz materiały" per projekt, toggle dla każdego pola.
   readonly materialDefaults = signal<MaterialDefaults>({ ...DEFAULT_MATERIAL_DEFAULTS });
 
+  /** Wcięcie łyżwy z ustawień użytkownika; brak — fallback w `createCornerGeometrySettings`. */
+  private readonly _countertopLyzwaRecessMm = signal<number | null>(null);
+  readonly countertopLyzwaRecessMm = this._countertopLyzwaRecessMm.asReadonly();
+
   // ============ GLOBAL DEFAULTS CACHE ============
   // Ustawiane JEDNOKROTNIE przy starcie przez setGlobalDefaults() z app.component.ts
   // Używane przez resetToGlobalDefaults() i getGlobalDefaultCountertopThicknessMm()
@@ -138,6 +142,14 @@ export class ProjectSettingsService {
 
     // Zastosuj od razu do live signals
     this.updateProjectSettings(settings);
+  }
+
+  /**
+   * Ustawia parametry łączenia blatów z user_settings (wcięcie łyżwy — geometria narożnika na froncie).
+   * Zapas na docięcie wpływa tylko na wycenę i formatki liczone przez backend.
+   */
+  setCountertopJointDefaults(settings: { countertopLyzwaRecessMm?: number | null }): void {
+    this._countertopLyzwaRecessMm.set(settings.countertopLyzwaRecessMm ?? null);
   }
 
   /**

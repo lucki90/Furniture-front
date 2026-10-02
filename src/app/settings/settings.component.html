@@ -113,6 +113,18 @@
                 </option>
               </select>
             </app-form-field>
+
+            <app-form-field hint="O ile blat męski (dochodzący) wchodzi w blat żeński za jego front (0–100 mm)"
+                            label="Wcięcie łyżwy" unit="mm">
+              <input [(ngModel)]="countertopLyzwaRecessMm" [disabled]="saving" class="form-control"
+                     data-testid="countertop-lyzwa-recess-input" max="100" min="0" step="1" type="number"/>
+            </app-form-field>
+
+            <app-form-field hint="Doliczany do każdego końca formatki blatu w materiałach i wycenie (0–50 mm)"
+                            label="Zapas na docięcie blatu" unit="mm">
+              <input [(ngModel)]="countertopCutAllowanceMm" [disabled]="saving" class="form-control"
+                     data-testid="countertop-cut-allowance-input" max="50" min="0" step="1" type="number"/>
+            </app-form-field>
           </div>
         </div>
       </section>

@@ -3,8 +3,9 @@ import { WallCorner } from '../service/corner-layout/corner-layout.model';
 import {
   cornerJointGeometryPx,
   cornerJointLabel,
-  cornerJointLine,
-  cutCountertopsAtMiter
+  cornerJointPoints,
+  cutCountertopsAtMiter,
+  toSvgPoints
 } from './floor-plan-corner-joints';
 import { CountertopOnFloorPlan, WallPosition } from './floor-plan-layout.builder';
 
@@ -55,14 +56,24 @@ describe('floor-plan-corner-joints', () => {
     expect(cornerJointGeometryPx(corner('L_CORNER_LEFT'), detached, 600, 600)).toBeNull();
   });
 
-  it('linia złącza: przekątna przy 45°, front blatu przechodzącego przy łyżwie', () => {
+  it('szew: przekątna przy 45°, front blatu przechodzącego przy listwie', () => {
     const geometry = cornerJointGeometryPx(corner('L_CORNER_LEFT'), positions, 600, 600)!;
 
-    expect(cornerJointLine(geometry, 'MITER_45', 'main')).toEqual({ x1: 100, y1: 200, x2: 160, y2: 140 });
-    expect(cornerJointLine(geometry, 'LYZWA', 'main')).toEqual({ x1: 100, y1: 140, x2: 160, y2: 140 });
-    expect(cornerJointLine(geometry, 'ALUMINUM_STRIP', 'left')).toEqual({ x1: 160, y1: 140, x2: 160, y2: 200 });
+    expect(cornerJointPoints(geometry, 'MITER_45', 'main', 30)).toEqual([{ x: 100, y: 200 }, { x: 160, y: 140 }]);
+    expect(cornerJointPoints(geometry, 'ALUMINUM_STRIP', 'left', 30)).toEqual([{ x: 160, y: 200 }, { x: 160, y: 140 }]);
     expect(cornerJointLabel('MITER_45')).toBe('45°');
     expect(cornerJointLabel('LYZWA')).toBe('łyżwa');
+  });
+
+  it('szew łyżwy: linia wcięcia za frontem blatu żeńskiego i skos 45° do styku frontów', () => {
+    const left = cornerJointGeometryPx(corner('L_CORNER_LEFT'), positions, 600, 600)!;
+    const right = cornerJointGeometryPx(corner('L_CORNER_RIGHT'), positions, 600, 600)!;
+
+    // Wcięcie 30 mm = 3 px: blat ściany lewej (męski) wchodzi 3 px za front blatu ściany głównej (y = 140).
+    expect(toSvgPoints(cornerJointPoints(left, 'LYZWA', 'main', 30))).toBe('100,143 157,143 160,140');
+    // Przechodzi blat ściany lewej: blat ściany głównej wchodzi 3 px za front blatu lewego (x = 160).
+    expect(toSvgPoints(cornerJointPoints(left, 'LYZWA', 'left', 30))).toBe('157,200 157,143 160,140');
+    expect(toSvgPoints(cornerJointPoints(right, 'LYZWA', 'main', 30))).toBe('400,143 343,143 340,140');
   });
 
   it('przy 45° blaty obu ścian są przycinane po przekątnej, a blat poza narożnikiem zostaje prostokątem', () => {

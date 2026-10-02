@@ -7,12 +7,6 @@ export interface PointPx {
   y: number;
 }
 
-export interface LinePx {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
 
 /**
  * Narożnik na rzucie (px):
@@ -26,6 +20,8 @@ export interface CornerJointGeometryPx {
   wallCorner: PointPx;
   innerCorner: PointPx;
   side: 1 | -1;
+  /** Skala rzutu (px na mm). */
+  scale: number;
 }
 
 /** Tolerancja styku ścian na rysunku (px). */
@@ -57,27 +53,38 @@ export function cornerJointGeometryPx(
     wallBId: corner.b.wallId,
     wallCorner: { x: cornerX, y: horizontal.y },
     innerCorner: { x: cornerX + side * depthBMm * horizontal.scale, y: horizontal.y - depthAMm * horizontal.scale },
-    side
+    side,
+    scale: horizontal.scale
   };
 }
 
 /**
- * Linia złącza w kwadracie narożnym: przy cięciu 45° przekątna od styku ścian do styku frontów, przy łyżwie i listwie —
- * front blatu przechodzącego, do którego dosuwa się blat drugiej ściany.
+ * Szew złącza w kwadracie narożnym (punkty łamanej):
+ * - cięcie 45° — przekątna od styku ścian do styku frontów,
+ * - listwa — front blatu przechodzącego, do którego dochodzi blat drugiej ściany,
+ * - łyżwa — linia wcięcia za frontem blatu przechodzącego (żeńskiego) i krótki skos 45° do styku frontów.
  */
-export function cornerJointLine(
+export function cornerJointPoints(
   geometry: CornerJointGeometryPx,
   jointType: CornerJointType,
-  passingWallId: string | undefined
-): LinePx {
-  const { wallCorner, innerCorner } = geometry;
+  passingWallId: string | undefined,
+  lyzwaRecessMm: number
+): PointPx[] {
+  const { wallCorner, innerCorner, side } = geometry;
   if (jointType === 'MITER_45') {
-    return { x1: wallCorner.x, y1: wallCorner.y, x2: innerCorner.x, y2: innerCorner.y };
+    return [wallCorner, innerCorner];
   }
-  if (passingWallId === geometry.wallBId) {
-    return { x1: innerCorner.x, y1: innerCorner.y, x2: innerCorner.x, y2: wallCorner.y };
-  }
-  return { x1: wallCorner.x, y1: innerCorner.y, x2: innerCorner.x, y2: innerCorner.y };
+  const recessPx = jointType === 'LYZWA' ? lyzwaRecessMm * geometry.scale : 0;
+  const recessCorner = { x: innerCorner.x - side * recessPx, y: innerCorner.y + recessPx };
+  const seamStart = passingWallId === geometry.wallBId
+    ? { x: recessCorner.x, y: wallCorner.y }
+    : { x: wallCorner.x, y: recessCorner.y };
+  return recessPx > 0 ? [seamStart, recessCorner, innerCorner] : [seamStart, innerCorner];
+}
+
+/** Punkty łamanej w formacie atrybutu `points`. */
+export function toSvgPoints(points: readonly PointPx[]): string {
+  return points.map(point => `${round(point.x)},${round(point.y)}`).join(' ');
 }
 
 const JOINT_LABELS: Readonly<Record<CornerJointType, string>> = {
@@ -111,7 +118,7 @@ export function cutCountertopsAtMiter(
     if (polygon.length < 3) {
       return countertop;
     }
-    return { ...countertop, polygonPoints: polygon.map(point => `${round(point.x)},${round(point.y)}`).join(' ') };
+    return { ...countertop, polygonPoints: toSvgPoints(polygon) };
   });
 }
 

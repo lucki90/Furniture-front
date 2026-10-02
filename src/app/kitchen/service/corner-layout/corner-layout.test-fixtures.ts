@@ -15,7 +15,8 @@ import { resolveWallTopology } from './wall-topology.resolver';
 export const CORNER_TEST_SETTINGS: CornerGeometrySettings = {
   defaultFrontThicknessMm: 18,
   cornerClearanceMm: 50,
-  enclosureFillerWidthMm: 50
+  enclosureFillerWidthMm: 50,
+  lyzwaRecessMm: 30
 };
 
 /** Szafka z pozycją X lewej krawędzi korpusu na jej ścianie. */

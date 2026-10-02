@@ -46,6 +46,7 @@ export class AppComponent implements OnInit {
           upperFillerHeightMm: settings.defaultUpperFillerHeightMm
         });
         this.kitchenStateService.setMaterialDefaults(settings);
+        this.kitchenStateService.setCountertopJointDefaults(settings);
       },
       error: (err) => {
         console.warn('Could not load user settings from server, using defaults.', err);

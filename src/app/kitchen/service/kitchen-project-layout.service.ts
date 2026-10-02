@@ -20,7 +20,8 @@ export class KitchenProjectLayoutService {
 
   readonly cornerSettings = computed(() => createCornerGeometrySettings(
     this.settingsService.fillerWidthMm(),
-    this.settingsService.materialDefaults().frontBoardThickness
+    this.settingsService.materialDefaults().frontBoardThickness,
+    this.settingsService.countertopLyzwaRecessMm()
   ));
 
   readonly layout = computed((): ProjectCornerLayout => buildProjectCornerLayout(

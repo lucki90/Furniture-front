@@ -24,8 +24,9 @@ import {
   cornerJointGeometryPx,
   CornerJointGeometryPx,
   cornerJointLabel,
-  cornerJointLine,
-  cutCountertopsAtMiter
+  cornerJointPoints,
+  cutCountertopsAtMiter,
+  toSvgPoints
 } from './floor-plan-corner-joints';
 
 /** Ściana na rzucie z gotowymi szafkami i blatami — stabilna referencja dla szablonu. */
@@ -287,7 +288,8 @@ export class KitchenFloorPlanComponent {
       y: innerCorner.y,
       widthPx: Math.abs(innerCorner.x - wallCorner.x),
       depthPx: wallCorner.y - innerCorner.y,
-      jointLine: cornerJointLine(geometry, cornerCountertop.jointType, passingWallId),
+      jointPoints: toSvgPoints(cornerJointPoints(
+        geometry, cornerCountertop.jointType, passingWallId, this.layoutService.cornerSettings().lyzwaRecessMm)),
       jointType: cornerCountertop.jointType,
       jointLabel: cornerJointLabel(cornerCountertop.jointType),
       label: `${cornerCountertop.cornerWidthMm}x${cornerCountertop.cornerDepthMm}mm`
