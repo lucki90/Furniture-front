@@ -20,6 +20,7 @@ import { MaterialPresetService } from '../service/material-preset.service';
 import { TranslationService } from '../../translation/translation.service';
 import { LanguageService } from '../../service/language.service';
 import { BaseCargoCabinetValidator } from './types/base-cargo/base-cargo-cabinet-validator';
+import { BaseOvenCabinetValidator } from './types/base-oven/base-oven-cabinet-validator';
 import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
 
 describe('CabinetFormComponent', () => {
@@ -55,6 +56,48 @@ describe('CabinetFormComponent', () => {
     stateService = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
     projectLayoutService = TestBed.inject(KitchenProjectLayoutService) as unknown as KitchenProjectLayoutServiceStub;
     fixture.detectChanges();
+  });
+
+  function prepareOven(height: number, ovenHeightType: string) {
+    component.form.patchValue({ kitchenCabinetType: KitchenCabinetType.BASE_OVEN,
+      width: 600, height, depth: 560, ovenHeightType,
+      ovenApronEnabled: false, ovenApronHeightMm: 100 });
+    new BaseOvenCabinetValidator().validate(component.form);
+    fixture.detectChanges();
+  }
+
+  it('updates the add-button state when oven height type changes', () => {
+    prepareOven(650, 'COMPACT');
+    expect(component.isAddDisabled).toBeFalsy();
+    component.form.get('ovenHeightType')?.setValue('STANDARD');
+    expect(component.form.get('height')?.hasError('tooShortForOven')).toBeTrue();
+    expect(component.isAddDisabled).toBeTrue();
+    component.form.get('ovenHeightType')?.setValue('COMPACT');
+    expect(component.isAddDisabled).toBeFalsy();
+  });
+
+  it('revalidates the oven lower section when apron settings change', () => {
+    prepareOven(750, 'STANDARD');
+    expect(component.isAddDisabled).toBeFalsy();
+    component.form.get('ovenApronEnabled')?.setValue(true);
+    expect(component.isAddDisabled).toBeTrue();
+    component.form.get('ovenApronHeightMm')?.setValue(40);
+    expect(component.isAddDisabled).toBeFalsy();
+    component.form.get('ovenApronHeightMm')?.setValue(50);
+    expect(component.isAddDisabled).toBeTrue();
+    component.form.get('ovenApronEnabled')?.setValue(false);
+    expect(component.isAddDisabled).toBeFalsy();
+  });
+
+  it('blocks an out-of-range apron and clears its error when the apron is disabled', () => {
+    prepareOven(850, 'STANDARD');
+    component.form.get('ovenApronEnabled')?.setValue(true);
+    component.form.get('ovenApronHeightMm')?.setValue(20);
+    expect(component.form.get('ovenApronHeightMm')?.hasError('outOfRange')).toBeTrue();
+    expect(component.isAddDisabled).toBeTrue();
+    component.form.get('ovenApronEnabled')?.setValue(false);
+    expect(component.form.get('ovenApronHeightMm')?.errors).toBeNull();
+    expect(component.isAddDisabled).toBeFalsy();
   });
 
   it('shows cabinet side field only for island wall', () => {

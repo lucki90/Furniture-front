@@ -39,6 +39,12 @@ export class CabinetFormTypeLifecycleService {
       this.cabinetFormEditingService.restoreAfterTypePrepared(form, editingCabinet);
     }
 
+    if (type === KitchenCabinetType.BASE_OVEN) {
+      // Restoring fields without events can change dependencies after height was validated.
+      form.get('height')?.updateValueAndValidity({ emitEvent: false });
+    }
+    form.get('ovenApronHeightMm')?.updateValueAndValidity({ emitEvent: false });
+
     return { visibility, restoreApplied };
   }
 

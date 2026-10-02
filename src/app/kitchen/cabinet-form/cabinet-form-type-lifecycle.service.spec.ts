@@ -82,6 +82,32 @@ describe('CabinetFormTypeLifecycleService', () => {
     expect(editingService.restoreAfterTypePrepared).toHaveBeenCalledWith(form, cabinet);
   });
 
+  it('does not carry oven apron errors into a standard base cabinet', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+    form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_OVEN);
+    service.applyTypeChange(form, KitchenCabinetType.BASE_OVEN, null);
+    form.get('ovenApronHeightMm')?.enable();
+    form.patchValue({ ovenApronEnabled: true, ovenApronHeightMm: 20 });
+    expect(form.invalid).toBeTrue();
+
+    form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_ONE_DOOR);
+    service.applyTypeChange(form, KitchenCabinetType.BASE_ONE_DOOR, null);
+    expect(form.get('ovenApronHeightMm')?.errors).toBeNull();
+    expect(form.valid).toBeTrue();
+  });
+
+  it('revalidates restored oven dimensions against the restored height type and apron', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+    const cabinet = { type: KitchenCabinetType.BASE_OVEN } as any;
+    form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_OVEN);
+    editingService.restoreAfterTypePrepared.and.callFake(restoredForm => {
+      restoredForm.patchValue({ height: 650, ovenHeightType: 'COMPACT',
+        ovenApronEnabled: false }, { emitEvent: false });
+    });
+    service.applyTypeChange(form, KitchenCabinetType.BASE_OVEN, cabinet);
+    expect(form.valid).toBeTrue();
+  });
+
   describe('refreshCornerHangingVisibility', () => {
     let baseVisibility: CabinetFormVisibility;
 

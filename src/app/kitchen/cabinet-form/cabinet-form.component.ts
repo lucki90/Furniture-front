@@ -472,6 +472,17 @@ export class CabinetFormComponent implements OnChanges {
         this.cdr.markForCheck();
       });
 
+    for (const controlName of ['ovenHeightType', 'ovenApronEnabled', 'ovenApronHeightMm']) {
+      this.form.get(controlName)?.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          if (this.form.get('kitchenCabinetType')?.value !== KitchenCabinetType.BASE_OVEN) return;
+          this.form.get('height')?.updateValueAndValidity({ emitEvent: false });
+          this.form.get('ovenApronHeightMm')?.updateValueAndValidity({ emitEvent: false });
+          this.cdr.markForCheck();
+        });
+    }
+
     this.form.get('ovenLowerSectionType')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {

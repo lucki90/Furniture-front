@@ -32,8 +32,8 @@ export const OVEN_LOWER_SECTION_OPTIONS: { value: OvenLowerSectionType; label: s
   { value: OvenLowerSectionType.NONE,         label: 'Bez sekcji dolnej' }
 ];
 
-/** Slot heights in mm (for frontend display / validation). */
+/** Slot heights in mm; the standard 595 mm appliance requires a 600 mm slot. */
 export const OVEN_SLOT_HEIGHT: Record<OvenHeightType, number> = {
-  [OvenHeightType.STANDARD]: 595,
+  [OvenHeightType.STANDARD]: 600,
   [OvenHeightType.COMPACT]: 455
 };
