@@ -8,7 +8,6 @@ import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { AloneCabinetComponent } from './alone-cabinet/alone-cabinet.component';
-import { CabinetFormComponent } from './kitchen/cabinet-form/cabinet-form.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconModule } from '@angular/material/icon';
 import { PrintDocComponent } from './print-doc/print-doc.component';
@@ -17,8 +16,6 @@ import { RadioButtonComponent } from './utils/radio-button/radio-button.componen
 import { DropdownComponent } from './utils/dropdown/dropdown.component';
 import { NumericInputComponent } from './utils/numeric-input/numeric-input.component';
 import { MaxLengthForNumberDirective } from "./utils/directives/maxLengthForNumberDirective";
-import { CabinetResultComponent } from "./kitchen/cabinet-result/cabinet-result.component";
-import { KitchenPageComponent } from "./kitchen/kitchen-page.component";
 import { ToastContainerComponent } from "./core/error/toast-container.component";
 
 @NgModule({
@@ -40,9 +37,6 @@ import { ToastContainerComponent } from "./core/error/toast-container.component"
     MatIconModule,
     FormsModule,
     ReactiveFormsModule,
-    CabinetFormComponent,
-    CabinetResultComponent,
-    KitchenPageComponent,
     ToastContainerComponent
   ],
   providers: [provideHttpClient(withInterceptors([authInterceptor]))],

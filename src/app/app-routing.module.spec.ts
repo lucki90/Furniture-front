@@ -41,4 +41,14 @@ describe('AppRoutingModule', () => {
     await harness.navigateByUrl('/login', LoginComponent);
     expect(harness.routeDebugElement?.componentInstance).toEqual(jasmine.any(LoginComponent));
   });
+
+  it('ładuje duże ekrany aplikacji jako osobne chunki tras', () => {
+    const router = TestBed.inject(Router);
+
+    for (const path of ['kitchen', 'kitchen/projects', 'settings']) {
+      const route = router.config.find(candidate => candidate.path === path);
+      expect(route?.loadComponent).withContext(path).toEqual(jasmine.any(Function));
+      expect(route?.component).withContext(path).toBeUndefined();
+    }
+  });
 });
