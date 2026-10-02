@@ -1,3 +1,4 @@
+import { DEFAULT_GRAIN_DIRECTIONS, FrontGrainDirection, SideGrainDirection, PanelGrainDirection } from '../shared/model/grain-direction';
 export type CuttingOptimizationPriority = 'LEAST_WASTE' | 'FEWEST_CUTS' | 'SMALLER_SHEETS';
 
 export interface UserSettings {
@@ -46,6 +47,11 @@ export interface UserSettings {
   // Łączenie blatów: wcięcie łyżwy i zapas na docięcie formatki
   countertopLyzwaRecessMm: number;
   countertopCutAllowanceMm: number;
+
+  // Kierunek słoja frontów, boków i płyt poziomych (projekt może je nadpisać)
+  frontGrainDirection: FrontGrainDirection;
+  sideGrainDirection: SideGrainDirection;
+  panelGrainDirection: PanelGrainDirection;
 
   // Marże i rabaty
   markupMaterialsPct: number;
@@ -117,6 +123,9 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   cuttingOptimizationPriority: 'LEAST_WASTE',
   countertopLyzwaRecessMm: 30,
   countertopCutAllowanceMm: 0,
+  frontGrainDirection: DEFAULT_GRAIN_DIRECTIONS.front,
+  sideGrainDirection: DEFAULT_GRAIN_DIRECTIONS.side,
+  panelGrainDirection: DEFAULT_GRAIN_DIRECTIONS.panel,
   markupMaterialsPct: 0,
   markupComponentsPct: 0,
   markupJobsPct: 0,

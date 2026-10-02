@@ -200,6 +200,11 @@
   overflow: hidden;
 }
 
+.grain-config-fields {
+  display: grid;
+  gap: 8px;
+}
+
 .room-config-group {
   background: var(--bg-main);
   border-radius: var(--border-radius-sm);

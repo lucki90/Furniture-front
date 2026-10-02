@@ -7,6 +7,7 @@ import { ProjectMetadataService } from './project-metadata.service';
 import { KitchenWorkspaceStore } from './kitchen-workspace.store';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { ProjectWallRequest, WallConnectionRequest } from '../model/kitchen-project.model';
+import { GrainDirections, NO_GRAIN_OVERRIDE } from '../../shared/model/grain-direction';
 
 const STUB_WALL: WallWithCabinets = {
   id: 'w1',
@@ -33,6 +34,7 @@ describe('KitchenProjectRequestsFacade', () => {
   let wallsSig: WritableSignal<WallWithCabinets[]>;
   let roomWidthSig: WritableSignal<number | null>;
   let roomDepthSig: WritableSignal<number | null>;
+  let grainSig: WritableSignal<GrainDirections>;
   let projectNameSig: WritableSignal<string | null>;
   let plinthHeightSig: WritableSignal<number>;
   let countertopThicknessSig: WritableSignal<number>;
@@ -44,6 +46,7 @@ describe('KitchenProjectRequestsFacade', () => {
     wallsSig = signal<WallWithCabinets[]>([STUB_WALL]);
     roomWidthSig = signal<number | null>(null);
     roomDepthSig = signal<number | null>(null);
+    grainSig = signal<GrainDirections>(NO_GRAIN_OVERRIDE);
     projectNameSig = signal<string | null>('Moja kuchnia');
     plinthHeightSig = signal(100);
     countertopThicknessSig = signal(38);
@@ -81,7 +84,8 @@ describe('KitchenProjectRequestsFacade', () => {
           useValue: {
             currentProjectName: projectNameSig.asReadonly(),
             currentProjectRoomWidthMm: roomWidthSig.asReadonly(),
-            currentProjectRoomDepthMm: roomDepthSig.asReadonly()
+            currentProjectRoomDepthMm: roomDepthSig.asReadonly(),
+            currentProjectGrainDirections: grainSig.asReadonly()
           }
         }
       ]
@@ -201,6 +205,15 @@ describe('KitchenProjectRequestsFacade', () => {
 
       expect(request.roomWidthMm).toBe(4000);
       expect(request.roomDepthMm).toBe(4200);
+    });
+
+    it('przekazuje nadpisanie kierunku słoja w zapisie, aktualizacji i kalkulacji', () => {
+      const override: GrainDirections = { front: 'ALONG_WIDTH', side: null, panel: 'ANY' };
+      grainSig.set(override);
+
+      expect(facade.buildMultiWallProjectRequest('Test').grainDirections).toEqual(override);
+      expect(facade.buildUpdateProjectRequest('Test').grainDirections).toEqual(override);
+      expect(facade.buildMultiWallCalculateRequest().grainDirections).toEqual(override);
     });
   });
 

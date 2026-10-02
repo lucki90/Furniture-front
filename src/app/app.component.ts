@@ -47,6 +47,7 @@ export class AppComponent implements OnInit {
         });
         this.kitchenStateService.setMaterialDefaults(settings);
         this.kitchenStateService.setCountertopJointDefaults(settings);
+        this.kitchenStateService.setGrainDirectionDefaults(settings);
       },
       error: (err) => {
         console.warn('Could not load user settings from server, using defaults.', err);

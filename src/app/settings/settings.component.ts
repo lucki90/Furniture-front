@@ -19,13 +19,15 @@ import { BoardColorOptionResponse, MaterialOption } from '../admin/material/mode
 import { BoardPricesSectionComponent } from './board-prices-section/board-prices-section.component';
 import { CompanyInfoSectionComponent } from './company-info-section/company-info-section.component';
 import { MaterialPresetResponse, MaterialPresetService } from '../kitchen/service/material-preset.service';
+import { DEFAULT_GRAIN_DIRECTIONS, EffectiveGrainDirections, GrainDirections, userGrainDirections } from '../shared/model/grain-direction';
+import { GrainDirectionFieldsComponent } from '../shared/grain-direction-fields/grain-direction-fields.component';
 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, FormFieldComponent, PriceEditTableComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, FormFieldComponent, PriceEditTableComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent, GrainDirectionFieldsComponent],
 })
 export class SettingsComponent implements OnInit, AfterViewInit {
 
@@ -89,6 +91,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   countertopLyzwaRecessMm = 30;
   countertopCutAllowanceMm = 0;
   cuttingOptimizationPriority: UpdateUserSettingsRequest['cuttingOptimizationPriority'] = 'LEAST_WASTE';
+  grainDirections: EffectiveGrainDirections = { ...DEFAULT_GRAIN_DIRECTIONS };
 
   // Form values — marże i rabaty
   markupMaterialsPct = 0;
@@ -198,6 +201,15 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       next: presets => { this.materialPresets = presets; },
       error: () => { this.materialPresets = []; }
     });
+  }
+
+  onGrainDirectionsChange(value: GrainDirections): void {
+    // Ustawienia użytkownika nie mają opcji „Jak w ustawieniach” — pola zawsze mają wartość.
+    this.grainDirections = {
+      front: value.front ?? this.grainDirections.front,
+      side: value.side ?? this.grainDirections.side,
+      panel: value.panel ?? this.grainDirections.panel
+    };
   }
 
   applyDefaultMaterialPreset(code: string): void {
@@ -344,6 +356,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
         this.countertopLyzwaRecessMm = settings.countertopLyzwaRecessMm ?? 30;
         this.countertopCutAllowanceMm = settings.countertopCutAllowanceMm ?? 0;
         this.cuttingOptimizationPriority = settings.cuttingOptimizationPriority ?? 'LEAST_WASTE';
+        this.grainDirections = userGrainDirections(settings);
         // Marże i rabaty
         this.markupMaterialsPct = Number(settings.markupMaterialsPct ?? 0);
         this.markupComponentsPct = Number(settings.markupComponentsPct ?? 0);
@@ -411,6 +424,9 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       countertopLyzwaRecessMm: this.countertopLyzwaRecessMm,
       countertopCutAllowanceMm: this.countertopCutAllowanceMm,
       cuttingOptimizationPriority: this.cuttingOptimizationPriority,
+      frontGrainDirection: this.grainDirections.front,
+      sideGrainDirection: this.grainDirections.side,
+      panelGrainDirection: this.grainDirections.panel,
       markupMaterialsPct: this.markupMaterialsPct,
       markupComponentsPct: this.markupComponentsPct,
       markupJobsPct: this.markupJobsPct,
@@ -445,6 +461,7 @@ export class SettingsComponent implements OnInit, AfterViewInit {
         });
         this.kitchenStateService.setMaterialDefaults(updated);
         this.kitchenStateService.setCountertopJointDefaults(updated);
+        this.kitchenStateService.setGrainDirectionDefaults(updated);
 
         this.saving = false;
         this.savedSuccess = true;

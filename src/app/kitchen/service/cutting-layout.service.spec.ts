@@ -49,6 +49,17 @@ describe('CuttingLayoutService', () => {
     expect(service.isLoading()).toBeFalse();
   });
 
+  it('przekazuje kierunek słoja i nie scala formatek o różnym słoju', () => {
+    service.loadLayout([
+      board({ boardName: 'FRONT_NAME', grainAxis: 'ALONG_SIDE_X' }),
+      board({ boardName: 'FRONT_NAME', grainAxis: 'ANY' })
+    ]);
+
+    const request = http.expectOne(url);
+    expect(request.request.body.map((item: { grainAxis: string }) => item.grainAxis)).toEqual(['ALONG_SIDE_X', 'ANY']);
+    request.flush(layoutResponse(1));
+  });
+
   it('anuluje starsze żądanie i przyjmuje wyłącznie nowszy wynik', () => {
     service.loadLayout([board()]);
     const olderRequest = http.expectOne(url);

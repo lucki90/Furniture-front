@@ -37,6 +37,7 @@ import { KitchenProjectTransitionGuardService } from './service/kitchen-project-
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
 import { CuttingLayoutService } from './service/cutting-layout.service';
 import { buildCabinetLabels, createKitchenValidationErrorOptions } from './service/kitchen-validation-error-options';
+import { GrainDirections } from '../shared/model/grain-direction';
 
 export function resolveKitchenPageInitialView(
   storedView: string | null,
@@ -109,6 +110,9 @@ export class KitchenPageComponent {
   readonly editingCabinetId = computed(() => this.editingCabinet()?.id ?? null);
   /** Etykiety szafek („#n „nazwa””) — te same co w komunikatach błędów i ostrzeżeń. */
   readonly cabinetLabels = computed(() => buildCabinetLabels(this.stateService.walls()));
+  /** Nadpisanie kierunku słoja w projekcie i kierunki z ustawień użytkownika (podpowiedź „Jak w ustawieniach”). */
+  readonly projectGrainDirections = this.stateService.currentProjectGrainDirections;
+  readonly userGrainDirections = this.stateService.userGrainDirections;
   readonly selectedCabinetId = signal<string | null | undefined>(undefined);
 
   // Stan kalkulacji projektu (multi-wall)
@@ -268,6 +272,11 @@ export class KitchenPageComponent {
 
   get roomWidthMm(): number | null {
     return this.stateService.currentProjectRoomWidthMm();
+  }
+
+  onProjectGrainDirectionsChange(grainDirections: GrainDirections): void {
+    this.stateService.updateProjectGrainDirections(grainDirections, { recordHistory: true });
+    this.resetProjectResult();
   }
 
   set roomWidthMm(value: number | null) {

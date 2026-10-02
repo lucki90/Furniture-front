@@ -2,6 +2,7 @@
  * Interfejsy dla danych formularza szafki
  */
 import { FrontMountingType } from '../../shared/model/front-mounting-type';
+import { GrainAxis } from '../../shared/model/grain-direction';
 
 export type { FrontMountingType } from '../../shared/model/front-mounting-type';
 
@@ -77,6 +78,8 @@ export interface Board {
   totalPrice: number;
   remarks: string;
   translationKey: string;
+  /** Kierunek słoja formatki w osiach `sideX`/`sideY` (backend). */
+  grainAxis?: GrainAxis | null;
 }
 
 export interface Component {

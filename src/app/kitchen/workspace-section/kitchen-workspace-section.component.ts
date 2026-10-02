@@ -7,6 +7,13 @@ import { CabinetFormComponent } from '../cabinet-form/cabinet-form.component';
 import { WallConfigComponent } from '../wall-config/wall-config.component';
 import { CabinetCalculatedEvent, KitchenCabinet } from '../model/kitchen-state.model';
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
+import { GrainDirectionFieldsComponent } from '../../shared/grain-direction-fields/grain-direction-fields.component';
+import {
+  DEFAULT_GRAIN_DIRECTIONS,
+  EffectiveGrainDirections,
+  GrainDirections,
+  NO_GRAIN_OVERRIDE
+} from '../../shared/model/grain-direction';
 
 @Component({
   selector: 'app-kitchen-workspace-section',
@@ -17,7 +24,8 @@ import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
     KitchenFloorPlanComponent,
     KitchenLayoutComponent,
     CabinetFormComponent,
-    WallConfigComponent
+    WallConfigComponent,
+    GrainDirectionFieldsComponent
   ],
   templateUrl: './kitchen-workspace-section.component.html',
   styleUrls: ['./kitchen-workspace-section.component.css'],
@@ -32,6 +40,8 @@ export class KitchenWorkspaceSectionComponent {
   @Input() wallHeight = 2600;
   @Input() roomWidthMm: number | null = null;
   @Input() roomDepthMm: number | null = null;
+  @Input() projectGrainDirections: GrainDirections = NO_GRAIN_OVERRIDE;
+  @Input() userGrainDirections: EffectiveGrainDirections = DEFAULT_GRAIN_DIRECTIONS;
   @Input() projectResult: MultiWallCalculateResponse | null = null;
   @Input() selectedCabinetId: string | null | undefined = undefined;
 
@@ -41,6 +51,7 @@ export class KitchenWorkspaceSectionComponent {
   @Output() wallHeightChange = new EventEmitter<number>();
   @Output() roomWidthChange = new EventEmitter<number | null>();
   @Output() roomDepthChange = new EventEmitter<number | null>();
+  @Output() projectGrainDirectionsChange = new EventEmitter<GrainDirections>();
   @Output() wallConfigChanged = new EventEmitter<void>();
   @Output() cabinetCalculated = new EventEmitter<CabinetCalculatedEvent>();
   @Output() cancelEdit = new EventEmitter<void>();

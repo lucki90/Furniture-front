@@ -61,6 +61,20 @@
         </div>
       </div>
 
+      <div class="room-config-section">
+        <div class="room-config-group">
+          <div class="room-config-header">
+            <span class="room-config-title">Kierunek słoja w projekcie</span>
+            <span class="room-config-info">domyślnie z ustawień</span>
+          </div>
+          <div class="grain-config-fields">
+            <app-grain-direction-fields (valueChange)="projectGrainDirectionsChange.emit($event)"
+                                        [inherited]="userGrainDirections"
+                                        [value]="projectGrainDirections"></app-grain-direction-fields>
+          </div>
+        </div>
+      </div>
+
       <app-wall-config (configChanged)="wallConfigChanged.emit()"></app-wall-config>
     </div>
   </div>

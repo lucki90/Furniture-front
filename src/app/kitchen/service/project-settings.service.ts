@@ -1,5 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { MaterialDefaults, DEFAULT_MATERIAL_DEFAULTS } from '../cabinet-form/type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { DEFAULT_GRAIN_DIRECTIONS, EffectiveGrainDirections, userGrainDirections } from '../../shared/model/grain-direction';
 
 /**
  * Serwis odpowiedzialny za ustawienia projektu kuchni:
@@ -42,6 +43,10 @@ export class ProjectSettingsService {
   /** Wcięcie łyżwy z ustawień użytkownika; brak — fallback w `createCornerGeometrySettings`. */
   private readonly _countertopLyzwaRecessMm = signal<number | null>(null);
   readonly countertopLyzwaRecessMm = this._countertopLyzwaRecessMm.asReadonly();
+
+  /** Kierunki słoja z ustawień użytkownika — projekt bez nadpisania korzysta z nich (backend rozstrzyga sam). */
+  private readonly _userGrainDirections = signal<EffectiveGrainDirections>({ ...DEFAULT_GRAIN_DIRECTIONS });
+  readonly userGrainDirections = this._userGrainDirections.asReadonly();
 
   // ============ GLOBAL DEFAULTS CACHE ============
   // Ustawiane JEDNOKROTNIE przy starcie przez setGlobalDefaults() z app.component.ts
@@ -143,6 +148,11 @@ export class ProjectSettingsService {
    */
   setCountertopJointDefaults(settings: { countertopLyzwaRecessMm?: number | null }): void {
     this._countertopLyzwaRecessMm.set(settings.countertopLyzwaRecessMm ?? null);
+  }
+
+  /** Kierunki słoja z user_settings — do podpowiedzi „Jak w ustawieniach” w projekcie. */
+  setGrainDirectionDefaults(settings: Parameters<typeof userGrainDirections>[0]): void {
+    this._userGrainDirections.set(userGrainDirections(settings));
   }
 
   /**

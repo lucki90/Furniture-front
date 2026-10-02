@@ -296,6 +296,37 @@ describe('KitchenStateService', () => {
     expect(service.hasUnsavedChanges()).toBeFalse();
   });
 
+  it('should load project grain override, undo it and treat it as a persisted change', () => {
+    const project = {
+      id: 22,
+      name: 'Słój w projekcie',
+      status: 'DRAFT',
+      version: 1,
+      totalCost: 0,
+      totalBoardsCost: 0,
+      totalComponentsCost: 0,
+      totalJobsCost: 0,
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      walls: []
+    } as unknown as KitchenProjectDetailResponse;
+
+    service.loadProject({ ...project, grainDirections: { front: 'ANY', side: null, panel: null } });
+    expect(service.currentProjectGrainDirections()).toEqual({ front: 'ANY', side: null, panel: null });
+    expect(service.hasUnsavedChanges()).toBeFalse();
+
+    service.updateProjectGrainDirections({ front: 'ANY', side: 'ALONG_DEPTH', panel: null }, { recordHistory: true });
+    expect(service.hasUnsavedChanges()).toBeTrue();
+
+    expect(service.undo()).toBeTrue();
+    expect(service.currentProjectGrainDirections()).toEqual({ front: 'ANY', side: null, panel: null });
+    expect(service.hasUnsavedChanges()).toBeFalse();
+
+    // Projekt sprzed pola: bez nadpisania — obowiązują ustawienia użytkownika.
+    service.loadProject(project);
+    expect(service.currentProjectGrainDirections()).toEqual({ front: null, side: null, panel: null });
+  });
+
   it('should keep loaded-project clearAll as unsaved change until a new baseline is set', () => {
     service.loadProject({
       id: 33,

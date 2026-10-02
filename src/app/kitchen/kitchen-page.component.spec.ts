@@ -20,6 +20,7 @@ import { KitchenProjectTransitionGuardService } from './service/kitchen-project-
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
 import { EMPTY, of, throwError } from 'rxjs';
+import { DEFAULT_GRAIN_DIRECTIONS, GrainDirections, NO_GRAIN_OVERRIDE } from '../shared/model/grain-direction';
 
 // Stub dostarcza wszystkie sygnały konsumowane przez KitchenPageComponent.
 class KitchenStateServiceStub {
@@ -34,6 +35,8 @@ class KitchenStateServiceStub {
   readonly currentProjectAllowedTransitions = signal<any[]>([]);
   readonly currentProjectRoomWidthMm = signal<number | null>(null);
   readonly currentProjectRoomDepthMm = signal<number | null>(null);
+  readonly currentProjectGrainDirections = signal<GrainDirections>(NO_GRAIN_OVERRIDE);
+  readonly userGrainDirections = signal(DEFAULT_GRAIN_DIRECTIONS);
   readonly cabinets = signal<any[]>([]);
   readonly totalCost = signal(0);
   readonly selectedWallTotalCost = signal(0);
@@ -61,6 +64,9 @@ class KitchenStateServiceStub {
   getPlinthConfig = () => null;
   getCountertopConfig = () => null;
   updateProjectSettings = () => {};
+  updateProjectGrainDirections = (value: GrainDirections, _options?: { recordHistory?: boolean }) => {
+    this.currentProjectGrainDirections.set(value);
+  };
   undo = () => false;
   redo = () => false;
 }
@@ -196,6 +202,18 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
     expect(secondService).not.toBe(firstService);
 
     secondFixture.destroy();
+  });
+
+  it('przekazuje nadpisanie kierunku słoja do stanu projektu z historią', () => {
+    const state = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
+    const updateSpy = spyOn(state, 'updateProjectGrainDirections').and.callThrough();
+    const override: GrainDirections = { front: 'ALONG_WIDTH', side: null, panel: 'ANY' };
+
+    component.onProjectGrainDirectionsChange(override);
+
+    expect(updateSpy).toHaveBeenCalledWith(override, { recordHistory: true });
+    expect(component.projectGrainDirections()).toEqual(override);
+    expect(component.userGrainDirections()).toEqual(DEFAULT_GRAIN_DIRECTIONS);
   });
 
   it('uses current cabinet order when displaying a project calculation error', () => {

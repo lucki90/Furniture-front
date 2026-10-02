@@ -2,6 +2,7 @@
  * Interfejsy dla danych formularza szafki
  */
 import { FrontMountingType } from '../../../shared/model/front-mounting-type';
+import { GrainAxis } from '../../../shared/model/grain-direction';
 
 export interface CabinetRequest {
   lang: string;
@@ -91,6 +92,8 @@ export interface Board {
   /** Puszki zawiasów w jednej sztuce frontu i długość krawędzi, wzdłuż której są wiercone (backend). */
   hingeCountPerPiece?: number | null;
   hingeEdgeLengthMm?: number | null;
+  /** Kierunek słoja formatki w osiach `sideX`/`sideY` (backend, według ustawień użytkownika i projektu). */
+  grainAxis?: GrainAxis | null;
 }
 
 export interface Component {

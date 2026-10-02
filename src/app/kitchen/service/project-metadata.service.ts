@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { ProjectStatus } from '../model/kitchen-project.model';
+import { GrainDirections, NO_GRAIN_OVERRIDE } from '../../shared/model/grain-direction';
 
 /**
  * Serwis odpowiedzialny za metadane aktywnego projektu:
@@ -29,6 +30,7 @@ export class ProjectMetadataService {
   private _currentProjectAllowedTransitions = signal<ProjectStatus[]>([]);
   private _currentProjectRoomWidthMm = signal<number | null>(null);
   private _currentProjectRoomDepthMm = signal<number | null>(null);
+  private _currentProjectGrainDirections = signal<GrainDirections>(NO_GRAIN_OVERRIDE);
 
   // ============ PUBLIC READONLY SIGNALS ============
 
@@ -43,6 +45,7 @@ export class ProjectMetadataService {
   readonly currentProjectAllowedTransitions = this._currentProjectAllowedTransitions.asReadonly();
   readonly currentProjectRoomWidthMm = this._currentProjectRoomWidthMm.asReadonly();
   readonly currentProjectRoomDepthMm = this._currentProjectRoomDepthMm.asReadonly();
+  readonly currentProjectGrainDirections = this._currentProjectGrainDirections.asReadonly();
 
   // ============ METHODS ============
 
@@ -94,6 +97,7 @@ export class ProjectMetadataService {
     allowedTransitions?: ProjectStatus[];
     roomWidthMm?: number;
     roomDepthMm?: number;
+    grainDirections?: GrainDirections | null;
   }): void {
     this._currentProjectId.set(project.id);
     this._currentProjectName.set(project.name);
@@ -106,11 +110,17 @@ export class ProjectMetadataService {
     this._currentProjectAllowedTransitions.set(project.allowedTransitions ?? []);
     this._currentProjectRoomWidthMm.set(project.roomWidthMm ?? null);
     this._currentProjectRoomDepthMm.set(project.roomDepthMm ?? null);
+    // Projekt sprzed pola nie ma nadpisania — obowiązują ustawienia użytkownika.
+    this._currentProjectGrainDirections.set({ ...NO_GRAIN_OVERRIDE, ...project.grainDirections });
   }
 
   updateRoomDimensions(roomWidthMm?: number | null, roomDepthMm?: number | null): void {
     this._currentProjectRoomWidthMm.set(roomWidthMm ?? null);
     this._currentProjectRoomDepthMm.set(roomDepthMm ?? null);
+  }
+
+  updateGrainDirections(grainDirections: GrainDirections): void {
+    this._currentProjectGrainDirections.set({ ...grainDirections });
   }
 
   /**
@@ -128,6 +138,7 @@ export class ProjectMetadataService {
     this._currentProjectStatus.set('DRAFT');
     this._currentProjectAllowedTransitions.set([]);
     this._currentProjectRoomWidthMm.set(null);
+    this._currentProjectGrainDirections.set(NO_GRAIN_OVERRIDE);
     this._currentProjectRoomDepthMm.set(null);
   }
 }

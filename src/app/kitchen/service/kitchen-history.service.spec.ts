@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { KitchenHistoryService, WorkspaceSnapshot } from './kitchen-history.service';
+import { NO_GRAIN_OVERRIDE } from '../../shared/model/grain-direction';
 
 function makeSnapshot(tag: string): WorkspaceSnapshot {
   return {
@@ -19,7 +20,8 @@ function makeSnapshot(tag: string): WorkspaceSnapshot {
     },
     projectMetadata: {
       roomWidthMm: null,
-      roomDepthMm: null
+      roomDepthMm: null,
+      grainDirections: NO_GRAIN_OVERRIDE
     }
   };
 }

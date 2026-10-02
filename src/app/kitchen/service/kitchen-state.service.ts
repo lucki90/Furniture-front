@@ -22,6 +22,7 @@ import {
   WallType
 } from '../model/kitchen-project.model';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
+import { GrainDirections } from '../../shared/model/grain-direction';
 
 @Injectable({
   providedIn: 'root'
@@ -60,6 +61,8 @@ export class KitchenStateService {
   readonly currentProjectAllowedTransitions = this.metadataService.currentProjectAllowedTransitions;
   readonly currentProjectRoomWidthMm = this.metadataService.currentProjectRoomWidthMm;
   readonly currentProjectRoomDepthMm = this.metadataService.currentProjectRoomDepthMm;
+  readonly currentProjectGrainDirections = this.metadataService.currentProjectGrainDirections;
+  readonly userGrainDirections = this.settingsService.userGrainDirections;
 
   readonly plinthHeightMm = this.settingsService.plinthHeightMm;
   readonly countertopThicknessMm = this.settingsService.countertopThicknessMm;
@@ -174,6 +177,14 @@ export class KitchenStateService {
     this.metadataService.updateRoomDimensions(roomWidthMm, roomDepthMm);
   }
 
+  /** Nadpisanie kierunku słoja w projekcie (zapisywane z projektem, z historią undo/redo). */
+  updateProjectGrainDirections(grainDirections: GrainDirections, options?: { recordHistory?: boolean }): void {
+    if (options?.recordHistory) {
+      this.workspaceStore.recordHistorySnapshot();
+    }
+    this.metadataService.updateGrainDirections(grainDirections);
+  }
+
   getWallLabel(type: WallType): string {
     return WALL_TYPES.find(wallType => wallType.value === type)?.label ?? type;
   }
@@ -218,6 +229,10 @@ export class KitchenStateService {
 
   setCountertopJointDefaults(settings: Parameters<ProjectSettingsService['setCountertopJointDefaults']>[0]): void {
     this.settingsService.setCountertopJointDefaults(settings);
+  }
+
+  setGrainDirectionDefaults(settings: Parameters<ProjectSettingsService['setGrainDirectionDefaults']>[0]): void {
+    this.settingsService.setGrainDirectionDefaults(settings);
   }
 
   updateCountertopConfig(wallId: string, config: CountertopConfig): void {
@@ -351,7 +366,8 @@ export class KitchenStateService {
       countertopThicknessMm: this.settingsService.countertopThicknessMm(),
       upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
       roomWidthMm: this.metadataService.currentProjectRoomWidthMm(),
-      roomDepthMm: this.metadataService.currentProjectRoomDepthMm()
+      roomDepthMm: this.metadataService.currentProjectRoomDepthMm(),
+      grainDirections: this.metadataService.currentProjectGrainDirections()
     });
   }
 }

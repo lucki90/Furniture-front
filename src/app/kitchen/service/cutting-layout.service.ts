@@ -67,7 +67,8 @@ export class CuttingLayoutService {
         request.lshapeCutoutLengthBMm ?? null,
         request.veneerX,
         request.veneerY,
-        request.boardName
+        request.boardName,
+        request.grainAxis ?? null
       ]);
       const existing = merged.get(key);
       if (existing) {
@@ -95,7 +96,8 @@ export class CuttingLayoutService {
       material: board.material || board.boardName,
       varnished: board.varnished ?? false,
       lshapeCutoutLengthAMm: board.lshapeCutoutLengthAMm ?? board.lShapeCutoutLengthAMm,
-      lshapeCutoutLengthBMm: board.lshapeCutoutLengthBMm ?? board.lShapeCutoutLengthBMm
+      lshapeCutoutLengthBMm: board.lshapeCutoutLengthBMm ?? board.lShapeCutoutLengthBMm,
+      grainAxis: board.grainAxis ?? null
     };
   }
 }

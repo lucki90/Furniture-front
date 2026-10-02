@@ -38,7 +38,8 @@ export class KitchenProjectRequestsFacade {
       walls: this.buildProjectWalls(),
       connections: connections.length > 0 ? connections : undefined,
       roomWidthMm: this.metadataService.currentProjectRoomWidthMm() ?? undefined,
-      roomDepthMm: this.metadataService.currentProjectRoomDepthMm() ?? undefined
+      roomDepthMm: this.metadataService.currentProjectRoomDepthMm() ?? undefined,
+      grainDirections: this.metadataService.currentProjectGrainDirections()
     };
   }
 
@@ -60,7 +61,8 @@ export class KitchenProjectRequestsFacade {
       countertopThicknessMm: this.settingsService.countertopThicknessMm(),
       upperFillerHeightMm: this.settingsService.upperFillerHeightMm(),
       roomWidthMm: this.metadataService.currentProjectRoomWidthMm() ?? undefined,
-      roomDepthMm: this.metadataService.currentProjectRoomDepthMm() ?? undefined
+      roomDepthMm: this.metadataService.currentProjectRoomDepthMm() ?? undefined,
+      grainDirections: this.metadataService.currentProjectGrainDirections()
     };
   }
 
@@ -84,7 +86,8 @@ export class KitchenProjectRequestsFacade {
       // Wysyłamy jawnie `null` (a nie `undefined`), żeby PUT /projects/{id}
       // mógł wyczyścić wcześniej zapisane wymiary pomieszczenia.
       roomWidthMm: this.metadataService.currentProjectRoomWidthMm(),
-      roomDepthMm: this.metadataService.currentProjectRoomDepthMm()
+      roomDepthMm: this.metadataService.currentProjectRoomDepthMm(),
+      grainDirections: this.metadataService.currentProjectGrainDirections()
     };
   }
 }

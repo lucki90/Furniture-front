@@ -11,6 +11,7 @@ import { AppLanguage, LanguageService } from '../service/language.service';
 import { Board, CabinetRequest, CabinetResponse, FrontMountingType, PrintDocRequest } from './model/cabinet-form.model';
 import { ApiErrorResponse } from '../core/error/api-error.model';
 import { ErrorTranslationService } from '../core/error/error-translation.service';
+import { orientBoardForOrder } from '../shared/model/grain-direction';
 
 type AloneCabinetView = 'config' | 'costs';
 
@@ -364,18 +365,21 @@ export class AloneCabinetComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    return this.response.boards.map((board: Board): PrintDocRequest => ({
-      quantity: board.quantity,
-      symbol: board.color,
-      thickness: board.boardThickness,
-      length: board.sideX,
-      lengthVeneer: board.veneerX,
-      width: board.sideY,
-      widthVeneer: board.veneerY,
-      veneerColor: board.veneerColor,
-      sticker: this.translations[board.boardName],
-      remarks: board.remarks
-    }));
+    return this.response.boards.map((board: Board): PrintDocRequest => {
+      const order = orientBoardForOrder(board);
+      return {
+        quantity: board.quantity,
+        symbol: board.color,
+        thickness: board.boardThickness,
+        length: order.length,
+        lengthVeneer: order.lengthVeneer,
+        width: order.width,
+        widthVeneer: order.widthVeneer,
+        veneerColor: board.veneerColor,
+        sticker: this.translations[board.boardName],
+        remarks: board.remarks
+      };
+    });
   }
 
   loadTranslations(lang: string): void {

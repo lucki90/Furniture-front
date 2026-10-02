@@ -1,5 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { WallWithCabinets } from '../model/kitchen-state.model';
+import { GrainDirections } from '../../shared/model/grain-direction';
 
 export interface WorkspaceSnapshot {
   walls: WallWithCabinets[];
@@ -19,6 +20,7 @@ export interface WorkspaceSnapshot {
   projectMetadata: {
     roomWidthMm: number | null;
     roomDepthMm: number | null;
+    grainDirections: GrainDirections;
   };
 }
 

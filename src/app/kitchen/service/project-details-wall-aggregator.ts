@@ -84,7 +84,8 @@ export class ProjectDetailsWallAggregator {
         boardLabel: board.boardNameLabel ?? board.boardName,
         cabinetRefs: [cabinetRef],
         remarks: remarks || undefined,
-        veneerEdgeLabel: board.veneerEdgeLabel || undefined
+        veneerEdgeLabel: board.veneerEdgeLabel || undefined,
+        grainAxis: board.grainAxis ?? null
       });
     }
   }

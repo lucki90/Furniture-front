@@ -316,6 +316,9 @@
               </label>
             </app-form-field>
 
+            <app-grain-direction-fields (valueChange)="onGrainDirectionsChange($event)" [disabled]="saving"
+                                        [value]="grainDirections"></app-grain-direction-fields>
+
             <app-form-field hint="Grubość materiału zabieranego przez tarczę piły (1–10 mm)"
                             label="Rzaz piły" unit="mm">
               <input [(ngModel)]="cuttingKerfMm" [disabled]="saving" class="form-control"

@@ -1,0 +1,23 @@
+<app-form-field hint="Drzwi, fronty szuflad, blendy i front ślepy" label="Słój frontów">
+  <select (ngModelChange)="onFrontChange($event)" [disabled]="disabled" [ngModel]="value.front"
+          class="form-control" data-testid="grain-front-select">
+    <option *ngIf="inheritLabels" [ngValue]="null">{{ inheritLabels.front }}</option>
+    <option *ngFor="let option of frontOptions" [ngValue]="option.value">{{ option.label }}</option>
+  </select>
+</app-form-field>
+
+<app-form-field hint="Boki szafek" label="Słój boków">
+  <select (ngModelChange)="onSideChange($event)" [disabled]="disabled" [ngModel]="value.side"
+          class="form-control" data-testid="grain-side-select">
+    <option *ngIf="inheritLabels" [ngValue]="null">{{ inheritLabels.side }}</option>
+    <option *ngFor="let option of sideOptions" [ngValue]="option.value">{{ option.label }}</option>
+  </select>
+</app-form-field>
+
+<app-form-field hint="Wieńce, półki, listwy cargo i blenda okapu" label="Słój wieńców i półek">
+  <select (ngModelChange)="onPanelChange($event)" [disabled]="disabled" [ngModel]="value.panel"
+          class="form-control" data-testid="grain-panel-select">
+    <option *ngIf="inheritLabels" [ngValue]="null">{{ inheritLabels.panel }}</option>
+    <option *ngFor="let option of panelOptions" [ngValue]="option.value">{{ option.label }}</option>
+  </select>
+</app-form-field>

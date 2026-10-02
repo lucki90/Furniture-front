@@ -88,4 +88,19 @@ describe('kitchen-project-summary.utils', () => {
     const filename = buildBoardExcelFilename('Projekt / klient', new Date('2026-04-17T10:00:00Z'));
     expect(filename).toBe('kuchnia_plyty_Projekt___klient_20260417.xlsx');
   });
+
+  it('should put the grain dimension in the order length column', () => {
+    const front = {
+      quantity: 1, material: 'FRONT_NAME', thickness: 18, width: 712, height: 394,
+      veneerX: 2, veneerY: 1, totalCost: 0, unitCost: 0
+    } as AggregatedBoard;
+
+    const [vertical, horizontal] = buildBoardExcelRows([
+      { ...front, grainAxis: 'ALONG_SIDE_X' },
+      { ...front, grainAxis: 'ALONG_SIDE_Y' }
+    ], {}, {});
+
+    expect(vertical).toEqual(jasmine.objectContaining({ length: 712, lengthVeneer: 2, width: 394, widthVeneer: 1 }));
+    expect(horizontal).toEqual(jasmine.objectContaining({ length: 394, lengthVeneer: 1, width: 712, widthVeneer: 2 }));
+  });
 });

@@ -8,6 +8,7 @@ import { PlinthRequest, PlinthResponse } from './plinth.model';
 import { FillerPanelRequest, FillerPanelResponse } from './filler-panel.model';
 import { EnclosureConfig } from '../cabinet-form/model/enclosure.model';
 import { FrontMountingType } from '../../shared/model/front-mounting-type';
+import { GrainDirections } from '../../shared/model/grain-direction';
 
 // ============ ENCLOSURE RESPONSE ============
 
@@ -331,6 +332,8 @@ export interface CabinetSummary {
  * Request do utworzenia nowego projektu kuchni (z wieloma ścianami)
  */
 export interface CreateKitchenProjectRequest {
+  /** Nadpisanie kierunku słoja w projekcie; puste pole — ustawienie użytkownika. */
+  grainDirections?: GrainDirections | null;
   name: string;
   description?: string;
 
@@ -368,6 +371,7 @@ export interface ProjectWallRequest {
  * Request do aktualizacji projektu
  */
 export interface UpdateKitchenProjectRequest {
+  grainDirections?: GrainDirections | null;
   name: string;
   description?: string;
 
@@ -408,6 +412,7 @@ export interface KitchenProjectListResponse {
  * Response - szczegóły projektu
  */
 export interface KitchenProjectDetailResponse {
+  grainDirections?: GrainDirections | null;
   id: number;
   name: string;
   description?: string;
@@ -639,6 +644,7 @@ export interface CornerCountertopResponse {
  * Request do kalkulacji projektu z wieloma ścianami (bez zapisu do bazy)
  */
 export interface MultiWallCalculateRequest {
+  grainDirections?: GrainDirections | null;
   walls: ProjectWallRequest[];
   /**
    * Opcjonalna lista połączeń między ścianami (narożniki L).

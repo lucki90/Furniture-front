@@ -287,7 +287,8 @@ export class KitchenWorkspaceStore {
       },
       projectMetadata: {
         roomWidthMm: this.metadataService.currentProjectRoomWidthMm(),
-        roomDepthMm: this.metadataService.currentProjectRoomDepthMm()
+        roomDepthMm: this.metadataService.currentProjectRoomDepthMm(),
+        grainDirections: this.metadataService.currentProjectGrainDirections()
       }
     };
   }
@@ -302,6 +303,7 @@ export class KitchenWorkspaceStore {
       snapshot.projectMetadata.roomWidthMm,
       snapshot.projectMetadata.roomDepthMm
     );
+    this.metadataService.updateGrainDirections(snapshot.projectMetadata.grainDirections);
   }
 
   private generateCabinetId(): string {

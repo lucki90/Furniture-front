@@ -1,6 +1,7 @@
 import { ExcelRowRequest } from './excel.service';
 import { AggregatedBoard, AggregatedComponent, AggregatedJob } from './project-details-aggregator.service';
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
+import { orientBoardForOrder } from '../../shared/model/grain-direction';
 
 export function calculateBomPriceWarning(
   boards: AggregatedBoard[],
@@ -55,6 +56,14 @@ export function buildBoardExcelRows(
       sticker += ` (${board.cabinetRefs.join(', ')})`;
     }
 
+    const order = orientBoardForOrder({
+      sideX: board.width,
+      sideY: board.height,
+      veneerX: board.veneerX,
+      veneerY: board.veneerY,
+      grainAxis: board.grainAxis
+    });
+
     return {
       lp: index + 1,
       quantity: board.quantity,
@@ -64,10 +73,10 @@ export function buildBoardExcelRows(
           : ''
       ),
       thickness: board.thickness,
-      length: board.height,
-      lengthVeneer: board.veneerY ?? 0,
-      width: board.width,
-      widthVeneer: board.veneerX ?? 0,
+      length: order.length,
+      lengthVeneer: order.lengthVeneer,
+      width: order.width,
+      widthVeneer: order.widthVeneer,
       veneerColor: board.veneerColor ?? '',
       sticker,
       remarks: board.remarks ?? '',

@@ -1,4 +1,5 @@
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
+import { GrainAxis } from '../../shared/model/grain-direction';
 
 export interface AggregatedBoard {
   material: string;
@@ -16,6 +17,8 @@ export interface AggregatedBoard {
   cabinetRefs?: string[];
   remarks?: string;
   veneerEdgeLabel?: string;
+  /** Kierunek słoja w osiach `width` (= `sideX`) i `height` (= `sideY`). */
+  grainAxis?: GrainAxis | null;
 }
 
 export interface AggregatedComponent {

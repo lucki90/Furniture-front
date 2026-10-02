@@ -1,3 +1,4 @@
+import { GrainAxis } from '../../shared/model/grain-direction';
 export type CuttingAxis = 'SPLIT_X' | 'SPLIT_Y';
 
 /** Odpowiedź endpointu wizualizacji rozkroju gilotynowego. */
@@ -83,4 +84,6 @@ export interface CuttingBoardRequest {
   varnished: boolean;
   lshapeCutoutLengthAMm?: number | null;
   lshapeCutoutLengthBMm?: number | null;
+  /** Kierunek słoja z BOM — rozkrój układa wymiar wzdłuż słoja na długiej osi arkusza. */
+  grainAxis?: GrainAxis | null;
 }
