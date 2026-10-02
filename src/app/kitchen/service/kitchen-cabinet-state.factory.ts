@@ -5,7 +5,8 @@ import {
   KitchenCabinet,
   KitchenCabinetBase,
   CabinetCalculationResult,
-  CabinetFormData
+  CabinetFormData,
+  DrawerLayoutType
 } from '../model/kitchen-state.model';
 import { CabinetPlacementResponse, MaterialRequest } from '../model/kitchen-project.model';
 import { SegmentFormData, SegmentRequest } from '../cabinet-form/model/segment.model';
@@ -225,10 +226,10 @@ export class KitchenCabinetStateFactory {
     }
   }
 
-  // TODO(CODEX): Ten factory nadal musi zgadywać brakujące pola type-specific, bo backend nie persystuje wszystkich ustawień szafek. To oznacza, że po loadProject część konfiguracji wraca jako frontendowe fallbacki zamiast wiernych danych z zapisu.
   /**
    * Szafka z odczytu projektu. Identyfikator nadaje mapper (`cabinet-N` w kolejności odczytu), więc nie zderza się
-   * z licznikiem nowych szafek; zapisany `cabinetId` służy tylko do odtworzenia nazwy starszych zapisów.
+   * z licznikiem nowych szafek; zapisany `cabinetId` służy tylko do odtworzenia nazwy starszych zapisów. Fallbacki
+   * type-specific poniżej dotyczą wyłącznie projektów zapisanych przed dodaniem odpowiadających im pól kontraktu.
    */
   fromPlacementResponse(cabResp: CabinetPlacementResponse, loadedId: string): KitchenCabinet {
     const effectiveWidth = cabResp.cabinetType === KitchenCabinetType.CORNER_CABINET && cabResp.cornerWidthA
@@ -287,13 +288,19 @@ export class KitchenCabinetStateFactory {
           drawerQuantity: cabResp.drawerQuantity ?? 3,
           drawerModel: cabResp.cargoVariant === 'DRAWERS' ? (cabResp.drawerModel ?? 'ANTARO_TANDEMBOX') : undefined
         };
-      case KitchenCabinetType.BASE_WITH_DRAWERS:
+      case KitchenCabinetType.BASE_WITH_DRAWERS: {
+        const drawerLayoutType = (cabResp.drawerLayoutType ?? 'EQUAL') as DrawerLayoutType;
         return {
           ...baseFromResp,
           type: KitchenCabinetType.BASE_WITH_DRAWERS,
           drawerQuantity: cabResp.drawerQuantity ?? 3,
-          drawerModel: cabResp.drawerModel ?? 'ANTARO_TANDEMBOX'
+          drawerModel: cabResp.drawerModel ?? 'ANTARO_TANDEMBOX',
+          drawerLayoutType,
+          drawerCustomHeightsMm: drawerLayoutType === 'CUSTOM'
+            ? [...(cabResp.drawerCustomHeightsMm ?? [])]
+            : undefined
         };
+      }
       case KitchenCabinetType.BASE_SINK:
         return {
           ...baseFromResp,

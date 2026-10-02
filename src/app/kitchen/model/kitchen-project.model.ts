@@ -155,6 +155,7 @@ export interface ProjectCabinetRequest {
   materialRequest: MaterialRequest;
   materialPresetCode?: string | null;
   drawerRequest?: DrawerRequest;
+  drawerLayoutType?: 'EQUAL' | 'MIXED_LOW_TOP' | 'CUSTOM';
   cargoVariant?: string;
   cargoBrand?: string;
   pantryPassageFrontType?: string;
@@ -249,7 +250,7 @@ export interface DrawerRequest {
   drawerQuantity: number;
   drawerModel?: string | null;
   drawerBaseHdf: boolean;
-  drawerFrontDetails: any | null;
+  drawerFrontDetails: Array<{ height: number; name: string | null }> | null;
 }
 
 /**
@@ -500,6 +501,8 @@ export interface CabinetPlacementResponse {
   // Additional configuration - drawers
   drawerQuantity?: number;
   drawerModel?: string;
+  drawerLayoutType?: 'EQUAL' | 'MIXED_LOW_TOP' | 'CUSTOM';
+  drawerCustomHeightsMm?: number[];
   cargoVariant?: string;
   cargoBrand?: string;
   pantryPassageFrontType?: string;

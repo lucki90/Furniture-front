@@ -182,7 +182,7 @@ export class ProjectWallCabinetsBuilder {
         drawerQuantity: cab.drawerQuantity,
         drawerModel: cab.drawerModel,
         drawerBaseHdf: false,
-        drawerFrontDetails: null
+        drawerFrontDetails: this.buildDrawerFrontDetails(cab)
       };
     }
 
@@ -214,6 +214,17 @@ export class ProjectWallCabinetsBuilder {
     }
 
     return undefined;
+  }
+
+  private buildDrawerFrontDetails(
+    cab: Extract<KitchenCabinet, { type: KitchenCabinetType.BASE_WITH_DRAWERS }>
+  ): Array<{ height: number; name: null }> | null {
+    if (cab.drawerLayoutType !== 'CUSTOM' || !cab.drawerCustomHeightsMm?.length) {
+      return null;
+    }
+    return cab.drawerCustomHeightsMm
+      .filter(height => Number.isFinite(height) && height > 0)
+      .map(height => ({ height, name: null }));
   }
 
   private buildSegments(cab: KitchenCabinet) {
@@ -316,6 +327,10 @@ export class ProjectWallCabinetsBuilder {
         return {
           cargoVariant: cab.cargoVariant,
           cargoBrand: cab.cargoBrand
+        };
+      case KitchenCabinetType.BASE_WITH_DRAWERS:
+        return {
+          drawerLayoutType: cab.drawerLayoutType ?? 'EQUAL'
         };
       case KitchenCabinetType.PANTRY_PASSAGE:
         return {

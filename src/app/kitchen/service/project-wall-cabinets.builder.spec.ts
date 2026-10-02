@@ -404,6 +404,61 @@ describe('ProjectWallCabinetsBuilder', () => {
     });
   });
 
+  describe('type-specific project settings', () => {
+    it('should persist drawer layout and custom front heights', () => {
+      const cabinet = makeCabinet({
+        id: 'drawers-custom',
+        type: KitchenCabinetType.BASE_WITH_DRAWERS,
+        shelfQuantity: 0,
+        drawerQuantity: 3,
+        drawerModel: 'ANTARO_TANDEMBOX',
+        drawerLayoutType: 'CUSTOM',
+        drawerCustomHeightsMm: [140, 220, 348]
+      } as Partial<KitchenCabinet>);
+
+      const [request] = buildRequests([cabinet]);
+
+      expect(request.drawerLayoutType).toBe('CUSTOM');
+      expect(request.drawerRequest?.drawerFrontDetails).toEqual([
+        { height: 140, name: null },
+        { height: 220, name: null },
+        { height: 348, name: null }
+      ]);
+    });
+
+    it('should persist mixed drawer layout without custom front details', () => {
+      const cabinet = makeCabinet({
+        id: 'drawers-mixed',
+        type: KitchenCabinetType.BASE_WITH_DRAWERS,
+        shelfQuantity: 0,
+        drawerQuantity: 3,
+        drawerModel: 'ANTARO_TANDEMBOX',
+        drawerLayoutType: 'MIXED_LOW_TOP'
+      } as Partial<KitchenCabinet>);
+
+      const [request] = buildRequests([cabinet]);
+
+      expect(request.drawerLayoutType).toBe('MIXED_LOW_TOP');
+      expect(request.drawerRequest?.drawerFrontDetails).toBeNull();
+    });
+
+    it('should persist drainer front type', () => {
+      const cabinet = makeCabinet({
+        id: 'drainer-doors',
+        type: KitchenCabinetType.UPPER_DRAINER,
+        width: 800,
+        height: 720,
+        depth: 320,
+        positioningMode: 'RELATIVE_TO_CEILING',
+        drainerFrontType: 'TWO_DOORS'
+      } as Partial<KitchenCabinet>);
+
+      const [request] = buildRequests([cabinet]);
+
+      expect(request.drainerFrontType).toBe('TWO_DOORS');
+    });
+  });
+
   describe('PANTRY_PASSAGE mapping', () => {
     it('should persist pantry passage front type in project request', () => {
       const pantry = makeCabinet({

@@ -294,6 +294,77 @@ describe('KitchenCabinetStateFactory', () => {
     }));
   });
 
+  it('should restore persisted drawer layout and custom front heights', () => {
+    const cabinet = factory.fromPlacementResponse({
+      id: 30,
+      cabinetId: 'drawers-custom',
+      cabinetType: KitchenCabinetType.BASE_WITH_DRAWERS,
+      positionX: 0,
+      positionY: 0,
+      widthMm: 600,
+      heightMm: 720,
+      depthMm: 560,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      drawerQuantity: 3,
+      drawerModel: 'ANTARO_TANDEMBOX',
+      drawerLayoutType: 'CUSTOM',
+      drawerCustomHeightsMm: [140, 220, 348],
+      boardsCost: 100,
+      componentsCost: 50,
+      jobsCost: 20,
+      totalCost: 170,
+      displayOrder: 0
+    }, 'loaded-drawers');
+
+    expect(cabinet).toEqual(jasmine.objectContaining({
+      type: KitchenCabinetType.BASE_WITH_DRAWERS,
+      drawerLayoutType: 'CUSTOM',
+      drawerCustomHeightsMm: [140, 220, 348]
+    }));
+  });
+
+  it('should use legacy defaults when drawer layout and drainer front are absent', () => {
+    const common = {
+      positionX: 0,
+      positionY: 0,
+      widthMm: 600,
+      heightMm: 720,
+      depthMm: 560,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      boardsCost: 100,
+      componentsCost: 50,
+      jobsCost: 20,
+      totalCost: 170,
+      displayOrder: 0
+    };
+    const drawers = factory.fromPlacementResponse({
+      ...common,
+      id: 31,
+      cabinetId: 'legacy-drawers',
+      cabinetType: KitchenCabinetType.BASE_WITH_DRAWERS,
+      drawerQuantity: 3,
+      drawerModel: 'ANTARO_TANDEMBOX'
+    }, 'loaded-legacy-drawers');
+    const drainer = factory.fromPlacementResponse({
+      ...common,
+      id: 32,
+      cabinetId: 'legacy-drainer',
+      cabinetType: KitchenCabinetType.UPPER_DRAINER
+    }, 'loaded-legacy-drainer');
+
+    expect(drawers).toEqual(jasmine.objectContaining({
+      drawerLayoutType: 'EQUAL',
+      drawerCustomHeightsMm: undefined
+    }));
+    expect(drainer).toEqual(jasmine.objectContaining({
+      drainerFrontType: 'OPEN'
+    }));
+  });
+
   it('should map placement response for base open cabinet', () => {
     const openCabinet = factory.fromPlacementResponse({
       id: 5,
