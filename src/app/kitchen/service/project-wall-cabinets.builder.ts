@@ -14,6 +14,7 @@ import {
   MaterialRequest
 } from '../model/kitchen-project.model';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
+import { buildCustomDrawerFrontDetails } from '../cabinet-form/types/base-with-drawers/drawer-front-details';
 import { mapSegmentToRequest, SegmentFormData } from '../cabinet-form/model/segment.model';
 import { EnclosureType } from '../cabinet-form/model/enclosure.model';
 import { CornerMechanismType, isMagicCorner, isLeMans } from '../cabinet-form/model/corner-cabinet.model';
@@ -182,7 +183,7 @@ export class ProjectWallCabinetsBuilder {
         drawerQuantity: cab.drawerQuantity,
         drawerModel: cab.drawerModel,
         drawerBaseHdf: false,
-        drawerFrontDetails: this.buildDrawerFrontDetails(cab)
+        drawerFrontDetails: buildCustomDrawerFrontDetails(cab.drawerLayoutType, cab.drawerCustomHeightsMm)
       };
     }
 
@@ -214,17 +215,6 @@ export class ProjectWallCabinetsBuilder {
     }
 
     return undefined;
-  }
-
-  private buildDrawerFrontDetails(
-    cab: Extract<KitchenCabinet, { type: KitchenCabinetType.BASE_WITH_DRAWERS }>
-  ): Array<{ height: number; name: null }> | null {
-    if (cab.drawerLayoutType !== 'CUSTOM' || !cab.drawerCustomHeightsMm?.length) {
-      return null;
-    }
-    return cab.drawerCustomHeightsMm
-      .filter(height => Number.isFinite(height) && height > 0)
-      .map(height => ({ height, name: null }));
   }
 
   private buildSegments(cab: KitchenCabinet) {

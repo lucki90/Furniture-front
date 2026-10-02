@@ -1,5 +1,6 @@
 import { CabinetCalculateRequest, MaterialDefaults } from "../../type-config/request-mapper/kitchen-cabinet-request-mapper";
 import { AbstractCabinetRequestMapper } from "../../type-config/request-mapper/abstract-cabinet-request-mapper";
+import { buildCustomDrawerFrontDetails } from "./drawer-front-details";
 
 export class BaseWithDrawersRequestMapper extends AbstractCabinetRequestMapper {
 
@@ -34,18 +35,9 @@ export class BaseWithDrawersRequestMapper extends AbstractCabinetRequestMapper {
         drawerModel: form.drawerModel ?? 'ANTARO_TANDEMBOX',
         drawerBaseHdf: false,
         // CUSTOM: wysokości od użytkownika → DrawerFrontDetail[]; EQUAL/MIXED_LOW_TOP → null (strategy sama liczy)
-        drawerFrontDetails: this.buildDrawerFrontDetails(form)
+        drawerFrontDetails: buildCustomDrawerFrontDetails(form.drawerLayoutType, form.drawerCustomHeightsMm)
       },
       materialRequest: this.buildMaterialRequest(materialDefaults)
     };
-  }
-
-  private buildDrawerFrontDetails(form: any): Array<{ height: number; name: null }> | null {
-    if (form.drawerLayoutType !== 'CUSTOM') return null;
-    const heights: Array<number | undefined> = form.drawerCustomHeightsMm ?? [];
-    if (!Array.isArray(heights) || heights.length === 0) return null;
-    return heights
-      .filter((h): h is number => typeof h === 'number' && h > 0)
-      .map(h => ({ height: h, name: null }));
   }
 }
