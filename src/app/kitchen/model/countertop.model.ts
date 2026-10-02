@@ -36,6 +36,13 @@ export const COUNTERTOP_JOINT_OPTIONS: { value: CountertopJointType; label: stri
  */
 export type CornerJointType = 'LYZWA' | 'MITER_45' | 'ALUMINUM_STRIP';
 
+/** Nazwy sposobów łączenia blatów w narożniku (panel ściany, pozycje kosztorysu). */
+export const CORNER_JOINT_TYPE_LABELS: Readonly<Record<CornerJointType, string>> = {
+  LYZWA: 'Łyżwa',
+  MITER_45: 'Cięcie 45°',
+  ALUMINUM_STRIP: 'Listwa aluminiowa'
+};
+
 /**
  * Który blat przechodzi przez narożnik — z punktu widzenia ściany bocznej (LEFT/RIGHT), w której konfiguracji
  * zapisane jest połączenie. `AUTO` — reguła z układu narożnika.

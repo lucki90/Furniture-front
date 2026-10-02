@@ -510,6 +510,7 @@ describe('ProjectDetailsAggregatorService', () => {
           cornerWidthMm: 600,
           cornerDepthMm: 620,
           thicknessMm: 38,
+          jointType: 'LYZWA',
           materialCost: 0,
           jointCost: 25,
           totalCost: 25,
@@ -533,12 +534,39 @@ describe('ProjectDetailsAggregatorService', () => {
     ]);
     expect(result.jobs).toEqual([
       jasmine.objectContaining({
-        name: 'CORNER_COUNTERTOP_JOINT_Śc.1-2',
+        name: 'Łączenie blatów w narożniku (łyżwa) [Śc.1-2]',
         type: 'COUNTERTOP',
         quantity: 1,
         totalCost: 25
       })
     ]);
+  });
+
+  it('nazywa pracę przy złączu narożnym według typu złącza', () => {
+    const corner = (jointType: string | undefined, wallAIndex: number) => ({
+      wallAIndex,
+      wallBIndex: wallAIndex + 1,
+      cornerWidthMm: 600,
+      cornerDepthMm: 600,
+      thicknessMm: 38,
+      jointType,
+      materialCost: 0,
+      jointCost: 80,
+      totalCost: 80,
+      components: [],
+      pricingComplete: true
+    });
+    const response = {
+      walls: [],
+      totalWasteCost: 0,
+      globalWasteComponents: [],
+      cornerCountertops: [corner('MITER_45', 0), corner(undefined, 1)]
+    } as unknown as MultiWallCalculateResponse;
+
+    const names = service.aggregate(response, [] as WallWithCabinets[]).jobs.map(job => job.name);
+
+    expect(names).toContain('Łączenie blatów w narożniku (cięcie 45°) [Śc.1-2]');
+    expect(names).toContain('Łączenie blatów w narożniku [Śc.2-3]');
   });
 
   it('should not add a corner countertop joint job when jointCost is zero or missing', () => {
@@ -576,7 +604,7 @@ describe('ProjectDetailsAggregatorService', () => {
 
     const result = service.aggregate(response, [] as WallWithCabinets[]);
 
-    expect(result.jobs.some(job => job.name.startsWith('CORNER_COUNTERTOP_JOINT_'))).toBe(false);
+    expect(result.jobs.some(job => job.name.startsWith('Łączenie blatów w narożniku'))).toBe(false);
   });
 
   it('should collect pricing warnings from wall and corner countertop responses', () => {

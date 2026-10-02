@@ -1,4 +1,5 @@
 import { CornerCountertopResponse } from '../model/kitchen-project.model';
+import { CORNER_JOINT_TYPE_LABELS } from '../model/countertop.model';
 import { WallWithCabinets } from '../model/kitchen-state.model';
 import { Job } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import {
@@ -34,9 +35,8 @@ export class ProjectDetailsWallAggregator {
         continue;
       }
 
-      // Kwadrat narożny jest częścią blatu ściany-właściciela — narożnik wnosi tylko połączenie i komponenty.
-      const wallLabel = `Śc.${corner.wallAIndex + 1}-${corner.wallBIndex + 1}`;
-      this.addOptionalJob(maps.jobs, `CORNER_COUNTERTOP_JOINT_${wallLabel}`, 'COUNTERTOP', corner.jointCost);
+      // Materiał jest w blatach ścian — narożnik wnosi tylko pracę przy złączu i komponenty (śruby, listwa).
+      this.addOptionalJob(maps.jobs, cornerJointJobName(corner), 'COUNTERTOP', corner.jointCost);
 
       this.aggregateNullableComponents(corner.components, maps.components);
     }
@@ -257,4 +257,12 @@ export class ProjectDetailsWallAggregator {
       totalCost
     });
   }
+}
+
+/** Pozycja kosztorysu pracy przy złączu narożnym, np. „Łączenie blatów w narożniku (łyżwa) [Śc.1-2]”. */
+function cornerJointJobName(corner: CornerCountertopResponse): string {
+  const wallLabel = `Śc.${corner.wallAIndex + 1}-${corner.wallBIndex + 1}`;
+  const jointLabel = CORNER_JOINT_TYPE_LABELS[corner.jointType];
+  const jointPart = jointLabel ? ` (${jointLabel.toLowerCase()})` : '';
+  return `Łączenie blatów w narożniku${jointPart} [${wallLabel}]`;
 }
