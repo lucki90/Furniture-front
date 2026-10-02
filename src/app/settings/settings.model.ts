@@ -11,7 +11,6 @@ export interface UserSettings {
   defaultFillerWidthMm: number;
   defaultFrontGapMm: number;
   defaultSupportHeightReductionMm: number;
-  defaultSupportWidthReductionMm: number;
 
   // Konfigurowalne wymiary techniczne szafek
   hdfThicknessMm: number;
@@ -96,7 +95,6 @@ export const DEFAULT_USER_SETTINGS: UserSettings = {
   defaultFillerWidthMm: 50,
   defaultFrontGapMm: 2,
   defaultSupportHeightReductionMm: 30,
-  defaultSupportWidthReductionMm: 50,
   hdfThicknessMm: 3,
   hdfGrooveDistanceMm: 20,
   hdfGrooveDepthMm: 10,

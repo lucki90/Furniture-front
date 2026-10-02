@@ -69,7 +69,6 @@ export class KitchenStateService {
   readonly fillerWidthMm = this.settingsService.fillerWidthMm;
   readonly frontGapMm = this.settingsService.frontGapMm;
   readonly supportHeightReductionMm = this.settingsService.supportHeightReductionMm;
-  readonly supportWidthReductionMm = this.settingsService.supportWidthReductionMm;
   readonly materialDefaults = this.settingsService.materialDefaults;
   readonly countertopSurfaceHeightMm = this.settingsService.countertopSurfaceHeightMm;
   readonly showCountertop = this.settingsService.showCountertop;
