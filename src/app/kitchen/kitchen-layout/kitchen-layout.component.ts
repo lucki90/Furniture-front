@@ -26,7 +26,7 @@ import { CabinetSide, WallType } from '../model/kitchen-project.model';
 import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
 import {
   buildCornerZoneNotes,
-  cornerIssueCabinetIds,
+  cornerIssueConcernsWall,
   formatCornerIssueMessage
 } from '../service/corner-layout/corner-issue-messages';
 import { CABINET_TYPE_PICKER_LABELS } from '../cabinet-form/types/cabinet-type-labels';
@@ -154,13 +154,12 @@ export class KitchenLayoutComponent {
     );
   });
 
-  /** Problemy narożników dotyczące szafek wybranej ściany. */
+  /** Problemy narożników dotyczące wybranej ściany (jej szafek albo połączenia jej blatu). */
   readonly cornerIssueViews = computed((): KitchenLayoutCornerIssueView[] => {
     const wall = this.selectedWall();
     if (!wall) {
       return [];
     }
-    const wallCabinetIds = new Set(wall.cabinets.map(cabinet => cabinet.id));
     const cabinetLabels = this.cabinetLabels();
     const labels = {
       // Numer z karty ściany, jak w komunikatach z backendu; ściana jest osobnym argumentem komunikatu.
@@ -168,7 +167,7 @@ export class KitchenLayoutComponent {
       wallLabel: (type: WallType) => this.stateService.getWallLabel(type)
     };
     return this.layoutService.issues()
-      .filter(issue => cornerIssueCabinetIds(issue).some(id => wallCabinetIds.has(id)))
+      .filter(issue => cornerIssueConcernsWall(issue, wall))
       .map(issue => ({ severity: issue.severity, message: formatCornerIssueMessage(issue, labels) }));
   });
 

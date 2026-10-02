@@ -26,7 +26,12 @@ export const CORNER_ISSUE_MESSAGES_PL: Record<CornerIssueCode, string> = {
     'Szafka {{cabinetId}} ({{wallType}}) stoi {{actualMm}} mm od narożnika, a z blendą narożną potrzeba {{requiredMm}} mm.',
   'warning.corner.handedness.mismatch':
     'Front otwierany szafki {{cabinetId}} ({{wallType}}) jest po stronie {{actual}}, a przy tym narożniku powinien być '
-    + 'po stronie {{expected}}.'
+    + 'po stronie {{expected}}.',
+  'warning.countertop.joint.material.mismatch':
+    'Blaty łączone w narożniku ({{wallType1}} i {{wallType2}}) różnią się materiałem, grubością albo kolorem.',
+  'warning.countertop.joint.depth.mismatch':
+    'Cięcie 45° łączy blaty o różnej głębokości: {{wallType1}} {{depthMm1}} mm i {{wallType2}} {{depthMm2}} mm — '
+    + 'przekątna nie trafi w narożnik frontów.'
 };
 
 /** Czytelne nazwy szafek i ścian używane w komunikatach. */
@@ -64,6 +69,18 @@ export function localizeCornerIssueArgs(code: string, args: Record<string, strin
 /** Identyfikatory szafek, których dotyczy problem. */
 export function cornerIssueCabinetIds(issue: CornerIssue): string[] {
   return CABINET_ARGS.map(key => issue.args[key]).filter((id): id is string => !!id);
+}
+
+/**
+ * Czy problem dotyczy ściany: przez jej szafki, a problem bez szafek (np. połączenie blatów) — przez typ ściany
+ * w argumentach.
+ */
+export function cornerIssueConcernsWall(issue: CornerIssue, wall: Pick<WallWithCabinets, 'type' | 'cabinets'>): boolean {
+  const cabinetIds = cornerIssueCabinetIds(issue);
+  if (cabinetIds.length > 0) {
+    return wall.cabinets.some(cabinet => cabinetIds.includes(cabinet.id));
+  }
+  return WALL_ARGS.some(key => issue.args[key] === wall.type);
 }
 
 /** Komunikat problemu z czytelnymi nazwami szafek, ścian i stron. */

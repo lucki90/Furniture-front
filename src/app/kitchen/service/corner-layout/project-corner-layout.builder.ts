@@ -20,6 +20,7 @@ import { buildCornerGhosts, buildCornerReservedZones } from './corner-ghosts.bui
 import { resolveCornerJunctionSides } from './corner-junction-side.resolver';
 import { CountertopCornerJoint, CountertopRunTrim, resolveCornerCountertopLayout } from './corner-run-trims';
 import { detectCornerIssues } from './corner-issues.detector';
+import { detectCountertopJointIssues } from './countertop-joint-issues';
 import { isCabinetOnCornerLevel, maxCabinetReachMm } from './corner-reach';
 import { resolveCornerReservationMm } from './corner-reservation';
 import { resolveWallTopology } from './wall-topology.resolver';
@@ -99,8 +100,11 @@ function completeLayout(
   positionsByWallId: CabinetPositionsByWallId,
   cornerSettings: CornerGeometrySettings
 ): ProjectCornerLayout {
-  const issues = detectCornerIssues(walls, topology, positionsByWallId, cornerSettings);
   const countertopLayout = resolveCornerCountertopLayout(topology, walls, positionsByWallId, cornerSettings);
+  const issues = [
+    ...detectCornerIssues(walls, topology, positionsByWallId, cornerSettings),
+    ...detectCountertopJointIssues(countertopLayout.joints, topology, walls)
+  ];
   return {
     topology,
     constraintsByWallId,

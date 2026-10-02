@@ -172,6 +172,6 @@ function countertopEnabled(wall: WallWithCabinets): boolean {
 }
 
 /** Głębokość blatu wysyłana do backendu (`manualDepthMm`) — krawędź blatu przechodzącego w narożniku. */
-function countertopDepthMm(wall: WallWithCabinets): number {
+export function countertopDepthMm(wall: WallWithCabinets): number {
   return wall.countertopConfig?.manualDepthMm ?? wall.islandDepthMm ?? DEFAULT_COUNTERTOP_DEPTH_MM;
 }

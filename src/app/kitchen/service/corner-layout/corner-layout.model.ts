@@ -102,7 +102,9 @@ export const CORNER_ISSUE_CODES = {
   BLIND_UNCOVERED: 'warning.corner.blind.uncovered',
   FRONT_BLOCKED: 'warning.corner.front.blocked',
   CLEARANCE_TOO_SMALL: 'warning.corner.clearance.too.small',
-  HANDEDNESS_MISMATCH: 'warning.corner.handedness.mismatch'
+  HANDEDNESS_MISMATCH: 'warning.corner.handedness.mismatch',
+  COUNTERTOP_JOINT_MATERIAL_MISMATCH: 'warning.countertop.joint.material.mismatch',
+  COUNTERTOP_JOINT_DEPTH_MISMATCH: 'warning.countertop.joint.depth.mismatch'
 } as const;
 
 export type CornerIssueCode = typeof CORNER_ISSUE_CODES[keyof typeof CORNER_ISSUE_CODES];

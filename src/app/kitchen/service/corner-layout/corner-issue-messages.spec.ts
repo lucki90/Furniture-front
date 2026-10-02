@@ -3,6 +3,7 @@ import {
   buildCornerZoneNotes,
   CORNER_ISSUE_MESSAGES_PL,
   cornerIssueCabinetIds,
+  cornerIssueConcernsWall,
   formatCornerIssueMessage,
   localizeCornerIssueArgs
 } from './corner-issue-messages';
@@ -52,6 +53,27 @@ describe('corner-issue-messages', () => {
 
     expect(cornerIssueCabinetIds(issue)).toEqual(['m1', 'l3']);
     expect(formatCornerIssueMessage(issue, labels)).toContain('zasłania szafka Szafka L3 (Lewa)');
+  });
+
+  it('problem dotyczy ściany przez jej szafki, a problem bez szafek — przez typ ściany', () => {
+    const main = testWall('MAIN', 3000).wall;
+    const left = testWall('LEFT', 2400).wall;
+    const blocked: CornerIssue = {
+      code: CORNER_ISSUE_CODES.FRONT_BLOCKED,
+      severity: 'WARNING',
+      args: { cabinetId: 'm1', wallType: 'MAIN', blockingCabinetId: 'l1', blockingWallType: 'LEFT' }
+    };
+    const material: CornerIssue = {
+      code: CORNER_ISSUE_CODES.COUNTERTOP_JOINT_MATERIAL_MISMATCH,
+      severity: 'WARNING',
+      args: { wallType1: 'MAIN', wallType2: 'LEFT' }
+    };
+
+    expect(cornerIssueConcernsWall(blocked, { ...main, cabinets: [{ id: 'm1' } as never] })).toBeTrue();
+    expect(cornerIssueConcernsWall(blocked, left)).toBeFalse();
+    expect(cornerIssueConcernsWall(material, main)).toBeTrue();
+    expect(cornerIssueConcernsWall(material, left)).toBeTrue();
+    expect(cornerIssueConcernsWall(material, testWall('RIGHT', 2400).wall)).toBeFalse();
   });
 
   describe('localizeCornerIssueArgs', () => {
