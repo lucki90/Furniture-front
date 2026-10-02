@@ -24,7 +24,7 @@ export class BaseOvenRequestMapper extends AbstractCabinetRequestMapper {
       isStandingOnFeet: true,
       isBackInGroove: false,
       isFrontExtended: false,
-      isCoveredWithCounterTop: false,
+      isCoveredWithCounterTop: true,
       varnishedFront: materialDefaults.varnishedFront,
 
       cabinetType: 'BASE_OVEN',

@@ -3,7 +3,7 @@ import { of, throwError } from 'rxjs';
 import { CabinetFormData } from '../model/kitchen-state.model';
 import { KitchenService } from '../service/kitchen.service';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
-import { MaterialDefaults } from './type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { DEFAULT_MATERIAL_DEFAULTS, MaterialDefaults } from './type-config/request-mapper/kitchen-cabinet-request-mapper';
 import { CabinetFormCalculationService } from './cabinet-form-calculation.service';
 import { KitchenStateService } from '../service/kitchen-state.service';
 
@@ -97,6 +97,32 @@ describe('CabinetFormCalculationService', () => {
         });
         done();
       });
+  });
+
+  it('sends the covered BASE_OVEN contract from the form to the calculation API', (done) => {
+    kitchenServiceSpy.calculateCabinet.and.returnValue(of({ summaryCosts: 0 } as any));
+
+    service.calculateCabinet(KitchenCabinetType.BASE_OVEN, {
+      kitchenCabinetType: KitchenCabinetType.BASE_OVEN,
+      openingType: 'HANDLE',
+      width: 600,
+      height: 850,
+      depth: 560,
+      shelfQuantity: 0,
+      positionY: 0,
+      ovenHeightType: 'STANDARD',
+      ovenLowerSectionType: 'LOW_DRAWER',
+      ovenApronEnabled: false,
+      drawerModel: 'ANTARO_TANDEMBOX'
+    }, DEFAULT_MATERIAL_DEFAULTS).subscribe(() => {
+      expect(kitchenServiceSpy.calculateCabinet).toHaveBeenCalledOnceWith(jasmine.objectContaining({
+        kitchenCabinetType: 'BASE_OVEN',
+        isCoveredWithCounterTop: true,
+        ovenLowerSectionType: 'LOW_DRAWER',
+        drawerRequest: jasmine.objectContaining({ drawerModel: 'ANTARO_TANDEMBOX' })
+      }));
+      done();
+    });
   });
 
   it('uses persisted cabinet material while editing instead of current global defaults', (done) => {
