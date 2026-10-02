@@ -8,6 +8,7 @@ import { PricingBreakdown } from '../service/project-pricing.service';
 import { KitchenPricingTabComponent } from './kitchen-pricing-tab.component';
 import { CuttingLayoutTabComponent } from './cutting-layout-tab.component';
 import { CuttingLayoutResponse } from '../model/cutting-layout.model';
+import { CabinetLabel } from '../service/kitchen-validation-error-options';
 
 type DetailsTab = 'walls' | 'boards' | 'components' | 'jobs' | 'pricing';
 type BomTab = 'boards' | 'components' | 'jobs' | 'cutting';
@@ -32,6 +33,8 @@ export class KitchenCostsSectionComponent {
   @Input() wallsCount = 0;
   @Input() totalCost = 0;
   @Input() editingCabinetId: string | null = null;
+  /** Etykiety szafek projektu według identyfikatora (`buildCabinetLabels`). */
+  @Input() cabinetLabels: ReadonlyMap<string, CabinetLabel> = new Map();
   @Input() isCalculatingProject = false;
 
   @Input() pricingWarnings: string[] = [];
@@ -89,6 +92,12 @@ export class KitchenCostsSectionComponent {
   readonly trackByIndex = (index: number) => index;
   readonly trackByWall = (_: number, wall: WallCalculationSummary) => wall.wallType;
   readonly trackByCabinet = (_: number, cabinet: CabinetSummary) => cabinet.cabinetId ?? cabinet.kitchenCabinetType;
+
+  /** Etykieta szafki w diagnostyce: numer i nazwa z karty ściany, bez nich — identyfikator albo typ. */
+  cabinetDiagLabel(cabinet: CabinetSummary): string {
+    const label = cabinet.cabinetId ? this.cabinetLabels.get(cabinet.cabinetId) : undefined;
+    return label?.cabinet || cabinet.cabinetId || cabinet.kitchenCabinetType;
+  }
 
   hasCountertopDiagnostics(wall: WallCalculationSummary): boolean {
     return (wall.countertop?.computedCountertopHeightMm ?? wall.countertop?.maxBaseCorpusHeightMm) != null;

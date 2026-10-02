@@ -107,7 +107,8 @@ export class ProjectWallCabinetsBuilder {
       const materialRequest = this.buildMaterialRequest(cab, materialDefaults);
 
       return {
-        cabinetId: cab.name || cab.id,
+        cabinetId: cab.id,
+        name: cab.name?.trim() || undefined,
         kitchenCabinetType: cab.type,
         openingType: cab.openingType,
         frontMountingType: cab.frontMountingType ?? 'OVERLAY',

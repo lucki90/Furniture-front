@@ -40,6 +40,15 @@ describe('KitchenCostsSectionComponent', () => {
     expect(component.clearAll.emit).toHaveBeenCalled();
   });
 
+  it('etykieta szafki w diagnostyce: numer i nazwa z karty ściany, bez nich identyfikator albo typ', () => {
+    component.cabinetLabels = new Map([['cabinet-1', { cabinet: '#1 „Zlewozmywak”', wall: 'Ściana główna' }]]);
+    const summary = (cabinetId: string) => ({ cabinetId, kitchenCabinetType: 'BASE_SINK' } as never);
+
+    expect(component.cabinetDiagLabel(summary('cabinet-1'))).toBe('#1 „Zlewozmywak”');
+    expect(component.cabinetDiagLabel(summary('cabinet-7'))).toBe('cabinet-7');
+    expect(component.cabinetDiagLabel(summary(''))).toBe('BASE_SINK');
+  });
+
   it('emits pricing tab request when pricing tab is selected', () => {
     spyOn(component.activeDetailsTabChange, 'emit');
     spyOn(component.pricingTabRequested, 'emit');

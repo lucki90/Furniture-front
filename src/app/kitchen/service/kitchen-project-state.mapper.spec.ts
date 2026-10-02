@@ -133,7 +133,8 @@ describe('KitchenProjectStateMapper', () => {
       })
     }));
     expect(result.walls[0].cabinets[0]).toEqual(jasmine.objectContaining({
-      id: 'sink-1',
+      id: 'cabinet-1',
+      name: 'sink-1',
       type: KitchenCabinetType.BASE_SINK,
       sinkFrontType: 'DRAWER',
       sinkApronEnabled: false,

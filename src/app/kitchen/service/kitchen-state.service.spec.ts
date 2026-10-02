@@ -126,7 +126,7 @@ describe('KitchenStateService', () => {
     expect(service.currentProjectName()).toBe('Projekt testowy');
     expect(service.selectedWallId()).toBe('wall-1');
     expect(service.walls()[0].cabinets[0]).toEqual(jasmine.objectContaining({
-      id: 'sink-1',
+      id: 'cabinet-1',
       type: KitchenCabinetType.BASE_SINK
     }));
     expect(service.countertopThicknessMm()).toBe(20);

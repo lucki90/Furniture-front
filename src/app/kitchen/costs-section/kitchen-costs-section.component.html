@@ -324,7 +324,7 @@
                   <span
                     *ngIf="(cabinet.enclosureLeftOuterWidthMm ?? 0) > 0 || (cabinet.enclosureRightOuterWidthMm ?? 0) > 0"
                     class="diag-chip">
-                    {{ cabinet.cabinetId || cabinet.kitchenCabinetType }}:
+                    {{ cabinetDiagLabel(cabinet) }}:
                     L {{ cabinet.enclosureLeftOuterWidthMm ?? 0 }} / P {{ cabinet.enclosureRightOuterWidthMm ?? 0 }} mm
                   </span>
                 </ng-container>

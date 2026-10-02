@@ -138,7 +138,10 @@ export interface KitchenWallRequest {
 }
 
 export interface ProjectCabinetRequest {
+  /** Techniczny identyfikator szafki w projekcie (`cabinet-N`), unikalny w ramach sesji edycji. */
   cabinetId: string;
+  /** Nazwa nadana przez użytkownika; brak — szafka bez nazwy. */
+  name?: string;
   kitchenCabinetType: KitchenCabinetType;
   openingType: OpeningType;
   frontMountingType?: FrontMountingType;
@@ -471,6 +474,8 @@ export interface WallDetailResponse {
 export interface CabinetPlacementResponse {
   id: number;
   cabinetId?: string;
+  /** Zapisana nazwa szafki; brak w zapisach sprzed pola — patrz `resolveLoadedCabinetName`. */
+  name?: string | null;
   cabinetType: KitchenCabinetType;
 
   positionX: number;

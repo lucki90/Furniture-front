@@ -13,6 +13,7 @@ import { CornerMechanismType } from '../cabinet-form/model/corner-cabinet.model'
 import { OpeningType, LiftMechanismType } from '../cabinet-form/model/kitchen-cabinet-constants';
 import { CabinetResponse } from '../cabinet-form/model/kitchen-cabinet-form.model';
 import { DEFAULT_FRONT_MOUNTING_TYPE } from '../../shared/model/front-mounting-type';
+import { resolveLoadedCabinetName } from './cabinet-name.resolver';
 
 @Injectable({
   providedIn: 'root'
@@ -225,7 +226,11 @@ export class KitchenCabinetStateFactory {
   }
 
   // TODO(CODEX): Ten factory nadal musi zgadywać brakujące pola type-specific, bo backend nie persystuje wszystkich ustawień szafek. To oznacza, że po loadProject część konfiguracji wraca jako frontendowe fallbacki zamiast wiernych danych z zapisu.
-  fromPlacementResponse(cabResp: CabinetPlacementResponse, fallbackId: string): KitchenCabinet {
+  /**
+   * Szafka z odczytu projektu. Identyfikator nadaje mapper (`cabinet-N` w kolejności odczytu), więc nie zderza się
+   * z licznikiem nowych szafek; zapisany `cabinetId` służy tylko do odtworzenia nazwy starszych zapisów.
+   */
+  fromPlacementResponse(cabResp: CabinetPlacementResponse, loadedId: string): KitchenCabinet {
     const effectiveWidth = cabResp.cabinetType === KitchenCabinetType.CORNER_CABINET && cabResp.cornerWidthA
       ? cabResp.cornerWidthA
       : cabResp.widthMm;
@@ -235,8 +240,8 @@ export class KitchenCabinetStateFactory {
       : undefined;
 
     const baseFromResp: KitchenCabinetBase = {
-      id: cabResp.cabinetId || fallbackId,
-      name: cabResp.cabinetId,
+      id: loadedId,
+      name: resolveLoadedCabinetName(cabResp),
       openingType: (cabResp.openingType ?? 'LEFT') as OpeningType,
       frontMountingType: cabResp.frontMountingType ?? DEFAULT_FRONT_MOUNTING_TYPE,
       width: effectiveWidth,

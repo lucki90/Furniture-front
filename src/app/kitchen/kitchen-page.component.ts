@@ -36,7 +36,7 @@ import { KitchenService } from './service/kitchen.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
 import { CuttingLayoutService } from './service/cutting-layout.service';
-import { createKitchenValidationErrorOptions } from './service/kitchen-validation-error-options';
+import { buildCabinetLabels, createKitchenValidationErrorOptions } from './service/kitchen-validation-error-options';
 
 export function resolveKitchenPageInitialView(
   storedView: string | null,
@@ -107,6 +107,8 @@ export class KitchenPageComponent {
   readonly result = signal<CabinetResponse | null>(null);
   readonly editingCabinet = signal<KitchenCabinet | null>(null);
   readonly editingCabinetId = computed(() => this.editingCabinet()?.id ?? null);
+  /** Etykiety szafek („#n „nazwa””) — te same co w komunikatach błędów i ostrzeżeń. */
+  readonly cabinetLabels = computed(() => buildCabinetLabels(this.stateService.walls()));
   readonly selectedCabinetId = signal<string | null | undefined>(undefined);
 
   // Stan kalkulacji projektu (multi-wall)

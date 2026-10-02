@@ -66,6 +66,18 @@ describe('ProjectWallCabinetsBuilder', () => {
   const buildRequests = (cabinets: KitchenCabinet[], wallHeightMm = 2600) =>
     builder.buildCabinets(buildWall(cabinets, wallHeightMm), settings);
 
+  it('wysyła techniczny identyfikator szafki i osobno jej nazwę', () => {
+    const [named, unnamed, blank] = buildRequests([
+      makeCabinet({ id: 'cabinet-1', name: '  Zlewozmywak ' }),
+      makeCabinet({ id: 'cabinet-2' }),
+      makeCabinet({ id: 'cabinet-3', name: '   ' })
+    ]);
+
+    expect([named.cabinetId, named.name]).toEqual(['cabinet-1', 'Zlewozmywak']);
+    expect([unnamed.cabinetId, unnamed.name]).toEqual(['cabinet-2', undefined]);
+    expect([blank.cabinetId, blank.name]).toEqual(['cabinet-3', undefined]);
+  });
+
   it('preserves inset front mounting in the project request', () => {
     const [request] = buildRequests([makeCabinet({ frontMountingType: 'INSET' })]);
 

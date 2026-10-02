@@ -3,6 +3,7 @@ import { KitchenCabinetStateFactory } from './kitchen-cabinet-state.factory';
 import { ProjectRequestBuilderService } from './project-request-builder.service';
 import { KitchenCabinetType } from '../cabinet-form/model/kitchen-cabinet-type';
 import { CabinetFormData } from '../model/kitchen-state.model';
+import { CabinetPlacementResponse } from '../model/kitchen-project.model';
 import { boardFixture as board } from '../technical-drawing/testing/board.fixture';
 
 describe('KitchenCabinetStateFactory', () => {
@@ -238,15 +239,18 @@ describe('KitchenCabinetStateFactory', () => {
     }, 'cabinet-2');
 
     expect(cornerCabinet).toEqual(jasmine.objectContaining({
-      id: 'corner-1',
+      id: 'cabinet-1',
+      name: 'corner-1',
       type: KitchenCabinetType.CORNER_CABINET,
       width: 950,
       cornerWidthA: 950,
       cornerWidthB: 870,
       cornerMechanism: 'LE_MANS_I'
     }));
+    // Zapis sprzed pola name: nazwa była w cabinetId, identyfikator nadaje mapper odczytu.
     expect(cascadeCabinet).toEqual(jasmine.objectContaining({
-      id: 'cascade-1',
+      id: 'cabinet-2',
+      name: 'cascade-1',
       type: KitchenCabinetType.UPPER_CASCADE,
       cascadeLowerHeight: 410,
       cascadeLowerDepth: 420,
@@ -282,7 +286,7 @@ describe('KitchenCabinetStateFactory', () => {
     }, 'fallback-cargo');
 
     expect(cargoCabinet).toEqual(jasmine.objectContaining({
-      id: 'cargo-1',
+      id: 'fallback-cargo',
       type: KitchenCabinetType.BASE_CARGO,
       cargoVariant: 'DRAWERS',
       drawerQuantity: 3,
@@ -313,7 +317,7 @@ describe('KitchenCabinetStateFactory', () => {
     }, 'fallback-open');
 
     expect(openCabinet).toEqual(jasmine.objectContaining({
-      id: 'open-1',
+      id: 'fallback-open',
       type: KitchenCabinetType.BASE_OPEN,
       openingType: 'NONE',
       shelfQuantity: 2
@@ -359,7 +363,7 @@ describe('KitchenCabinetStateFactory', () => {
     }, 'fallback-material');
 
     expect(cabinet).toEqual(jasmine.objectContaining({
-      id: 'loaded-material-1',
+      id: 'fallback-material',
       materialRequest,
       varnishedFront: true,
       frontMountingType: 'INSET',
@@ -441,7 +445,7 @@ describe('KitchenCabinetStateFactory', () => {
     }, 'fallback-cargo');
 
     expect(cargoCabinet).toEqual(jasmine.objectContaining({
-      id: 'cargo-mechanism-1',
+      id: 'fallback-cargo',
       type: KitchenCabinetType.BASE_CARGO,
       cargoVariant: 'MECHANISM',
       cargoBrand: 'BLUM',
@@ -532,7 +536,7 @@ describe('KitchenCabinetStateFactory', () => {
     }, 'fallback-lift');
 
     expect(cabinet).toEqual(jasmine.objectContaining({
-      id: 'legacy-lift-1',
+      id: 'fallback-lift',
       type: KitchenCabinetType.UPPER_LIFT_UP,
       isLiftUp: true,
       isFrontExtended: false,
@@ -631,5 +635,30 @@ describe('KitchenCabinetStateFactory', () => {
 
     expect(asymmetric).toEqual(jasmine.objectContaining({ hfUpperFrontHeightMm: 420 }));
     expect(symmetric).toEqual(jasmine.objectContaining({ hfUpperFrontHeightMm: null }));
+  });
+
+  it('nazwa szafki z zapisu, identyfikator z odczytu (bez zderzeń z licznikiem nowych szafek)', () => {
+    const response = (cabinetId: string, name?: string) => ({
+      id: 1,
+      cabinetId,
+      name,
+      cabinetType: KitchenCabinetType.BASE_ONE_DOOR,
+      positionX: 0,
+      positionY: 0,
+      widthMm: 600,
+      heightMm: 720,
+      depthMm: 560,
+      boxMaterialCode: 'CHIPBOARD',
+      boxThicknessMm: 18,
+      boxColorCode: 'WHITE',
+      shelfQuantity: 1,
+      displayOrder: 0
+    } as unknown as CabinetPlacementResponse);
+
+    const named = factory.fromPlacementResponse(response('cabinet-9', 'Zlewozmywak'), 'cabinet-1');
+    const unnamed = factory.fromPlacementResponse(response('cabinet-9'), 'cabinet-2');
+
+    expect([named.id, named.name]).toEqual(['cabinet-1', 'Zlewozmywak']);
+    expect([unnamed.id, unnamed.name]).toEqual(['cabinet-2', undefined]);
   });
 });
