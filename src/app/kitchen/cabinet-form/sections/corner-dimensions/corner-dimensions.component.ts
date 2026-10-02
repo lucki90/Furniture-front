@@ -5,6 +5,7 @@ import { FormFieldComponent } from '../../../../shared/form-field/form-field.com
 import { CabinetFormValidationErrorsService } from '../../cabinet-form-validation-errors.service';
 import {
   BASE_CORNER_CONSTRAINTS,
+  BLIND_CORNER_DEFAULT_NEIGHBOR_REACH_MM,
   BLIND_CORNER_CONSTRAINTS,
   CORNER_HANDLE_FILLER_WIDTH_MM,
   CornerHandleType,
@@ -36,6 +37,7 @@ import {
 export class CornerDimensionsComponent {
 
   @Input() form!: FormGroup;
+  @Input() blindCornerNeighborReachMm: number | null = null;
 
   private readonly validationErrors = inject(CabinetFormValidationErrorsService);
 
@@ -79,7 +81,7 @@ export class CornerDimensionsComponent {
 
   /**
    * Sugerowana szerokość szafki ślepej (widthA) — wzór z książki str. 169:
-   *   S = 580 - 50 + X + Y + 4
+   *   S = Z + X + Y + 4, gdzie Z to rzeczywisty zasięg sąsiedniej szafki albo fallback 530 mm.
    * Zwraca null gdy nie Type B / dane formularza niekompletne.
    */
   get suggestedBlindCornerWidth(): { value: number; tooltipText: string; formulaText: string } | null {
@@ -88,13 +90,22 @@ export class CornerDimensionsComponent {
     const y = Number(this.form.get('cornerFrontUchylnyWidthMm')?.value);
     if (!Number.isFinite(y) || y <= 0) return null;
     const x = CORNER_HANDLE_FILLER_WIDTH_MM[handle];
-    const value = computeBlindCornerWidthFromFormula(handle, y);
-    const formulaText = `S = 580 - 50 + ${x} (X) + ${y} (Y) + 4 = ${value} mm`;
+    const hasProjectNeighbor = typeof this.blindCornerNeighborReachMm === 'number'
+      && Number.isFinite(this.blindCornerNeighborReachMm)
+      && this.blindCornerNeighborReachMm > 0;
+    const neighborReachMm = hasProjectNeighbor
+      ? this.blindCornerNeighborReachMm as number
+      : BLIND_CORNER_DEFAULT_NEIGHBOR_REACH_MM;
+    const value = computeBlindCornerWidthFromFormula(handle, y, neighborReachMm);
+    const formulaText = `S = ${neighborReachMm} (Z) + ${x} (X) + ${y} (Y) + 4 = ${value} mm`;
+    const neighborDescription = hasProjectNeighbor
+      ? `rzeczywisty zasięg sąsiedniej szafki z układu projektu (korpus + wystający front)`
+      : `wartość książkowa: 510 mm korpusu + 20 mm frontu (brak sąsiada w układzie projektu)`;
     const tooltipText =
       `Wzór z książki Wasiak v.2.3 str. 169 (sekcja 6):\n\n` +
       `${formulaText}\n\n` +
       `gdzie:\n` +
-      `  580 mm — stała odległość czoła frontu od ściany (50mm odstęp + 510mm głębokość sąsiedniej szafki + 20mm grubość frontu)\n` +
+      `  Z (${neighborReachMm} mm) — ${neighborDescription}\n` +
       `  X (${x} mm) — szerokość blendy narożnikowej zależna od typu uchwytu\n` +
       `  Y (${y} mm) — szerokość frontu uchylnego\n` +
       `  +4 mm — tolerancja na szczeliny`;

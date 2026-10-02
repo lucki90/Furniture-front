@@ -39,13 +39,14 @@ import {
   CARGO_VARIANT_OPTIONS,
   getCargoWidthHint
 } from './types/base-cargo/cargo-cabinet.model';
-import { CornerMechanismType } from './model/corner-cabinet.model';
+import { CornerMechanismType, isBlindType } from './model/corner-cabinet.model';
 import { LiftMechanismType } from './model/kitchen-cabinet-constants';
 import { CABINET_TYPE_PICKER_LABELS } from './types/cabinet-type-labels';
 import {
   FrontMountingType,
   supportsInsetFrontMounting
 } from './model/front-mounting.model';
+import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
 
 @Component({
   selector: 'app-cabinet-form',
@@ -88,6 +89,7 @@ export class CabinetFormComponent implements OnChanges {
   private readonly materialPresetService = inject(MaterialPresetService);
   private readonly translationService = inject(TranslationService);
   private readonly languageService = inject(LanguageService);
+  private readonly projectLayoutService = inject(KitchenProjectLayoutService);
 
   form: FormGroup;
   visibility: CabinetFormVisibility = this.typeLifecycleService.createBaseVisibility();
@@ -159,6 +161,28 @@ export class CabinetFormComponent implements OnChanges {
 
   get isEditMode(): boolean {
     return this.editingCabinet !== null;
+  }
+
+  /** Rzeczywisty zasięg szafki sąsiedniej ściany dla podpowiedzi szerokości ślepego narożnika. */
+  get blindCornerNeighborReachMm(): number | null {
+    const mechanism = this.form.get('cornerMechanism')?.value as CornerMechanismType | null;
+    if (!mechanism || !isBlindType(mechanism)) {
+      return null;
+    }
+
+    const depthMm = Number(this.form.get('depth')?.value);
+    if (!Number.isFinite(depthMm) || depthMm <= 0) {
+      return null;
+    }
+
+    const frontProtrusionMm = this.form.get('frontMountingType')?.value === 'INSET'
+      ? 0
+      : this.projectLayoutService.cornerSettings().defaultFrontThicknessMm;
+    return this.projectLayoutService.blindCornerNeighborReachMm(
+      this.stateService.selectedWallId(),
+      depthMm + frontProtrusionMm,
+      { cabinetId: this.editingCabinet?.id ?? null, level: 'BASE' }
+    );
   }
 
   get useMaterialOverride(): boolean {

@@ -64,6 +64,7 @@ export interface CornerMechanismCard {
 export class CornerFormComponent implements OnInit {
 
   @Input() form!: FormGroup;
+  @Input() blindCornerNeighborReachMm: number | null = null;
 
   /** Dostępne mechanizmy zależne od isUpperCorner i isBlindType. */
   availableCornerMechanisms: { value: CornerMechanismType; label: string }[] = [];

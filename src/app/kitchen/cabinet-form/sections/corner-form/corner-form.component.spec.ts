@@ -46,6 +46,26 @@ describe('CornerFormComponent', () => {
     expect(form.get('blindPanelVisibleWidthMm')?.hasError('min')).toBeTrue();
   });
 
+  it('pokazuje szerokość wyliczoną z rzeczywistego zasięgu sąsiada', () => {
+    fixture.componentRef.setInput('blindCornerNeighborReachMm', 578);
+    fixture.detectChanges();
+
+    const suggestion = fixture.nativeElement.querySelector('.suggested-link') as HTMLAnchorElement;
+    expect(suggestion.textContent).toContain('1132 mm');
+    expect(suggestion.title).toContain('Z (578 mm)');
+    expect(suggestion.title).toContain('rzeczywisty zasięg sąsiedniej szafki');
+  });
+
+  it('używa książkowego fallbacku 530 mm bez sąsiada w projekcie', () => {
+    component.blindCornerNeighborReachMm = null;
+    fixture.detectChanges();
+
+    const suggestion = fixture.nativeElement.querySelector('.suggested-link') as HTMLAnchorElement;
+    expect(suggestion.textContent).toContain('1084 mm');
+    expect(suggestion.title).toContain('Z (530 mm)');
+    expect(suggestion.title).toContain('brak sąsiada w układzie projektu');
+  });
+
   it('shows opening-type and wreath-construction selects for upper Type A corner', () => {
     form.patchValue({
       cornerMechanism: CornerMechanismType.FIXED_SHELVES,

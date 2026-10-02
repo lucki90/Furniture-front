@@ -20,11 +20,13 @@ import { MaterialPresetService } from '../service/material-preset.service';
 import { TranslationService } from '../../translation/translation.service';
 import { LanguageService } from '../../service/language.service';
 import { BaseCargoCabinetValidator } from './types/base-cargo/base-cargo-cabinet-validator';
+import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
 
 describe('CabinetFormComponent', () => {
   let component: CabinetFormComponent;
   let fixture: ComponentFixture<CabinetFormComponent>;
   let stateService: KitchenStateServiceStub;
+  let projectLayoutService: KitchenProjectLayoutServiceStub;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -43,13 +45,15 @@ describe('CabinetFormComponent', () => {
         { provide: TranslationService, useClass: TranslationServiceStub },
         { provide: LanguageService, useClass: LanguageServiceStub },
         { provide: ApiErrorHandler, useClass: ApiErrorHandlerStub },
-        { provide: MatDialog, useClass: MatDialogStub }
+        { provide: MatDialog, useClass: MatDialogStub },
+        { provide: KitchenProjectLayoutService, useClass: KitchenProjectLayoutServiceStub }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CabinetFormComponent);
     component = fixture.componentInstance;
     stateService = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
+    projectLayoutService = TestBed.inject(KitchenProjectLayoutService) as unknown as KitchenProjectLayoutServiceStub;
     fixture.detectChanges();
   });
 
@@ -70,6 +74,21 @@ describe('CabinetFormComponent', () => {
 
   it('defaults cabinet side control to FRONT', () => {
     expect(component.form.get('cabinetSide')?.value).toBe('FRONT');
+  });
+
+  it('pobiera rzeczywisty zasięg sąsiada dla podpowiedzi ślepego narożnika', () => {
+    component.form.patchValue({
+      cornerMechanism: 'BLIND_CORNER',
+      depth: 510,
+      frontMountingType: 'OVERLAY'
+    });
+
+    expect(component.blindCornerNeighborReachMm).toBe(578);
+    expect(projectLayoutService.blindCornerNeighborReachMm).toHaveBeenCalledWith(
+      'wall-1',
+      528,
+      { cabinetId: null, level: 'BASE' }
+    );
   });
 
   it('shows front mounting for supported cabinet and defaults to overlay', () => {
@@ -636,9 +655,18 @@ class KitchenStateServiceStub {
   readonly plinthHeightMm = signal(100);
   readonly countertopThicknessMm = signal(38);
   readonly upperFillerHeightMm = signal(100);
+  readonly selectedWallId = signal('wall-1');
 
   materialDefaults() {
     return {};
+  }
+}
+
+class KitchenProjectLayoutServiceStub {
+  readonly blindCornerNeighborReachMm = jasmine.createSpy('blindCornerNeighborReachMm').and.returnValue(578);
+
+  cornerSettings() {
+    return { defaultFrontThicknessMm: 18 };
   }
 }
 

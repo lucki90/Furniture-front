@@ -130,7 +130,9 @@
          ③ wymiary (embed app-corner-dimensions) → ④ konstrukcja → ▸ zaawansowane.
          Iteracja 4 (2026-05-31): app-corner-dimensions jest teraz osadzony w corner-form (krok ③),
          więc nie renderujemy go osobno tutaj (uniknięcie duplikatu wymiarów). -->
-    <app-corner-form *ngIf="visibility.cornerWidthA" [form]="form"></app-corner-form>
+    <app-corner-form *ngIf="visibility.cornerWidthA"
+                     [blindCornerNeighborReachMm]="blindCornerNeighborReachMm"
+                     [form]="form"></app-corner-form>
 
     <!-- Pantry passage — wariant drzwi -->
     <div *ngIf="visibility.pantryPassageFrontType" class="form-row">

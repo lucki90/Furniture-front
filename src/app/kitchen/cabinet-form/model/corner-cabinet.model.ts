@@ -87,6 +87,9 @@ export const CORNER_HANDLE_FILLER_WIDTH_MM: Record<CornerHandleType, number> = {
   [CornerHandleType.PUSH_TO_OPEN]: 0
 };
 
+/** Książkowy zasięg sąsiedniej szafki: 510 mm korpusu + 20 mm frontu. */
+export const BLIND_CORNER_DEFAULT_NEIGHBOR_REACH_MM = 530;
+
 /** Etykiety dropdown dla typów uchwytów. */
 export const CORNER_HANDLE_TYPE_LABELS: Record<CornerHandleType, string> = {
   [CornerHandleType.SCREWED]: 'Przykręcany (50 mm)',
@@ -127,9 +130,9 @@ export const CORNER_WREATH_CONSTRUCTION_TOOLTIPS: Record<CornerWreathConstructio
 
 /**
  * Wzór auto-doboru szerokości szafki ślepej (książka Wasiak v.2.3 str. 169):
- *   S = 580 - 50 + X + Y + 4
+ *   S = Z + X + Y + 4
  *   gdzie:
- *     580 = stała odległość czoła frontu od ściany (50 odstęp + 510 głębokość sąsiedniej szafki + 20 grubość frontu)
+ *     Z = rzeczywisty zasięg sąsiedniej szafki (korpus + wystający front), domyślnie 530 mm
  *     X = szerokość blendy zależna od typu uchwytu
  *     Y = szerokość frontu uchylnego
  *
@@ -137,16 +140,14 @@ export const CORNER_WREATH_CONSTRUCTION_TOOLTIPS: Record<CornerWreathConstructio
  */
 export function computeBlindCornerWidthFromFormula(
   handleType: CornerHandleType,
-  frontUchylnyWidthMm: number
+  frontUchylnyWidthMm: number,
+  neighborReachMm: number = BLIND_CORNER_DEFAULT_NEIGHBOR_REACH_MM
 ): number {
-  // TODO(naroznik-slepy-zasieg, FE-64): stała 580 − 50 = 530 to zasięg szafki sąsiedniej ściany, która zasłania część
-  // ślepą: 510 mm głębokości + 20 mm frontu. W projekcie kuchni znamy rzeczywistą szafkę sąsiada (topologia
-  // narożników, `ProjectCornerLayout`). Typowa szafka 560 mm z frontem 18 mm ma zasięg 578 mm, więc podpowiadana
-  // szerokość wychodzi o 48 mm za mała, a po zapisie walidacja zgłasza `warning.corner.blind.part.too.short`.
-  // Do zrobienia: w formularzu szafki projektu brać zasięg sąsiada z układu narożnika; stałą zostawić dla szafki bez
-  // sąsiada (np. kalkulator pojedynczej szafki).
   const x = CORNER_HANDLE_FILLER_WIDTH_MM[handleType];
-  return 580 - 50 + x + frontUchylnyWidthMm + 4;
+  const effectiveNeighborReachMm = Number.isFinite(neighborReachMm) && neighborReachMm > 0
+    ? neighborReachMm
+    : BLIND_CORNER_DEFAULT_NEIGHBOR_REACH_MM;
+  return effectiveNeighborReachMm + x + frontUchylnyWidthMm + 4;
 }
 
 /** Returns true if mechanism is a Magic Corner variant (Comfort or Standard). */
