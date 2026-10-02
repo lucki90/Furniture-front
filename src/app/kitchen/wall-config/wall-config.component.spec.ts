@@ -1,7 +1,8 @@
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { WallConfigComponent } from './wall-config.component';
 import { KitchenStateService } from '../service/kitchen-state.service';
+import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
 import { CountertopConfig, PlinthConfig, WallWithCabinets } from '../model/kitchen-state.model';
 
 describe('WallConfigComponent', () => {
@@ -12,7 +13,10 @@ describe('WallConfigComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WallConfigComponent],
-      providers: [{ provide: KitchenStateService, useClass: KitchenStateServiceStub }]
+      providers: [
+        { provide: KitchenStateService, useClass: KitchenStateServiceStub },
+        { provide: KitchenProjectLayoutService, useValue: { layout: signal({ topology: { corners: [] }, countertopJoints: [] }) } }
+      ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(WallConfigComponent);
@@ -119,6 +123,7 @@ class KitchenStateServiceStub {
   });
   readonly selectedWall = this.selectedWallSignal;
   readonly selectedWallId = signal<string | null>('wall-1');
+  readonly walls = computed(() => [this.selectedWallSignal()!]);
   readonly upperFillerHeightMm = signal(100);
   readonly plinthHeightMm = signal(100);
   readonly globalDefaultPlinthHeightMm = 120;

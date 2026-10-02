@@ -67,6 +67,8 @@ export interface CountertopOnFloorPlan {
   depthLabelX: number;
   depthLabelY: number;
   isHorizontal: boolean;
+  /** Obrys blatu przyciętego po przekątnej narożnika przy cięciu 45° (`points` elementu `polygon`). */
+  polygonPoints?: string;
 }
 
 export interface CountertopRunMm {

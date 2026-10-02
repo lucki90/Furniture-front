@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FloorPlanArc } from './floor-plan-door-arcs';
-import { FloorPlanOverlayLayerComponent } from './floor-plan-overlay-layer.component';
+import { CornerCountertopOverlay, FloorPlanOverlayLayerComponent } from './floor-plan-overlay-layer.component';
 
 @Component({
   standalone: true,
@@ -21,15 +21,14 @@ import { FloorPlanOverlayLayerComponent } from './floor-plan-overlay-layer.compo
 class TestHostComponent {
   showCountertop = true;
   showDoorArcs = false;
-  cornerCountertops = [{
+  cornerCountertops: CornerCountertopOverlay[] = [{
     x: 20,
     y: 30,
     widthPx: 24,
     depthPx: 24,
-    miterX1: 20,
-    miterY1: 54,
-    miterX2: 44,
-    miterY2: 30,
+    jointLine: { x1: 20, y1: 54, x2: 44, y2: 30 },
+    jointType: 'MITER_45',
+    jointLabel: '45°',
     label: '600×600mm'
   }];
   doorArcs: FloorPlanArc[] = [{
@@ -64,6 +63,16 @@ describe('FloorPlanOverlayLayerComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('.corner-countertop-rect')).not.toBeNull();
     expect(root.querySelector('.corner-countertop-label')?.textContent).toContain('45°');
+    expect(root.querySelector('.corner-miter-line')?.getAttribute('x2')).toBe('44');
+  });
+
+  it('rysuje listwę aluminiową grubszą, pełną linią', () => {
+    host.cornerCountertops = [{ ...host.cornerCountertops[0], jointType: 'ALUMINUM_STRIP', jointLabel: 'listwa' }];
+    fixture.detectChanges();
+
+    const line = fixture.nativeElement.querySelector('.corner-miter-line') as SVGLineElement;
+    expect(line.classList.contains('corner-joint-line--strip')).toBeTrue();
+    expect(fixture.nativeElement.querySelector('.corner-countertop-label')?.textContent).toContain('listwa');
   });
 
   it('renders door arcs when enabled', () => {

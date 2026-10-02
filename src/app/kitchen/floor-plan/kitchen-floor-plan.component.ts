@@ -18,20 +18,15 @@ import {
 import { WallTopology } from '../service/corner-layout/corner-layout.model';
 import { cornerIssueCabinetIds } from '../service/corner-layout/corner-issue-messages';
 import { resolveWallTopology } from '../service/corner-layout/wall-topology.resolver';
-import { FloorPlanOverlayLayerComponent } from './floor-plan-overlay-layer.component';
+import { CornerCountertopOverlay, FloorPlanOverlayLayerComponent } from './floor-plan-overlay-layer.component';
 import { FloorPlanWallGroupComponent } from './floor-plan-wall-group.component';
-
-interface CornerCountertopViz {
-  x: number;
-  y: number;
-  widthPx: number;
-  depthPx: number;
-  miterX1: number;
-  miterY1: number;
-  miterX2: number;
-  miterY2: number;
-  label: string;
-}
+import {
+  cornerJointGeometryPx,
+  CornerJointGeometryPx,
+  cornerJointLabel,
+  cornerJointLine,
+  cutCountertopsAtMiter
+} from './floor-plan-corner-joints';
 
 /** Ściana na rzucie z gotowymi szafkami i blatami — stabilna referencja dla szablonu. */
 interface FloorPlanWallView {
@@ -127,10 +122,27 @@ export class KitchenFloorPlanComponent {
       .flatMap(issue => cornerIssueCabinetIds(issue))
   ));
 
+  /**
+   * Narożniki z cięciem 45° (z układu narożników frontu) w geometrii rzutu — blaty obu ścian są tam przycinane po
+   * przekątnej. Głębokość jak rysowanych blatów (`COUNTERTOP_STANDARD_DEPTH`).
+   */
+  private readonly miterCorners = computed((): CornerJointGeometryPx[] => {
+    const positions = this.wallPositions();
+    const corners = this.topology().corners;
+    return this.layoutService.layout().countertopJoints
+      .filter(joint => joint.type === 'MITER_45')
+      .map(joint => corners.find(corner => corner.id === joint.cornerId))
+      .map(corner => corner
+        ? cornerJointGeometryPx(corner, positions, this.COUNTERTOP_STANDARD_DEPTH, this.COUNTERTOP_STANDARD_DEPTH)
+        : null)
+      .filter((geometry): geometry is CornerJointGeometryPx => geometry !== null);
+  });
+
   readonly wallViews = computed((): FloorPlanWallView[] => {
     const layout = this.layoutService.layout();
     const junctionSides = layout.junctionSides;
     const conflictIds = this.cornerConflictCabinetIds();
+    const miterCorners = this.miterCorners();
     return this.wallPositions().map(position => {
       const cornerConstraints = this.layoutService.constraintsFor(position.wall.id);
       return {
@@ -143,14 +155,14 @@ export class KitchenFloorPlanComponent {
           cornerJunctionSides: junctionSides,
           cornerConflictCabinetIds: conflictIds
         }),
-        countertops: buildCountertopsForWall(position, {
+        countertops: cutAtMiterCorners(position.wall.id, buildCountertopsForWall(position, {
           wallThickness: this.WALL_THICKNESS,
           countertopOverhang: this.COUNTERTOP_OVERHANG,
           countertopStandardDepth: this.COUNTERTOP_STANDARD_DEPTH,
           fillerWidthMm: this.stateService.fillerWidthMm(),
           cornerConstraints,
           countertopTrim: layout.countertopTrimsByWallId.get(position.wall.id)
-        })
+        }), miterCorners)
       };
     });
   });
@@ -179,7 +191,7 @@ export class KitchenFloorPlanComponent {
     };
   });
 
-  readonly cornerCountertopPositions = computed((): CornerCountertopViz[] => {
+  readonly cornerCountertopPositions = computed((): CornerCountertopOverlay[] => {
     const projectResult = this.projectResultSignal();
     if (!this.showCountertop() || !projectResult?.cornerCountertops?.length) {
       return [];
@@ -191,7 +203,7 @@ export class KitchenFloorPlanComponent {
 
     return projectResult.cornerCountertops
       .map(cornerCountertop => this.buildCornerViz(cornerCountertop, positions, walls, topology))
-      .filter((corner): corner is CornerCountertopViz => corner !== null);
+      .filter((corner): corner is CornerCountertopOverlay => corner !== null);
   });
 
   readonly doorArcData = computed((): FloorPlanArc[] => {
@@ -242,15 +254,16 @@ export class KitchenFloorPlanComponent {
   }
 
   /**
-   * Blat narożny z odpowiedzi backendu rysowany w narożniku z topologii ścian. Indeksy z odpowiedzi wskazują tylko
-   * parę ścian requestu; para spoza bieżącej topologii (np. nieaktualny wynik po zmianie ścian) nie jest rysowana.
+   * Połączenie blatów z odpowiedzi backendu rysowane w narożniku z topologii ścian: kwadrat narożny, linia złącza
+   * według typu i jego nazwa. Indeksy z odpowiedzi wskazują tylko parę ścian requestu; para spoza bieżącej topologii
+   * (np. nieaktualny wynik po zmianie ścian) nie jest rysowana.
    */
   private buildCornerViz(
     cornerCountertop: CornerCountertopResponse,
     positions: WallPosition[],
     walls: WallWithCabinets[],
     topology: WallTopology
-  ): CornerCountertopViz | null {
+  ): CornerCountertopOverlay | null {
     // Narożnik, w którym blaty się nie łączą, ma zerowe wymiary — nie ma czego rysować.
     if (cornerCountertop.cornerWidthMm <= 0 || cornerCountertop.cornerDepthMm <= 0) {
       return null;
@@ -258,64 +271,42 @@ export class KitchenFloorPlanComponent {
     const pairIds = [walls[cornerCountertop.wallAIndex]?.id, walls[cornerCountertop.wallBIndex]?.id];
     const corner = topology.corners.find(candidate =>
       pairIds.includes(candidate.a.wallId) && pairIds.includes(candidate.b.wallId));
-    if (!corner) {
+    const geometry = corner
+      ? cornerJointGeometryPx(corner, positions, cornerCountertop.cornerDepthMm, cornerCountertop.cornerWidthMm)
+      : null;
+    if (!geometry) {
       return null;
     }
 
-    const horizontal = positions.find(position => position.wall.id === corner.a.wallId);
-    const vertical = positions.find(position => position.wall.id === corner.b.wallId);
-    if (!horizontal || !vertical) {
-      return null;
-    }
-
-    const side = corner.connectionType === 'L_CORNER_LEFT' ? 'left' : 'right';
-
-    const scale = horizontal.scale;
-    const widthPx = cornerCountertop.cornerWidthMm * scale;
-    const depthPx = cornerCountertop.cornerDepthMm * scale;
-    const mainTop = horizontal.y;
-    const label = `${cornerCountertop.cornerWidthMm}x${cornerCountertop.cornerDepthMm}mm`;
-
-    if (side === 'left') {
-      const cornerX = horizontal.x;
-      const cornerY = mainTop - depthPx;
-      const verticalRightEdge = vertical.x + vertical.width;
-      if (Math.abs(verticalRightEdge - cornerX) > 2) {
-        return null;
-      }
-
-      return {
-        x: cornerX,
-        y: cornerY,
-        widthPx,
-        depthPx,
-        miterX1: cornerX,
-        miterY1: mainTop,
-        miterX2: cornerX + widthPx,
-        miterY2: cornerY,
-        label
-      };
-    }
-
-    const cornerX = horizontal.x + horizontal.width;
-    const cornerY = mainTop - depthPx;
-    const verticalLeftEdge = vertical.x;
-    if (Math.abs(verticalLeftEdge - cornerX) > 2) {
-      return null;
-    }
-
+    const { wallCorner, innerCorner } = geometry;
+    const passingWallId = cornerCountertop.ownerWallIndex != null
+      ? walls[cornerCountertop.ownerWallIndex]?.id
+      : undefined;
     return {
-      x: cornerX - widthPx,
-      y: cornerY,
-      widthPx,
-      depthPx,
-      miterX1: cornerX,
-      miterY1: mainTop,
-      miterX2: cornerX - widthPx,
-      miterY2: cornerY,
-      label
+      x: Math.min(wallCorner.x, innerCorner.x),
+      y: innerCorner.y,
+      widthPx: Math.abs(innerCorner.x - wallCorner.x),
+      depthPx: wallCorner.y - innerCorner.y,
+      jointLine: cornerJointLine(geometry, cornerCountertop.jointType, passingWallId),
+      jointType: cornerCountertop.jointType,
+      jointLabel: cornerJointLabel(cornerCountertop.jointType),
+      label: `${cornerCountertop.cornerWidthMm}x${cornerCountertop.cornerDepthMm}mm`
     };
   }
+}
+
+/** Blaty ściany przycięte po przekątnej w jej narożnikach z cięciem 45°. */
+function cutAtMiterCorners(
+  wallId: string,
+  countertops: CountertopOnFloorPlan[],
+  miterCorners: readonly CornerJointGeometryPx[]
+): CountertopOnFloorPlan[] {
+  return miterCorners.reduce((current, geometry) => {
+    if (geometry.wallAId === wallId) {
+      return cutCountertopsAtMiter(current, geometry, 'A');
+    }
+    return geometry.wallBId === wallId ? cutCountertopsAtMiter(current, geometry, 'B') : current;
+  }, countertops);
 }
 
 function normalizePositiveDimension(value: number | null | undefined): number | null {

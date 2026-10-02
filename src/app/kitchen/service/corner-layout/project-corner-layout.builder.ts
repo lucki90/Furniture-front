@@ -18,7 +18,7 @@ import {
 import { buildCornerFootprints, CabinetPositionsByWallId, isCornerCabinetAtCorner } from './corner-footprint.builder';
 import { buildCornerGhosts, buildCornerReservedZones } from './corner-ghosts.builder';
 import { resolveCornerJunctionSides } from './corner-junction-side.resolver';
-import { CountertopRunTrim, resolveCornerCountertopTrims } from './corner-run-trims';
+import { CountertopCornerJoint, CountertopRunTrim, resolveCornerCountertopLayout } from './corner-run-trims';
 import { detectCornerIssues } from './corner-issues.detector';
 import { isCabinetOnCornerLevel, maxCabinetReachMm } from './corner-reach';
 import { resolveCornerReservationMm } from './corner-reservation';
@@ -38,8 +38,10 @@ export interface ProjectCornerLayout {
   reservedZones: readonly CornerReservedZone[];
   /** Strona styku szafek narożnych stojących w narożniku. */
   junctionSides: ReadonlyMap<string, CornerJunctionSide>;
-  /** Przycięcia przebiegów blatu w narożnikach (kwadrat narożny należy tylko do ściany-właściciela). */
+  /** Przycięcia przebiegów blatu w narożnikach (blat przechodzący, cięcie 45°, podparcia z ramienia szafki L). */
   countertopTrimsByWallId: ReadonlyMap<string, CountertopRunTrim>;
+  /** Narożniki, w których blaty się łączą, z typem złącza i blatem przechodzącym. */
+  countertopJoints: readonly CountertopCornerJoint[];
 }
 
 /** Ustawienia geometrii konkretnej ściany (wysokość, cokół, blat, blenda). */
@@ -98,6 +100,7 @@ function completeLayout(
   cornerSettings: CornerGeometrySettings
 ): ProjectCornerLayout {
   const issues = detectCornerIssues(walls, topology, positionsByWallId, cornerSettings);
+  const countertopLayout = resolveCornerCountertopLayout(topology, walls, positionsByWallId, cornerSettings);
   return {
     topology,
     constraintsByWallId,
@@ -106,7 +109,8 @@ function completeLayout(
     ghosts: buildCornerGhosts(topology, walls, positionsByWallId, issues, cornerSettings),
     reservedZones: buildCornerReservedZones(walls, constraintsByWallId),
     junctionSides: resolveCornerJunctionSides(topology, walls, positionsByWallId, cornerSettings),
-    countertopTrimsByWallId: resolveCornerCountertopTrims(topology, walls, positionsByWallId, cornerSettings)
+    countertopTrimsByWallId: countertopLayout.trimsByWallId,
+    countertopJoints: countertopLayout.joints
   };
 }
 

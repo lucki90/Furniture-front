@@ -233,7 +233,8 @@ class KitchenProjectLayoutServiceStub {
     }],
     reservedZones: [{ wallId: 'wall-1', wallEnd: 'START', level: 'BASE', startMm: 0, endMm: 628 }],
     junctionSides: new Map(),
-    countertopTrimsByWallId: new Map([['wall-1', { startMm: 0, endMm: 1000 }]])
+    countertopTrimsByWallId: new Map([['wall-1', { startMm: 0, endMm: 1000 }]]),
+    countertopJoints: []
   });
   readonly issues = computed(() => this.layout().issues);
 

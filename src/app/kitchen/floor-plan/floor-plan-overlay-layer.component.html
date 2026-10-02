@@ -6,13 +6,14 @@
       [attr.x]="corner.x"
       [attr.y]="corner.y"
       class="corner-countertop-rect">
-      <svg:title>Blat narożny {{ corner.label }}</svg:title>
+      <svg:title>Połączenie blatów {{ corner.label }}: {{ corner.jointLabel }}</svg:title>
     </svg:rect>
     <svg:line
-      [attr.x1]="corner.miterX1"
-      [attr.x2]="corner.miterX2"
-      [attr.y1]="corner.miterY1"
-      [attr.y2]="corner.miterY2"
+      [attr.x1]="corner.jointLine.x1"
+      [attr.x2]="corner.jointLine.x2"
+      [attr.y1]="corner.jointLine.y1"
+      [attr.y2]="corner.jointLine.y2"
+      [class.corner-joint-line--strip]="corner.jointType === 'ALUMINUM_STRIP'"
       class="corner-miter-line"/>
     <svg:text
       [attr.x]="corner.x + corner.widthPx / 2"
@@ -20,7 +21,7 @@
       class="corner-countertop-label"
       dominant-baseline="middle"
       text-anchor="middle">
-      45°
+      {{ corner.jointLabel }}
     </svg:text>
   </svg:g>
 </ng-container>

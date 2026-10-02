@@ -43,6 +43,12 @@ export const CORNER_JOINT_TYPE_LABELS: Readonly<Record<CornerJointType, string>>
   ALUMINUM_STRIP: 'Listwa aluminiowa'
 };
 
+export const CORNER_JOINT_TYPE_OPTIONS: readonly { value: CornerJointType; label: string }[] = [
+  { value: 'LYZWA', label: CORNER_JOINT_TYPE_LABELS.LYZWA },
+  { value: 'MITER_45', label: CORNER_JOINT_TYPE_LABELS.MITER_45 },
+  { value: 'ALUMINUM_STRIP', label: CORNER_JOINT_TYPE_LABELS.ALUMINUM_STRIP }
+];
+
 /**
  * Który blat przechodzi przez narożnik — z punktu widzenia ściany bocznej (LEFT/RIGHT), w której konfiguracji
  * zapisane jest połączenie. `AUTO` — reguła z układu narożnika.

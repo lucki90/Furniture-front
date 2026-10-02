@@ -177,6 +177,13 @@
   stroke-dasharray: 4 3;
 }
 
+/* Listwa aluminiowa: pełna, grubsza linia w kolorze aluminium. */
+.corner-miter-line.corner-joint-line--strip {
+  stroke: #78909c;
+  stroke-width: 3;
+  stroke-dasharray: none;
+}
+
 .corner-countertop-label {
   font-size: 7px;
   font-weight: 700;

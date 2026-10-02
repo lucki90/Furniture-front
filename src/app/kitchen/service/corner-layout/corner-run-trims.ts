@@ -1,3 +1,4 @@
+import { CornerJointType } from '../../model/countertop.model';
 import { cabinetRequiresCountertop, WallWithCabinets } from '../../model/kitchen-state.model';
 import { CornerFootprint, CornerGeometrySettings, WallCorner, WallCornerEndpoint, WallTopology } from './corner-layout.model';
 import { buildCornerFootprints, CabinetPositionsByWallId } from './corner-footprint.builder';
@@ -27,6 +28,24 @@ export interface CountertopRunTrim {
 }
 
 /**
+ * Narożnik, w którym blaty się łączą:
+ * - `ruleOwnerWallId` — właściciel narożnika z reguły (blat przechodzący przy ustawieniu „Automatycznie”),
+ * - `passingWallId` — ściana, której blat przechodzi przez narożnik (wybór użytkownika albo reguła).
+ */
+export interface CountertopCornerJoint {
+  cornerId: string;
+  type: CornerJointType;
+  ruleOwnerWallId: string;
+  passingWallId: string;
+}
+
+/** Przycięcia przebiegów blatu i narożniki z połączeniem blatów. */
+export interface CornerCountertopLayout {
+  trimsByWallId: Map<string, CountertopRunTrim>;
+  joints: CountertopCornerJoint[];
+}
+
+/**
  * Przycięcia przebiegów blatu w narożnikach. Narożnik łączy blaty, gdy właściciel ma szafkę z blatem stojącą
  * w narożniku, a ściana dostawiona ma podparcie blatu w strefie narożnej: ramię szafki L właściciela albo najbliższą
  * szafkę z blatem nie dalej niż sięgają szafki właściciela wzdłuż tej ściany, powiększone o luz narożny.
@@ -44,7 +63,18 @@ export function resolveCornerCountertopTrims(
   positionsByWallId: CabinetPositionsByWallId,
   settings: CornerGeometrySettings
 ): Map<string, CountertopRunTrim> {
+  return resolveCornerCountertopLayout(topology, walls, positionsByWallId, settings).trimsByWallId;
+}
+
+/** Jak `resolveCornerCountertopTrims`, a dodatkowo narożniki z połączeniem blatów (panel ściany, rzut z góry). */
+export function resolveCornerCountertopLayout(
+  topology: WallTopology,
+  walls: readonly WallWithCabinets[],
+  positionsByWallId: CabinetPositionsByWallId,
+  settings: CornerGeometrySettings
+): CornerCountertopLayout {
   const trims = new Map<string, CountertopRunTrim>();
+  const joints: CountertopCornerJoint[] = [];
 
   for (const corner of topology.corners) {
     const footprints = buildCornerFootprints(corner, walls, positionsByWallId, 'BASE', settings);
@@ -79,8 +109,9 @@ export function resolveCornerCountertopTrims(
     const joining = passing === owner ? partner : owner;
     setTrim(trims, passing, passingEnd, 0);
     setTrim(trims, joining, joiningEnd, joint.type === 'MITER_45' ? 0 : countertopDepthMm(passing));
+    joints.push({ cornerId: corner.id, type: joint.type, ruleOwnerWallId: ownerWallId, passingWallId: passing.id });
   }
-  return trims;
+  return { trimsByWallId: trims, joints };
 }
 
 /** Końce narożnika: najpierw ściany wskazanej, potem drugiej. */

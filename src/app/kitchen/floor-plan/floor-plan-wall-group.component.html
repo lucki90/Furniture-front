@@ -50,15 +50,23 @@
 
   <ng-container *ngIf="showCountertop">
     <svg:g *ngFor="let countertop of countertops; trackBy: trackByCountertopX" class="countertop-group">
-      <svg:rect
-        [attr.height]="countertop.depth"
-        [attr.width]="countertop.width"
-        [attr.x]="countertop.x"
-        [attr.y]="countertop.y"
-        class="countertop-rect"
-        rx="1">
-        <svg:title>Blat: {{ countertop.lengthMm }}x{{ countertop.depthMm }}mm</svg:title>
-      </svg:rect>
+      <svg:polygon
+        *ngIf="countertop.polygonPoints; else countertopRect"
+        [attr.points]="countertop.polygonPoints"
+        class="countertop-rect">
+        <svg:title>Blat: {{ countertop.lengthMm }}x{{ countertop.depthMm }}mm (cięcie 45° w narożniku)</svg:title>
+      </svg:polygon>
+      <ng-template #countertopRect>
+        <svg:rect
+          [attr.height]="countertop.depth"
+          [attr.width]="countertop.width"
+          [attr.x]="countertop.x"
+          [attr.y]="countertop.y"
+          class="countertop-rect"
+          rx="1">
+          <svg:title>Blat: {{ countertop.lengthMm }}x{{ countertop.depthMm }}mm</svg:title>
+        </svg:rect>
+      </ng-template>
       <svg:text
         *ngIf="countertop.isHorizontal; else verticalCountertopLabel"
         [attr.x]="countertop.lengthLabelX"

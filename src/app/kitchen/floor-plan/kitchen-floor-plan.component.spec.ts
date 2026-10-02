@@ -109,7 +109,7 @@ describe('KitchenFloorPlanComponent', () => {
 
     const overlays = fixture.nativeElement.querySelectorAll('.corner-countertop-rect');
     expect(overlays.length).toBe(1);
-    expect(fixture.nativeElement.querySelector('.corner-countertop-label')?.textContent).toContain('45');
+    expect(fixture.nativeElement.querySelector('.corner-countertop-label')?.textContent).toContain('łyżwa');
     expect(fixture.nativeElement.querySelector('.corner-countertop-rect title')?.textContent).toContain('600x600');
   });
 
@@ -252,7 +252,8 @@ class KitchenProjectLayoutServiceStub {
 
   readonly layout = signal({
     junctionSides: new Map<string, 'LEFT' | 'RIGHT'>(),
-    countertopTrimsByWallId: new Map<string, { startMm?: number; endMm?: number }>()
+    countertopTrimsByWallId: new Map<string, { startMm?: number; endMm?: number }>(),
+    countertopJoints: []
   });
   readonly issues = signal<readonly CornerIssue[]>([this.overlap]);
 

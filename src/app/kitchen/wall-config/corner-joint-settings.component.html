@@ -1,0 +1,23 @@
+<div *ngFor="let view of views(); trackBy: trackByCorner" class="corner-joint-settings">
+  <div class="config-field">
+    <label [attr.for]="'corner-joint-type-' + view.cornerId">{{ view.title }}: łączenie</label>
+    <select (ngModelChange)="onTypeChange(view, $event)" [id]="'corner-joint-type-' + view.cornerId"
+            [ngModel]="view.type">
+      <option *ngFor="let opt of jointTypeOptions; trackBy: trackByValue" [ngValue]="opt.value">{{ opt.label }}</option>
+    </select>
+  </div>
+  <div *ngIf="view.type !== 'MITER_45'; else miterHint" class="config-field">
+    <label [attr.for]="'corner-joint-pass-' + view.cornerId">Przez narożnik przechodzi</label>
+    <select (ngModelChange)="onPassThroughChange(view, $event)" [id]="'corner-joint-pass-' + view.cornerId"
+            [ngModel]="view.passThroughChoice">
+      <option *ngFor="let opt of view.passThroughOptions; trackBy: trackByValue" [ngValue]="opt.value">{{ opt.label }}
+      </option>
+    </select>
+  </div>
+  <ng-template #miterHint>
+    <small class="config-hint">Oba blaty dochodzą do ściany i są cięte po przekątnej narożnika.</small>
+  </ng-template>
+  <small *ngIf="!view.joined" class="config-hint">
+    Blaty w tym narożniku się nie stykają — ustawienie zadziała, gdy szafki z blatem staną przy narożniku.
+  </small>
+</div>
