@@ -375,6 +375,7 @@ export class CabinetFormComponent implements OnChanges {
   get isAddDisabled(): boolean {
     return this.loading
       || this.form.invalid
+      || (this.visibility.drawerCustomHeights && !!this.customHeightsTotalWarning)
       || (this.visibility.segments && !!this.segmentHeightError);
   }
 
@@ -388,6 +389,9 @@ export class CabinetFormComponent implements OnChanges {
     }
     if (this.loading) {
       return 'Trwa przetwarzanie...';
+    }
+    if (this.visibility.drawerCustomHeights && this.customHeightsTotalWarning) {
+      return this.customHeightsTotalWarning;
     }
     if (this.visibility.segments && this.segmentHeightError) {
       return this.segmentHeightError;

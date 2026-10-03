@@ -40,6 +40,9 @@ export class ProjectSettingsService {
   //   UI: panel "Nadpisz materiały" per projekt, toggle dla każdego pola.
   readonly materialDefaults = signal<MaterialDefaults>({ ...DEFAULT_MATERIAL_DEFAULTS });
 
+  /** Szczeliny frontów szuflad z tych samych ustawień użytkownika, których używa kalkulacja backendu. */
+  readonly drawerFrontGaps = signal({ wreathMm: 3, betweenMm: 3 });
+
   /** Wcięcie łyżwy z ustawień użytkownika; brak — fallback w `createCornerGeometrySettings`. */
   private readonly _countertopLyzwaRecessMm = signal<number | null>(null);
   readonly countertopLyzwaRecessMm = this._countertopLyzwaRecessMm.asReadonly();
@@ -169,7 +172,11 @@ export class ProjectSettingsService {
     defaultBackMaterial?: string;
     defaultBackBoardThickness?: number;
     defaultVarnishedFront?: boolean;
+    spaceBetweenWreathAndFrontMm?: number;
+    horizontallySpaceBetweenTwoFrontsMm?: number;
   }): void {
+    this.drawerFrontGaps.set({ wreathMm: settings.spaceBetweenWreathAndFrontMm ?? 3,
+      betweenMm: settings.horizontallySpaceBetweenTwoFrontsMm ?? 3 });
     this.materialDefaults.set({
       boxMaterial: settings.defaultBoxMaterial ?? DEFAULT_MATERIAL_DEFAULTS.boxMaterial,
       boxBoardThickness: settings.defaultBoxBoardThickness ?? DEFAULT_MATERIAL_DEFAULTS.boxBoardThickness,

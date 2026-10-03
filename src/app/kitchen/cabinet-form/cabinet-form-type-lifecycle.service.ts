@@ -45,6 +45,7 @@ export class CabinetFormTypeLifecycleService {
     }
     form.get('ovenApronHeightMm')?.updateValueAndValidity({ emitEvent: false });
     form.get('sinkApronHeightMm')?.updateValueAndValidity({ emitEvent: false });
+    form.get('hoodScreenHeightMm')?.updateValueAndValidity({ emitEvent: false });
 
     return { visibility, restoreApplied };
   }

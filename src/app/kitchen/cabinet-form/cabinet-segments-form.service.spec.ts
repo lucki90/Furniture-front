@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { CabinetSegmentsFormService } from './cabinet-segments-form.service';
 import { SegmentType } from './model/segment.model';
+import { ProjectSettingsService } from '../service/project-settings.service';
 
 describe('CabinetSegmentsFormService', () => {
   let service: CabinetSegmentsFormService;
@@ -147,6 +148,18 @@ describe('CabinetSegmentsFormService', () => {
   });
 
   describe('getCustomHeightsTotalWarning', () => {
+    it('uses the loaded user gaps rather than hardcoded defaults', () => {
+      TestBed.inject(ProjectSettingsService).setMaterialDefaults({
+        spaceBetweenWreathAndFrontMm: 4, horizontallySpaceBetweenTwoFrontsMm: 5
+      });
+      expect(service.getCustomHeightsTotalWarning('CUSTOM', 3, 720, [234,234,234])).toBeNull();
+      expect(service.getCustomHeightsTotalWarning('CUSTOM', 3, 720, [236,236,236])).toContain('702');
+    });
+
+    it('rejects a one millimetre mismatch and nonfinite heights', () => {
+      expect(service.getCustomHeightsTotalWarning('CUSTOM', 3, 720, [235,236,236])).not.toBeNull();
+      expect(service.getCustomHeightsTotalWarning('CUSTOM', 3, 720, [NaN,236,236])).not.toBeNull();
+    });
     it('powinien zwrócić null gdy układ nie jest CUSTOM', () => {
       expect(service.getCustomHeightsTotalWarning('EQUAL', 3, 720, [200, 200, 200])).toBeNull();
     });
@@ -160,12 +173,12 @@ describe('CabinetSegmentsFormService', () => {
       expect(result).toContain('Wpisz 3 wysokości');
     });
 
-    it('powinien zwrócić null gdy suma jest poprawna (tolerancja ±1mm)', () => {
+    it('powinien zwrócić null gdy suma jest poprawna', () => {
       // H=720, 3 szuflady: expectedSum = 720 - 6 - 6 = 708; heights 236+236+236=708
       expect(service.getCustomHeightsTotalWarning('CUSTOM', 3, 720, [236, 236, 236])).toBeNull();
     });
 
-    it('powinien zwrócić komunikat gdy suma odbiega o więcej niż 1mm', () => {
+    it('powinien zwrócić komunikat gdy suma jest niepoprawna', () => {
       // expectedSum = 720 - 2×3 - 2×3 = 708; actualSum = 600; diff = +108
       const result = service.getCustomHeightsTotalWarning('CUSTOM', 3, 720, [200, 200, 200]);
       expect(result).toContain('708');

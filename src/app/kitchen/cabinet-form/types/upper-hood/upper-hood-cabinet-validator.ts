@@ -1,52 +1,24 @@
-import { FormGroup } from '@angular/forms';
+import { FormGroup, Validators } from '@angular/forms';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
+import { setDimensionValidators } from '../../type-config/validator/dimension-validator.utils';
 
 export class UpperHoodCabinetValidator implements KitchenCabinetValidator {
 
   validate(form: FormGroup): void {
     const c = KitchenCabinetConstraints.UPPER_HOOD;
 
-    const widthCtrl = form.get('width');
-    if (widthCtrl) {
-      const w = widthCtrl.value;
-      if (w < c.WIDTH_MIN || w > c.WIDTH_MAX) {
-        widthCtrl.setErrors({ outOfRange: true });
-      } else {
-        widthCtrl.setErrors(null);
-      }
-    }
+    setDimensionValidators(form, c);
+    form.get('shelfQuantity')?.clearValidators();
+    form.get('shelfQuantity')?.updateValueAndValidity({ emitEvent: false });
 
-    const heightCtrl = form.get('height');
-    if (heightCtrl) {
-      const h = heightCtrl.value;
-      if (h < c.HEIGHT_MIN || h > c.HEIGHT_MAX) {
-        heightCtrl.setErrors({ outOfRange: true });
-      } else {
-        heightCtrl.setErrors(null);
-      }
-    }
-
-    const depthCtrl = form.get('depth');
-    if (depthCtrl) {
-      const d = depthCtrl.value;
-      if (d < c.DEPTH_MIN || d > c.DEPTH_MAX) {
-        depthCtrl.setErrors({ outOfRange: true });
-      } else {
-        depthCtrl.setErrors(null);
-      }
-    }
-
-    // Walidacja wysokości blendy wewnętrznej (gdy włączona)
-    const screenEnabledCtrl = form.get('hoodScreenEnabled');
     const screenHeightCtrl = form.get('hoodScreenHeightMm');
-    if (screenEnabledCtrl?.value && screenHeightCtrl) {
-      const sh = screenHeightCtrl.value;
-      if (sh < c.HOOD_SCREEN_MIN || sh > c.HOOD_SCREEN_MAX) {
-        screenHeightCtrl.setErrors({ outOfRange: true });
-      } else {
-        screenHeightCtrl.setErrors(null);
-      }
-    }
+    screenHeightCtrl?.setValidators(control => {
+      if (form.get('kitchenCabinetType')?.value !== 'UPPER_HOOD'
+          || !form.get('hoodScreenEnabled')?.value) return null;
+      return Validators.compose([Validators.required, Validators.min(c.HOOD_SCREEN_MIN),
+        Validators.max(c.HOOD_SCREEN_MAX)])?.(control) ? { outOfRange: true } : null;
+    });
+    screenHeightCtrl?.updateValueAndValidity({ emitEvent: false });
   }
 }

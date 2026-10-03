@@ -31,7 +31,7 @@ export class HoodFormComponent implements OnInit {
 
   ngOnInit(): void {
     // Inicjalizacja na podstawie aktualnego stanu kontrolki
-    this.showHoodScreenHeight = this.form.get('hoodScreenHeightMm')?.enabled ?? false;
+    this.onHoodScreenEnabledChange(!!this.form.get('hoodScreenEnabled')?.value);
 
     // Reaguj na zmianę checkboxa blendy wewnętrznej
     this.form.get('hoodScreenEnabled')?.valueChanges

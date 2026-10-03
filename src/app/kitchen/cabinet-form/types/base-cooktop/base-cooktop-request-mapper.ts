@@ -26,6 +26,7 @@ export class BaseCooktopRequestMapper extends AbstractCabinetRequestMapper {
       varnishedFront: materialDefaults.varnishedFront,
 
       openingType: form.openingType ?? 'HANDLE',
+      bottomWreathOnFloor: form.bottomWreathOnFloor ?? false,
 
       // Pola specyficzne dla szafki pod płytę grzewczą
       cooktopType: form.cooktopType ?? 'INDUCTION',

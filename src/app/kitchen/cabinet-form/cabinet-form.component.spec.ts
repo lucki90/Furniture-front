@@ -627,6 +627,18 @@ describe('CabinetFormComponent', () => {
 
       expect(fixture.nativeElement.querySelector('.form-error')).toBeNull();
     });
+
+    it('blocks saving while custom heights do not fill the cabinet', () => {
+      const warning = spyOn(segmentsServiceSpy, 'getCustomHeightsTotalWarning').and.returnValue('Niepoprawna suma wysokości');
+      component.form.get('drawerLayoutType')?.setValue('CUSTOM');
+      expect(component.isAddDisabled).toBeTrue();
+      expect(component.addDisabledReason).toBe('Niepoprawna suma wysokości');
+      warning.and.returnValue(null);
+      expect(component.isAddDisabled).toBeFalsy();
+      warning.and.returnValue('Niepoprawna suma wysokości');
+      component.form.get('drawerLayoutType')?.setValue('EQUAL');
+      expect(component.isAddDisabled).toBeFalsy();
+    });
   });
 });
 
