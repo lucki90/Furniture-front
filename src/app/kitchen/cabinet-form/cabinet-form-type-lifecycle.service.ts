@@ -37,6 +37,11 @@ export class CabinetFormTypeLifecycleService {
     const restoreApplied = !!editingCabinet && editingCabinet.type === type;
     if (restoreApplied) {
       this.cabinetFormEditingService.restoreAfterTypePrepared(form, editingCabinet);
+      if (type === KitchenCabinetType.BASE_COOKTOP) {
+        // Sekcja może być już zamontowana podczas edycji kolejnej szafki tego samego typu.
+        // Powiadom ją o typie frontu odtworzonym bez zdarzeń, aby zsynchronizowała pola szuflad.
+        form.get('cooktopFrontType')?.updateValueAndValidity();
+      }
     }
 
     if (type === KitchenCabinetType.BASE_OVEN) {

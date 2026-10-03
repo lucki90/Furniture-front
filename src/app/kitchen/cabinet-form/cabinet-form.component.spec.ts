@@ -23,6 +23,7 @@ import { BaseCargoCabinetValidator } from './types/base-cargo/base-cargo-cabinet
 import { BaseOvenCabinetValidator } from './types/base-oven/base-oven-cabinet-validator';
 import { UpperCascadeCabinetValidator } from './types/upper-cascade/upper-cascade-cabinet-validator';
 import { BaseFridgeCabinetValidator } from './types/base-fridge/base-fridge-cabinet-validator';
+import { UpperDrainerCabinetValidator } from './types/upper-drainer/upper-drainer-cabinet-validator';
 import { CABINET_FORM_MESSAGES } from './cabinet-form-validation-messages';
 import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
 
@@ -59,6 +60,18 @@ describe('CabinetFormComponent', () => {
     stateService = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
     projectLayoutService = TestBed.inject(KitchenProjectLayoutService) as unknown as KitchenProjectLayoutServiceStub;
     fixture.detectChanges();
+  });
+
+  it('blocks saving a drainer with an unsupported restored width until it is corrected', () => {
+    component.form.patchValue({ kitchenCabinetType: KitchenCabinetType.UPPER_DRAINER,
+      width: 600, height: 600, depth: 300, shelfQuantity: 0 });
+    component.visibility.width = false;
+    component.visibility.drainerWidthSelect = true;
+    new UpperDrainerCabinetValidator().validate(component.form);
+    component.form.patchValue({ width: 700 }, { emitEvent: false });
+    expect(component.isAddDisabled).toBeTrue();
+    component.form.get('width')?.setValue(600);
+    expect(component.isAddDisabled).toBeFalsy();
   });
 
   it('blocks adding a cascade until the invalid depth order is corrected', () => {
