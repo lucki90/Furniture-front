@@ -1,8 +1,9 @@
-import { FormArray, FormGroup, Validators } from "@angular/forms";
+import { AbstractControl, FormArray, FormGroup, ValidationErrors, ValidatorFn, Validators } from "@angular/forms";
 import { CABINET_FORM_MESSAGES } from "../../cabinet-form-validation-messages";
 import { KitchenCabinetConstraints } from "../../model/kitchen-cabinet-constants";
 import { KitchenCabinetValidator } from "../../type-config/validator/kitchen-cabinet-validator";
 import { tallSegmentIssues } from './tall-segment-rules';
+import { SegmentType } from '../../model/segment.model';
 
 /**
  * Validator dla szafki typu słupek (TALL_CABINET).
@@ -81,27 +82,17 @@ export class TallCabinetValidator implements KitchenCabinetValidator {
       Validators.required
     ]);
 
-    // Walidacja liczby szuflad dla segmentu DRAWER
-    const segmentType = segment.get('segmentType')?.value;
-    if (segmentType === 'DRAWER') {
-      segment.get('drawerQuantity')?.setValidators([
-        Validators.required,
-        Validators.min(this.constraints.SEGMENT_DRAWER_MIN),
-        Validators.max(this.constraints.SEGMENT_DRAWER_MAX)
-      ]);
-    } else {
-      segment.get('drawerQuantity')?.clearValidators();
-    }
-
-    // Walidacja liczby półek dla segmentu DOOR/OPEN_SHELF
-    if (segmentType === 'DOOR' || segmentType === 'OPEN_SHELF') {
-      segment.get('shelfQuantity')?.setValidators([
-        Validators.min(0),
-        Validators.max(this.constraints.SEGMENT_SHELF_MAX)
-      ]);
-    } else {
-      segment.get('shelfQuantity')?.clearValidators();
-    }
+    // Liczba szuflad i półek zależy od typu segmentu, który użytkownik zmienia w formularzu segmentu — walidator
+    // sprawdza bieżący typ przy każdej walidacji, zamiast zapamiętać typ z chwili ustawienia walidatorów.
+    segment.get('drawerQuantity')?.setValidators(forSegmentTypes([SegmentType.DRAWER], [
+      Validators.required,
+      Validators.min(this.constraints.SEGMENT_DRAWER_MIN),
+      Validators.max(this.constraints.SEGMENT_DRAWER_MAX)
+    ]));
+    segment.get('shelfQuantity')?.setValidators(forSegmentTypes([SegmentType.DOOR, SegmentType.OPEN_SHELF], [
+      Validators.min(0),
+      Validators.max(this.constraints.SEGMENT_SHELF_MAX)
+    ]));
 
     // Aktualizuj walidację
     segment.get('height')?.updateValueAndValidity();
@@ -180,4 +171,16 @@ export class TallCabinetValidator implements KitchenCabinetValidator {
 
     return null;
   }
+}
+
+/**
+ * Walidatory pola segmentu stosowane tylko dla wskazanych typów segmentu (typ czytany z grupy segmentu w chwili
+ * walidacji).
+ */
+function forSegmentTypes(types: readonly SegmentType[], validators: ValidatorFn[]): ValidatorFn {
+  const composed = Validators.compose(validators);
+  return (control: AbstractControl): ValidationErrors | null => {
+    const segmentType = control.parent?.get('segmentType')?.value;
+    return composed && types.includes(segmentType) ? composed(control) : null;
+  };
 }
