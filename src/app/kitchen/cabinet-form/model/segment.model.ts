@@ -9,6 +9,7 @@ export enum SegmentType {
   OPEN_SHELF = 'OPEN_SHELF',            // Segment otwarty (bez frontu)
   OVEN = 'OVEN',                        // Wnęka na piekarnik (bez frontu, bez półek)
   MICROWAVE = 'MICROWAVE',              // Wnęka na mikrofalówkę (bez frontu, bez półek)
+  DISHWASHER = 'DISHWASHER',            // Wnęka na zmywarkę (front na drzwiach sprzętu, bez półek i pleców)
   FRIDGE_BUILT_IN = 'FRIDGE_BUILT_IN'  // Sekcja lodówki w zabudowie (wewnętrzny typ, nie w UI)
 }
 
@@ -32,6 +33,11 @@ export type OvenSegmentHeightType = 'STANDARD' | 'COMPACT';
  * Typ mikrofalówki dla segmentu MICROWAVE: M38 = ok. 38 cm (domyślna), M45 = kompaktowa 45 cm.
  */
 export type MicrowaveSegmentType = 'M38' | 'M45';
+
+/**
+ * Szerokość zmywarki dla segmentu DISHWASHER: W45 = 45 cm, W60 = 60 cm (domyślna).
+ */
+export type DishwasherSegmentType = 'W45' | 'W60';
 
 /**
  * Wnęka piekarnika w mm dla danego typu.
@@ -58,6 +64,8 @@ export interface SegmentFormData {
   ovenHeightType?: OvenSegmentHeightType | null;
   // Dla MICROWAVE: typ mikrofalówki — wyznacza minimalne światło wnęki
   microwaveType?: MicrowaveSegmentType | null;
+  // Dla DISHWASHER: szerokość zmywarki — wyznacza wymagane światło wnęki
+  dishwasherType?: DishwasherSegmentType | null;
 }
 
 /**
@@ -77,6 +85,7 @@ export interface SegmentRequest {
   frontType?: string | null;
   ovenHeightType?: OvenSegmentHeightType | null;
   microwaveType?: MicrowaveSegmentType | null;
+  dishwasherType?: DishwasherSegmentType | null;
 }
 
 /**
@@ -107,6 +116,7 @@ export const SEGMENT_COLORS: Record<SegmentType, string> = {
   [SegmentType.OPEN_SHELF]: '#95a5a6',          // szary
   [SegmentType.OVEN]: '#e74c3c',               // czerwony — piekarnik
   [SegmentType.MICROWAVE]: '#e67e22',           // pomarańczowy — mikrofalówka
+  [SegmentType.DISHWASHER]: '#16a085',          // morski — zmywarka
   [SegmentType.FRIDGE_BUILT_IN]: '#7986cb'     // indigo — lodówka w zabudowie
 };
 
@@ -158,6 +168,14 @@ export function mapSegmentToRequest(segment: SegmentFormData): SegmentRequest {
       request.shelfQuantity = 0;
       request.drawerRequest = null;
       request.microwaveType = segment.microwaveType ?? null;
+      break;
+
+    case SegmentType.DISHWASHER:
+      // Front zmywarki mocowany do drzwi sprzętu (bez zawiasów); bez półek i szuflad
+      request.frontType = 'ONE_DOOR';
+      request.shelfQuantity = 0;
+      request.drawerRequest = null;
+      request.dishwasherType = segment.dishwasherType ?? null;
       break;
   }
 

@@ -4,7 +4,8 @@ import {
   T1_DOOR_AND_DRAWERS,
   T2_OVEN,
   T3_OVEN_SEGMENT_TOO_LOW,
-  T5_MICROWAVE_AND_OVEN
+  T5_MICROWAVE_AND_OVEN,
+  T6_DISHWASHER
 } from './tall-segment.test-fixtures';
 
 /** Te same przypadki co `SegmentLayoutTest` w backendzie (płyta korpusu 18 mm). */
@@ -39,6 +40,13 @@ describe('buildTallSegmentLayout — światło segmentów i plecy słupka', () =
 
     expect(layout.slots.map(slot => slot.openingHeightMm)).toEqual([564, 455, 600, 491]);
     expect(layout.backPanelSpans.map(span => [span.topMm, span.bottomMm])).toEqual([[0, 600], [1673, 2200]]);
+  });
+
+  it('T6: zmywarka 878 — światło 860; plecy nad i pod zmywarką', () => {
+    const layout = buildTallSegmentLayout(T6_DISHWASHER.segments, T);
+
+    expect(layout.slots.map(slot => slot.openingHeightMm)).toEqual([564, 860, 704]);
+    expect(layout.backPanelSpans.map(span => [span.topMm, span.bottomMm])).toEqual([[0, 600], [1460, 2200]]);
   });
 
   it('suma świateł = H − (n + 1)·T', () => {

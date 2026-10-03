@@ -172,4 +172,18 @@ describe('buildTechnicalDrawingModel', () => {
     expect(frontRects[2].label).toContain('Front szuflady 2');
     expect(frontRects[0].height).toBeGreaterThan(frontRects[1].height);
   });
+
+  it('rysuje front zmywarki w słupku razem z pozostałymi frontami (plan słupka, Etap 3)', () => {
+    const model = buildTechnicalDrawingModel([
+      board('SIDE_NAME', 2200, 560, 18, 2),
+      board('WREATH_NAME', 536, 600, 18),
+      board('SEGMENT_DIVIDER_NAME', 536, 600, 18, 2),
+      board('FRONT_NAME', 592, 312, 18, 2),
+      board('DISHWASHER_FRONT', 870, 630, 18)
+    ]);
+
+    const layout = buildTechnicalDrawingLayout(model!);
+
+    expect(layout.front.rects.filter(rect => rect.selectable).length).toBe(3);
+  });
 });

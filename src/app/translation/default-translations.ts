@@ -88,6 +88,7 @@ export const DEFAULT_TRANSLATIONS: { [key: string]: string } = {
   'BOARD_NAME.FRONT_DRAWER_NAME': 'Front szuflady',
   'BOARD_NAME.SIDE_DRAWER_NAME': 'Bok szuflady',
   'BOARD_NAME.FRONT_NAME': 'Front',
+  'BOARD_NAME.DISHWASHER_FRONT': 'Front zmywarki',
   'BOARD_NAME.HDF_NAME': 'Plecki HDF',
   'BOARD_NAME.SHELF_NAME': 'Półka',
   'BOARD_NAME.SIDE_NAME': 'Płyta boczna',

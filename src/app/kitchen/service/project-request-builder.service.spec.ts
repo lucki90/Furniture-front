@@ -487,6 +487,20 @@ describe('ProjectRequestBuilderService', () => {
       expect(service.mapSegmentResponseToFormData(mapSegmentToRequest(microwave)).microwaveType).toBe('M45');
     });
 
+    it('zmywarka w słupku: front na drzwiach sprzętu i typ zmywarki przy zapisie i odczycie (Etap 3)', () => {
+      const dishwasher: SegmentFormData = {
+        segmentType: SegmentType.DISHWASHER, height: 878, orderIndex: 1, shelfQuantity: 0, dishwasherType: 'W45'
+      };
+
+      const request = mapSegmentToRequest(dishwasher);
+
+      expect(request).toEqual(jasmine.objectContaining({
+        segmentType: SegmentType.DISHWASHER, frontType: 'ONE_DOOR', shelfQuantity: 0, drawerRequest: null,
+        dishwasherType: 'W45'
+      }));
+      expect(service.mapSegmentResponseToFormData(request).dishwasherType).toBe('W45');
+    });
+
     it('segment zapisany bez typu wnęki zostaje bez typu (domyślny typ rozstrzyga backend i formularz)', () => {
       const result = service.mapSegmentResponseToFormData({
         segmentType: SegmentType.MICROWAVE, height: 450, orderIndex: 0, shelfQuantity: 0, frontType: 'OPEN'

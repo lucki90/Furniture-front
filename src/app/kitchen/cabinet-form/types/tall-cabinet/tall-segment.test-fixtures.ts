@@ -27,6 +27,10 @@ function microwave(height: number): SegmentFormData {
   return { segmentType: SegmentType.MICROWAVE, height, orderIndex: 0, shelfQuantity: 0 };
 }
 
+function dishwasher(height: number, dishwasherType: 'W45' | 'W60' = 'W60'): SegmentFormData {
+  return { segmentType: SegmentType.DISHWASHER, height, orderIndex: 0, shelfQuantity: 0, dishwasherType };
+}
+
 function scenario(width: number, height: number, depth: number, segments: SegmentFormData[]): TallScenarioFixture {
   return { width, height, depth, segments: segments.map((segment, index) => ({ ...segment, orderIndex: index })) };
 }
@@ -42,6 +46,10 @@ export const T3_OVEN_SEGMENT_TOO_LOW = scenario(600, 2100, 560, [door(800), oven
 
 /** T4: słupek 450 z piekarnikiem (szerokość w świetle 414 mm). */
 export const T4_NARROW_OVEN = scenario(450, 2100, 560, [door(800), oven(618), drawers(682)]);
+
+/** T6: 636×2200×560 — dwoje drzwi 600, zmywarka 60 w segmencie 878 (światło 860), szuflady 722. */
+export const T6_DISHWASHER = scenario(636, 2200, 560,
+  [door(600, 1, SegmentFrontType.TWO_DOORS), dishwasher(878), drawers(722)]);
 
 /** T5: 600×2200×560 — drzwi 600, mikrofala 473, piekarnik 618, szuflady 509. */
 export const T5_MICROWAVE_AND_OVEN = scenario(600, 2200, 560, [door(600), microwave(473), oven(618), drawers(509, 2)]);

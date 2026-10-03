@@ -131,6 +131,9 @@ export class ProjectRequestBuilderService {
     if (seg.microwaveType) {
       formData.microwaveType = seg.microwaveType;
     }
+    if (seg.dishwasherType) {
+      formData.dishwasherType = seg.dishwasherType;
+    }
 
     return formData;
   }

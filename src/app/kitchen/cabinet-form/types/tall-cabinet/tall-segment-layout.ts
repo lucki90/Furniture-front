@@ -35,7 +35,9 @@ export interface TallSegmentLayout {
 }
 
 /** Wnęki na sprzęt bez pleców (wentylacja, przyłącza). */
-const BACKLESS_SEGMENTS: ReadonlySet<SegmentType> = new Set([SegmentType.OVEN, SegmentType.MICROWAVE]);
+const BACKLESS_SEGMENTS: ReadonlySet<SegmentType> = new Set([
+  SegmentType.OVEN, SegmentType.MICROWAVE, SegmentType.DISHWASHER
+]);
 
 export function tallSegmentOpeningHeightMm(segmentHeightMm: number, segmentIndex: number, boardThicknessMm: number): number {
   return segmentHeightMm - boardThicknessMm - (segmentIndex === 0 ? boardThicknessMm : 0);
