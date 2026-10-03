@@ -17,44 +17,47 @@
       </select>
     </div>
 
-    <!-- Wysokość segmentu -->
+    <!-- Wysokość segmentu: część wysokości słupka razem z płytą pod segmentem -->
     <app-form-field [errorMessage]="getFieldError('height')" class="form-group" label="Wysokość"
                     unit="mm">
       <input [min]="constraints.SEGMENT_MIN_HEIGHT" class="form-control" formControlName="height"
              type="number">
     </app-form-field>
 
-    <!-- Informacja dla wnęk AGD (OVEN / MICROWAVE) -->
-    <ng-container *ngIf="isApplianceSlot">
-      <div class="form-hint" style="margin-top: 4px; color: #666; font-size: 0.85em;">
-        <strong>Info:</strong> Wysokosc to wymiar wneki w swietle (otwor w korpusie), do ktorej wsunie sie sprzet.
-        Powinna byc ok. 3-5 mm wieksza od sprzetu.<br>
-        Typowe wymiary: piekarnik standard <strong>598 mm</strong> (sprzet 595 mm) |
-        compact <strong>458 mm</strong> (sprzet 455 mm) | mikrofalowka <strong>391 mm</strong> (sprzet 388 mm).
-      </div>
-    </ng-container>
+    <!-- Typ wnęki piekarnika (OVEN) -->
+    <div *ngIf="isOvenSegment" class="form-group">
+      <label class="form-label">Piekarnik</label>
+      <select class="form-control" formControlName="ovenHeightType">
+        <option *ngFor="let opt of ovenHeightTypeOptions; trackBy: trackByValue" [value]="opt.value">
+          {{ opt.label }}
+        </option>
+      </select>
+    </div>
 
-    <!-- Typ wneki piekarnika (tylko OVEN) -->
-    <ng-container *ngIf="isOvenSegment">
-      <div class="form-group">
-        <label class="form-label">Typ wneki piekarnika</label>
-        <select class="form-control" formControlName="ovenHeightType">
-          <option *ngFor="let opt of ovenHeightTypeOptions; trackBy: trackByValue" [value]="opt.value">
-            {{ opt.label }}
-          </option>
-        </select>
-      </div>
-      <!-- Komunikat ostrzegawczy: szerokosc slupka odbiega od standardowych szerokosci piekarnikow -->
-      <div *ngIf="ovenCabinetWidthWarning" class="form-hint"
-           style="margin-top: 4px; color: #b85c00; font-size: 0.85em;">
-        <strong>Uwaga:</strong> {{ ovenCabinetWidthWarning }}
-      </div>
-    </ng-container>
+    <!-- Typ mikrofalówki (MICROWAVE) -->
+    <div *ngIf="isMicrowaveSegment" class="form-group">
+      <label class="form-label">Mikrofalówka</label>
+      <select class="form-control" formControlName="microwaveType">
+        <option *ngFor="let opt of microwaveTypeOptions; trackBy: trackByValue" [value]="opt.value">
+          {{ opt.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Szerokość zmywarki (DISHWASHER) -->
+    <div *ngIf="isDishwasherSegment" class="form-group">
+      <label class="form-label">Zmywarka</label>
+      <select class="form-control" formControlName="dishwasherType">
+        <option *ngFor="let opt of dishwasherTypeOptions; trackBy: trackByValue" [value]="opt.value">
+          {{ opt.label }}
+        </option>
+      </select>
+    </div>
 
     <!-- Opcje dla szuflad (DRAWER) -->
     <ng-container *ngIf="showDrawerOptions">
       <div class="form-group">
-        <label class="form-label">Ilość szuflad</label>
+        <label class="form-label">Liczba szuflad</label>
         <input [max]="constraints.SEGMENT_DRAWER_MAX" [min]="constraints.SEGMENT_DRAWER_MIN" class="form-control"
                formControlName="drawerQuantity"
                type="number">
@@ -82,10 +85,19 @@
     <!-- Opcje dla drzwi (DOOR) -->
     <ng-container *ngIf="showFrontTypeOptions">
       <div class="form-group">
-        <label class="form-label">Typ drzwi</label>
+        <label class="form-label">Front</label>
         <select class="form-control" formControlName="frontType">
           <option *ngFor="let opt of doorFrontTypeOptions; trackBy: trackByValue" [value]="opt.value">
             {{ opt.label }}
+          </option>
+        </select>
+      </div>
+
+      <div *ngIf="isFlap" class="form-group">
+        <label class="form-label">Podnośnik klapy</label>
+        <select class="form-control" formControlName="liftMechanismType">
+          <option *ngFor="let item of liftMechanismOptions(); trackBy: trackByCode" [value]="item.code">
+            {{ item.label }}
           </option>
         </select>
       </div>
@@ -106,4 +118,20 @@
       </div>
     </ng-container>
   </div>
+
+  <!-- Światło wnęki: wysokość między płytami, z niej sprawdzany jest sprzęt -->
+  <div *ngIf="openingHeightMm !== null" class="segment-opening">
+    Światło wnęki: <strong>{{ openingHeightMm }} mm</strong>
+    <ng-container *ngIf="applianceNiche as niche">
+      — {{ niche.label }} wymaga
+      <ng-container *ngIf="niche.maxOpeningHeightMm === null">min. {{ niche.minOpeningHeightMm }} mm</ng-container>
+      <ng-container *ngIf="niche.maxOpeningHeightMm !== null">
+        {{ niche.minOpeningHeightMm }}–{{ niche.maxOpeningHeightMm }} mm
+      </ng-container>
+    </ng-container>
+  </div>
+
+  <ul *ngIf="segmentIssues.length > 0" class="segment-issues">
+    <li *ngFor="let issue of segmentIssues; trackBy: trackByCode">{{ issue.message }}</li>
+  </ul>
 </div>

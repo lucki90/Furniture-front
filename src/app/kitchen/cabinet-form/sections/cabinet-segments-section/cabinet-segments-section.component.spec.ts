@@ -1,7 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { CabinetSegmentsSectionComponent } from './cabinet-segments-section.component';
+import { signal } from '@angular/core';
 import { SegmentType } from '../../model/segment.model';
+import { createSegmentFormGroup } from '../../model/segment-form-group';
+import { DictionaryService } from '../../../service/dictionary.service';
 
 describe('CabinetSegmentsSectionComponent', () => {
   let component: CabinetSegmentsSectionComponent;
@@ -10,7 +13,8 @@ describe('CabinetSegmentsSectionComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CabinetSegmentsSectionComponent]
+      imports: [CabinetSegmentsSectionComponent],
+      providers: [{ provide: DictionaryService, useValue: { data: signal({ liftMechanismTypes: [] }) } }]
     }).compileComponents();
 
     fixture = TestBed.createComponent(CabinetSegmentsSectionComponent);
@@ -40,7 +44,33 @@ describe('CabinetSegmentsSectionComponent', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Sekcja lodowki: 1400mm');
+    expect(fixture.nativeElement.textContent).toContain('Sekcja lodówki: 1400mm');
+  });
+
+  it('słupek: popup segmentu pokazuje światło wnęki i uwagę do piekarnika (T3)', () => {
+    component.form = fb.group({ width: [600], height: [2100] });
+    component.segmentsArray = new FormArray([
+      createSegmentFormGroup(fb, { segmentType: SegmentType.DOOR, height: 800, orderIndex: 0 }),
+      createSegmentFormGroup(fb, { segmentType: SegmentType.OVEN, height: 600, orderIndex: 1 }),
+      createSegmentFormGroup(fb, { segmentType: SegmentType.DRAWER, height: 700, orderIndex: 2 })
+    ]);
+    component.selectedSegmentIndex = 1;
+    component.selectedSegmentForm = component.segmentsArray.at(1) as any;
+
+    fixture.detectChanges();
+
+    const popup: HTMLElement = fixture.nativeElement.querySelector('.segment-popup');
+    expect(popup.textContent).toContain('Światło wnęki: 582 mm');
+    expect(popup.querySelector('.segment-issues')?.textContent).toContain('o 18 mm');
+  });
+
+  it('lodówka w zabudowie: sekcje bez światła słupka', () => {
+    component.isFridgeCabinet = true;
+    component.selectedSegmentIndex = 0;
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.segment-opening')).toBeNull();
   });
 
   it('emits add and close events', () => {

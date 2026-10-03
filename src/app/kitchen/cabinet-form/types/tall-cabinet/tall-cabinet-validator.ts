@@ -2,6 +2,7 @@ import { FormArray, FormGroup, Validators } from "@angular/forms";
 import { CABINET_FORM_MESSAGES } from "../../cabinet-form-validation-messages";
 import { KitchenCabinetConstraints } from "../../model/kitchen-cabinet-constants";
 import { KitchenCabinetValidator } from "../../type-config/validator/kitchen-cabinet-validator";
+import { tallSegmentIssues } from './tall-segment-rules';
 
 /**
  * Validator dla szafki typu słupek (TALL_CABINET).
@@ -141,6 +142,18 @@ export class TallCabinetValidator implements KitchenCabinetValidator {
     const netHeight = this.getNetHeight(form);
     const difference = Math.abs(segmentsSum - netHeight);
     return difference <= 5;
+  }
+
+  /**
+   * Pierwsza uwaga reguł segmentów (światło wnęk AGD, szerokość drzwi, klapa) — blokuje zapis jak błąd sumy wysokości.
+   */
+  getSegmentRulesError(form: FormGroup): string | null {
+    const segmentsControl = form.get('segments');
+    if (!(segmentsControl instanceof FormArray)) {
+      return null;
+    }
+    const [issue] = tallSegmentIssues(form.get('width')?.value ?? 0, segmentsControl.getRawValue());
+    return issue?.message ?? null;
   }
 
   /**

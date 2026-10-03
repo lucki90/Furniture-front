@@ -31,7 +31,8 @@ export class CabinetSegmentValidationService {
     }
 
     if (type === KitchenCabinetType.TALL_CABINET) {
-      return this.tallCabinetValidator.getSegmentsHeightError(form, msg);
+      return this.tallCabinetValidator.getSegmentsHeightError(form, msg)
+        ?? this.tallCabinetValidator.getSegmentRulesError(form);
     }
 
     return null;

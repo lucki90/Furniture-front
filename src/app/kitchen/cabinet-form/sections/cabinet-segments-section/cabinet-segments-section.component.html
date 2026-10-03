@@ -1,17 +1,17 @@
 ﻿<div class="segments-section">
-  <app-cabinet-section-header *ngIf="!isFridgeCabinet" title="Konfiguracja segmentow">
+  <app-cabinet-section-header *ngIf="!isFridgeCabinet" title="Konfiguracja segmentów">
     <span class="segment-count">({{ segmentsArray.length }})</span>
   </app-cabinet-section-header>
 
-  <app-cabinet-section-header *ngIf="isFridgeCabinet" title="Sekcje nad lodowka">
+  <app-cabinet-section-header *ngIf="isFridgeCabinet" title="Sekcje nad lodówką">
     <span *ngIf="segmentsArray.length > 0" class="segment-count">({{ segmentsArray.length }})</span>
     <span *ngIf="segmentsArray.length === 0" class="form-hint"> - opcjonalne</span>
   </app-cabinet-section-header>
 
   <div *ngIf="isFridgeCabinet" class="fridge-section-info">
-    Sekcja lodowki: <strong>{{ fridgeSectionHeight }}mm</strong>
+    Sekcja lodówki: <strong>{{ fridgeSectionHeight }}mm</strong>
     <span *ngIf="segmentsArray.length > 0" class="form-hint">
-      ({{ form.get('height')?.value }}mm - {{ fridgeUpperSectionsHeightSum }}mm sekcji gornych)
+      ({{ form.get('height')?.value }}mm - {{ fridgeUpperSectionsHeightSum }}mm sekcji górnych)
     </span>
   </div>
 
@@ -24,11 +24,11 @@
       [segmentsArray]="segmentsArray"
       [selectedIndex]="selectedSegmentIndex">
     </app-segment-visualizer>
-    <p *ngIf="segmentsArray.length > 0" class="visualizer-hint">Kliknij segment, aby edytowac</p>
+    <p *ngIf="segmentsArray.length > 0" class="visualizer-hint">Kliknij segment, aby edytować</p>
   </div>
 
   <button (click)="addSegment.emit()" class="btn-add-segment" type="button">
-    <ng-container *ngIf="isFridgeCabinet">+ Dodaj sekcje nad lodowka</ng-container>
+    <ng-container *ngIf="isFridgeCabinet">+ Dodaj sekcję nad lodówką</ng-container>
     <ng-container *ngIf="!isFridgeCabinet">+ Dodaj segment</ng-container>
   </button>
 
@@ -48,6 +48,8 @@
       (remove)="removeSelectedSegment.emit()"
       *ngIf="selectedSegmentForm"
       [cabinetWidthMm]="form.get('width')?.value ?? null"
+      [openingHeightMm]="selectedOpeningHeightMm"
+      [segmentIssues]="selectedSegmentIssues"
       [segmentForm]="selectedSegmentForm"
       [segmentIndex]="selectedSegmentIndex"
       [segmentTypeOptions]="activeSegmentTypeOptions">

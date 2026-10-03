@@ -92,7 +92,7 @@ export const KitchenCabinetConstraints = {
   },
   TALL_CABINET: {
     WIDTH_MIN: 300,
-    WIDTH_MAX: 600,
+    WIDTH_MAX: 900,
     HEIGHT_MIN: 1700,
     HEIGHT_MAX: 2500,
     DEPTH_MIN: 500,

@@ -501,6 +501,20 @@ describe('ProjectRequestBuilderService', () => {
       expect(service.mapSegmentResponseToFormData(request).dishwasherType).toBe('W45');
     });
 
+    it('klapa do góry: front UPWARDS i podnośnik przy zapisie i odczycie; drzwi bez podnośnika (Etap 4a)', () => {
+      const flap: SegmentFormData = {
+        segmentType: SegmentType.DOOR, height: 600, orderIndex: 0, shelfQuantity: 1,
+        frontType: SegmentFrontType.UPWARDS, liftMechanismType: 'AVENTOS_HK_TOP'
+      };
+      const door: SegmentFormData = { ...flap, frontType: SegmentFrontType.ONE_DOOR };
+
+      const loaded = service.mapSegmentResponseToFormData(mapSegmentToRequest(flap));
+
+      expect(loaded.frontType).toBe(SegmentFrontType.UPWARDS);
+      expect(loaded.liftMechanismType).toBe('AVENTOS_HK_TOP');
+      expect(mapSegmentToRequest(door).liftMechanismType).toBeNull();
+    });
+
     it('segment zapisany bez typu wnęki zostaje bez typu (domyślny typ rozstrzyga backend i formularz)', () => {
       const result = service.mapSegmentResponseToFormData({
         segmentType: SegmentType.MICROWAVE, height: 450, orderIndex: 0, shelfQuantity: 0, frontType: 'OPEN'

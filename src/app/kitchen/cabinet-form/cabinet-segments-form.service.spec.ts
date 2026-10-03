@@ -28,7 +28,10 @@ describe('CabinetSegmentsFormService', () => {
       drawerModel: null,
       shelfQuantity: 0,
       frontType: 'ONE_DOOR',
-      ovenHeightType: null
+      ovenHeightType: null,
+      microwaveType: null,
+      dishwasherType: null,
+      liftMechanismType: null
     });
   });
 

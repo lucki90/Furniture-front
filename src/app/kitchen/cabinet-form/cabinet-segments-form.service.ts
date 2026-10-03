@@ -1,11 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import { SegmentFormData, SegmentType } from './model/segment.model';
+import { SegmentFormData } from './model/segment.model';
+import { createSegmentFormGroup } from './model/segment-form-group';
 import { KitchenCabinetConstraints } from './model/kitchen-cabinet-constants';
 import { ProjectSettingsService } from '../service/project-settings.service';
 
-/** Domyślna wysokość nowego segmentu szafki (mm). */
-const DEFAULT_SEGMENT_HEIGHT_MM = 400;
 const MAX_DRAWER_CUSTOM_HEIGHTS = KitchenCabinetConstraints.BASE_WITH_DRAWERS.DRAWER_MAX;
 
 @Injectable({ providedIn: 'root' })
@@ -14,17 +13,7 @@ export class CabinetSegmentsFormService {
   private readonly projectSettings = inject(ProjectSettingsService);
 
   createDefaultSegment(orderIndex: number): FormGroup {
-    return this.fb.group({
-      segmentType: [SegmentType.DOOR],
-      height: [DEFAULT_SEGMENT_HEIGHT_MM],
-      orderIndex: [orderIndex],
-      drawerQuantity: [null],
-      drawerModel: [null],
-      shelfQuantity: [0],
-      frontType: ['ONE_DOOR'],
-      // Dla OVEN: typ wnęki piekarnika (STANDARD/COMPACT). null gdy segment nie jest OVEN.
-      ovenHeightType: [null]
-    });
+    return createSegmentFormGroup(this.fb, { orderIndex });
   }
 
   replaceSegments(segmentsArray: FormArray, segments: SegmentFormData[]): void {
@@ -51,16 +40,7 @@ export class CabinetSegmentsFormService {
   }
 
   private createSegmentFromData(segment: SegmentFormData, index: number): FormGroup {
-    return this.fb.group({
-      segmentType: [segment.segmentType],
-      height: [segment.height],
-      orderIndex: [segment.orderIndex ?? index],
-      drawerQuantity: [segment.drawerQuantity ?? null],
-      drawerModel: [segment.drawerModel ?? null],
-      shelfQuantity: [segment.shelfQuantity ?? null],
-      frontType: [segment.frontType ?? null],
-      ovenHeightType: [segment.ovenHeightType ?? null]
-    });
+    return createSegmentFormGroup(this.fb, { ...segment, orderIndex: segment.orderIndex ?? index });
   }
 
   /**

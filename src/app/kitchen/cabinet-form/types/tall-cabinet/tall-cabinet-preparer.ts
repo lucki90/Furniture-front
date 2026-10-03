@@ -2,7 +2,8 @@ import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { setControlEnabled } from '../../type-config/preparer/cabinet-preparer.utils';
 import { KitchenCabinetPreparer } from '../../type-config/preparer/kitchen-cabinet-preparer';
 import { CabinetFormVisibility } from '../../type-config/preparer/cabinet-form-visibility';
-import { SegmentType } from '../../model/segment.model';
+import { SegmentFrontType, SegmentType } from '../../model/segment.model';
+import { createSegmentFormGroup } from '../../model/segment-form-group';
 
 /**
  * Preparer dla szafki typu słupek (TALL_CABINET).
@@ -52,7 +53,7 @@ export class TallCabinetPreparer implements KitchenCabinetPreparer {
 
   /**
    * Inicjalizuje domyślne segmenty dla słupka.
-   * Domyślna konfiguracja: 3 szuflady na górze (500mm) + drzwi na dole (1500mm).
+   * Domyślna konfiguracja: drzwi na górze (1500 mm, 2 półki) + 3 szuflady na dole (500 mm).
    */
   private initializeDefaultSegments(form: FormGroup): void {
     const segmentsControl = form.get('segments');
@@ -63,41 +64,22 @@ export class TallCabinetPreparer implements KitchenCabinetPreparer {
         segmentsControl.removeAt(0);
       }
 
-      // Dodaj domyślne segmenty
-      // Segment 1: Szuflady na górze (500mm, 3 szuflady)
-      segmentsControl.push(this.createSegmentGroup({
+      // Segment 1: drzwi na górze (1500 mm, 2 półki); segment 2: szuflady na dole (500 mm, 3 szuflady)
+      const fb = new FormBuilder();
+      segmentsControl.push(createSegmentFormGroup(fb, {
+        segmentType: SegmentType.DOOR,
+        height: 1500,
+        orderIndex: 0,
+        shelfQuantity: 2,
+        frontType: SegmentFrontType.ONE_DOOR
+      }));
+      segmentsControl.push(createSegmentFormGroup(fb, {
         segmentType: SegmentType.DRAWER,
         height: 500,
-        orderIndex: 0,
+        orderIndex: 1,
         drawerQuantity: 3,
         drawerModel: 'ANTARO_TANDEMBOX'
       }));
-
-      // Segment 2: Drzwi na dole (1500mm, 2 półki)
-      segmentsControl.push(this.createSegmentGroup({
-        segmentType: SegmentType.DOOR,
-        height: 1500,
-        orderIndex: 1,
-        shelfQuantity: 2,
-        frontType: 'ONE_DOOR'
-      }));
     }
-  }
-
-  /**
-   * Tworzy FormGroup dla pojedynczego segmentu.
-   */
-  private createSegmentGroup(data: any): FormGroup {
-    // Używamy prostego obiektu, FormBuilder jest używany w komponencie
-    const fb = new FormBuilder();
-    return fb.group({
-      segmentType: [data.segmentType],
-      height: [data.height],
-      orderIndex: [data.orderIndex],
-      drawerQuantity: [data.drawerQuantity ?? null],
-      drawerModel: [data.drawerModel ?? null],
-      shelfQuantity: [data.shelfQuantity ?? null],
-      frontType: [data.frontType ?? null]
-    });
   }
 }

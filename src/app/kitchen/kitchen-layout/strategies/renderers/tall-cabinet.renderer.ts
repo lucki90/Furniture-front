@@ -6,7 +6,7 @@ import { TALL_SEGMENT_DOOR_DEFAULT_MM, TALL_SEGMENT_DRAWER_DEFAULT_MM } from '..
 /**
  * Renderuje segmenty słupka kuchennego (TALL_CABINET).
  * Segmenty są rysowane proporcjonalnie do ich wysokości w mm.
- * Obsługiwane typy segmentów: DOOR, DRAWER, OPEN_SHELF, OVEN, MICROWAVE.
+ * Obsługiwane typy segmentów: DOOR (drzwi albo klapa do góry), DRAWER, OPEN_SHELF, OVEN, MICROWAVE, DISHWASHER.
  * Jeśli brak segmentów — domyślnie 3 sekcje (2 drzwi + szuflady).
  */
 export function renderTallCabinet(
@@ -73,7 +73,15 @@ export function renderTallCabinet(
       }
 
       case SegmentType.DOOR:
-        if (segment.frontType === SegmentFrontType.TWO_DOORS) {
+        if (segment.frontType === SegmentFrontType.UPWARDS) {
+          // Klapa do góry — jeden front, uchwyt przy dolnej krawędzi
+          fronts.push({ type: 'DOOR_SINGLE', x: frontX, y: currentY, width: frontWidth, height: segmentHeightPx });
+          handles.push(createHorizontalHandle(
+            displayX + displayWidth / 2,
+            currentY + segmentHeightPx - 3,
+            Math.min(frontWidth / 2 - 2, 12)
+          ));
+        } else if (segment.frontType === SegmentFrontType.TWO_DOORS) {
           const doorWidth = (frontWidth - gap) / 2;
           fronts.push(
             { type: 'DOOR_SINGLE', x: frontX, y: currentY, width: doorWidth, height: segmentHeightPx, hingesSide: 'LEFT' },
@@ -97,6 +105,16 @@ export function renderTallCabinet(
       case SegmentType.MICROWAVE:
         // Wnęka AGD — srebrno-szary kolor (typ 'APPLIANCE')
         fronts.push({ type: 'APPLIANCE', x: frontX, y: currentY, width: frontWidth, height: segmentHeightPx });
+        break;
+
+      case SegmentType.DISHWASHER:
+        // Front na drzwiach zmywarki — otwierany w dół, uchwyt przy górnej krawędzi
+        fronts.push({ type: 'DOOR_SINGLE', x: frontX, y: currentY, width: frontWidth, height: segmentHeightPx });
+        handles.push(createHorizontalHandle(
+          displayX + displayWidth / 2,
+          currentY + 3,
+          Math.min(frontWidth / 2 - 2, 12)
+        ));
         break;
     }
 

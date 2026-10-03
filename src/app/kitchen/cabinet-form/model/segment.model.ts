@@ -19,6 +19,7 @@ export enum SegmentType {
 export enum SegmentFrontType {
   ONE_DOOR = 'ONE_DOOR',
   TWO_DOORS = 'TWO_DOORS',
+  UPWARDS = 'UPWARDS',     // Klapa do góry — tylko w najwyższym segmencie słupka
   DRAWER = 'DRAWER',
   OPEN = 'OPEN'
 }
@@ -66,6 +67,8 @@ export interface SegmentFormData {
   microwaveType?: MicrowaveSegmentType | null;
   // Dla DISHWASHER: szerokość zmywarki — wyznacza wymagane światło wnęki
   dishwasherType?: DishwasherSegmentType | null;
+  // Dla DOOR z frontem UPWARDS: podnośnik klapy (kod LIFT_MECHANISM_TYPE)
+  liftMechanismType?: string | null;
 }
 
 /**
@@ -86,6 +89,7 @@ export interface SegmentRequest {
   ovenHeightType?: OvenSegmentHeightType | null;
   microwaveType?: MicrowaveSegmentType | null;
   dishwasherType?: DishwasherSegmentType | null;
+  liftMechanismType?: string | null;
 }
 
 /**
@@ -94,9 +98,10 @@ export interface SegmentRequest {
 export const SEGMENT_TYPE_OPTIONS: { value: SegmentType; label: string; icon: string }[] = [
   { value: SegmentType.DRAWER, label: 'Szuflady', icon: 'SZ' },
   { value: SegmentType.DOOR, label: 'Drzwi', icon: 'DR' },
-  { value: SegmentType.OPEN_SHELF, label: 'Otwarte polki', icon: 'OP' },
-  { value: SegmentType.OVEN, label: 'Piekarnik (wneka)', icon: 'PI' },
-  { value: SegmentType.MICROWAVE, label: 'Mikrofalowka (wneka)', icon: 'MI' }
+  { value: SegmentType.OPEN_SHELF, label: 'Otwarte półki', icon: 'OP' },
+  { value: SegmentType.OVEN, label: 'Piekarnik (wnęka)', icon: 'PI' },
+  { value: SegmentType.MICROWAVE, label: 'Mikrofalówka (wnęka)', icon: 'MI' },
+  { value: SegmentType.DISHWASHER, label: 'Zmywarka (wnęka z frontem)', icon: 'ZM' }
 ];
 
 /**
@@ -104,7 +109,8 @@ export const SEGMENT_TYPE_OPTIONS: { value: SegmentType; label: string; icon: st
  */
 export const DOOR_FRONT_TYPE_OPTIONS: { value: SegmentFrontType; label: string }[] = [
   { value: SegmentFrontType.ONE_DOOR, label: 'Jedne drzwi' },
-  { value: SegmentFrontType.TWO_DOORS, label: 'Dwoje drzwi' }
+  { value: SegmentFrontType.TWO_DOORS, label: 'Dwoje drzwi' },
+  { value: SegmentFrontType.UPWARDS, label: 'Klapa do góry' }
 ];
 
 /**
@@ -147,6 +153,9 @@ export function mapSegmentToRequest(segment: SegmentFormData): SegmentRequest {
     case SegmentType.DOOR:
       request.frontType = segment.frontType ?? SegmentFrontType.ONE_DOOR;
       request.shelfQuantity = segment.shelfQuantity ?? 0;
+      request.liftMechanismType = request.frontType === SegmentFrontType.UPWARDS
+        ? segment.liftMechanismType ?? null
+        : null;
       break;
 
     case SegmentType.OPEN_SHELF:

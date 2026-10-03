@@ -134,6 +134,9 @@ export class ProjectRequestBuilderService {
     if (seg.dishwasherType) {
       formData.dishwasherType = seg.dishwasherType;
     }
+    if (seg.liftMechanismType) {
+      formData.liftMechanismType = seg.liftMechanismType;
+    }
 
     return formData;
   }
