@@ -494,7 +494,8 @@
     <app-corner-options-form *ngIf="visibility.cornerWidthA" [form]="form"></app-corner-options-form>
 
     <!-- Obudowa boczna -->
-    <app-enclosure-form *ngIf="visibility.enclosureSection" [form]="form"></app-enclosure-form>
+    <app-enclosure-form *ngIf="visibility.enclosureSection" [cabinetType]="form.get('kitchenCabinetType')?.value"
+                        [form]="form"></app-enclosure-form>
 
     <!-- Pusty stan -->
     <div *ngIf="!hasOptionsTab" class="form-tab-empty">
