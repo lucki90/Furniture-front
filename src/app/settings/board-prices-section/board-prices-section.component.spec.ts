@@ -58,6 +58,76 @@ describe('BoardPricesSectionComponent', () => {
     fixture.detectChanges();
   });
 
+  // Confirmed saves: PUT/GET answered in a controlled order through Subjects, asserted on the real template.
+
+  let updates: Map<number, Subject<BoardPrice>>;
+  let refresh: Subject<BoardPrice[]>;
+  let emitted: BoardPrice[][];
+
+  function loadRows(rows: BoardPrice[]): void {
+    serviceSpy.list.and.returnValue(of(rows));
+    component.loadBoardPrices();
+    fixture.detectChanges();
+  }
+
+  function stubSaveRequests(ids: number[]): void {
+    updates = new Map(ids.map(id => [id, new Subject<BoardPrice>()]));
+    serviceSpy.update.and.callFake((id: number) => updates.get(id)!.asObservable());
+    refresh = new Subject<BoardPrice[]>();
+    serviceSpy.list.calls.reset();
+    serviceSpy.list.and.returnValue(refresh.asObservable());
+    emitted = [];
+    component.boardPricesChanged.subscribe(prices => emitted.push(prices));
+  }
+
+  const colorText = (row: HTMLTableRowElement) =>
+    row.cells[1].querySelector('.board-color-display > span:last-child')?.textContent!.trim() ?? '';
+
+  function rowFor(colorName: string): HTMLTableRowElement {
+    const rows = Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[];
+    const row = rows.find(tr => colorText(tr) === colorName);
+    if (!row) {
+      throw new Error(`No visible row for ${colorName}`);
+    }
+    return row;
+  }
+
+  const checkbox = (row: HTMLTableRowElement) => row.cells[0].querySelector('input') as HTMLInputElement;
+  const priceText = (row: HTMLTableRowElement) => row.cells[5].textContent!.trim();
+  const sourceText = (row: HTMLTableRowElement) => row.cells[6].textContent!.trim();
+  const visibleColors = () => (Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[])
+    .map(colorText);
+  const noticeText = () =>
+    (fixture.nativeElement.querySelector('.board-save-notice[role="alert"]') as HTMLElement | null)
+      ?.textContent!.trim() ?? null;
+
+  function selectRows(...colorNames: string[]): void {
+    colorNames.forEach(name => checkbox(rowFor(name)).click());
+    fixture.detectChanges();
+  }
+
+  function confirm(id: number, saved: BoardPrice): void {
+    updates.get(id)!.next(saved);
+    updates.get(id)!.complete();
+    fixture.detectChanges();
+  }
+
+  function fail(id: number): void {
+    updates.get(id)!.error(new HttpErrorResponse({ status: 500, statusText: 'Server Error' }));
+    fixture.detectChanges();
+  }
+
+  function answerRefresh(rows: BoardPrice[]): void {
+    refresh.next(rows);
+    refresh.complete();
+    fixture.detectChanges();
+  }
+
+  function failRefresh(): void {
+    refresh.error(new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' }));
+    fixture.detectChanges();
+  }
+
   describe('initial load', () => {
     it('loads board prices on init', () => {
       expect(component.boardPrices.length).toBe(3);
@@ -304,53 +374,8 @@ describe('BoardPricesSectionComponent', () => {
       colorCode: 'COLOR_3', colorName: 'Color 3', pricePerM2: 50, priceEntryId: 199,
     });
 
-    let updates: Map<number, Subject<BoardPrice>>;
-    let refresh: Subject<BoardPrice[]>;
-    let emitted: BoardPrice[][];
-
-    function loadRows(rows: BoardPrice[]): void {
-      serviceSpy.list.and.returnValue(of(rows));
-      component.loadBoardPrices();
-      fixture.detectChanges();
-    }
-
-    function stubBulkRequests(ids: number[]): void {
-      updates = new Map(ids.map(id => [id, new Subject<BoardPrice>()]));
-      serviceSpy.update.and.callFake((id: number) => updates.get(id)!.asObservable());
-      refresh = new Subject<BoardPrice[]>();
-      serviceSpy.list.calls.reset();
-      serviceSpy.list.and.returnValue(refresh.asObservable());
-      emitted = [];
-      component.boardPricesChanged.subscribe(prices => emitted.push(prices));
-    }
-
-    const colorText = (row: HTMLTableRowElement) =>
-      row.cells[1].querySelector('.board-color-display > span:last-child')!.textContent!.trim();
-
-    function rowFor(colorName: string): HTMLTableRowElement {
-      const rows = Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[];
-      const row = rows.find(tr => colorText(tr) === colorName);
-      if (!row) {
-        throw new Error(`No visible row for ${colorName}`);
-      }
-      return row;
-    }
-
-    const checkbox = (row: HTMLTableRowElement) => row.cells[0].querySelector('input') as HTMLInputElement;
-    const priceText = (row: HTMLTableRowElement) => row.cells[5].textContent!.trim();
-    const sourceText = (row: HTMLTableRowElement) => row.cells[6].textContent!.trim();
-    const visibleColors = () => (Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[])
-      .map(colorText);
     const bulkButton = () =>
       fixture.nativeElement.querySelector('button.board-action-btn.btn-primary') as HTMLButtonElement | null;
-    const noticeText = () =>
-      (fixture.nativeElement.querySelector('.board-bulk-notice[role="alert"]') as HTMLElement | null)
-        ?.textContent!.trim() ?? null;
-
-    function selectRows(...colorNames: string[]): void {
-      colorNames.forEach(name => checkbox(rowFor(name)).click());
-      fixture.detectChanges();
-    }
 
     function clickBulkSave(price: number): void {
       component.bulkPrice = price;
@@ -359,31 +384,9 @@ describe('BoardPricesSectionComponent', () => {
       fixture.detectChanges();
     }
 
-    function confirm(id: number, saved: BoardPrice): void {
-      updates.get(id)!.next(saved);
-      updates.get(id)!.complete();
-      fixture.detectChanges();
-    }
-
-    function fail(id: number): void {
-      updates.get(id)!.error(new HttpErrorResponse({ status: 500, statusText: 'Server Error' }));
-      fixture.detectChanges();
-    }
-
-    function answerRefresh(rows: BoardPrice[]): void {
-      refresh.next(rows);
-      refresh.complete();
-      fixture.detectChanges();
-    }
-
-    function failRefresh(): void {
-      refresh.error(new HttpErrorResponse({ status: 503, statusText: 'Service Unavailable' }));
-      fixture.detectChanges();
-    }
-
     it('keeps GLOBAL 3 → OWN 99 when the other PUT fails afterwards (success before error)', () => {
       loadRows([OWN_1_10, GLOBAL_3_30]);
-      stubBulkRequests([3, 1]);
+      stubSaveRequests([3, 1]);
       selectRows('Color 3', 'Color 1');
       clickBulkSave(50);
       expect(serviceSpy.update.calls.allArgs()).toEqual([[3, { pricePerM2: 50 }], [1, { pricePerM2: 50 }]]);
@@ -427,7 +430,7 @@ describe('BoardPricesSectionComponent', () => {
 
     it('does not let an early error cancel a later GLOBAL → OWN success (error before success)', () => {
       loadRows([OWN_1_10, GLOBAL_3_30]);
-      stubBulkRequests([1, 3]);
+      stubSaveRequests([1, 3]);
       selectRows('Color 1', 'Color 3');
       clickBulkSave(50);
 
@@ -454,7 +457,7 @@ describe('BoardPricesSectionComponent', () => {
 
     it('keeps confirmed OWN prices and leaves unselected rows alone (OWN + OWN, partial)', () => {
       loadRows([OWN_1_10, OWN_2_20, GLOBAL_3_30]);
-      stubBulkRequests([1, 2]);
+      stubSaveRequests([1, 2]);
       selectRows('Color 1', 'Color 2');
       clickBulkSave(50);
 
@@ -477,7 +480,7 @@ describe('BoardPricesSectionComponent', () => {
 
     it('refreshes after a full success, then clears the selection and the bulk price', () => {
       loadRows([OWN_1_10, GLOBAL_3_30]);
-      stubBulkRequests([3, 1]);
+      stubSaveRequests([3, 1]);
       selectRows('Color 3', 'Color 1');
       clickBulkSave(50);
 
@@ -502,7 +505,7 @@ describe('BoardPricesSectionComponent', () => {
 
     it('refreshes and keeps the selection when no PUT was confirmed', () => {
       loadRows([OWN_1_10, GLOBAL_3_30]);
-      stubBulkRequests([3, 1]);
+      stubSaveRequests([3, 1]);
       selectRows('Color 3', 'Color 1');
       clickBulkSave(50);
 
@@ -528,7 +531,7 @@ describe('BoardPricesSectionComponent', () => {
 
     it('keeps confirmed OWN rows and the loaded table when the refresh GET fails', () => {
       loadRows([OWN_1_10, GLOBAL_3_30]);
-      stubBulkRequests([3, 1]);
+      stubSaveRequests([3, 1]);
       selectRows('Color 3', 'Color 1');
       clickBulkSave(50);
 
@@ -553,7 +556,7 @@ describe('BoardPricesSectionComponent', () => {
 
     it('reports a failed refresh after a full success without hiding the confirmed prices', () => {
       loadRows([OWN_1_10, GLOBAL_3_30]);
-      stubBulkRequests([3, 1]);
+      stubSaveRequests([3, 1]);
       selectRows('Color 3', 'Color 1');
       clickBulkSave(50);
 
@@ -584,7 +587,7 @@ describe('BoardPricesSectionComponent', () => {
       fixture.detectChanges();
       component.goToBoardPage(2);
       fixture.detectChanges();
-      stubBulkRequests([11, 12]);
+      stubSaveRequests([11, 12]);
       selectRows('Color 11', 'Color 12');
       clickBulkSave(50);
 
@@ -646,6 +649,232 @@ describe('BoardPricesSectionComponent', () => {
 
       // editingBoardId remains set on error — row stays in edit mode
       expect(component.editingBoardId).toBe(OWN_1.id);
+    });
+  });
+
+  describe('submitEditBoard — confirmed PUT kept when the refresh fails', () => {
+    const OWN_1_10 = makeBoardPrice(1, 'OWN', { pricePerM2: 10 });
+    const CZARNY_2_20 = makeBoardPrice(2, 'OWN', { colorName: 'Czarny', colorHex: '#000000', pricePerM2: 20 });
+    // OWN keeps its id and priceEntryId; the response carries the edited fields and a new updatedAt.
+    const GRAFIT_2_75 = makeBoardPrice(2, 'OWN', {
+      colorName: 'Grafit', colorHex: '#333333', pricePerM2: 75, updatedAt: '2026-10-03T12:00:00Z',
+    });
+    const BIALY_3_30 = makeBoardPrice(3, 'GLOBAL', { colorName: 'Biały', pricePerM2: 30 });
+    // Clone-on-write: GLOBAL 3 is not modified, the confirmed override is OWN 99 with the same signature.
+    const NOWY_BIALY_99_70 = makeBoardPrice(99, 'OWN', {
+      colorCode: 'COLOR_3', colorName: 'Nowy biały', pricePerM2: 70, priceEntryId: 199,
+      updatedAt: '2026-10-03T12:00:00Z',
+    });
+
+    const editedRow = () =>
+      (fixture.nativeElement.querySelector('input.board-edit-input--price') as HTMLInputElement | null)
+        ?.closest('tr') ?? null;
+    const saveButton = (row: HTMLTableRowElement) =>
+      row.cells[7].querySelector('button.btn-primary') as HTMLButtonElement;
+
+    function typeInto(row: HTMLTableRowElement, selector: string, value: string): void {
+      const input = row.querySelector(selector) as HTMLInputElement;
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+    }
+
+    async function openEditor(colorName: string): Promise<HTMLTableRowElement> {
+      const editButton = Array.from(rowFor(colorName).cells[7].querySelectorAll('button'))
+        .find(button => button.textContent!.trim() === 'Edytuj')!;
+      editButton.click();
+      fixture.detectChanges();
+      // ngModel writes the row's current values into the editor asynchronously.
+      await fixture.whenStable();
+      fixture.detectChanges();
+      return editedRow()!;
+    }
+
+    async function editAndSave(colorName: string, changes: { price: string; name?: string; hex?: string }): Promise<void> {
+      const row = await openEditor(colorName);
+      typeInto(row, '.board-edit-input--price', changes.price);
+      if (changes.name !== undefined) {
+        typeInto(row, '.board-edit-input--name', changes.name);
+      }
+      if (changes.hex !== undefined) {
+        typeInto(row, '.board-edit-input--hex', changes.hex);
+      }
+      fixture.detectChanges();
+      saveButton(row).click();
+      fixture.detectChanges();
+    }
+
+    it('keeps a confirmed OWN edit (price and metadata) when the refresh GET fails', async () => {
+      loadRows([OWN_1_10, CZARNY_2_20, BIALY_3_30]);
+      stubSaveRequests([2]);
+      selectRows('Color 1', 'Czarny');
+      await editAndSave('Czarny', { price: '75', name: 'Grafit', hex: '#333333' });
+      expect(serviceSpy.update).toHaveBeenCalledOnceWith(2, { pricePerM2: 75, colorName: 'Grafit', colorHex: '#333333' });
+
+      confirm(2, GRAFIT_2_75);
+      failRefresh();
+
+      expect(component.boardPrices).toEqual([OWN_1_10, GRAFIT_2_75, BIALY_3_30]);
+      expect(emitted).toEqual([[OWN_1_10, GRAFIT_2_75, BIALY_3_30]]);
+      expect(component.editBoardSaving).toBeFalse();
+      expect(editedRow()).toBeNull();
+      expect(visibleColors()).toEqual(['Color 1', 'Grafit', 'Biały']);
+      const row = rowFor('Grafit');
+      expect(priceText(row)).toBe('75.00 zł');
+      expect(sourceText(row)).toBe('Własna');
+      expect((row.querySelector('.settings-color-swatch') as HTMLElement).title).toBe('#333333');
+      expect(checkbox(row).checked).toBeTrue();
+      expect(priceText(rowFor('Color 1'))).toBe('10.00 zł');
+      expect(checkbox(rowFor('Color 1')).checked).toBeTrue();
+      expect(priceText(rowFor('Biały'))).toBe('30.00 zł');
+      expect(sourceText(rowFor('Biały'))).toBe('Systemowa');
+      expect(Array.from(component.selectedBoardIds)).toEqual(jasmine.arrayWithExactContents([1, 2]));
+      expect(noticeText()).toContain('Zapisano zmiany płyty.');
+      expect(noticeText()).toContain('Nie udało się odświeżyć cennika płyt z serwera');
+      expect(fixture.nativeElement.textContent).not.toContain('Nie udało się załadować cennika płyt.');
+      expect(toastSpy.error).not.toHaveBeenCalled();
+      expect(serviceSpy.update).toHaveBeenCalledTimes(1);
+      expect(serviceSpy.list).toHaveBeenCalledTimes(1);
+    });
+
+    it('replaces GLOBAL 3 with the confirmed OWN 99 and moves the selection when the refresh GET fails', async () => {
+      loadRows([OWN_1_10, BIALY_3_30]);
+      stubSaveRequests([3]);
+      selectRows('Biały');
+      await editAndSave('Biały', { price: '70', name: 'Nowy biały' });
+      expect(serviceSpy.update).toHaveBeenCalledOnceWith(3, { pricePerM2: 70, colorName: 'Nowy biały', colorHex: undefined });
+
+      confirm(3, NOWY_BIALY_99_70);
+      failRefresh();
+
+      expect(component.boardPrices).toEqual([OWN_1_10, NOWY_BIALY_99_70]);
+      expect(emitted).toEqual([[OWN_1_10, NOWY_BIALY_99_70]]);
+      expect(Array.from(component.selectedBoardIds)).toEqual([99]);
+      expect(component.editingBoardId).toBeNull();
+      expect(component.editBoardSaving).toBeFalse();
+      expect(visibleColors()).toEqual(['Color 1', 'Nowy biały']);
+      const row = rowFor('Nowy biały');
+      expect(priceText(row)).toBe('70.00 zł');
+      expect(sourceText(row)).toBe('Własna');
+      expect(checkbox(row).checked).toBeTrue();
+      expect(fixture.nativeElement.textContent).toContain('Zaznaczono 1:');
+      expect(fixture.nativeElement.textContent).not.toContain('30.00 zł');
+      expect(fixture.nativeElement.textContent).not.toContain('Systemowa');
+      expect(noticeText()).toContain('Zapisano zmiany płyty.');
+      expect(noticeText()).toContain('Nie udało się odświeżyć cennika płyt z serwera');
+      expect(toastSpy.error).not.toHaveBeenCalled();
+    });
+
+    it('uses the canonical list when the refresh after a confirmed edit succeeds', async () => {
+      loadRows([OWN_1_10, BIALY_3_30]);
+      stubSaveRequests([3]);
+      selectRows('Biały');
+      await editAndSave('Biały', { price: '70', name: 'Nowy biały' });
+      confirm(3, NOWY_BIALY_99_70);
+
+      // The effective list from the server wins over the locally applied response.
+      const canonical1 = { ...OWN_1_10, pricePerM2: 12 };
+      const canonical99 = { ...NOWY_BIALY_99_70, updatedAt: '2026-10-03T12:00:01Z' };
+      answerRefresh([canonical1, canonical99]);
+
+      expect(component.boardPrices).toEqual([canonical1, canonical99]);
+      expect(emitted).toEqual([[canonical1, canonical99]]);
+      expect(component.boardPricesError).toBeNull();
+      expect(component.editBoardSaving).toBeFalse();
+      expect(Array.from(component.selectedBoardIds)).toEqual([99]);
+      expect(noticeText()).toBeNull();
+      expect(priceText(rowFor('Color 1'))).toBe('12.00 zł');
+      expect(priceText(rowFor('Nowy biały'))).toBe('70.00 zł');
+      expect(sourceText(rowFor('Nowy biały'))).toBe('Własna');
+      expect(checkbox(rowFor('Nowy biały')).checked).toBeTrue();
+      expect(toastSpy.error).not.toHaveBeenCalled();
+    });
+
+    it('keeps the editor and its values and applies nothing when the PUT fails', async () => {
+      loadRows([OWN_1_10, BIALY_3_30]);
+      stubSaveRequests([3]);
+      selectRows('Biały');
+      await editAndSave('Biały', { price: '70', name: 'Nowy biały' });
+
+      fail(3);
+
+      expect(serviceSpy.list).not.toHaveBeenCalled();
+      expect(toastSpy.error).toHaveBeenCalledOnceWith('Błąd podczas zapisywania ceny płyty.');
+      expect(component.boardPrices).toEqual([OWN_1_10, BIALY_3_30]);
+      expect(emitted).toEqual([]);
+      expect(noticeText()).toBeNull();
+      expect(component.editingBoardId).toBe(3);
+      expect(component.editBoardPrice).toBe(70);
+      expect(component.editBoardColorName).toBe('Nowy biały');
+      const row = editedRow()!;
+      expect((row.querySelector('.board-edit-input--price') as HTMLInputElement).value).toBe('70');
+      expect((row.querySelector('.board-edit-input--name') as HTMLInputElement).value).toBe('Nowy biały');
+      expect(sourceText(row)).toBe('Systemowa');
+      expect(saveButton(row).disabled).toBeFalse();
+      expect(saveButton(row).textContent!.trim()).toBe('Zapisz');
+      expect(Array.from(component.selectedBoardIds)).toEqual([3]);
+    });
+
+    it('refreshes only after the PUT is confirmed and keeps saving locked until the refresh settles', async () => {
+      loadRows([OWN_1_10, BIALY_3_30]);
+      stubSaveRequests([3]);
+      await editAndSave('Biały', { price: '70', name: 'Nowy biały' });
+
+      expect(serviceSpy.list).not.toHaveBeenCalled();
+      expect(saveButton(editedRow()!).disabled).toBeTrue();
+
+      confirm(3, NOWY_BIALY_99_70);
+
+      expect(serviceSpy.list).toHaveBeenCalledTimes(1);
+      expect(editedRow()).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('Ładowanie cennika...');
+      expect(priceText(rowFor('Nowy biały'))).toBe('70.00 zł');
+      expect(emitted).toEqual([]);
+      // Another row can be opened for editing, but not saved until the refresh settles.
+      const other = await openEditor('Color 1');
+      expect(saveButton(other).disabled).toBeTrue();
+
+      failRefresh();
+
+      expect(component.editingBoardId).toBe(1);
+      expect(saveButton(editedRow()!).disabled).toBeFalse();
+      expect(saveButton(editedRow()!).textContent!.trim()).toBe('Zapisz');
+      expect(emitted).toEqual([[OWN_1_10, NOWY_BIALY_99_70]]);
+      expect(serviceSpy.update).toHaveBeenCalledTimes(1);
+      expect(serviceSpy.list).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps filters, the page, unedited rows and the selection across a confirmed edit with a failed refresh', async () => {
+      const chipboard = Array.from({ length: 10 }, (_, i) => makeBoardPrice(i + 1, 'OWN', { pricePerM2: 20 }));
+      const global11 = makeBoardPrice(11, 'GLOBAL', { pricePerM2: 30 });
+      const own12 = makeBoardPrice(12, 'OWN', { pricePerM2: 20 });
+      const mdf13 = makeBoardPrice(13, 'OWN', { materialCode: 'MDF', materialName: 'MATERIAL.MDF', pricePerM2: 20 });
+      const own111 = makeBoardPrice(111, 'OWN', {
+        colorCode: 'COLOR_11', colorName: 'Color 11 nowy', pricePerM2: 70, priceEntryId: 211,
+      });
+      loadRows([...chipboard, global11, own12, mdf13]);
+      component.materialFilter = 'CHIPBOARD';
+      component.onFilterChange();
+      fixture.detectChanges();
+      component.goToBoardPage(2);
+      fixture.detectChanges();
+      stubSaveRequests([11]);
+      selectRows('Color 11', 'Color 12');
+      await editAndSave('Color 11', { price: '70', name: 'Color 11 nowy' });
+
+      confirm(11, own111);
+      failRefresh();
+
+      expect(component.materialFilter).toBe('CHIPBOARD');
+      expect(component.boardCurrentPage).toBe(2);
+      expect(visibleColors()).toEqual(['Color 11 nowy', 'Color 12']);
+      expect(component.boardPrices).toEqual([...chipboard, own111, own12, mdf13]);
+      expect(emitted).toEqual([[...chipboard, own111, own12, mdf13]]);
+      expect(Array.from(component.selectedBoardIds)).toEqual(jasmine.arrayWithExactContents([111, 12]));
+      expect(priceText(rowFor('Color 11 nowy'))).toBe('70.00 zł');
+      expect(sourceText(rowFor('Color 11 nowy'))).toBe('Własna');
+      expect(checkbox(rowFor('Color 11 nowy')).checked).toBeTrue();
+      expect(priceText(rowFor('Color 12'))).toBe('20.00 zł');
+      expect(checkbox(rowFor('Color 12')).checked).toBeTrue();
     });
   });
 
@@ -834,7 +1063,7 @@ describe('BoardPricesSectionComponent', () => {
       component.submitBulkForSelected();
       fixture.detectChanges();
       expect(toastSpy.error).not.toHaveBeenCalledWith('Błąd podczas aktualizacji cen.');
-      expect(fixture.nativeElement.querySelector('.board-bulk-notice[role="alert"]')?.textContent)
+      expect(fixture.nativeElement.querySelector('.board-save-notice[role="alert"]')?.textContent)
         .toContain('Nie udało się potwierdzić zapisu zaznaczonych pozycji (1).');
     });
 

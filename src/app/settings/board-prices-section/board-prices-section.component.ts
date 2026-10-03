@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
 import { BoardPriceService, BoardPrice, CreateBoardPrice } from '../board-price.service';
@@ -15,7 +15,7 @@ interface ConfirmedBoardPrice {
   saved: BoardPrice;
 }
 
-const BULK_REFRESH_FAILED_NOTICE =
+const REFRESH_FAILED_NOTICE =
   'Nie udało się odświeżyć cennika płyt z serwera — tabela pokazuje ostatnie potwierdzone dane i może być nieaktualna.';
 
 /**
@@ -239,8 +239,8 @@ export class BoardPricesSectionComponent implements OnInit {
 
   bulkPrice = 0;
   bulkSaving = false;
-  /** Outcome of a bulk save that was not fully confirmed or not refreshed; shown above the table. */
-  bulkSaveNotice: string | null = null;
+  /** Outcome of a save (bulk or single edit) that was not fully confirmed or not refreshed; shown above the table. */
+  saveNotice: string | null = null;
 
   /**
    * Each PUT is a separate write: a failed one neither cancels the others nor discards their
@@ -252,7 +252,7 @@ export class BoardPricesSectionComponent implements OnInit {
     const ids = Array.from(this.selectedBoardIds);
     const price = this.bulkPrice;
     this.bulkSaving = true;
-    this.bulkSaveNotice = null;
+    this.saveNotice = null;
     settlePriceUpdates(ids, id =>
       this.boardPriceService.update(id, { pricePerM2: price }).pipe(
         map((saved): ConfirmedBoardPrice => ({ requestedId: id, saved }))
@@ -261,8 +261,7 @@ export class BoardPricesSectionComponent implements OnInit {
       switchMap(confirmed => {
         this.applyConfirmedBoardPrices(confirmed);
         // Reload full list — GLOBAL boards get new OWN record with different id
-        return this.boardPriceService.list().pipe(
-          catchError(() => of(null)),
+        return this.refreshBoardPricesAfterSave().pipe(
           map(refreshed => ({ confirmed: confirmed.length, refreshed }))
         );
       })
@@ -290,12 +289,23 @@ export class BoardPricesSectionComponent implements OnInit {
     this.clampBoardPage();
   }
 
-  private finishBulkSave(total: number, confirmed: number, refreshed: BoardPrice[] | null): void {
-    if (refreshed) {
-      this.boardPrices = refreshed;
-      this.boardPricesError = null;
-      this.clampBoardPage();
-    }
+  /**
+   * Re-reads the effective list after confirmed writes and emits whether that worked. A failed GET
+   * keeps the confirmed rows already applied — it never undoes or repeats a save.
+   */
+  private refreshBoardPricesAfterSave(): Observable<boolean> {
+    return this.boardPriceService.list().pipe(
+      tap(refreshed => {
+        this.boardPrices = refreshed;
+        this.boardPricesError = null;
+        this.clampBoardPage();
+      }),
+      map(() => true),
+      catchError(() => of(false))
+    );
+  }
+
+  private finishBulkSave(total: number, confirmed: number, refreshed: boolean): void {
     const allConfirmed = confirmed === total;
     if (allConfirmed) {
       this.clearBoardSelection();
@@ -307,9 +317,9 @@ export class BoardPricesSectionComponent implements OnInit {
     const savedNotice = `Zapisano nową cenę dla zaznaczonych płyt (${total}).`;
     const unconfirmedNotice = unconfirmedBulkSaveNotice(total, confirmed);
     if (refreshed) {
-      this.bulkSaveNotice = unconfirmedNotice;
+      this.saveNotice = unconfirmedNotice;
     } else {
-      this.bulkSaveNotice = `${unconfirmedNotice ?? savedNotice} ${BULK_REFRESH_FAILED_NOTICE}`;
+      this.saveNotice = `${unconfirmedNotice ?? savedNotice} ${REFRESH_FAILED_NOTICE}`;
     }
     if (allConfirmed && refreshed) {
       this.toast.success(savedNotice);
@@ -435,18 +445,30 @@ export class BoardPricesSectionComponent implements OnInit {
     this.editingBoardId = null;
   }
 
+  /**
+   * The confirmed PUT response replaces the edited row right away (GLOBAL → OWN by the requested id),
+   * then the effective list is re-read; saving stays locked until that settles.
+   */
   submitEditBoard(bp: BoardPrice): void {
+    if (this.editBoardSaving) return;
     this.editBoardSaving = true;
+    this.saveNotice = null;
     this.boardPriceService.update(bp.id, {
       pricePerM2: this.editBoardPrice,
       colorName: this.editBoardColorName ?? undefined,
       colorHex: this.editBoardColorHex ?? undefined
-    }).subscribe({
-      next: () => {
+    }).pipe(
+      switchMap(saved => {
+        this.applyConfirmedBoardPrices([{ requestedId: bp.id, saved }]);
         this.editingBoardId = null;
+        return this.refreshBoardPricesAfterSave();
+      })
+    ).subscribe({
+      next: refreshed => {
+        this.reconcileBoardSelectionToFilteredRows();
+        this.saveNotice = refreshed ? null : `Zapisano zmiany płyty. ${REFRESH_FAILED_NOTICE}`;
         this.editBoardSaving = false;
-        // Reload full list — GLOBAL boards get new OWN record with different id, so local map fails
-        this.loadBoardPrices();
+        this.boardPricesChanged.emit(this.boardPrices);
       },
       error: () => {
         this.editBoardSaving = false;
