@@ -25,6 +25,11 @@
   </button>
 </div>
 
+<div *ngIf="!loading && !error && bulkSaveError" class="settings-inline-status settings-inline-status--error pte-bulk-error"
+     role="alert">
+  {{ bulkSaveError }}
+</div>
+
 <div *ngIf="loading" class="settings-inline-status settings-inline-status--loading pte-loading">
   <mat-icon aria-hidden="true" class="pte-inline-icon pte-inline-icon--spin">autorenew</mat-icon>
   Ladowanie...

@@ -9,6 +9,8 @@ import { PriceEditTableComponent, BulkSaveEvent, PriceSaveEvent } from './price-
     <app-price-edit-table
         [rows]="rows"
         [pageSize]="pageSize"
+        [error]="error"
+        [bulkSaveError]="bulkSaveError"
         priceField="pricePerUnit"
         (save)="onSave($event)"
         (bulkSave)="onBulkSave($event)">
@@ -22,6 +24,8 @@ import { PriceEditTableComponent, BulkSaveEvent, PriceSaveEvent } from './price-
 class TestHostComponent {
   rows: any[] = [];
   pageSize = 3;
+  error: string | null = null;
+  bulkSaveError: string | null = null;
   lastSave: PriceSaveEvent | null = null;
   lastBulkSave: BulkSaveEvent | null = null;
 
@@ -277,6 +281,27 @@ describe('PriceEditTableComponent', () => {
       expect(table.selectedCount).toBe(0);
       expect(table.bulkPrice).toBe(0);
       expect(table.bulkSaving).toBeFalse();
+    });
+
+    it('shows the bulk save notice above the rows without hiding them', () => {
+      host.bulkSaveError = 'Potwierdzono zapis 1 z 2 pozycji.';
+      fixture.detectChanges();
+
+      const notice = fixture.debugElement.query(By.css('.pte-bulk-error'));
+      expect(notice.nativeElement.textContent.trim()).toBe('Potwierdzono zapis 1 z 2 pozycji.');
+      expect(notice.attributes['role']).toBe('alert');
+      expect(fixture.debugElement.queryAll(By.css('tbody tr')).length).toBe(5);
+      expect(fixture.debugElement.query(By.css('.pte-error'))).toBeNull();
+    });
+
+    it('lets the load error replace the table and the bulk save notice', () => {
+      host.bulkSaveError = 'Potwierdzono zapis 1 z 2 pozycji.';
+      host.error = 'Nie udało się załadować cennika.';
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.pte-error'))).not.toBeNull();
+      expect(fixture.debugElement.query(By.css('.pte-bulk-error'))).toBeNull();
+      expect(fixture.debugElement.query(By.css('table'))).toBeNull();
     });
 
     it('complete(false) leaves selection intact', () => {

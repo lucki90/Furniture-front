@@ -2,6 +2,7 @@
   (bulkSave)="saveBulk($event)"
   (retry)="load()"
   (save)="savePrice($event)"
+  [bulkSaveError]="bulkSaveError"
   [emptyText]="(categoryFilter || modelFilter) ? 'Brak komponentów dla wybranych filtrów.' : 'Brak komponentów.'"
   [error]="error"
   [loading]="loading"
