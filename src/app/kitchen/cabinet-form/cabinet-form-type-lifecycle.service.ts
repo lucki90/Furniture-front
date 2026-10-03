@@ -13,6 +13,7 @@ import {
   supportsThirdLiftMechanism
 } from './model/kitchen-cabinet-constants';
 import { hfUpperFrontHeightValidator } from './types/upper-lift-up/upper-lift-up.validators';
+import { setControlEnabled } from './type-config/preparer/cabinet-preparer.utils';
 
 export interface CabinetFormTypeLifecycleResult {
   visibility: CabinetFormVisibility;
@@ -44,6 +45,14 @@ export class CabinetFormTypeLifecycleService {
       form.get('height')?.updateValueAndValidity({ emitEvent: false });
     }
     form.get('ovenApronHeightMm')?.updateValueAndValidity({ emitEvent: false });
+
+    // Odtworzenie bez zdarzeń nie przełącza pola wysokości blendy okapu, a poza UPPER_HOOD blenda nie istnieje.
+    // Zmiana stanu kontrolki emituje statusChanges, które odświeża już zamontowaną sekcję okapu.
+    const hoodScreenHeightCtrl = form.get('hoodScreenHeightMm');
+    const hoodScreenActive = type === KitchenCabinetType.UPPER_HOOD && !!form.get('hoodScreenEnabled')?.value;
+    if (hoodScreenHeightCtrl && hoodScreenHeightCtrl.enabled !== hoodScreenActive) {
+      setControlEnabled(hoodScreenHeightCtrl, hoodScreenActive);
+    }
 
     return { visibility, restoreApplied };
   }

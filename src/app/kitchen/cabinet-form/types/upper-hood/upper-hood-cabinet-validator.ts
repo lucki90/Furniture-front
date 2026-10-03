@@ -1,6 +1,20 @@
-import { FormGroup } from '@angular/forms';
+import { AbstractControl, FormGroup, ValidationErrors } from '@angular/forms';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
+import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
+
+/**
+ * Zakres wysokości blendy wewnętrznej — aktywny tylko dla UPPER_HOOD z włączoną blendą.
+ * Stała referencja pozwala dodać walidator bez nadpisywania walidatorów min/max inputu.
+ */
+function hoodScreenHeightValidator(control: AbstractControl): ValidationErrors | null {
+  const form = control.parent;
+  if (form?.get('kitchenCabinetType')?.value !== KitchenCabinetType.UPPER_HOOD
+    || !form.get('hoodScreenEnabled')?.value) return null;
+  const c = KitchenCabinetConstraints.UPPER_HOOD;
+  const sh = control.value;
+  return sh < c.HOOD_SCREEN_MIN || sh > c.HOOD_SCREEN_MAX ? { outOfRange: true } : null;
+}
 
 export class UpperHoodCabinetValidator implements KitchenCabinetValidator {
 
@@ -37,16 +51,10 @@ export class UpperHoodCabinetValidator implements KitchenCabinetValidator {
       }
     }
 
-    // Walidacja wysokości blendy wewnętrznej (gdy włączona)
-    const screenEnabledCtrl = form.get('hoodScreenEnabled');
+    // Walidacja wysokości blendy wewnętrznej (gdy włączona) — trwały walidator, bo pole jest włączane
+    // dopiero po odtworzeniu zapisanej szafki lub kliknięciu checkboxa, a enable() ponownie je waliduje.
     const screenHeightCtrl = form.get('hoodScreenHeightMm');
-    if (screenEnabledCtrl?.value && screenHeightCtrl) {
-      const sh = screenHeightCtrl.value;
-      if (sh < c.HOOD_SCREEN_MIN || sh > c.HOOD_SCREEN_MAX) {
-        screenHeightCtrl.setErrors({ outOfRange: true });
-      } else {
-        screenHeightCtrl.setErrors(null);
-      }
-    }
+    screenHeightCtrl?.addValidators(hoodScreenHeightValidator);
+    screenHeightCtrl?.updateValueAndValidity({ emitEvent: false });
   }
 }
