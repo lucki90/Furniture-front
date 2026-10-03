@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject, of, throwError } from 'rxjs';
 import { SettingsService } from '../settings.service';
@@ -111,5 +112,285 @@ describe('CompanyInfoSectionComponent', () => {
       { ...value, companyName: 'Pracownia Nowa', offerValidityDays: 45 }
     ]);
     expect(value.companyName).toBe('Pracownia Test');
+  });
+
+  describe('kolejność odczytu logo względem uploadu i usunięcia', () => {
+    const OLD_LOGO_URL = 'blob:old-logo';
+    const NEW_LOGO_URL = 'blob:new-logo';
+    let logoReads: Subject<Blob>[];
+    let upload$: Subject<void>;
+    let delete$: Subject<void>;
+    let newLogo: File;
+    let createObjectUrlSpy: jasmine.Spy;
+    let revokeObjectUrlSpy: jasmine.Spy;
+
+    const oldLogoBytes = (): Blob => new Blob(['old-logo'], { type: 'image/png' });
+    const logoImg = (): HTMLImageElement | null => fixture.nativeElement.querySelector('img.logo-img');
+    const dropzone = (): HTMLElement | null => fixture.nativeElement.querySelector('.logo-dropzone');
+    const logoError = (): string | undefined => fixture.nativeElement.querySelector('.logo-error')?.textContent?.trim();
+
+    beforeEach(() => {
+      logoReads = [];
+      settingsService.getLogo.and.callFake(() => {
+        const read$ = new Subject<Blob>();
+        logoReads.push(read$);
+        return read$;
+      });
+      upload$ = new Subject<void>();
+      settingsService.uploadLogo.and.returnValue(upload$);
+      delete$ = new Subject<void>();
+      settingsService.deleteLogo.and.returnValue(delete$);
+      newLogo = new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'nowe-logo.png', { type: 'image/png' });
+      createObjectUrlSpy = spyOn(URL, 'createObjectURL').and.callFake(
+        (obj: Blob | MediaSource) => obj === newLogo ? NEW_LOGO_URL : OLD_LOGO_URL
+      );
+      revokeObjectUrlSpy = spyOn(URL, 'revokeObjectURL');
+    });
+
+    function respondLogoRead(read$: Subject<Blob>, blob: Blob): void {
+      read$.next(blob);
+      read$.complete();
+      fixture.detectChanges();
+    }
+
+    function failLogoRead(read$: Subject<Blob>, status: number): void {
+      read$.error(new HttpErrorResponse({ status }));
+      fixture.detectChanges();
+    }
+
+    function selectLogoFile(file: File): void {
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('input[type="file"]');
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      input.files = dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+    }
+
+    function clickRemoveLogo(): void {
+      fixture.nativeElement.querySelector('.logo-filled-actions button').click();
+      fixture.detectChanges();
+    }
+
+    function confirmWrite(write$: Subject<void>): void {
+      write$.next();
+      write$.complete();
+      fixture.detectChanges();
+    }
+
+    function failWrite(write$: Subject<void>): void {
+      write$.error(new HttpErrorResponse({ status: 500 }));
+      fixture.detectChanges();
+    }
+
+    function expectLogoShown(url: string): void {
+      expect(component.companyLogoUrl).toBe(url);
+      expect(logoImg()?.getAttribute('src')).toBe(url);
+      expect(dropzone()).toBeNull();
+    }
+
+    function expectNoLogo(): void {
+      expect(component.companyLogoUrl).toBeNull();
+      expect(logoImg()).toBeNull();
+      expect(dropzone()?.textContent).toContain('Nie ustawiono logo');
+    }
+
+    it('nie powinien przywrócić starego logo, gdy GET rozpoczęty przed uploadem odpowie po jego potwierdzeniu', () => {
+      fixture.detectChanges();
+      expect(logoReads.length).toBe(1);
+
+      selectLogoFile(newLogo);
+      expect(settingsService.uploadLogo).toHaveBeenCalledOnceWith(newLogo);
+      confirmWrite(upload$);
+      expectLogoShown(NEW_LOGO_URL);
+
+      respondLogoRead(logoReads[0], oldLogoBytes());
+
+      expectLogoShown(NEW_LOGO_URL);
+      expect(component.logoUploading).toBeFalse();
+      expect(logoError()).toBeUndefined();
+      expect(createObjectUrlSpy.calls.allArgs()).toEqual([[newLogo]]);
+      expect(revokeObjectUrlSpy).not.toHaveBeenCalled();
+
+      fixture.destroy();
+      expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[NEW_LOGO_URL]]);
+    });
+
+    it('nie powinien ukryć potwierdzonego logo, gdy GET rozpoczęty przed uploadem zakończy się błędem po jego potwierdzeniu', () => {
+      fixture.detectChanges();
+      selectLogoFile(newLogo);
+      confirmWrite(upload$);
+      expectLogoShown(NEW_LOGO_URL);
+
+      failLogoRead(logoReads[0], 503);
+
+      expectLogoShown(NEW_LOGO_URL);
+      expect(logoError()).toBeUndefined();
+      expect(revokeObjectUrlSpy).not.toHaveBeenCalled();
+    });
+
+    it('nie powinien przywrócić usuniętego logo, gdy starszy odczyt odpowie po potwierdzonym usunięciu', () => {
+      fixture.detectChanges();
+      respondLogoRead(logoReads[0], oldLogoBytes());
+      expectLogoShown(OLD_LOGO_URL);
+
+      component.loadLogo();
+      expect(logoReads.length).toBe(2);
+      clickRemoveLogo();
+      expect(settingsService.deleteLogo).toHaveBeenCalledOnceWith();
+      confirmWrite(delete$);
+      expectNoLogo();
+
+      respondLogoRead(logoReads[1], oldLogoBytes());
+
+      expectNoLogo();
+      expect(logoError()).toBeUndefined();
+      expect(createObjectUrlSpy).toHaveBeenCalledTimes(1);
+      expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+    });
+
+    it('powinien pokazać logo z opóźnionego GET, gdy w międzyczasie nic nie zmieniono', () => {
+      fixture.detectChanges();
+      expectNoLogo();
+
+      const logo = oldLogoBytes();
+      respondLogoRead(logoReads[0], logo);
+
+      expectLogoShown(OLD_LOGO_URL);
+      expect(createObjectUrlSpy.calls.allArgs()).toEqual([[logo]]);
+    });
+
+    it('powinien zachować stan braku logo, gdy zwykły GET zwróci 404 lub inny błąd', () => {
+      fixture.detectChanges();
+      failLogoRead(logoReads[0], 404);
+      expectNoLogo();
+
+      component.loadLogo();
+      failLogoRead(logoReads[1], 503);
+
+      expectNoLogo();
+      expect(logoError()).toBeUndefined();
+      expect(createObjectUrlSpy).not.toHaveBeenCalled();
+      expect(revokeObjectUrlSpy).not.toHaveBeenCalled();
+    });
+
+    it('powinien zastąpić logo po potwierdzonym uploadzie, gdy GET zakończył się wcześniej', () => {
+      fixture.detectChanges();
+      respondLogoRead(logoReads[0], oldLogoBytes());
+      expectLogoShown(OLD_LOGO_URL);
+
+      selectLogoFile(newLogo);
+      expect(component.logoUploading).toBeTrue();
+      confirmWrite(upload$);
+
+      expectLogoShown(NEW_LOGO_URL);
+      expect(component.logoUploading).toBeFalse();
+      expect(logoError()).toBeUndefined();
+      expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+    });
+
+    it('powinien zachować ostatnie potwierdzone logo i pokazać komunikat po błędzie uploadu', () => {
+      spyOn(console, 'error');
+      fixture.detectChanges();
+      respondLogoRead(logoReads[0], oldLogoBytes());
+
+      selectLogoFile(newLogo);
+      failWrite(upload$);
+
+      expectLogoShown(OLD_LOGO_URL);
+      expect(component.logoUploading).toBeFalse();
+      expect(logoError()).toBe('Nie udało się przesłać logo. Sprawdź format i rozmiar pliku.');
+      expect(createObjectUrlSpy).toHaveBeenCalledTimes(1);
+      expect(revokeObjectUrlSpy).not.toHaveBeenCalled();
+    });
+
+    it('powinien pokazać logo z GET, który odpowie dopiero po nieudanym uploadzie', () => {
+      spyOn(console, 'error');
+      fixture.detectChanges();
+      selectLogoFile(newLogo);
+      failWrite(upload$);
+      expectNoLogo();
+
+      respondLogoRead(logoReads[0], oldLogoBytes());
+
+      expectLogoShown(OLD_LOGO_URL);
+      expect(logoError()).toBe('Nie udało się przesłać logo. Sprawdź format i rozmiar pliku.');
+    });
+
+    it('powinien zachować logo po błędzie usunięcia i usunąć podgląd po potwierdzonym usunięciu', () => {
+      spyOn(console, 'error');
+      fixture.detectChanges();
+      respondLogoRead(logoReads[0], oldLogoBytes());
+
+      clickRemoveLogo();
+      failWrite(delete$);
+
+      expectLogoShown(OLD_LOGO_URL);
+      expect(logoError()).toBe('Nie udało się usunąć logo.');
+      expect(revokeObjectUrlSpy).not.toHaveBeenCalled();
+
+      delete$ = new Subject<void>();
+      settingsService.deleteLogo.and.returnValue(delete$);
+      clickRemoveLogo();
+      confirmWrite(delete$);
+
+      expectNoLogo();
+      expect(logoError()).toBeUndefined();
+      expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+    });
+
+    it('powinien odrzucić plik w złym formacie lub większy niż 512000 B bez wysyłania', () => {
+      fixture.detectChanges();
+
+      selectLogoFile(new File(['gif'], 'logo.gif', { type: 'image/gif' }));
+      expect(logoError()).toBe('Dozwolone formaty: PNG, JPEG.');
+
+      selectLogoFile(new File([new Uint8Array(512_001)], 'za-duze.png', { type: 'image/png' }));
+      expect(logoError()).toBe('Plik jest za duży. Maksymalny rozmiar: 500 KB.');
+      expect(settingsService.uploadLogo).not.toHaveBeenCalled();
+
+      const maxJpeg = new File([new Uint8Array(512_000)], 'max.jpg', { type: 'image/jpeg' });
+      selectLogoFile(maxJpeg);
+      expect(settingsService.uploadLogo).toHaveBeenCalledOnceWith(maxJpeg);
+      expect(logoError()).toBeUndefined();
+    });
+
+    it('nie powinien tworzyć URL blob z uploadu ani GET, które odpowiedzą po zniszczeniu sekcji', () => {
+      fixture.detectChanges();
+      respondLogoRead(logoReads[0], oldLogoBytes());
+      component.loadLogo();
+      selectLogoFile(newLogo);
+
+      fixture.destroy();
+      expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+
+      upload$.next();
+      upload$.complete();
+      logoReads[1].next(oldLogoBytes());
+      logoReads[1].complete();
+
+      expect(createObjectUrlSpy).toHaveBeenCalledTimes(1);
+      expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+      expect(component.companyLogoUrl).toBeNull();
+    });
+
+    it('powinien zwolnić zastąpiony i końcowy URL blob, a odrzucony stary GET nie zwalnia aktualnego logo', () => {
+      fixture.detectChanges();
+      const oldLogo = oldLogoBytes();
+      respondLogoRead(logoReads[0], oldLogo);
+      component.loadLogo();
+      selectLogoFile(newLogo);
+      confirmWrite(upload$);
+      expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+
+      respondLogoRead(logoReads[1], oldLogoBytes());
+
+      expectLogoShown(NEW_LOGO_URL);
+      expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+
+      fixture.destroy();
+      expect(createObjectUrlSpy.calls.allArgs()).toEqual([[oldLogo], [newLogo]]);
+      expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL], [NEW_LOGO_URL]]);
+    });
   });
 });
