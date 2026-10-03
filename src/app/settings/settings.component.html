@@ -573,7 +573,7 @@
           <span aria-hidden="true" class="panel-header-toggle-indicator">▾</span>
         </button>
         <div *ngIf="!isSectionCollapsed('sec-company')" class="panel-body">
-          <app-company-info-section></app-company-info-section>
+          <app-company-info-section [(value)]="companyInfo"></app-company-info-section>
         </div>
       </section>
 

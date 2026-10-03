@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, DestroyRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -13,7 +13,12 @@ import { LanguageService } from '../service/language.service';
 import { MaterialAdminService } from '../admin/material/service/material-admin.service';
 import { BoardColorOptionResponse, MaterialOption } from '../admin/material/model/material-variant.model';
 import { BoardPricesSectionComponent } from './board-prices-section/board-prices-section.component';
-import { CompanyInfoSectionComponent } from './company-info-section/company-info-section.component';
+import {
+  CompanyInfo,
+  CompanyInfoSectionComponent,
+  companyInfoFromSettings,
+  companyInfoToRequest
+} from './company-info-section/company-info-section.component';
 import { MaterialPresetResponse, MaterialPresetService } from '../kitchen/service/material-preset.service';
 import { DEFAULT_GRAIN_DIRECTIONS, EffectiveGrainDirections, GrainDirections, userGrainDirections } from '../shared/model/grain-direction';
 import { GrainDirectionFieldsComponent } from '../shared/grain-direction-fields/grain-direction-fields.component';
@@ -27,9 +32,7 @@ import { JobPricesSectionComponent } from './job-prices-section/job-prices-secti
   standalone: true,
   imports: [CommonModule, FormsModule, MatIconModule, FormFieldComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent, GrainDirectionFieldsComponent, ComponentPricesSectionComponent, JobPricesSectionComponent],
 })
-export class SettingsComponent implements OnInit, AfterViewInit {
-
-  @ViewChild(CompanyInfoSectionComponent) companyInfoSection?: CompanyInfoSectionComponent;
+export class SettingsComponent implements OnInit {
 
   // TODO(CODEX): Cenniki i dane firmy są już wydzielone do child komponentów, ale ten ekran nadal ładuje opcje,
   // trzyma duży stan ustawień użytkownika i ręcznie składa request zapisu. Kolejne etapy powinny rozdzielić model formularza
@@ -110,6 +113,9 @@ export class SettingsComponent implements OnInit, AfterViewInit {
   defaultVarnishedFront = false;
   defaultMaterialPresetCode: string | null = DEFAULT_MATERIAL_PRESET_CODE;
 
+  // Form values — dane firmy; trwałe tutaj, bo CompanyInfoSectionComponent jest niszczona przy zwinięciu sekcji
+  companyInfo: CompanyInfo = companyInfoFromSettings({});
+
   // Color options for box/front dropdowns — loaded from backend when material changes
   boxColorOptions: BoardColorOptionResponse[] = [];
   frontColorOptions: BoardColorOptionResponse[] = [];
@@ -145,14 +151,9 @@ export class SettingsComponent implements OnInit, AfterViewInit {
     this.loadMaterialPresets();
   }
 
-  ngAfterViewInit(): void {
-    // Logo wymaga tokenu Bearer — ładujemy po inicjalizacji widoku
-    this.companyInfoSection?.loadLogo();
-  }
-
   // ── Logo firmy — delegowane do CompanyInfoSectionComponent (R.2.4) ───────────
   // Metody loadLogo, onLogoSelected, removeLogo przeniesione do CompanyInfoSectionComponent.
-  // Wywołanie: ngAfterViewInit → this.companyInfoSection?.loadLogo().
+  // Sekcja wczytuje logo sama po utworzeniu (ngOnInit), także po asynchronicznym GET i ponownym rozwinięciu.
 
   private loadTranslations(lang: string): void {
     this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT', 'MATERIAL_PRESET'], lang).subscribe(t => {
@@ -348,8 +349,8 @@ export class SettingsComponent implements OnInit, AfterViewInit {
         this.defaultMaterialPresetCode = settings.defaultMaterialPresetCode ?? null;
         // Rebuild color dropdowns using loaded material (boardPrices may already be ready)
         this.rebuildColorOptions();
-        // Dane firmy — delegowane do CompanyInfoSectionComponent (R.2.4)
-        this.companyInfoSection?.applySettings(settings);
+        // Dane firmy — model w parencie, przekazywany do CompanyInfoSectionComponent przez [(value)]
+        this.companyInfo = companyInfoFromSettings(settings);
         this.loading = false;
       },
       error: (err) => {
@@ -414,8 +415,8 @@ export class SettingsComponent implements OnInit, AfterViewInit {
       defaultSheetSizeMode: this.defaultSheetSizeMode,
       defaultVarnishedFront: this.defaultVarnishedFront,
       defaultMaterialPresetCode: this.defaultMaterialPresetCode,
-      // Dane firmy — czytane z CompanyInfoSectionComponent przez @ViewChild
-      ...(this.companyInfoSection?.getCompanyData() ?? { offerValidityDays: 14 })
+      // Dane firmy — z modelu w parencie, niezależnie od tego, czy sekcja jest rozwinięta
+      ...companyInfoToRequest(this.companyInfo)
     };
 
     this.settingsService.updateSettings(request).subscribe({
