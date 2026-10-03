@@ -1,11 +1,15 @@
 import { TestBed } from '@angular/core/testing';
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { CabinetFormEditingService } from './cabinet-form-editing.service';
 import { CabinetFormTypeLifecycleService } from './cabinet-form-type-lifecycle.service';
+import { CabinetSegmentsFormService } from './cabinet-segments-form.service';
 import { DefaultKitchenFormFactory } from './model/default-kitchen-form.factory';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
 import { CornerMechanismType } from './model/corner-cabinet.model';
 import { CabinetFormVisibility } from './type-config/preparer/cabinet-form-visibility';
+import { DEFAULT_MATERIAL_DEFAULTS } from './type-config/request-mapper/kitchen-cabinet-request-mapper';
+import { UpperHoodRequestMapper } from './types/upper-hood/upper-hood-request-mapper';
+import { KCabinetHood } from '../model/kitchen-state.model';
 
 describe('CabinetFormTypeLifecycleService', () => {
   let service: CabinetFormTypeLifecycleService;
@@ -225,5 +229,130 @@ describe('CabinetFormTypeLifecycleService', () => {
 
       expect(form.get('hfUpperFrontHeightMm')?.value).toBeNull();
     });
+  });
+});
+
+describe('CabinetFormTypeLifecycleService — odtwarzanie blendy UPPER_HOOD przed montażem sekcji', () => {
+  let service: CabinetFormTypeLifecycleService;
+  let editingService: CabinetFormEditingService;
+  let fb: FormBuilder;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        FormBuilder,
+        // UPPER_HOOD nie ma segmentów — serwis segmentów nie jest używany przy odtwarzaniu okapu.
+        { provide: CabinetSegmentsFormService, useValue: jasmine.createSpyObj('CabinetSegmentsFormService', ['replaceSegments']) }
+      ]
+    });
+
+    service = TestBed.inject(CabinetFormTypeLifecycleService);
+    editingService = TestBed.inject(CabinetFormEditingService);
+    fb = TestBed.inject(FormBuilder);
+  });
+
+  function hoodCabinet(overrides: Partial<KCabinetHood> = {}): KCabinetHood {
+    return {
+      id: 'hood-1',
+      type: KitchenCabinetType.UPPER_HOOD,
+      width: 600,
+      height: 500,
+      depth: 350,
+      positionY: 0,
+      openingType: 'HANDLE',
+      shelfQuantity: 0,
+      hoodFrontType: 'FLAP',
+      hoodScreenEnabled: false,
+      hoodScreenHeightMm: 100,
+      ...overrides
+    };
+  }
+
+  /** Ta sama ścieżka co CabinetFormComponent.fillFormWithCabinet(): patch bez zdarzeń + lifecycle typu. */
+  function restore(form: FormGroup, cabinet: KCabinetHood): void {
+    editingService.patchFormForEditing(form, cabinet);
+    service.applyTypeChange(form, cabinet.type, cabinet);
+  }
+
+  it('włącza wysokość odtworzonej blendy i zgłasza błąd dla 10 mm jeszcze przed montażem sekcji', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+
+    restore(form, hoodCabinet({ hoodScreenEnabled: true, hoodScreenHeightMm: 10 }));
+
+    const heightCtrl = form.get('hoodScreenHeightMm')!;
+    expect(form.get('hoodScreenEnabled')?.value).toBeTrue();
+    expect(heightCtrl.enabled).toBeTrue();
+    expect(heightCtrl.hasError('outOfRange')).toBeTrue();
+    expect(form.valid).toBeFalse();
+  });
+
+  it('przyjmuje odtworzoną blendę 100 mm jako prawidłową', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+
+    restore(form, hoodCabinet({ hoodScreenEnabled: true, hoodScreenHeightMm: 100 }));
+
+    expect(form.get('hoodScreenHeightMm')?.enabled).toBeTrue();
+    expect(form.get('hoodScreenHeightMm')?.errors).toBeNull();
+    expect(form.valid).toBeTrue();
+  });
+
+  for (const [heightMm, valid] of [[49, false], [50, true], [200, true], [201, false]] as const) {
+    it(`waliduje granicę odtworzonej blendy ${heightMm} mm jako ${valid ? 'prawidłową' : 'nieprawidłową'}`, () => {
+      const form = DefaultKitchenFormFactory.create(fb);
+
+      restore(form, hoodCabinet({ hoodScreenEnabled: true, hoodScreenHeightMm: heightMm }));
+
+      expect(form.get('hoodScreenHeightMm')?.hasError('outOfRange')).toBe(!valid);
+      expect(form.valid).toBe(valid);
+    });
+  }
+
+  it('synchronizuje kolejne odtworzenia false → true → false w tym samym formularzu', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+    const heightCtrl = form.get('hoodScreenHeightMm')!;
+
+    restore(form, hoodCabinet({ id: 'hood-1', hoodScreenEnabled: false, hoodScreenHeightMm: 100 }));
+    expect(heightCtrl.disabled).toBeTrue();
+    expect(form.valid).toBeTrue();
+
+    restore(form, hoodCabinet({ id: 'hood-2', hoodScreenEnabled: true, hoodScreenHeightMm: 10 }));
+    expect(heightCtrl.enabled).toBeTrue();
+    expect(heightCtrl.hasError('outOfRange')).toBeTrue();
+    expect(form.valid).toBeFalse();
+
+    restore(form, hoodCabinet({ id: 'hood-3', hoodScreenEnabled: false, hoodScreenHeightMm: 10 }));
+    expect(heightCtrl.disabled).toBeTrue();
+    expect(heightCtrl.errors).toBeNull();
+    expect(form.valid).toBeTrue();
+    // Nieaktywna wysokość nie jest resetowana — zostaje w surowych danych, ale nie w form.value.
+    expect(form.getRawValue().hoodScreenHeightMm).toBe(10);
+    expect('hoodScreenHeightMm' in form.value).toBeFalse();
+  });
+
+  it('nie pozostawia aktywnej walidacji blendy po przejściu do innego typu szafki', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+    restore(form, hoodCabinet({ hoodScreenEnabled: true, hoodScreenHeightMm: 10 }));
+    expect(form.valid).toBeFalse();
+
+    form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.UPPER_ONE_DOOR);
+    service.applyTypeChange(form, KitchenCabinetType.UPPER_ONE_DOOR, null);
+
+    expect(form.get('hoodScreenHeightMm')?.errors).toBeNull();
+    expect(form.valid).toBeTrue();
+  });
+
+  it('mapper wysyła 0 dla wyłączonej blendy i zapisaną wysokość dla włączonej', () => {
+    const mapper = new UpperHoodRequestMapper();
+    const form = DefaultKitchenFormFactory.create(fb);
+
+    restore(form, hoodCabinet({ hoodScreenEnabled: false, hoodScreenHeightMm: 10 }));
+    const disabledRequest = mapper.map(form.getRawValue(), DEFAULT_MATERIAL_DEFAULTS);
+    expect(disabledRequest.hoodScreenEnabled).toBeFalse();
+    expect(disabledRequest.hoodScreenHeightMm).toBe(0);
+
+    restore(form, hoodCabinet({ id: 'hood-2', hoodScreenEnabled: true, hoodScreenHeightMm: 150 }));
+    const enabledRequest = mapper.map(form.getRawValue(), DEFAULT_MATERIAL_DEFAULTS);
+    expect(enabledRequest.hoodScreenEnabled).toBeTrue();
+    expect(enabledRequest.hoodScreenHeightMm).toBe(150);
   });
 });

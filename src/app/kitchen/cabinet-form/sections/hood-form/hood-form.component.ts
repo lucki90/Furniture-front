@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -26,17 +26,28 @@ export class HoodFormComponent implements OnInit {
   showHoodScreenHeight = false;
 
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(readonly dictionaryService: DictionaryService) {}
 
   ngOnInit(): void {
     // Inicjalizacja na podstawie aktualnego stanu kontrolki
+    const heightCtrl = this.form.get('hoodScreenHeightMm');
     this.onHoodScreenEnabledChange(!!this.form.get('hoodScreenEnabled')?.value);
 
     // Reaguj na zmianę checkboxa blendy wewnętrznej
     this.form.get('hoodScreenEnabled')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(enabled => this.onHoodScreenEnabledChange(!!enabled));
+
+    // Odtworzenie kolejnej szafki przełącza pole wysokości w lifecycle (bez zdarzeń checkboxa),
+    // więc widoczność wynika ze stanu kontrolki, a OnPush wymaga ręcznego odświeżenia widoku.
+    heightCtrl?.statusChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.showHoodScreenHeight = heightCtrl.enabled;
+        this.cdr.markForCheck();
+      });
   }
 
   private onHoodScreenEnabledChange(enabled: boolean): void {

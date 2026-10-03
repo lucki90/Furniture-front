@@ -1,7 +1,18 @@
-import { FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
 import { setDimensionValidators } from '../../type-config/validator/dimension-validator.utils';
+import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
+
+/** Stała referencja zachowuje walidatory inputu przy kolejnych odtworzeniach szafki. */
+function hoodScreenHeightValidator(control: AbstractControl): ValidationErrors | null {
+  const form = control.parent;
+  if (form?.get('kitchenCabinetType')?.value !== KitchenCabinetType.UPPER_HOOD
+      || !form.get('hoodScreenEnabled')?.value) return null;
+  const c = KitchenCabinetConstraints.UPPER_HOOD;
+  return Validators.compose([Validators.required, Validators.min(c.HOOD_SCREEN_MIN),
+    Validators.max(c.HOOD_SCREEN_MAX)])?.(control) ? { outOfRange: true } : null;
+}
 
 export class UpperHoodCabinetValidator implements KitchenCabinetValidator {
 
@@ -13,12 +24,7 @@ export class UpperHoodCabinetValidator implements KitchenCabinetValidator {
     form.get('shelfQuantity')?.updateValueAndValidity({ emitEvent: false });
 
     const screenHeightCtrl = form.get('hoodScreenHeightMm');
-    screenHeightCtrl?.setValidators(control => {
-      if (form.get('kitchenCabinetType')?.value !== 'UPPER_HOOD'
-          || !form.get('hoodScreenEnabled')?.value) return null;
-      return Validators.compose([Validators.required, Validators.min(c.HOOD_SCREEN_MIN),
-        Validators.max(c.HOOD_SCREEN_MAX)])?.(control) ? { outOfRange: true } : null;
-    });
+    screenHeightCtrl?.addValidators(hoodScreenHeightValidator);
     screenHeightCtrl?.updateValueAndValidity({ emitEvent: false });
   }
 }
