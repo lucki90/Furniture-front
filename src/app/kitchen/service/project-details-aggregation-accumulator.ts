@@ -19,6 +19,8 @@ export class ProjectDetailsAggregationAccumulator {
   addBoard(map: Map<string, AggregatedBoard>, board: AggregatedBoard): void {
     const key = [
       board.material,
+      board.boardMaterial ?? '',
+      board.varnished ?? false,
       board.thickness,
       board.width,
       board.height,

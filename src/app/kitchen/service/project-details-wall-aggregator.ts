@@ -71,6 +71,11 @@ export class ProjectDetailsWallAggregator {
 
       this.accumulator.addBoard(state.maps.boards, {
         material: board.boardName,
+        boardMaterial: board.material || undefined,
+        boardMaterialLabel: board.material
+          ? (state.bomTranslations?.['MATERIAL.' + board.material] ?? board.material)
+          : undefined,
+        varnished: board.varnished ?? false,
         thickness: board.boardThickness,
         width: board.sideX,
         height: board.sideY,
