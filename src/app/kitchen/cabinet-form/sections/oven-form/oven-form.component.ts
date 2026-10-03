@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -29,13 +29,14 @@ export class OvenFormComponent implements OnInit {
   showOvenApronHeight = false;
 
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(readonly dictionaryService: DictionaryService) {}
 
   ngOnInit(): void {
-    // Inicjalizacja ze stanu kontrolek
-    this.showOvenDrawerModel = this.form.get('drawerModel')?.enabled ?? false;
-    this.showOvenApronHeight = this.form.get('ovenApronHeightMm')?.enabled ?? false;
+    // Zapisane opcje mogą różnić się od domyślnych stanów kontrolek z preparera.
+    this.onOvenLowerSectionTypeChange(this.form.get('ovenLowerSectionType')?.value);
+    this.onOvenApronEnabledChange(!!this.form.get('ovenApronEnabled')?.value);
 
     // Reaguj na zmianę sekcji dolnej
     this.form.get('ovenLowerSectionType')?.valueChanges
@@ -82,12 +83,14 @@ export class OvenFormComponent implements OnInit {
         ctrl.disable();
       }
     }
+    this.cdr.markForCheck();
   }
 
   private onOvenApronEnabledChange(enabled: boolean): void {
     this.showOvenApronHeight = enabled;
     const ctrl = this.form.get('ovenApronHeightMm');
     if (ctrl) enabled ? ctrl.enable() : ctrl.disable();
+    this.cdr.markForCheck();
   }
 
   protected trackByCode = (_: number, item: { code: string }) => item.code;

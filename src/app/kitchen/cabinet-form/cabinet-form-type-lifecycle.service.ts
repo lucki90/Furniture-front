@@ -42,9 +42,25 @@ export class CabinetFormTypeLifecycleService {
         // Powiadom ją o typie frontu odtworzonym bez zdarzeń, aby zsynchronizowała pola szuflad.
         form.get('cooktopFrontType')?.updateValueAndValidity();
       }
+      if (type === KitchenCabinetType.BASE_SINK) {
+        // Zakres szerokości musi odpowiadać zapisanemu frontowi także przed zamontowaniem sekcji.
+        config.validator.validate(form);
+        form.get('sinkFrontType')?.updateValueAndValidity();
+        form.get('sinkApronEnabled')?.updateValueAndValidity();
+      }
+      if (type === KitchenCabinetType.BASE_OVEN) {
+        // Odśwież również już zamontowaną sekcję po odtworzeniu wartości bez zdarzeń.
+        form.get('ovenLowerSectionType')?.updateValueAndValidity();
+        form.get('ovenApronEnabled')?.updateValueAndValidity();
+      }
     }
 
     if (type === KitchenCabinetType.BASE_OVEN) {
+      // Walidacja zapisu musi uwzględniać aktywną blendę jeszcze przed inicjalizacją sekcji.
+      const apronControl = form.get('ovenApronHeightMm');
+      form.get('ovenApronEnabled')?.value
+        ? apronControl?.enable({ emitEvent: false })
+        : apronControl?.disable({ emitEvent: false });
       // Restoring fields without events can change dependencies after height was validated.
       form.get('height')?.updateValueAndValidity({ emitEvent: false });
     }

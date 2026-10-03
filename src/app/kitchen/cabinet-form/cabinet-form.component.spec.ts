@@ -24,6 +24,7 @@ import { BaseOvenCabinetValidator } from './types/base-oven/base-oven-cabinet-va
 import { UpperCascadeCabinetValidator } from './types/upper-cascade/upper-cascade-cabinet-validator';
 import { BaseFridgeCabinetValidator } from './types/base-fridge/base-fridge-cabinet-validator';
 import { UpperDrainerCabinetValidator } from './types/upper-drainer/upper-drainer-cabinet-validator';
+import { BaseOvenFreestandingCabinetValidator } from './types/base-oven/base-oven-freestanding-cabinet-validator';
 import { CABINET_FORM_MESSAGES } from './cabinet-form-validation-messages';
 import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
 
@@ -60,6 +61,19 @@ describe('CabinetFormComponent', () => {
     stateService = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
     projectLayoutService = TestBed.inject(KitchenProjectLayoutService) as unknown as KitchenProjectLayoutServiceStub;
     fixture.detectChanges();
+  });
+
+  it('blocks saving a freestanding oven with invalid or missing edited dimensions', () => {
+    component.form.patchValue({ kitchenCabinetType: KitchenCabinetType.BASE_OVEN_FREESTANDING,
+      width: 600, height: 720, depth: 560 });
+    new BaseOvenFreestandingCabinetValidator().validate(component.form);
+    component.form.get('width')?.setValue(1);
+    expect(component.isAddDisabled).toBeTrue();
+    component.form.get('width')?.setValue(600);
+    component.form.get('height')?.setValue(null);
+    expect(component.isAddDisabled).toBeTrue();
+    component.form.get('height')?.setValue(720);
+    expect(component.isAddDisabled).toBeFalsy();
   });
 
   it('blocks saving a drainer with an unsupported restored width until it is corrected', () => {
