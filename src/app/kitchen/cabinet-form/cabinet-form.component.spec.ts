@@ -14,7 +14,7 @@ import { CabinetFormTypeLifecycleService } from './cabinet-form-type-lifecycle.s
 import { CabinetFormValidationErrorsService } from './cabinet-form-validation-errors.service';
 import { CabinetFormCalculationService } from './cabinet-form-calculation.service';
 import { CabinetSegmentValidationService } from './cabinet-segment-validation.service';
-import { WallWithCabinets } from '../model/kitchen-state.model';
+import { KitchenCabinet, WallWithCabinets } from '../model/kitchen-state.model';
 import { PantryPassageCabinetValidator } from './types/pantry-passage/pantry-passage-cabinet-validator';
 import { MaterialPresetService } from '../service/material-preset.service';
 import { TranslationService } from '../../translation/translation.service';
@@ -669,6 +669,69 @@ describe('CabinetFormComponent', () => {
   });
 });
 
+describe('CabinetFormComponent — obudowa boczna przy edycji kolejnych szafek', () => {
+  let fixture: ComponentFixture<CabinetFormComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [CabinetFormComponent],
+      providers: [
+        FormBuilder,
+        // Prawdziwe CabinetFormEditingService i CabinetFormTypeLifecycleService — ta sama ścieżka edycji co w aplikacji.
+        { provide: DictionaryService, useClass: DictionaryServiceStub },
+        { provide: KitchenStateService, useClass: KitchenStateServiceStub },
+        { provide: CabinetSegmentsFormService, useClass: CabinetSegmentsFormServiceStub },
+        { provide: CabinetFormValidationErrorsService, useClass: CabinetFormValidationErrorsServiceStub },
+        { provide: CabinetFormCalculationService, useClass: CabinetFormCalculationServiceStub },
+        { provide: CabinetSegmentValidationService, useClass: CabinetSegmentValidationServiceStub },
+        { provide: MaterialPresetService, useClass: MaterialPresetServiceStub },
+        { provide: TranslationService, useClass: TranslationServiceStub },
+        { provide: LanguageService, useClass: LanguageServiceStub },
+        { provide: ApiErrorHandler, useClass: ApiErrorHandlerStub },
+        { provide: MatDialog, useClass: MatDialogStub },
+        { provide: KitchenProjectLayoutService, useClass: KitchenProjectLayoutServiceStub }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(CabinetFormComponent);
+    fixture.detectChanges();
+  });
+
+  function edit(cabinet: KitchenCabinet): void {
+    fixture.componentRef.setInput('editingCabinet', cabinet);
+    fixture.detectChanges();
+  }
+
+  function openOptionsTab(): void {
+    const tabs: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button[role="tab"]'));
+    tabs.find(tab => tab.textContent?.trim() === 'Opcje')!.click();
+    fixture.detectChanges();
+  }
+
+  function enclosureLabels(side: 'left' | 'right'): string[] {
+    const select: HTMLSelectElement = fixture.nativeElement.querySelector(`select[formControlName="${side}EnclosureType"]`);
+    return Array.from(select.options).map(option => option.textContent!.trim());
+  }
+
+  it('pokazuje etykiety obudowy zgodne z typem każdej kolejno edytowanej szafki', () => {
+    const base = { id: 'base-1', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, height: 720, depth: 500,
+      positionY: 0, openingType: 'HANDLE', shelfQuantity: 1 } as KitchenCabinet;
+    const upper = { ...base, id: 'upper-1', type: KitchenCabinetType.UPPER_ONE_DOOR, depth: 340 } as KitchenCabinet;
+    const baseLabels = ['Brak obudowy', 'Płyta boczna + cokół', 'Płyta boczna do podłogi', 'Blenda równoległa'];
+    const upperLabels = ['Brak obudowy', 'Płyta boczna', 'Płyta boczna do sufitu', 'Blenda równoległa'];
+
+    // Zmiana typu przełącza formularz na zakładkę „Podstawowe”, więc sekcja powstaje ponownie po otwarciu „Opcji”
+    // i typ musi dotrzeć do niej z wiązania rodzica.
+    for (const [cabinet, labels] of [[base, baseLabels], [upper, upperLabels], [base, baseLabels]] as const) {
+      edit(cabinet);
+      openOptionsTab();
+      expect(fixture.componentInstance.form.get('kitchenCabinetType')?.value).toBe(cabinet.type);
+      expect(enclosureLabels('left')).toEqual([...labels]);
+      expect(enclosureLabels('right')).toEqual([...labels]);
+    }
+  });
+});
+
 function buildWall(type: 'MAIN' | 'ISLAND'): WallWithCabinets {
   return {
     id: 'wall-1',
@@ -767,6 +830,8 @@ class KitchenStateServiceStub {
   readonly countertopThicknessMm = signal(38);
   readonly upperFillerHeightMm = signal(100);
   readonly selectedWallId = signal('wall-1');
+  readonly distanceFromWallMm = signal(560);
+  readonly fillerWidthMm = signal(50);
 
   materialDefaults() {
     return {};
