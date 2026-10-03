@@ -1,6 +1,6 @@
 import { signal, computed } from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { MatDialogModule } from '@angular/material/dialog';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -19,8 +19,10 @@ import { LanguageService } from '../service/language.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
-import { EMPTY, of, throwError } from 'rxjs';
+import { EMPTY, of, Subject, throwError } from 'rxjs';
 import { DEFAULT_GRAIN_DIRECTIONS, GrainDirections, NO_GRAIN_OVERRIDE } from '../shared/model/grain-direction';
+import { KitchenProjectDetailResponse } from './model/kitchen-project.model';
+import { KitchenProjectTransitionHooks } from './service/kitchen-project-transition-guard.service';
 
 // Stub dostarcza wszystkie sygnały konsumowane przez KitchenPageComponent.
 class KitchenStateServiceStub {
@@ -69,6 +71,8 @@ class KitchenStateServiceStub {
   };
   undo = () => false;
   redo = () => false;
+  loadProject = (project: KitchenProjectDetailResponse) => this.currentProjectId.set(project.id);
+  startNewProject = () => this.currentProjectId.set(null);
 }
 
 /**
@@ -269,6 +273,59 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
 
     it('isCalculatingProject() startuje jako false', () => {
       expect(component.isCalculatingProject()).toBeFalse();
+    });
+  });
+
+  describe('projekt wskazany w adresie strony', () => {
+    it('blokuje edytor do odpowiedzi, a po wczytaniu czyści lokalny stan widoku', async () => {
+      const response$ = new Subject<KitchenProjectDetailResponse>();
+      const kitchenService = TestBed.inject(KitchenService);
+      const getProjectSpy = spyOn(kitchenService, 'getProjectById').and.returnValue(response$);
+      const guard = TestBed.inject(KitchenProjectTransitionGuardService);
+      spyOn(guard, 'confirmUnsavedAndProceed').and.callFake(
+        (_label: string, hooks: KitchenProjectTransitionHooks) => hooks.onProceed()
+      );
+      const state = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
+      const saveSpy = spyOn(component, 'onSaveProject');
+
+      component.ngOnInit();
+      await TestBed.inject(Router).navigate([], { queryParams: { projectId: 12 } });
+
+      expect(getProjectSpy).toHaveBeenCalledOnceWith(12);
+      expect(component.isLoadingProjectFromUrl()).toBeTrue();
+      expect(component.projectDisplayName()).toBe('Wczytywanie projektu…');
+      sendKey('s', { ctrlKey: true });
+      expect(saveSpy).not.toHaveBeenCalled();
+
+      component.projectResult.set({} as any);
+      response$.next({ id: 12, name: 'Kuchnia z linku' } as KitchenProjectDetailResponse);
+      response$.complete();
+      state.currentProjectName.set('Kuchnia z linku');
+
+      expect(state.currentProjectId()).toBe(12);
+      expect(component.isLoadingProjectFromUrl()).toBeFalse();
+      expect(component.projectResult()).toBeNull();
+      expect(component.projectDisplayName()).toBe('Kuchnia z linku');
+    });
+
+    it('po zapisie nowego projektu i po wyczyszczeniu adres wskazuje projekt z edytora', async () => {
+      const router = TestBed.inject(Router);
+      const state = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
+      const guard = TestBed.inject(KitchenProjectTransitionGuardService);
+      const workspaceActions = TestBed.inject(KitchenWorkspaceActionsFacade);
+      spyOn(workspaceActions, 'confirmAndClearAll').and.returnValue(of(true));
+      await router.navigate([], { queryParams: { projectId: 7 } });
+
+      component.onSaveProject();
+      state.currentProjectId.set(21);
+      (guard.openSaveProjectDialogAndPersist as jasmine.Spy).calls.mostRecent().args[0].onSuccess();
+      await fixture.whenStable();
+      expect(router.url).toBe('/?projectId=21');
+
+      state.currentProjectId.set(null);
+      component.clearAll();
+      await fixture.whenStable();
+      expect(router.url).toBe('/');
     });
   });
 });

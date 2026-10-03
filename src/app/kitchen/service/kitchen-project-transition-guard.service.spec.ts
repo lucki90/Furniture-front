@@ -161,6 +161,69 @@ describe('KitchenProjectTransitionGuardService', () => {
     expect(firstProceed).not.toHaveBeenCalled();
   });
 
+  it('zgłasza onAbort, gdy użytkownik anuluje dialog niezapisanych zmian', () => {
+    stateService.hasUnsavedChanges.and.returnValue(true);
+    dialog.open.and.returnValue({ afterClosed: () => of(undefined) } as MatDialogRef<unknown>);
+    const onProceed = jasmine.createSpy('onProceed');
+    const onAbort = jasmine.createSpy('onAbort');
+
+    service.confirmUnsavedAndProceed('otwórz projekt', { onProceed, onAbort });
+
+    expect(onAbort).toHaveBeenCalledTimes(1);
+    expect(onProceed).not.toHaveBeenCalled();
+    expect(service.isTransitioning()).toBeFalse();
+  });
+
+  it('zgłasza onAbort drugiemu przejściu, gdy trwa już inne', () => {
+    stateService.hasUnsavedChanges.and.returnValue(true);
+    dialog.open.and.returnValue({
+      afterClosed: () => new Subject<UnsavedChangesDecision>().asObservable()
+    } as MatDialogRef<unknown>);
+    const firstAbort = jasmine.createSpy('firstAbort');
+    const secondAbort = jasmine.createSpy('secondAbort');
+
+    service.confirmUnsavedAndProceed('otwórz projekt', { onProceed: () => {}, onAbort: firstAbort });
+    service.confirmUnsavedAndProceed('otwórz projekt z adresu strony', { onProceed: () => {}, onAbort: secondAbort });
+
+    expect(secondAbort).toHaveBeenCalledTimes(1);
+    expect(firstAbort).not.toHaveBeenCalled();
+  });
+
+  it('nie zgłasza onAbort, gdy przejście dochodzi do skutku', () => {
+    stateService.hasUnsavedChanges.and.returnValue(true);
+    dialog.open.and.returnValue({ afterClosed: () => of('discard') } as MatDialogRef<unknown>);
+    const onAbort = jasmine.createSpy('onAbort');
+
+    service.confirmUnsavedAndProceed('otwórz projekt', { onProceed: () => {}, onAbort });
+
+    expect(onAbort).not.toHaveBeenCalled();
+  });
+
+  it('zgłasza onAbort po anulowaniu dialogu zapisu i po nieudanym zapisie', () => {
+    const saveResult: SaveProjectDialogResult = {
+      name: 'Projekt', description: '', clientName: '', clientPhone: '', clientEmail: ''
+    };
+    stateService.hasUnsavedChanges.and.returnValue(true);
+    requestsFacade.buildMultiWallProjectRequest.and.returnValue({ name: 'Projekt', walls: [] } as never);
+    workflowFacade.saveProject.and.returnValue(throwError(() => new Error('save failed')));
+    dialog.open.and.returnValues(
+      { afterClosed: () => of('save') } as MatDialogRef<unknown>,
+      { afterClosed: () => of(undefined) } as MatDialogRef<unknown>,
+      { afterClosed: () => of('save') } as MatDialogRef<unknown>,
+      { afterClosed: () => of(saveResult) } as MatDialogRef<unknown>
+    );
+    spyOn(console, 'error');
+    const onProceed = jasmine.createSpy('onProceed');
+    const onAbort = jasmine.createSpy('onAbort');
+
+    service.confirmUnsavedAndProceed('otwórz projekt', { onProceed, onAbort });
+    service.confirmUnsavedAndProceed('otwórz projekt', { onProceed, onAbort });
+
+    expect(onAbort).toHaveBeenCalledTimes(2);
+    expect(onProceed).not.toHaveBeenCalled();
+    expect(service.isTransitioning()).toBeFalse();
+  });
+
   it('releases the lock when the save dialog is canceled', () => {
     stateService.hasUnsavedChanges.and.returnValue(true);
     dialog.open.and.returnValues(
