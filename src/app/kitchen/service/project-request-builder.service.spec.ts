@@ -515,6 +515,20 @@ describe('ProjectRequestBuilderService', () => {
       expect(mapSegmentToRequest(door).liftMechanismType).toBeNull();
     });
 
+    it('klapa w dół: front DOWNWARDS przy zapisie i odczycie, bez podnośnika (siłowniki dobiera backend)', () => {
+      const flapDown: SegmentFormData = {
+        segmentType: SegmentType.DOOR, height: 600, orderIndex: 1, shelfQuantity: 1,
+        frontType: SegmentFrontType.DOWNWARDS, liftMechanismType: 'GAS_GTV'
+      };
+
+      const request = mapSegmentToRequest(flapDown);
+      const loaded = service.mapSegmentResponseToFormData(request);
+
+      expect(request.frontType).toBe(SegmentFrontType.DOWNWARDS);
+      expect(request.liftMechanismType).toBeNull();
+      expect(loaded.frontType).toBe(SegmentFrontType.DOWNWARDS);
+    });
+
     it('segment zapisany bez typu wnęki zostaje bez typu (domyślny typ rozstrzyga backend i formularz)', () => {
       const result = service.mapSegmentResponseToFormData({
         segmentType: SegmentType.MICROWAVE, height: 450, orderIndex: 0, shelfQuantity: 0, frontType: 'OPEN'

@@ -6,7 +6,8 @@ import { TALL_SEGMENT_DOOR_DEFAULT_MM, TALL_SEGMENT_DRAWER_DEFAULT_MM } from '..
 /**
  * Renderuje segmenty słupka kuchennego (TALL_CABINET).
  * Segmenty są rysowane proporcjonalnie do ich wysokości w mm.
- * Obsługiwane typy segmentów: DOOR (drzwi albo klapa do góry), DRAWER, OPEN_SHELF, OVEN, MICROWAVE, DISHWASHER.
+ * Obsługiwane typy segmentów: DOOR (drzwi, klapa do góry albo w dół), DRAWER, OPEN_SHELF, OVEN, MICROWAVE,
+ * DISHWASHER.
  * Jeśli brak segmentów — domyślnie 3 sekcje (2 drzwi + szuflady).
  */
 export function renderTallCabinet(
@@ -79,6 +80,14 @@ export function renderTallCabinet(
           handles.push(createHorizontalHandle(
             displayX + displayWidth / 2,
             currentY + segmentHeightPx - 3,
+            Math.min(frontWidth / 2 - 2, 12)
+          ));
+        } else if (segment.frontType === SegmentFrontType.DOWNWARDS) {
+          // Klapa w dół — jeden front, uchwyt przy górnej krawędzi
+          fronts.push({ type: 'DOOR_SINGLE', x: frontX, y: currentY, width: frontWidth, height: segmentHeightPx });
+          handles.push(createHorizontalHandle(
+            displayX + displayWidth / 2,
+            currentY + 3,
             Math.min(frontWidth / 2 - 2, 12)
           ));
         } else if (segment.frontType === SegmentFrontType.TWO_DOORS) {

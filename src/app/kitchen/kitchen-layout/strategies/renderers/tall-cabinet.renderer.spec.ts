@@ -24,6 +24,20 @@ describe('renderTallCabinet — zmywarka i klapa w słupku', () => {
     expect(handles[0].y1).toBeLessThan(fronts[0].y + fronts[0].height / 4);
   });
 
+  it('klapa w dół ma jeden front z poziomym uchwytem przy górnej krawędzi', () => {
+    const { fronts, handles } = render([
+      { segmentType: SegmentType.DOOR, height: 1000, orderIndex: 0, frontType: SegmentFrontType.ONE_DOOR },
+      { segmentType: SegmentType.DOOR, height: 600, orderIndex: 1, frontType: SegmentFrontType.DOWNWARDS },
+      { segmentType: SegmentType.DRAWER, height: 600, orderIndex: 2, drawerQuantity: 2 }
+    ]);
+
+    const flap = fronts[1];
+    const flapHandle = handles[1];
+    expect(flap.type).toBe('DOOR_SINGLE');
+    expect(flapHandle.y2).toBe(flapHandle.y1);
+    expect(flapHandle.y1).toBeLessThan(flap.y + flap.height / 4);
+  });
+
   it('klapa do góry ma jeden front z poziomym uchwytem przy dolnej krawędzi', () => {
     const { fronts, handles } = render([
       { segmentType: SegmentType.DOOR, height: 600, orderIndex: 0, frontType: SegmentFrontType.UPWARDS },

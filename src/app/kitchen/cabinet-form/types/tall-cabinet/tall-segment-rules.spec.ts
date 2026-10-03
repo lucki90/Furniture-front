@@ -62,6 +62,17 @@ describe('tallSegmentIssues — wczesna informacja o segmentach słupka', () => 
     expect(tallSegmentIssues(900, doors(SegmentFrontType.TWO_DOORS))).toEqual([]);
   });
 
+  it('T13: klapa w dół w środkowym segmencie i w słupku 900 — bez uwag (otwiera się w dół, bez limitu drzwi)', () => {
+    const segments: SegmentFormData[] = [
+      { segmentType: SegmentType.DOOR, height: 800, orderIndex: 0, frontType: SegmentFrontType.TWO_DOORS },
+      { segmentType: SegmentType.DOOR, height: 600, orderIndex: 1, frontType: SegmentFrontType.DOWNWARDS },
+      { segmentType: SegmentType.DRAWER, height: 800, orderIndex: 2, drawerQuantity: 3 }
+    ];
+
+    expect(tallSegmentIssues(600, segments)).toEqual([]);
+    expect(tallSegmentIssues(900, segments)).toEqual([]);
+  });
+
   it('T9/T10: klapa do góry tylko w najwyższym segmencie, bez frontu składanego', () => {
     const flap = (orderIndex: number, liftMechanismType: string): SegmentFormData => ({
       segmentType: SegmentType.DOOR, height: 600, orderIndex, frontType: SegmentFrontType.UPWARDS, liftMechanismType

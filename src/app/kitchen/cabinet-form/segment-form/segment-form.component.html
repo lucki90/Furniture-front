@@ -119,6 +119,12 @@
     </ng-container>
   </div>
 
+  <!-- Klapa w dół: okucia dobiera backend (siłowniki odwrócone GTV + zawiasy na dolnej krawędzi) -->
+  <p *ngIf="isDropDownFlap" class="segment-hint">
+    Klapa w dół: siłowniki odwrócone (hamujące) GTV i zawiasy na dolnej krawędzi. Otwarta klapa nie jest półką —
+    pod obciążenie (np. ekspres) potrzebne są rozwórki z nośnością.
+  </p>
+
   <!-- Światło wnęki: wysokość między płytami, z niej sprawdzany jest sprzęt -->
   <div *ngIf="openingHeightMm !== null" class="segment-opening">
     Światło wnęki: <strong>{{ openingHeightMm }} mm</strong>

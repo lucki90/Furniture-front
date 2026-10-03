@@ -123,6 +123,10 @@ export class SegmentFormComponent implements OnInit {
     return this.isDoorSegment && this.segmentForm.get('frontType')?.value === SegmentFrontType.UPWARDS;
   }
 
+  get isDropDownFlap(): boolean {
+    return this.isDoorSegment && this.segmentForm.get('frontType')?.value === SegmentFrontType.DOWNWARDS;
+  }
+
   /** Klapa tylko w najwyższym segmencie; wybrana wcześniej zostaje widoczna, żeby uwaga miała kontekst. */
   get doorFrontTypeOptions(): typeof DOOR_FRONT_TYPE_OPTIONS {
     return this.segmentIndex === 0 || this.isFlap ? DOOR_FRONT_TYPE_OPTIONS : DOOR_FRONT_TYPE_OPTIONS_WITHOUT_FLAP;

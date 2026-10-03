@@ -20,6 +20,7 @@ export enum SegmentFrontType {
   ONE_DOOR = 'ONE_DOOR',
   TWO_DOORS = 'TWO_DOORS',
   UPWARDS = 'UPWARDS',     // Klapa do góry — tylko w najwyższym segmencie słupka
+  DOWNWARDS = 'DOWNWARDS', // Klapa w dół — dowolny segment drzwi; siłowniki odwrócone dobiera backend
   DRAWER = 'DRAWER',
   OPEN = 'OPEN'
 }
@@ -110,7 +111,8 @@ export const SEGMENT_TYPE_OPTIONS: { value: SegmentType; label: string; icon: st
 export const DOOR_FRONT_TYPE_OPTIONS: { value: SegmentFrontType; label: string }[] = [
   { value: SegmentFrontType.ONE_DOOR, label: 'Jedne drzwi' },
   { value: SegmentFrontType.TWO_DOORS, label: 'Dwoje drzwi' },
-  { value: SegmentFrontType.UPWARDS, label: 'Klapa do góry' }
+  { value: SegmentFrontType.UPWARDS, label: 'Klapa do góry' },
+  { value: SegmentFrontType.DOWNWARDS, label: 'Klapa w dół' }
 ];
 
 /**

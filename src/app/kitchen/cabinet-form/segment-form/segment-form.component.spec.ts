@@ -70,6 +70,20 @@ describe('SegmentFormComponent — segment słupka', () => {
     expect(optionValues('frontType')).not.toContain(SegmentFrontType.UPWARDS);
   });
 
+  it('klapa w dół: dostępna w każdym segmencie, bez wyboru podnośnika, z podpowiedzią o okuciach', () => {
+    create(1);
+    expect(optionValues('frontType')).toContain(SegmentFrontType.DOWNWARDS);
+
+    segment.get('frontType')!.setValue(SegmentFrontType.DOWNWARDS);
+    fixture.detectChanges();
+
+    expect(segment.get('liftMechanismType')!.value).toBeNull();
+    expect(fixture.nativeElement.querySelector('select[formControlName="liftMechanismType"]')).toBeNull();
+    const hint = fixture.nativeElement.querySelector('.segment-hint').textContent;
+    expect(hint).toContain('siłowniki odwrócone');
+    expect(hint).toContain('nie jest półką');
+  });
+
   it('klapa: domyślny podnośnik GTV, bez frontu składanego; drzwi czyszczą podnośnik', () => {
     create(0);
 
