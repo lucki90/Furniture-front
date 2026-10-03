@@ -1,4 +1,5 @@
-import { FormGroup, Validators } from '@angular/forms';
+import { FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 
 /**
@@ -12,6 +13,12 @@ import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cab
  */
 export class UpperCascadeCabinetValidator implements KitchenCabinetValidator {
 
+  private readonly depthOrderValidator: ValidatorFn = control => {
+    const form = control as FormGroup;
+    if (form.get('kitchenCabinetType')?.value !== KitchenCabinetType.UPPER_CASCADE) return null;
+    return this.isDepthOrderValid(form) ? null : { cascadeDepthOrder: true };
+  };
+
   private readonly WIDTH_MIN = 200;
   private readonly WIDTH_MAX = 900;
 
@@ -24,6 +31,7 @@ export class UpperCascadeCabinetValidator implements KitchenCabinetValidator {
   private readonly SEGMENT_HEIGHT_MAX = 900;
 
   validate(form: FormGroup): void {
+    form.addValidators(this.depthOrderValidator);
     // Szerokość
     form.get('width')?.setValidators([
       Validators.required,

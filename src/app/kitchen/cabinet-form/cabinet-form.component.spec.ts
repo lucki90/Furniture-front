@@ -21,6 +21,9 @@ import { TranslationService } from '../../translation/translation.service';
 import { LanguageService } from '../../service/language.service';
 import { BaseCargoCabinetValidator } from './types/base-cargo/base-cargo-cabinet-validator';
 import { BaseOvenCabinetValidator } from './types/base-oven/base-oven-cabinet-validator';
+import { UpperCascadeCabinetValidator } from './types/upper-cascade/upper-cascade-cabinet-validator';
+import { BaseFridgeCabinetValidator } from './types/base-fridge/base-fridge-cabinet-validator';
+import { CABINET_FORM_MESSAGES } from './cabinet-form-validation-messages';
 import { KitchenProjectLayoutService } from '../service/kitchen-project-layout.service';
 
 describe('CabinetFormComponent', () => {
@@ -56,6 +59,32 @@ describe('CabinetFormComponent', () => {
     stateService = TestBed.inject(KitchenStateService) as unknown as KitchenStateServiceStub;
     projectLayoutService = TestBed.inject(KitchenProjectLayoutService) as unknown as KitchenProjectLayoutServiceStub;
     fixture.detectChanges();
+  });
+
+  it('blocks adding a cascade until the invalid depth order is corrected', () => {
+    component.form.patchValue({ kitchenCabinetType: KitchenCabinetType.UPPER_CASCADE,
+      width: 600, cascadeLowerHeight: 400, cascadeUpperHeight: 320,
+      cascadeLowerDepth: 400, cascadeUpperDepth: 300 });
+    new UpperCascadeCabinetValidator().validate(component.form);
+    expect(component.isAddDisabled).toBeTrue();
+    component.form.get('cascadeUpperDepth')?.setValue(400);
+    expect(component.isAddDisabled).toBeFalsy();
+  });
+
+  it('blocks adding a fridge when upper sections leave an undersized upper front', () => {
+    const validator = new BaseFridgeCabinetValidator();
+    const validationService = TestBed.inject(CabinetSegmentValidationService);
+    spyOn(validationService, 'getSegmentHeightError').and.callFake(form =>
+      validator.getUpperSectionsError(form, CABINET_FORM_MESSAGES.pl));
+    component.form.patchValue({ kitchenCabinetType: KitchenCabinetType.BASE_FRIDGE,
+      width: 600, height: 2000, depth: 560, fridgeSectionType: 'TWO_DOORS', lowerFrontHeightMm: 713 });
+    component.visibility.segments = true;
+    component.segmentsArray.push(new FormBuilder().group({ height: 600 }));
+    component.segmentsArray.push(new FormBuilder().group({ height: 600 }));
+    expect(component.isAddDisabled).toBeTrue();
+    component.segmentsArray.at(0).get('height')?.setValue(500);
+    component.segmentsArray.at(1).get('height')?.setValue(500);
+    expect(component.isAddDisabled).toBeFalsy();
   });
 
   function prepareOven(height: number, ovenHeightType: string) {

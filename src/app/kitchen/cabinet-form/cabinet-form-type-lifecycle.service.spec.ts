@@ -108,6 +108,28 @@ describe('CabinetFormTypeLifecycleService', () => {
     expect(form.valid).toBeTrue();
   });
 
+  it('restores a disabled sink apron without leaving its hidden height invalid', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+    const cabinet = { type: KitchenCabinetType.BASE_SINK } as any;
+    form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_SINK);
+    editingService.restoreAfterTypePrepared.and.callFake(restoredForm => {
+      restoredForm.patchValue({ sinkApronEnabled: false, sinkApronHeightMm: 10 }, { emitEvent: false });
+    });
+    service.applyTypeChange(form, KitchenCabinetType.BASE_SINK, cabinet);
+    expect(form.valid).toBeTrue();
+  });
+
+  it('does not carry sink apron errors into a standard base cabinet', () => {
+    const form = DefaultKitchenFormFactory.create(fb);
+    form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_SINK);
+    service.applyTypeChange(form, KitchenCabinetType.BASE_SINK, null);
+    form.get('sinkApronHeightMm')?.setValue(10);
+    expect(form.invalid).toBeTrue();
+    form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_ONE_DOOR);
+    service.applyTypeChange(form, KitchenCabinetType.BASE_ONE_DOOR, null);
+    expect(form.valid).toBeTrue();
+  });
+
   describe('refreshCornerHangingVisibility', () => {
     let baseVisibility: CabinetFormVisibility;
 

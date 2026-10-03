@@ -1,6 +1,7 @@
 import { FormGroup, Validators } from '@angular/forms';
 import { KitchenCabinetValidator } from '../../type-config/validator/kitchen-cabinet-validator';
 import { KitchenCabinetConstraints } from '../../model/kitchen-cabinet-constants';
+import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
 
 export class BaseSinkCabinetValidator implements KitchenCabinetValidator {
 
@@ -27,11 +28,14 @@ export class BaseSinkCabinetValidator implements KitchenCabinetValidator {
       Validators.max(this.constraints.DEPTH_MAX)
     ]);
 
-    // sinkApronHeightMm walidowane tylko gdy apronEnabled=true — dla uproszczenia walidacja zakresu statycznie
-    form.get('sinkApronHeightMm')?.setValidators([
-      Validators.min(this.constraints.APRON_MIN),
-      Validators.max(this.constraints.APRON_MAX)
-    ]);
+    form.get('sinkApronHeightMm')?.setValidators(control => {
+      if (form.get('kitchenCabinetType')?.value !== KitchenCabinetType.BASE_SINK
+        || !form.get('sinkApronEnabled')?.value) return null;
+      return Validators.compose([
+        Validators.min(this.constraints.APRON_MIN),
+        Validators.max(this.constraints.APRON_MAX)
+      ])?.(control) ?? null;
+    });
 
     form.get('width')?.updateValueAndValidity();
     form.get('height')?.updateValueAndValidity();

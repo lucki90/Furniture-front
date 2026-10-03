@@ -39,7 +39,7 @@ export class SinkFormComponent implements OnInit {
 
   ngOnInit(): void {
     // Inicjalizacja na podstawie aktualnego stanu kontrolek
-    this.showSinkApronHeight = this.form.get('sinkApronHeightMm')?.enabled ?? false;
+    this.onSinkApronEnabledChange(!!this.form.get('sinkApronEnabled')?.value);
     this.showSinkDrawerModel = this.form.get('sinkDrawerModel')?.enabled ?? false;
 
     // Reaguj na zmianę typu frontu
@@ -104,6 +104,8 @@ export class SinkFormComponent implements OnInit {
 
   private onSinkApronEnabledChange(enabled: boolean): void {
     this.showSinkApronHeight = enabled;
+    const control = this.form.get('sinkApronHeightMm');
+    if (control) enabled ? control.enable() : control.disable();
   }
 
   getFieldError(controlName: string): string | null {

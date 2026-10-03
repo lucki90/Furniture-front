@@ -94,10 +94,14 @@ export class BaseFridgeCabinetValidator implements KitchenCabinetValidator {
     }
 
     const fridgeH = this.getFridgeSectionHeight(form);
-    if (fridgeH < MIN_FRIDGE_SECTION_HEIGHT_MM) {
+    // Nominal front heights include veneer. Existing fridge offsets: 3 mm top + 4 mm gap + 3 mm bottom.
+    const minimumHeight = form.get('fridgeSectionType')?.value === 'TWO_DOORS'
+      ? Math.max(MIN_FRIDGE_SECTION_HEIGHT_MM, (form.get('lowerFrontHeightMm')?.value ?? 0) + 100 + 10)
+      : MIN_FRIDGE_SECTION_HEIGHT_MM;
+    if (fridgeH < minimumHeight) {
       const totalH = form.get('height')?.value ?? 0;
       const upperSum = this.getUpperSectionsHeightSum(form);
-      return msg.fridgeSectionsTooHigh(upperSum, fridgeH, MIN_FRIDGE_SECTION_HEIGHT_MM, totalH);
+      return msg.fridgeSectionsTooHigh(upperSum, fridgeH, minimumHeight, totalH);
     }
 
     return null;
