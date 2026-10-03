@@ -4,7 +4,7 @@ import { WallWithCabinets, KitchenCabinet } from '../model/kitchen-state.model';
 import { DEFAULT_COUNTERTOP_REQUEST } from '../model/countertop.model';
 import { DEFAULT_PLINTH_REQUEST } from '../model/plinth.model';
 import { PLATE_THICKNESS_MM } from '../kitchen-layout/kitchen-layout.constants';
-import { SegmentFrontType, SegmentType } from '../cabinet-form/model/segment.model';
+import { mapSegmentToRequest, SegmentFormData, SegmentFrontType, SegmentType } from '../cabinet-form/model/segment.model';
 
 describe('ProjectRequestBuilderService', () => {
   let service: ProjectRequestBuilderService;
@@ -473,6 +473,27 @@ describe('ProjectRequestBuilderService', () => {
         drawerQuantity: 3,
         drawerModel: 'MERIVOBOX'
       });
+    });
+
+    it('zachowuje typ wnęki piekarnika i mikrofali przy zapisie i odczycie (plan słupka, F4)', () => {
+      const oven: SegmentFormData = {
+        segmentType: SegmentType.OVEN, height: 491, orderIndex: 1, shelfQuantity: 0, ovenHeightType: 'COMPACT'
+      };
+      const microwave: SegmentFormData = {
+        segmentType: SegmentType.MICROWAVE, height: 473, orderIndex: 2, shelfQuantity: 0, microwaveType: 'M45'
+      };
+
+      expect(service.mapSegmentResponseToFormData(mapSegmentToRequest(oven)).ovenHeightType).toBe('COMPACT');
+      expect(service.mapSegmentResponseToFormData(mapSegmentToRequest(microwave)).microwaveType).toBe('M45');
+    });
+
+    it('segment zapisany bez typu wnęki zostaje bez typu (domyślny typ rozstrzyga backend i formularz)', () => {
+      const result = service.mapSegmentResponseToFormData({
+        segmentType: SegmentType.MICROWAVE, height: 450, orderIndex: 0, shelfQuantity: 0, frontType: 'OPEN'
+      });
+
+      expect(result.microwaveType).toBeUndefined();
+      expect(result.ovenHeightType).toBeUndefined();
     });
   });
 });

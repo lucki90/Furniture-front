@@ -125,6 +125,12 @@ export class ProjectRequestBuilderService {
     if (seg.frontType) {
       formData.frontType = seg.frontType as SegmentFrontType;
     }
+    if (seg.ovenHeightType) {
+      formData.ovenHeightType = seg.ovenHeightType;
+    }
+    if (seg.microwaveType) {
+      formData.microwaveType = seg.microwaveType;
+    }
 
     return formData;
   }

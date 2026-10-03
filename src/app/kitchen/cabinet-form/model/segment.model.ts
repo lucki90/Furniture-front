@@ -29,6 +29,11 @@ export enum SegmentFrontType {
 export type OvenSegmentHeightType = 'STANDARD' | 'COMPACT';
 
 /**
+ * Typ mikrofalówki dla segmentu MICROWAVE: M38 = ok. 38 cm (domyślna), M45 = kompaktowa 45 cm.
+ */
+export type MicrowaveSegmentType = 'M38' | 'M45';
+
+/**
  * Wnęka piekarnika w mm dla danego typu.
  */
 export const OVEN_SLOT_HEIGHT_MM: Record<OvenSegmentHeightType, number> = {
@@ -49,8 +54,10 @@ export interface SegmentFormData {
   // Dla DOOR i OPEN_SHELF
   shelfQuantity?: number;
   frontType?: SegmentFrontType;
-  // Dla OVEN: typ wnęki piekarnika — gdy ustawiony, walidator wymusza minimalną wysokość segmentu
+  // Dla OVEN: typ wnęki piekarnika — wyznacza minimalne światło wnęki
   ovenHeightType?: OvenSegmentHeightType | null;
+  // Dla MICROWAVE: typ mikrofalówki — wyznacza minimalne światło wnęki
+  microwaveType?: MicrowaveSegmentType | null;
 }
 
 /**
@@ -69,6 +76,7 @@ export interface SegmentRequest {
   shelfQuantity?: number | null;
   frontType?: string | null;
   ovenHeightType?: OvenSegmentHeightType | null;
+  microwaveType?: MicrowaveSegmentType | null;
 }
 
 /**
@@ -145,10 +153,11 @@ export function mapSegmentToRequest(segment: SegmentFormData): SegmentRequest {
       break;
 
     case SegmentType.MICROWAVE:
-      // Wnęka mikrofalówki — bez frontu, bez półek, bez ovenHeightType
+      // Wnęka mikrofalówki — bez frontu, bez półek; propaguj microwaveType (M38/M45/null)
       request.frontType = 'OPEN';
       request.shelfQuantity = 0;
       request.drawerRequest = null;
+      request.microwaveType = segment.microwaveType ?? null;
       break;
   }
 
