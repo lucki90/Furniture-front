@@ -2,6 +2,7 @@ import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 import { GrainAxis } from '../../shared/model/grain-direction';
 
 export interface AggregatedBoard {
+  /** Klucz grupowania; dla dodatków ściany techniczny (`BLAT_LAMINATE`) — do wyświetlenia służy `boardLabel`. */
   material: string;
   thickness: number;
   width: number;
@@ -14,6 +15,8 @@ export interface AggregatedBoard {
   veneerY?: number;
   veneerColor?: string;
   boardLabel?: string;
+  /** Czytelna nazwa materiału (np. „Laminat”), gdy `material` jest kluczem technicznym — kolumna symbolu w Excelu. */
+  materialName?: string;
   cabinetRefs?: string[];
   remarks?: string;
   veneerEdgeLabel?: string;

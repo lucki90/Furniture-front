@@ -89,6 +89,29 @@ describe('kitchen-project-summary.utils', () => {
     expect(filename).toBe('kuchnia_plyty_Projekt___klient_20260417.xlsx');
   });
 
+  it('blat i cokół mają w Excelu czytelny symbol i naklejkę zamiast kodów technicznych', () => {
+    const wallBoard = { quantity: 1, thickness: 38, width: 1200, height: 600, unitCost: 0, totalCost: 0 };
+
+    const [countertop, plinth, plinthWithoutMaterial] = buildBoardExcelRows([
+      { ...wallBoard, material: 'BLAT_LAMINATE', boardLabel: 'Blat — laminat', materialName: 'Laminat' },
+      { ...wallBoard, material: 'COKOL_PVC', boardLabel: 'Cokół — PVC', materialName: 'PVC' },
+      { ...wallBoard, material: 'COKOL_', boardLabel: 'Cokół', materialName: '' }
+    ], {}, {});
+
+    expect(countertop).toEqual(jasmine.objectContaining({ symbol: 'Laminat', sticker: 'Blat — laminat' }));
+    expect(plinth).toEqual(jasmine.objectContaining({ symbol: 'PVC', sticker: 'Cokół — PVC' }));
+    expect(plinthWithoutMaterial).toEqual(jasmine.objectContaining({ symbol: '', sticker: 'Cokół' }));
+  });
+
+  it('kolor płyty ma pierwszeństwo przed nazwą materiału w symbolu', () => {
+    const [row] = buildBoardExcelRows([{
+      quantity: 1, material: 'BLAT_LAMINATE', thickness: 38, width: 1200, height: 600, unitCost: 0, totalCost: 0,
+      color: 'W1000', boardLabel: 'Blat — laminat', materialName: 'Laminat'
+    }], {}, {});
+
+    expect(row.symbol).toBe('W1000');
+  });
+
   it('should put the grain dimension in the order length column', () => {
     const front = {
       quantity: 1, material: 'FRONT_NAME', thickness: 18, width: 712, height: 394,

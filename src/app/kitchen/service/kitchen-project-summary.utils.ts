@@ -67,11 +67,7 @@ export function buildBoardExcelRows(
     return {
       lp: index + 1,
       quantity: board.quantity,
-      symbol: board.color || (
-        board.material
-          ? (bomTranslations['MATERIAL.' + board.material] ?? materialFallbacks[board.material] ?? board.material)
-          : ''
-      ),
+      symbol: resolveBoardExcelSymbol(board, bomTranslations, materialFallbacks),
       thickness: board.thickness,
       length: order.length,
       lengthVeneer: order.lengthVeneer,
@@ -83,6 +79,24 @@ export function buildBoardExcelRows(
       veneerEdgeLabel: board.veneerEdgeLabel ?? ''
     };
   });
+}
+
+/** Symbol / dekor płyty: kolor, a bez niego nazwa materiału (dodatki ściany mają ją gotową z agregacji). */
+function resolveBoardExcelSymbol(
+  board: AggregatedBoard,
+  bomTranslations: Record<string, string>,
+  materialFallbacks: Record<string, string>
+): string {
+  if (board.color) {
+    return board.color;
+  }
+  if (board.materialName !== undefined) {
+    return board.materialName;
+  }
+  if (!board.material) {
+    return '';
+  }
+  return bomTranslations['MATERIAL.' + board.material] ?? materialFallbacks[board.material] ?? board.material;
 }
 
 export function buildBoardExcelFilename(projectName: string | null | undefined, now: Date = new Date()): string {

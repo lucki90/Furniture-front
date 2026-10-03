@@ -570,6 +570,65 @@ describe('ProjectDetailsAggregatorService', () => {
     expect(widths).toEqual([900, 1240]);
   });
 
+  describe('etykiety blatu i cokołu', () => {
+    const wallWith = (countertopMaterial: string, plinthMaterial: string) => ({
+      cabinets: [],
+      countertop: {
+        enabled: true,
+        materialType: countertopMaterial,
+        components: [],
+        segments: [{ thicknessMm: 38, lengthMm: 1200, depthMm: 600, materialCost: 100 }]
+      },
+      plinth: {
+        enabled: true,
+        materialType: plinthMaterial,
+        components: [],
+        segments: [{ lengthMm: 1200, heightMm: 100, materialCost: 20 }]
+      }
+    });
+    const describeBoards = (walls: unknown[], translations?: Record<string, string>) => {
+      const response = { walls, totalWasteCost: 0, globalWasteComponents: [] } as unknown as MultiWallCalculateResponse;
+      return service.aggregate(response, [] as WallWithCabinets[], translations).boards
+        .map(board => [board.material, board.boardLabel, board.materialName]);
+    };
+
+    it('bierze nazwy materiałów z tłumaczeń słownika i zachowuje klucze grupowania', () => {
+      const boards = describeBoards([wallWith('LAMINATE', 'PVC'), wallWith('STONE', 'MDF_LAMINATED')], {
+        'COUNTERTOP_MATERIAL.LAMINATE': 'Laminat (standard)',
+        'COUNTERTOP_MATERIAL.STONE': 'Kamień (granit, marmur)',
+        'PLINTH_MATERIAL.PVC': 'PVC (standard)',
+        'PLINTH_MATERIAL.MDF_LAMINATED': 'MDF laminowany'
+      });
+
+      expect(boards).toEqual([
+        ['BLAT_LAMINATE', 'Blat — laminat', 'Laminat'],
+        ['COKOL_PVC', 'Cokół — PVC', 'PVC'],
+        ['BLAT_STONE', 'Blat — kamień (granit, marmur)', 'Kamień (granit, marmur)'],
+        ['COKOL_MDF_LAMINATED', 'Cokół — MDF laminowany', 'MDF laminowany']
+      ]);
+    });
+
+    it('bez tłumaczenia materiału używa polskiej etykiety opcji z frontu', () => {
+      const boards = describeBoards([wallWith('QUARTZ_COMPOSITE', 'CHIPBOARD'), wallWith('COMPACT', 'ALUMINUM')], {
+        'PLINTH_MATERIAL.CHIPBOARD': 'Płyta wiórowa'
+      });
+
+      expect(boards).toEqual([
+        ['BLAT_QUARTZ_COMPOSITE', 'Blat — konglomerat kwarcowy', 'Konglomerat kwarcowy'],
+        ['COKOL_CHIPBOARD', 'Cokół — płyta wiórowa', 'Płyta wiórowa'],
+        ['BLAT_COMPACT', 'Blat — płyta kompaktowa (Corian)', 'Płyta kompaktowa (Corian)'],
+        ['COKOL_ALUMINUM', 'Cokół — aluminium', 'Aluminium']
+      ]);
+    });
+
+    it('bez tłumaczeń (słownik niezaładowany) też daje czytelne etykiety', () => {
+      expect(describeBoards([wallWith('LAMINATE', 'PVC')])).toEqual([
+        ['BLAT_LAMINATE', 'Blat — laminat', 'Laminat'],
+        ['COKOL_PVC', 'Cokół — PVC', 'PVC']
+      ]);
+    });
+  });
+
   it('nazywa pracę przy złączu narożnym według typu złącza', () => {
     const corner = (jointType: string | undefined, wallAIndex: number) => ({
       wallAIndex,

@@ -141,7 +141,7 @@
                 </thead>
                 <tbody>
                 <tr *ngFor="let board of aggregatedBoards; trackBy: trackByIndex">
-                  <td>{{ board.material }} <span class="dim-muted">({{ board.thickness }}mm)</span></td>
+                  <td>{{ board.boardLabel ?? board.material }} <span class="dim-muted">({{ board.thickness }}mm)</span></td>
                   <td class="col-mono">{{ board.width }} × {{ board.height }}</td>
                   <td>{{ board.veneerEdgeLabel || '—' }}</td>
                   <td class="col-num">{{ board.quantity }}</td>

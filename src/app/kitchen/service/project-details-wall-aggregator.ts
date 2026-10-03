@@ -14,14 +14,15 @@ import {
 } from './project-details-aggregation.models';
 import { ProjectDetailsAggregationAccumulator } from './project-details-aggregation-accumulator';
 import { buildBoardRemarks } from './board-remarks.builder';
+import { countertopBoardLabel, plinthBoardLabel } from './wall-board-labels';
 
 export class ProjectDetailsWallAggregator {
   constructor(private readonly accumulator: ProjectDetailsAggregationAccumulator) {}
 
   aggregateWall(wall: WallLike, frontendWall: WallWithCabinets | undefined, state: AggregationState): void {
     this.aggregateCabinets(wall.cabinets, state);
-    this.aggregateCountertop(wall, state.maps);
-    this.aggregatePlinth(wall, frontendWall, state.maps);
+    this.aggregateCountertop(wall, state.maps, state.bomTranslations);
+    this.aggregatePlinth(wall, frontendWall, state.maps, state.bomTranslations);
     this.aggregateFillerPanels(wall, state.maps);
     this.aggregateEnclosures(wall, state.maps);
     this.aggregateUpperFiller(wall, state.maps);
@@ -119,9 +120,10 @@ export class ProjectDetailsWallAggregator {
     }
   }
 
-  private aggregateCountertop(wall: WallLike, maps: AggregationMaps): void {
+  private aggregateCountertop(wall: WallLike, maps: AggregationMaps, translations?: Record<string, string>): void {
     if (!wall.countertop?.enabled || !wall.countertop.segments) return;
 
+    const label = countertopBoardLabel(wall.countertop.materialType, translations);
     for (const segment of wall.countertop.segments) {
       // Formatka z zapasem na docięcie (`cutLengthMm`); starsza odpowiedź bez pola — długość segmentu.
       this.accumulator.addBoard(maps.boards, {
@@ -131,7 +133,9 @@ export class ProjectDetailsWallAggregator {
         height: segment.depthMm,
         quantity: 1,
         unitCost: segment.materialCost,
-        totalCost: segment.materialCost
+        totalCost: segment.materialCost,
+        boardLabel: label.boardLabel,
+        materialName: label.materialName
       });
 
       this.addOptionalJob(maps.jobs, 'COUNTERTOP_CUTTING', 'COUNTERTOP', segment.cuttingCost);
@@ -141,11 +145,17 @@ export class ProjectDetailsWallAggregator {
     this.aggregateNullableComponents(wall.countertop.components, maps.components);
   }
 
-  private aggregatePlinth(wall: WallLike, frontendWall: WallWithCabinets | undefined, maps: AggregationMaps): void {
+  private aggregatePlinth(
+    wall: WallLike,
+    frontendWall: WallWithCabinets | undefined,
+    maps: AggregationMaps,
+    translations?: Record<string, string>
+  ): void {
     if (wall.plinth?.enabled && wall.plinth.segments) {
       const plinthMat = wall.plinth.materialType ?? '';
       const plinthThicknessMm = frontendWall?.plinthConfig?.thicknessMm
         ?? ((plinthMat === 'MDF_LAMINATED' || plinthMat === 'CHIPBOARD') ? 18 : 16);
+      const label = plinthBoardLabel(plinthMat, translations);
 
       for (const segment of wall.plinth.segments) {
         this.accumulator.addBoard(maps.boards, {
@@ -155,7 +165,9 @@ export class ProjectDetailsWallAggregator {
           height: segment.heightMm,
           quantity: 1,
           unitCost: segment.materialCost,
-          totalCost: segment.materialCost
+          totalCost: segment.materialCost,
+          boardLabel: label.boardLabel,
+          materialName: label.materialName
         });
 
         this.addOptionalJob(maps.jobs, 'PLINTH_CUTTING', 'PLINTH', segment.cuttingCost);
