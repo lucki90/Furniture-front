@@ -19,6 +19,20 @@ describe('settlePriceUpdates', () => {
     expect(emitted[0]).toEqual(jasmine.arrayWithExactContents([{ id: 2 }, { id: 3 }]));
   });
 
+  it('keeps waiting for, and collects, a success that arrives after an earlier error', () => {
+    const requests = new Map([3, 1].map(id => [id, new Subject<{ requestedId: number; id: number }>()]));
+    const emitted: { requestedId: number; id: number }[][] = [];
+
+    settlePriceUpdates([3, 1], id => requests.get(id)!).subscribe(rows => emitted.push(rows));
+    requests.get(1)!.error(new Error('500'));
+    expect(emitted).toEqual([]);
+
+    requests.get(3)!.next({ requestedId: 3, id: 99 });
+    requests.get(3)!.complete();
+
+    expect(emitted).toEqual([[{ requestedId: 3, id: 99 }]]);
+  });
+
   it('emits an empty list when there is nothing to update', () => {
     const emitted: unknown[][] = [];
 

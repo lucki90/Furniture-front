@@ -1,12 +1,22 @@
 import { Component, Input, OnInit, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { catchError, map, of, switchMap } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { FormFieldComponent } from '../../shared/form-field/form-field.component';
 import { BoardPriceService, BoardPrice, CreateBoardPrice } from '../board-price.service';
 import { MaterialOption } from '../../admin/material/model/material-variant.model';
 import { ToastService } from '../../core/error/toast.service';
+import { settlePriceUpdates, unconfirmedBulkSaveNotice } from '../price-edit-table/bulk-price-save';
+
+/** Confirmed PUT response paired with the id it was requested for (GLOBAL → OWN may change the id). */
+interface ConfirmedBoardPrice {
+  requestedId: number;
+  saved: BoardPrice;
+}
+
+const BULK_REFRESH_FAILED_NOTICE =
+  'Nie udało się odświeżyć cennika płyt z serwera — tabela pokazuje ostatnie potwierdzone dane i może być nieaktualna.';
 
 /**
  * Sekcja "Cennik płyt" wydzielona z SettingsComponent (R.2.3).
@@ -229,27 +239,88 @@ export class BoardPricesSectionComponent implements OnInit {
 
   bulkPrice = 0;
   bulkSaving = false;
+  /** Outcome of a bulk save that was not fully confirmed or not refreshed; shown above the table. */
+  bulkSaveNotice: string | null = null;
 
+  /**
+   * Each PUT is a separate write: a failed one neither cancels the others nor discards their
+   * responses. Once every request has settled, confirmed rows are applied (GLOBAL → OWN by the
+   * requested id) and the effective list is re-read; the action stays locked until then.
+   */
   submitBulkForSelected(): void {
-    if (this.selectedBoardIds.size === 0) return;
+    if (this.selectedBoardIds.size === 0 || this.bulkSaving) return;
     const ids = Array.from(this.selectedBoardIds);
+    const price = this.bulkPrice;
     this.bulkSaving = true;
-    const requests = ids.map(id =>
-      this.boardPriceService.update(id, { pricePerM2: this.bulkPrice })
-    );
-    forkJoin(requests).subscribe({
-      next: () => {
-        this.bulkSaving = false;
-        this.clearBoardSelection();
-        this.bulkPrice = 0;
+    this.bulkSaveNotice = null;
+    settlePriceUpdates(ids, id =>
+      this.boardPriceService.update(id, { pricePerM2: price }).pipe(
+        map((saved): ConfirmedBoardPrice => ({ requestedId: id, saved }))
+      )
+    ).pipe(
+      switchMap(confirmed => {
+        this.applyConfirmedBoardPrices(confirmed);
         // Reload full list — GLOBAL boards get new OWN record with different id
-        this.loadBoardPrices();
-      },
-      error: () => {
-        this.bulkSaving = false;
-        this.toast.error('Błąd podczas aktualizacji cen.');
+        return this.boardPriceService.list().pipe(
+          catchError(() => of(null)),
+          map(refreshed => ({ confirmed: confirmed.length, refreshed }))
+        );
+      })
+    ).subscribe(({ confirmed, refreshed }) => this.finishBulkSave(ids.length, confirmed, refreshed));
+  }
+
+  private applyConfirmedBoardPrices(confirmed: ConfirmedBoardPrice[]): void {
+    const savedByRequestedId = new Map(confirmed.map(c => [c.requestedId, c.saved]));
+    const savedIds = new Set(confirmed.map(c => c.saved.id));
+    const seen = new Set<number>();
+    const next: BoardPrice[] = [];
+    for (const bp of this.boardPrices) {
+      // A row already listed under a returned id is a stale copy: its update takes the requested row's place.
+      const row = savedByRequestedId.get(bp.id) ?? (savedIds.has(bp.id) ? undefined : bp);
+      if (row && !seen.has(row.id)) {
+        seen.add(row.id);
+        next.push(row);
       }
-    });
+    }
+    this.boardPrices = next;
+
+    const selection = new Set<number>();
+    this.selectedBoardIds.forEach(id => selection.add(savedByRequestedId.get(id)?.id ?? id));
+    this.selectedBoardIds = selection;
+    this.clampBoardPage();
+  }
+
+  private finishBulkSave(total: number, confirmed: number, refreshed: BoardPrice[] | null): void {
+    if (refreshed) {
+      this.boardPrices = refreshed;
+      this.boardPricesError = null;
+      this.clampBoardPage();
+    }
+    const allConfirmed = confirmed === total;
+    if (allConfirmed) {
+      this.clearBoardSelection();
+      this.bulkPrice = 0;
+    } else {
+      this.reconcileBoardSelectionToFilteredRows();
+    }
+
+    const savedNotice = `Zapisano nową cenę dla zaznaczonych płyt (${total}).`;
+    const unconfirmedNotice = unconfirmedBulkSaveNotice(total, confirmed);
+    if (refreshed) {
+      this.bulkSaveNotice = unconfirmedNotice;
+    } else {
+      this.bulkSaveNotice = `${unconfirmedNotice ?? savedNotice} ${BULK_REFRESH_FAILED_NOTICE}`;
+    }
+    if (allConfirmed && refreshed) {
+      this.toast.success(savedNotice);
+    }
+
+    this.bulkSaving = false;
+    this.boardPricesChanged.emit(this.boardPrices);
+  }
+
+  private clampBoardPage(): void {
+    this.boardCurrentPage = Math.min(this.boardCurrentPage, this.boardTotalPages);
   }
 
   // ── Bulk deactivate selected ──────────────────────────────────────────────────
