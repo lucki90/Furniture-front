@@ -1,5 +1,5 @@
-import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Subject, of, throwError } from 'rxjs';
 import { JobPrice, JobPriceService } from '../job-price.service';
 import { JobPricesSectionComponent } from './job-prices-section.component';
 
@@ -10,6 +10,7 @@ describe('JobPricesSectionComponent', () => {
   beforeEach(() => {
     service = jasmine.createSpyObj<JobPriceService>('JobPriceService', ['list', 'update']);
     TestBed.configureTestingModule({
+      imports: [JobPricesSectionComponent],
       providers: [{ provide: JobPriceService, useValue: service }]
     });
     component = TestBed.runInInjectionContext(() => new JobPricesSectionComponent());
@@ -71,6 +72,152 @@ describe('JobPricesSectionComponent', () => {
     expect(complete).toHaveBeenCalledOnceWith(true);
   });
 
+  describe('bulk save with independent requests', () => {
+    let first: Subject<JobPrice>;
+    let second: Subject<JobPrice>;
+    let complete: jasmine.Spy;
+
+    beforeEach(() => {
+      component.jobPrices = [price(1, 'CUTTING', 'A', 10), price(2, 'CUTTING', 'B', 20)];
+      component.filteredJobPrices = component.jobPrices;
+      first = new Subject<JobPrice>();
+      second = new Subject<JobPrice>();
+      service.update.withArgs(1, { pricePerUnit: 50 }).and.returnValue(first);
+      service.update.withArgs(2, { pricePerUnit: 50 }).and.returnValue(second);
+      complete = jasmine.createSpy('complete');
+    });
+
+    it('keeps a confirmed price when another request fails afterwards', () => {
+      component.saveBulk({ ids: [1, 2], price: 50, complete });
+
+      first.next(price(1, 'CUTTING', 'A', 50));
+      first.complete();
+      expect(complete).not.toHaveBeenCalled();
+
+      second.error(new Error('500'));
+
+      expect(complete).toHaveBeenCalledOnceWith(false);
+      expect(component.jobPrices.map(item => item.pricePerUnit)).toEqual([50, 20]);
+      expect(component.filteredJobPrices.map(item => item.pricePerUnit)).toEqual([50, 20]);
+      expect(service.list).not.toHaveBeenCalled();
+    });
+
+    it('waits for the remaining requests when a failure arrives first', () => {
+      component.saveBulk({ ids: [1, 2], price: 50, complete });
+
+      second.error(new Error('500'));
+      expect(complete).not.toHaveBeenCalled();
+      expect(first.observed).toBeTrue();
+
+      first.next(price(1, 'CUTTING', 'A', 50));
+      first.complete();
+
+      expect(complete).toHaveBeenCalledOnceWith(false);
+      expect(component.jobPrices.map(item => item.pricePerUnit)).toEqual([50, 20]);
+      expect(component.filteredJobPrices.map(item => item.pricePerUnit)).toEqual([50, 20]);
+    });
+
+    it('keeps filters and unselected prices after a partial failure', () => {
+      component.jobPrices = [
+        price(1, 'CUTTING', 'A', 10),
+        price(2, 'CUTTING', 'B', 20),
+        price(3, 'EDGING', 'C', 30)
+      ];
+      component.onCategoryChange('CUTTING');
+      component.onVariantChange('A');
+      expect(component.filteredJobPrices.map(item => item.id)).toEqual([1]);
+
+      component.saveBulk({ ids: [1, 2], price: 50, complete });
+      first.next(price(1, 'CUTTING', 'A', 50));
+      first.complete();
+      second.error(new Error('500'));
+
+      expect(component.categoryFilter).toBe('CUTTING');
+      expect(component.variantFilter).toBe('A');
+      expect(component.filteredJobPrices.map(item => [item.id, item.pricePerUnit])).toEqual([[1, 50]]);
+      expect(component.jobPrices.map(item => item.pricePerUnit)).toEqual([50, 20, 30]);
+    });
+
+    it('completes once with failure and keeps prices when every request fails', () => {
+      component.saveBulk({ ids: [1, 2], price: 50, complete });
+
+      first.error(new Error('500'));
+      second.error(new Error('500'));
+
+      expect(complete).toHaveBeenCalledOnceWith(false);
+      expect(component.jobPrices.map(item => item.pricePerUnit)).toEqual([10, 20]);
+    });
+  });
+
+  describe('bulk save in the rendered table', () => {
+    let fixture: ComponentFixture<JobPricesSectionComponent>;
+    let first: Subject<JobPrice>;
+    let second: Subject<JobPrice>;
+
+    beforeEach(() => {
+      service.list.and.returnValue(of([price(1, 'CUTTING', 'A', 10), price(2, 'CUTTING', 'B', 20)]));
+      first = new Subject<JobPrice>();
+      second = new Subject<JobPrice>();
+      service.update.withArgs(1, { pricePerUnit: 50 }).and.returnValue(first);
+      service.update.withArgs(2, { pricePerUnit: 50 }).and.returnValue(second);
+      fixture = TestBed.createComponent(JobPricesSectionComponent);
+      fixture.detectChanges();
+      startBulkSave(fixture, 50);
+    });
+
+    it('shows the confirmed price and a partial-save notice, then unlocks the action', () => {
+      first.next(price(1, 'CUTTING', 'A', 50));
+      first.complete();
+      fixture.detectChanges();
+      expect(bulkButton(fixture).disabled).toBeTrue();
+      expect(bulkButton(fixture).textContent).toContain('Zapisuje...');
+
+      second.error(new Error('500'));
+      fixture.detectChanges();
+
+      expect(priceCells(fixture)).toEqual(['50.00 zł', '20.00 zł']);
+      expect(bulkNotice(fixture)).toBe(
+        'Potwierdzono zapis 1 z 2 pozycji. Nie udało się potwierdzić zapisu pozostałych (1) — ' +
+        'ich ceny w tabeli mogą nie odpowiadać stanowi na serwerze. Zaznaczenie zostało zachowane.'
+      );
+      expect(bulkButton(fixture).disabled).toBeFalse();
+      expect(bulkButton(fixture).textContent).toContain('Ustal cene zaznaczonym');
+      expect(checkedRowCount(fixture)).toBe(2);
+      expect(fixture.nativeElement.querySelector('table')).not.toBeNull();
+      expect(service.list).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows a failure notice and unlocks the action when every request fails', () => {
+      second.error(new Error('500'));
+      fixture.detectChanges();
+      expect(bulkButton(fixture).disabled).toBeTrue();
+
+      first.error(new Error('500'));
+      fixture.detectChanges();
+
+      expect(priceCells(fixture)).toEqual(['10.00 zł', '20.00 zł']);
+      expect(bulkNotice(fixture)).toBe(
+        'Nie udało się potwierdzić zapisu zaznaczonych pozycji (2). ' +
+        'Ceny w tabeli mogą nie odpowiadać stanowi na serwerze. Zaznaczenie zostało zachowane.'
+      );
+      expect(bulkButton(fixture).disabled).toBeFalse();
+      expect(checkedRowCount(fixture)).toBe(2);
+    });
+
+    it('updates every price, clears the selection and shows no notice on full success', () => {
+      first.next(price(1, 'CUTTING', 'A', 50));
+      first.complete();
+      second.next(price(2, 'CUTTING', 'B', 50));
+      second.complete();
+      fixture.detectChanges();
+
+      expect(priceCells(fixture)).toEqual(['50.00 zł', '50.00 zł']);
+      expect(bulkNotice(fixture)).toBeNull();
+      expect(checkedRowCount(fixture)).toBe(0);
+      expect(fixture.nativeElement.querySelector('.pte-action-bar')).toBeNull();
+    });
+  });
+
   it('shows a load error without leaving the loading state active', () => {
     service.list.and.returnValue(throwError(() => new Error('offline')));
 
@@ -97,4 +244,33 @@ function price(id: number, category: string, variantCode: string, pricePerUnit =
     priceEntryId: id,
     updatedAt: null
   };
+}
+
+function startBulkSave(fixture: ComponentFixture<unknown>, value: number): void {
+  const root: HTMLElement = fixture.nativeElement;
+  root.querySelector<HTMLInputElement>('thead input[type="checkbox"]')!.click();
+  fixture.detectChanges();
+  const priceInput = root.querySelector<HTMLInputElement>('.pte-action-bar input')!;
+  priceInput.value = String(value);
+  priceInput.dispatchEvent(new Event('input'));
+  fixture.detectChanges();
+  bulkButton(fixture).click();
+  fixture.detectChanges();
+}
+
+function bulkButton(fixture: ComponentFixture<unknown>): HTMLButtonElement {
+  return (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.pte-action-bar .btn-primary')!;
+}
+
+function priceCells(fixture: ComponentFixture<unknown>): string[] {
+  return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('.pte-price-cell'))
+    .map(cell => cell.textContent!.trim());
+}
+
+function bulkNotice(fixture: ComponentFixture<unknown>): string | null {
+  return (fixture.nativeElement as HTMLElement).querySelector('.pte-bulk-error')?.textContent?.trim() ?? null;
+}
+
+function checkedRowCount(fixture: ComponentFixture<unknown>): number {
+  return (fixture.nativeElement as HTMLElement).querySelectorAll('tbody input[type="checkbox"]:checked').length;
 }
