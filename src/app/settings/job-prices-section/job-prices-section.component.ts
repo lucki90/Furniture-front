@@ -2,13 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { forkJoin } from 'rxjs';
 import { JobPrice, JobPriceService } from '../job-price.service';
 import {
   BulkSaveEvent,
   PriceEditTableComponent,
   PriceSaveEvent
 } from '../price-edit-table/price-edit-table.component';
+import { settlePriceUpdates, unconfirmedBulkSaveNotice } from '../price-edit-table/bulk-price-save';
 
 /** Owns loading, filtering and editing of the job price catalogue. */
 @Component({
@@ -26,6 +26,7 @@ export class JobPricesSectionComponent implements OnInit {
   filteredJobPrices: JobPrice[] = [];
   loading = false;
   error: string | null = null;
+  bulkSaveError: string | null = null;
   categoryFilter = '';
   variantFilter = '';
 
@@ -85,14 +86,13 @@ export class JobPricesSectionComponent implements OnInit {
   }
 
   saveBulk(event: BulkSaveEvent): void {
-    forkJoin(event.ids.map(id =>
+    this.bulkSaveError = null;
+    settlePriceUpdates(event.ids, id =>
       this.jobPriceService.update(id, { pricePerUnit: event.price })
-    )).subscribe({
-      next: updated => {
-        this.replacePrices(updated);
-        event.complete(true);
-      },
-      error: () => event.complete(false)
+    ).subscribe(updated => {
+      this.replacePrices(updated);
+      this.bulkSaveError = unconfirmedBulkSaveNotice(event.ids.length, updated.length);
+      event.complete(updated.length === event.ids.length);
     });
   }
 

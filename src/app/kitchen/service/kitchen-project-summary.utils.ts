@@ -51,6 +51,8 @@ export function buildBoardExcelRows(
   materialFallbacks: Record<string, string>
 ): ExcelRowRequest[] {
   return boards.map((board, index) => {
+    const material = board.boardMaterial || board.material;
+    const materialLabel = bomTranslations['MATERIAL.' + material] ?? materialFallbacks[material] ?? material;
     let sticker = board.boardLabel ?? board.material;
     if (board.cabinetRefs?.length) {
       sticker += ` (${board.cabinetRefs.join(', ')})`;
@@ -67,11 +69,7 @@ export function buildBoardExcelRows(
     return {
       lp: index + 1,
       quantity: board.quantity,
-      symbol: board.color || (
-        board.material
-          ? (bomTranslations['MATERIAL.' + board.material] ?? materialFallbacks[board.material] ?? board.material)
-          : ''
-      ),
+      symbol: board.color || materialLabel,
       thickness: board.thickness,
       length: order.length,
       lengthVeneer: order.lengthVeneer,
@@ -79,7 +77,11 @@ export function buildBoardExcelRows(
       widthVeneer: order.widthVeneer,
       veneerColor: board.veneerColor ?? '',
       sticker,
-      remarks: board.remarks ?? '',
+      remarks: [
+        board.boardMaterial ? `Materiał: ${materialLabel}` : '',
+        board.varnished ? 'Lakierowane' : '',
+        board.remarks ?? ''
+      ].filter(Boolean).join('; '),
       veneerEdgeLabel: board.veneerEdgeLabel ?? ''
     };
   });

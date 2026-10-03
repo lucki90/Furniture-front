@@ -23,7 +23,10 @@ export interface BulkSaveEvent {
   /** IDs of selected rows to update. */
   ids: number[];
   price: number;
-  /** Call complete(true) on success, complete(false) on error. */
+  /**
+   * Call once, after every update has settled: complete(true) when all were confirmed,
+   * complete(false) when any failed (the selection is kept).
+   */
   complete: (success: boolean) => void;
 }
 
@@ -82,6 +85,12 @@ export class PriceEditTableComponent implements OnChanges {
 
   /** Shows an error banner instead of the table. */
   @Input() error: string | null = null;
+
+  /**
+   * Outcome of a bulk save that was not fully confirmed. Shown above the rows without
+   * hiding them — unlike `error`, which reports a failed load.
+   */
+  @Input() bulkSaveError: string | null = null;
 
   /** Text shown when rows is empty. */
   @Input() emptyText = 'Brak danych.';

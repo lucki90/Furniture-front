@@ -58,6 +58,10 @@
   margin-left: auto;
 }
 
+.pte-bulk-error {
+  margin-bottom: 10px;
+}
+
 .pte-table-shell {
   margin-top: 0;
 }

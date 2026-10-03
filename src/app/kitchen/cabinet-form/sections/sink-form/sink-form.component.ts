@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -33,6 +33,7 @@ export class SinkFormComponent implements OnInit {
   showSinkDrawerModel = false;
 
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
   private readonly validationErrors = inject(CabinetFormValidationErrorsService);
 
   constructor(readonly dictionaryService: DictionaryService) {}
@@ -40,7 +41,7 @@ export class SinkFormComponent implements OnInit {
   ngOnInit(): void {
     // Inicjalizacja na podstawie aktualnego stanu kontrolek
     this.onSinkApronEnabledChange(!!this.form.get('sinkApronEnabled')?.value);
-    this.showSinkDrawerModel = this.form.get('sinkDrawerModel')?.enabled ?? false;
+    this.onSinkFrontTypeChange(this.form.get('sinkFrontType')?.value);
 
     // Reaguj na zmianę typu frontu
     this.form.get('sinkFrontType')?.valueChanges
@@ -77,6 +78,7 @@ export class SinkFormComponent implements OnInit {
 
     // Re-apply width validators — zakres szerokości zależy od front-type (książka str. 41)
     this.refreshWidthValidators(frontType);
+    this.cdr.markForCheck();
   }
 
   /**
@@ -106,6 +108,7 @@ export class SinkFormComponent implements OnInit {
     this.showSinkApronHeight = enabled;
     const control = this.form.get('sinkApronHeightMm');
     if (control) enabled ? control.enable() : control.disable();
+    this.cdr.markForCheck();
   }
 
   getFieldError(controlName: string): string | null {

@@ -1,17 +1,24 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { getEnclosureTypeOptions, EnclosureType } from '../../model/enclosure.model';
+import { KitchenCabinetType } from '../../model/kitchen-cabinet-type';
 import { isUpperCabinetType } from '../../../model/kitchen-state.model';
 import { KitchenStateService } from '../../../service/kitchen-state.service';
 import { FormFieldComponent } from '../../../../shared/form-field/form-field.component';
 import { SectionHeaderComponent } from '../../shared/section-header.component';
 
+type EnclosureOption = { value: EnclosureType; label: string };
+
+/** Stałe opcje dla szafek dolnych i słupków — ta sama referencja przy każdym sprawdzeniu widoku. */
+const BASE_ENCLOSURE_OPTIONS: EnclosureOption[] = getEnclosureTypeOptions(false);
+/** Stałe opcje dla szafek wiszących — inne etykiety, te same kody wysyłane do API. */
+const UPPER_ENCLOSURE_OPTIONS: EnclosureOption[] = getEnclosureTypeOptions(true);
+
 /**
  * Sekcja konfiguracji obudowy bocznej szafki.
  * Zarządza typem obudowy lewej i prawej, podporą blendy i głębokością zabudowy.
- * Odbiera współdzielony FormGroup od parenta.
+ * Odbiera współdzielony FormGroup i aktualny typ szafki od parenta.
  */
 @Component({
   selector: 'app-enclosure-form',
@@ -21,28 +28,24 @@ import { SectionHeaderComponent } from '../../shared/section-header.component';
   templateUrl: './enclosure-form.component.html',
   styleUrls: ['./enclosure-form.component.css']
 })
-export class EnclosureFormComponent implements OnInit {
+export class EnclosureFormComponent {
 
   @Input() form!: FormGroup;
 
+  /**
+   * Aktualny typ szafki z parenta. Edycja kolejnej szafki odtwarza typ w formularzu bez zdarzeń
+   * (emitEvent:false), więc valueChanges kontrolki typu nie wystarcza — zmiana inputu aktualizuje
+   * etykiety i odświeża widok OnPush także w już zamontowanej sekcji.
+   */
+  @Input({ required: true })
+  set cabinetType(type: KitchenCabinetType | null | undefined) {
+    this.enclosureOptions = type && isUpperCabinetType(type) ? UPPER_ENCLOSURE_OPTIONS : BASE_ENCLOSURE_OPTIONS;
+  }
+
   readonly stateService = inject(KitchenStateService);
-  private destroyRef = inject(DestroyRef);
 
   /** Opcje selecta obudowy — zależne od strefy szafki (dolna/górna). */
-  enclosureOptions: { value: EnclosureType; label: string }[] = [];
-
-  ngOnInit(): void {
-    // Inicjalizacja opcji na podstawie aktualnego typu szafki
-    const type = this.form.get('kitchenCabinetType')?.value;
-    this.enclosureOptions = getEnclosureTypeOptions(isUpperCabinetType(type));
-
-    // Aktualizuj opcje przy zmianie typu szafki
-    this.form.get('kitchenCabinetType')?.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(t => {
-        this.enclosureOptions = getEnclosureTypeOptions(isUpperCabinetType(t));
-      });
-  }
+  enclosureOptions: EnclosureOption[] = BASE_ENCLOSURE_OPTIONS;
 
   /** Czy lewa obudowa to blenda równoległa (wymaga checkboxa supportPlate i pola szerokości). */
   get isLeftParallelFiller(): boolean {

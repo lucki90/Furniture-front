@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, Input, OnInit, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -27,12 +27,13 @@ export class CooktopFormComponent implements OnInit {
   showDrawerOptions = false;
 
   private destroyRef = inject(DestroyRef);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(readonly dictionaryService: DictionaryService) {}
 
   ngOnInit(): void {
-    // Inicjalizacja — szuflady widoczne gdy drawerQuantity enabled
-    this.showDrawerOptions = this.form.get('drawerQuantity')?.enabled ?? false;
+    // Odtworzony typ frontu może różnić się od domyślnego ustawionego przez preparer.
+    this.onCooktopFrontTypeChange(this.form.get('cooktopFrontType')?.value);
 
     // Reaguj na zmianę typu frontu
     this.form.get('cooktopFrontType')?.valueChanges
@@ -57,6 +58,7 @@ export class CooktopFormComponent implements OnInit {
     const modelCtrl = this.form.get('drawerModel');
     if (qtyCtrl) isDrawers ? qtyCtrl.enable() : qtyCtrl.disable();
     if (modelCtrl) isDrawers ? modelCtrl.enable() : modelCtrl.disable();
+    this.cdr.markForCheck();
   }
 
   protected trackByCode = (_: number, item: { code: string }) => item.code;

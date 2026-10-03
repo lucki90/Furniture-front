@@ -13,6 +13,7 @@ import {
   supportsThirdLiftMechanism
 } from './model/kitchen-cabinet-constants';
 import { hfUpperFrontHeightValidator } from './types/upper-lift-up/upper-lift-up.validators';
+import { setControlEnabled } from './type-config/preparer/cabinet-preparer.utils';
 
 export interface CabinetFormTypeLifecycleResult {
   visibility: CabinetFormVisibility;
@@ -37,15 +38,44 @@ export class CabinetFormTypeLifecycleService {
     const restoreApplied = !!editingCabinet && editingCabinet.type === type;
     if (restoreApplied) {
       this.cabinetFormEditingService.restoreAfterTypePrepared(form, editingCabinet);
+      if (type === KitchenCabinetType.BASE_COOKTOP) {
+        // Sekcja może być już zamontowana podczas edycji kolejnej szafki tego samego typu.
+        // Powiadom ją o typie frontu odtworzonym bez zdarzeń, aby zsynchronizowała pola szuflad.
+        form.get('cooktopFrontType')?.updateValueAndValidity();
+      }
+      if (type === KitchenCabinetType.BASE_SINK) {
+        // Zakres szerokości musi odpowiadać zapisanemu frontowi także przed zamontowaniem sekcji.
+        config.validator.validate(form);
+        form.get('sinkFrontType')?.updateValueAndValidity();
+        form.get('sinkApronEnabled')?.updateValueAndValidity();
+      }
+      if (type === KitchenCabinetType.BASE_OVEN) {
+        // Odśwież również już zamontowaną sekcję po odtworzeniu wartości bez zdarzeń.
+        form.get('ovenLowerSectionType')?.updateValueAndValidity();
+        form.get('ovenApronEnabled')?.updateValueAndValidity();
+      }
     }
 
     if (type === KitchenCabinetType.BASE_OVEN) {
+      // Walidacja zapisu musi uwzględniać aktywną blendę jeszcze przed inicjalizacją sekcji.
+      const apronControl = form.get('ovenApronHeightMm');
+      form.get('ovenApronEnabled')?.value
+        ? apronControl?.enable({ emitEvent: false })
+        : apronControl?.disable({ emitEvent: false });
       // Restoring fields without events can change dependencies after height was validated.
       form.get('height')?.updateValueAndValidity({ emitEvent: false });
     }
     form.get('ovenApronHeightMm')?.updateValueAndValidity({ emitEvent: false });
     form.get('sinkApronHeightMm')?.updateValueAndValidity({ emitEvent: false });
     form.get('hoodScreenHeightMm')?.updateValueAndValidity({ emitEvent: false });
+
+    // Odtworzenie bez zdarzeń nie przełącza pola wysokości blendy okapu, a poza UPPER_HOOD blenda nie istnieje.
+    // Zmiana stanu kontrolki emituje statusChanges, które odświeża już zamontowaną sekcję okapu.
+    const hoodScreenHeightCtrl = form.get('hoodScreenHeightMm');
+    const hoodScreenActive = type === KitchenCabinetType.UPPER_HOOD && !!form.get('hoodScreenEnabled')?.value;
+    if (hoodScreenHeightCtrl && hoodScreenHeightCtrl.enabled !== hoodScreenActive) {
+      setControlEnabled(hoodScreenHeightCtrl, hoodScreenActive);
+    }
 
     return { visibility, restoreApplied };
   }

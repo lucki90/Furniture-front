@@ -2,7 +2,12 @@ import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 import { GrainAxis } from '../../shared/model/grain-direction';
 
 export interface AggregatedBoard {
+  /** Nazwa elementu lub etykieta dodatku, np. FRONT_NAME, BLAT_LAMINATE. */
   material: string;
+  /** Właściwy materiał formatki z BoardDto; brak w starszych odpowiedziach. */
+  boardMaterial?: string;
+  boardMaterialLabel?: string;
+  varnished?: boolean;
   thickness: number;
   width: number;
   height: number;

@@ -16,11 +16,11 @@ export class UpperDrainerCabinetValidator implements KitchenCabinetValidator {
 
     // Szerokość: SELECT z 5 wartościami — zastąp poprzednie walidatory (min/max), sprawdź custom
     const widthCtrl = form.get('width');
-    widthCtrl?.setValidators([Validators.required]);
+    widthCtrl?.setValidators([
+      Validators.required,
+      control => VALID_WIDTHS.has(control.value) ? null : { fixedSizes: true }
+    ]);
     widthCtrl?.updateValueAndValidity({ emitEvent: false });
-    if (widthCtrl && !VALID_WIDTHS.has(widthCtrl.value)) {
-      widthCtrl.setErrors({ fixedSizes: true });
-    }
 
     // Wysokość: 300–900mm
     form.get('height')?.setValidators([
