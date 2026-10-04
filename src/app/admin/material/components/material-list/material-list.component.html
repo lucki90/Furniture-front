@@ -41,8 +41,9 @@
           <th *matHeaderCellDef mat-header-cell>Status</th>
           <td *matCellDef="let material" class="status-cell" mat-cell>
             <mat-slide-toggle
-              (change)="onToggleActive(material)"
+              (change)="onToggleActive(material, $event.source)"
               [checked]="material.active"
+              [disabled]="isToggling(material.id)"
               color="primary"
               matTooltip="Kliknij, aby zmienić dostępność materiału">
             </mat-slide-toggle>
