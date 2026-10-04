@@ -6,6 +6,8 @@ import { OverlayContainer } from '@angular/cdk/overlay';
 import { MatDialog } from '@angular/material/dialog';
 import { PriceListComponent } from './price-list.component';
 import { PriceAdminService } from '../../service/price-admin.service';
+import { PriceDialogComponent } from '../price-dialog/price-dialog.component';
+import { ApiErrorHandler } from '../../../../core/error/api-error-handler.service';
 import { ToastService } from '../../../../core/error/toast.service';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 import { Page, PriceEntryAdminResponse, PriceImportResultResponse } from '../../model/price-entry.model';
@@ -493,6 +495,105 @@ describe('PriceListComponent - zamknięcie dialogu importu przez Escape/tło', (
     TestBed.inject(MatDialog).closeAll();
     await macrotask();
 
+    expect(priceService.getAll).not.toHaveBeenCalled();
+  });
+});
+
+describe('PriceListComponent - zapis w dialogu ceny przez prawdziwy MatDialog', () => {
+  let fixture: ComponentFixture<PriceListComponent>;
+  let priceService: jasmine.SpyObj<PriceAdminService>;
+  let toast: jasmine.SpyObj<ToastService>;
+  let pending: Subject<PriceEntryAdminResponse>;
+  let overlay: HTMLElement;
+
+  const dialogOpen = (): boolean => overlay.querySelector('mat-dialog-container') !== null;
+  const saved: PriceEntryAdminResponse = {
+    id: 1, name: 'Zawiasy', description: null, unit: 'piece', currency: 'PLN', currentPrice: 10,
+    sourceUrl: null, urlSelector: null, isActive: true, createdAt: '', updatedAt: ''
+  };
+
+  async function settle(): Promise<void> {
+    TestBed.inject(ApplicationRef).tick();
+    await Promise.resolve();
+    TestBed.inject(ApplicationRef).tick();
+  }
+
+  async function macrotask(): Promise<void> {
+    await settle();
+    await new Promise(resolve => setTimeout(resolve));
+  }
+
+  async function startCreateSave(): Promise<void> {
+    fixture.componentInstance.openCreateDialog();
+    await settle();
+    expect(dialogOpen()).toBeTrue();
+    const dialogComponent = TestBed.inject(MatDialog).openDialogs[0].componentInstance as PriceDialogComponent;
+    dialogComponent.form.patchValue({ unit: 'piece', currentPrice: 10 });
+    dialogComponent.onSubmit();
+    await settle();
+  }
+
+  async function pressEscape(): Promise<void> {
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+    await macrotask();
+  }
+
+  beforeEach(() => {
+    priceService = jasmine.createSpyObj<PriceAdminService>('PriceAdminService', ['getAll', 'create']);
+    priceService.getAll.and.returnValue(of(EMPTY_PAGE));
+    pending = new Subject<PriceEntryAdminResponse>();
+    priceService.create.and.returnValue(pending);
+    toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']);
+
+    TestBed.configureTestingModule({
+      imports: [PriceListComponent, NoopAnimationsModule],
+      providers: [
+        { provide: PriceAdminService, useValue: priceService },
+        { provide: ToastService, useValue: toast },
+        {
+          provide: ConfirmDialogService,
+          useValue: jasmine.createSpyObj<ConfirmDialogService>('ConfirmDialogService', ['confirm'])
+        },
+        { provide: ApiErrorHandler, useValue: jasmine.createSpyObj<ApiErrorHandler>('ApiErrorHandler', ['handle']) }
+      ]
+    });
+
+    fixture = TestBed.createComponent(PriceListComponent);
+    fixture.detectChanges();
+    overlay = TestBed.inject(OverlayContainer).getContainerElement();
+    priceService.getAll.calls.reset();
+  });
+
+  afterEach(() => {
+    TestBed.inject(MatDialog).closeAll();
+    TestBed.inject(OverlayContainer).ngOnDestroy();
+  });
+
+  it('Escape podczas zapisu nie zamyka dialogu, a po sukcesie lista przeładowuje się dokładnie raz', async () => {
+    await startCreateSave();
+
+    await pressEscape();
+
+    expect(dialogOpen()).toBeTrue();
+    expect(priceService.getAll).not.toHaveBeenCalled();
+
+    pending.next(saved);
+    await macrotask();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(priceService.create).toHaveBeenCalledTimes(1);
+    expect(priceService.getAll).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledOnceWith('Cena została dodana');
+  });
+
+  it('błąd HTTP: dialog zostaje otwarty, lista nie jest przeładowywana', async () => {
+    await startCreateSave();
+
+    pending.error({ status: 500 });
+    await macrotask();
+
+    expect(dialogOpen()).toBeTrue();
     expect(priceService.getAll).not.toHaveBeenCalled();
   });
 });

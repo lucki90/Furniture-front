@@ -52,6 +52,9 @@ export class PriceDialogComponent implements OnInit {
   readonly saving = signal(false);
   readonly isEditMode = this.data.mode === 'edit';
 
+  private closeLocked = false;
+  private previousDisableClose: boolean | undefined;
+
   readonly units = ['m2', 'm', 'piece', 'kg', 'l', 'set'];
   readonly currencies = ['PLN', 'EUR', 'USD'];
 
@@ -89,12 +92,14 @@ export class PriceDialogComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.saving()) return;
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    this.saving.set(true);
+    this.beginSaving();
 
     if (this.isEditMode) {
       this.updatePrice();
@@ -118,18 +123,21 @@ export class PriceDialogComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.saving.set(false);
+        this.endSaving();
         this.dialogRef.close(true);
       },
       error: (err) => {
-        this.saving.set(false);
+        this.endSaving();
         this.errorHandler.handle(err);
       }
     });
   }
 
   private updatePrice(): void {
-    if (!this.data.price) return;
+    if (!this.data.price) {
+      this.endSaving();
+      return;
+    }
 
     const request: PriceEntryUpdateRequest = {
       name: this.form.value.name || undefined,
@@ -147,17 +155,37 @@ export class PriceDialogComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: () => {
-        this.saving.set(false);
+        this.endSaving();
         this.dialogRef.close(true);
       },
       error: (err) => {
-        this.saving.set(false);
+        this.endSaving();
         this.errorHandler.handle(err);
       }
     });
   }
 
+  // Zamknięcie dialogu w trakcie POST/PUT odcięłoby rodzica od wyniku zapisu, więc na czas zapisu
+  // blokujemy Escape/tło, a po odpowiedzi przywracamy konfigurację ustawioną przez wywołującego.
+  private beginSaving(): void {
+    this.saving.set(true);
+    if (!this.closeLocked) {
+      this.closeLocked = true;
+      this.previousDisableClose = this.dialogRef.disableClose;
+      this.dialogRef.disableClose = true;
+    }
+  }
+
+  private endSaving(): void {
+    this.saving.set(false);
+    if (this.closeLocked) {
+      this.closeLocked = false;
+      this.dialogRef.disableClose = this.previousDisableClose;
+    }
+  }
+
   onCancel(): void {
+    if (this.saving()) return;
     this.dialogRef.close(false);
   }
 

@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { ApplicationRef } from '@angular/core';
+import { OverlayContainer } from '@angular/cdk/overlay';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 import { PriceDialogComponent, PriceDialogData } from './price-dialog.component';
 import { PriceAdminService } from '../../service/price-admin.service';
 import { ApiErrorHandler } from '../../../../core/error/api-error-handler.service';
@@ -257,5 +259,256 @@ describe('PriceDialogComponent', () => {
       req.flush(EDIT_PRICE);
       http.verify();
     });
+  });
+});
+
+describe('PriceDialogComponent - ochrona trwającego zapisu (prawdziwy MatDialog)', () => {
+  let priceService: jasmine.SpyObj<PriceAdminService>;
+  let errorHandler: jasmine.SpyObj<ApiErrorHandler>;
+  let dialog: MatDialog;
+  let overlay: HTMLElement;
+  let dialogRef: MatDialogRef<PriceDialogComponent>;
+  let component: PriceDialogComponent;
+  let pending: Subject<PriceEntryAdminResponse>;
+  let closed: Array<boolean | undefined>;
+
+  const dialogOpen = (): boolean => overlay.querySelector('mat-dialog-container') !== null;
+
+  async function settle(): Promise<void> {
+    TestBed.inject(ApplicationRef).tick();
+    await Promise.resolve();
+    TestBed.inject(ApplicationRef).tick();
+  }
+
+  async function macrotask(): Promise<void> {
+    await settle();
+    await new Promise(resolve => setTimeout(resolve));
+  }
+
+  async function pressEscape(): Promise<void> {
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+    await macrotask();
+  }
+
+  async function clickBackdrop(): Promise<void> {
+    (overlay.querySelector('.cdk-overlay-backdrop') as HTMLElement).click();
+    await macrotask();
+  }
+
+  function typeInto(selector: string, value: string): void {
+    const el = overlay.querySelector(selector) as HTMLInputElement | HTMLTextAreaElement;
+    el.value = value;
+    el.dispatchEvent(new Event('input'));
+  }
+
+  async function open(data: PriceDialogData, disableClose?: boolean): Promise<void> {
+    dialogRef = dialog.open(PriceDialogComponent, { data, disableClose });
+    component = dialogRef.componentInstance;
+    dialogRef.afterClosed().subscribe(result => closed.push(result));
+    await settle();
+    if (data.mode === 'create') {
+      component.form.patchValue({ unit: 'piece', currentPrice: 10 });
+      await settle();
+    }
+  }
+
+  beforeEach(() => {
+    priceService = jasmine.createSpyObj<PriceAdminService>('PriceAdminService', ['create', 'update']);
+    errorHandler = jasmine.createSpyObj<ApiErrorHandler>('ApiErrorHandler', ['handle']);
+    pending = new Subject<PriceEntryAdminResponse>();
+    closed = [];
+    priceService.create.and.returnValue(pending);
+    priceService.update.and.returnValue(pending);
+
+    TestBed.configureTestingModule({
+      imports: [PriceDialogComponent, NoopAnimationsModule],
+      providers: [
+        { provide: PriceAdminService, useValue: priceService },
+        { provide: ApiErrorHandler, useValue: errorHandler }
+      ]
+    });
+    dialog = TestBed.inject(MatDialog);
+    overlay = TestBed.inject(OverlayContainer).getContainerElement();
+  });
+
+  afterEach(() => {
+    dialog.closeAll();
+    TestBed.inject(OverlayContainer).ngOnDestroy();
+  });
+
+  const MODES: Array<{ name: string; data: PriceDialogData; service: () => jasmine.Spy }> = [
+    { name: 'create', data: CREATE_DATA, service: () => priceService.create },
+    { name: 'edit', data: EDIT_DATA, service: () => priceService.update }
+  ];
+
+  MODES.forEach(({ name, data, service }) => {
+    describe(`tryb ${name}`, () => {
+      it('ponowny onSubmit podczas zapisu nie wysyła drugiego żądania', async () => {
+        await open(data);
+        component.onSubmit();
+        component.onSubmit();
+        expect(service()).toHaveBeenCalledTimes(1);
+        expect(component.saving()).toBeTrue();
+      });
+
+      it('onCancel podczas zapisu nie zamyka dialogu', async () => {
+        await open(data);
+        component.onSubmit();
+        component.onCancel();
+        await macrotask();
+        expect(dialogOpen()).toBeTrue();
+        expect(closed).toEqual([]);
+      });
+
+      it('Escape i tło podczas zapisu nie zamykają dialogu, żądanie nadal jest obserwowane', async () => {
+        await open(data);
+        component.onSubmit();
+        await settle();
+
+        await pressEscape();
+        await clickBackdrop();
+
+        expect(dialogOpen()).toBeTrue();
+        expect(component.saving()).toBeTrue();
+        expect(closed).toEqual([]);
+        expect(pending.observed).toBeTrue();
+      });
+
+      it('sukces po próbach zamknięcia: saving kończy się, dialog zamyka się z true', async () => {
+        await open(data);
+        component.onSubmit();
+        await pressEscape();
+
+        pending.next(EDIT_PRICE);
+        await macrotask();
+
+        expect(component.saving()).toBeFalse();
+        expect(dialogOpen()).toBeFalse();
+        expect(closed).toEqual([true]);
+        expect(service()).toHaveBeenCalledTimes(1);
+      });
+
+      it('błąd HTTP: dialog otwarty, errorHandler raz, wartości zachowane, ponowienie możliwe', async () => {
+        await open(data);
+        component.form.patchValue({ name: 'Moja nazwa', currentPrice: 42 });
+        component.onSubmit();
+        pending.error({ status: 500 });
+        await macrotask();
+
+        expect(component.saving()).toBeFalse();
+        expect(dialogOpen()).toBeTrue();
+        expect(errorHandler.handle).toHaveBeenCalledTimes(1);
+        expect(component.form.value.name).toBe('Moja nazwa');
+        expect(component.form.value.currentPrice).toBe(42);
+
+        // domyślna konfiguracja: po błędzie Escape zamyka dialog jak dotychczas
+        await pressEscape();
+        expect(dialogOpen()).toBeFalse();
+        expect(closed).toEqual([undefined]);
+      });
+
+      it('po błędzie można świadomie ponowić zapis', async () => {
+        await open(data);
+        component.onSubmit();
+        pending.error({ status: 500 });
+        await settle();
+        const retry = new Subject<PriceEntryAdminResponse>();
+        service().and.returnValue(retry);
+
+        component.onSubmit();
+        retry.next(EDIT_PRICE);
+        await macrotask();
+
+        expect(service()).toHaveBeenCalledTimes(2);
+        expect(closed).toEqual([true]);
+      });
+
+      it('disableClose=true ustawione przez wywołującego zostaje po błędzie', async () => {
+        await open(data, true);
+        component.onSubmit();
+        pending.error({ status: 500 });
+        await macrotask();
+
+        expect(dialogRef.disableClose).toBeTrue();
+        await pressEscape();
+        await clickBackdrop();
+        expect(dialogOpen()).toBeTrue();
+      });
+
+      it('disableClose=true ustawione przez wywołującego zostaje po sukcesie zapisu', async () => {
+        await open(data, true);
+        component.onSubmit();
+        expect(dialogRef.disableClose).toBeTrue();
+        pending.next(EDIT_PRICE);
+        await macrotask();
+        expect(closed).toEqual([true]);
+      });
+
+      it('bez zapisu Escape, tło i onCancel zamykają dialog jak dotychczas', async () => {
+        await open(data);
+        expect(dialogRef.disableClose).toBeFalsy();
+        await pressEscape();
+        expect(dialogOpen()).toBeFalse();
+        expect(closed).toEqual([undefined]);
+      });
+
+      it('bez zapisu kliknięcie tła zamyka dialog', async () => {
+        await open(data);
+        await clickBackdrop();
+        expect(dialogOpen()).toBeFalse();
+      });
+
+      it('bez zapisu onCancel zamyka dialog z false', async () => {
+        await open(data);
+        component.onCancel();
+        await macrotask();
+        expect(closed).toEqual([false]);
+      });
+
+      it('invalid formularz nie wysyła żądania i nie blokuje zamykania', async () => {
+        await open(data);
+        component.form.patchValue({ unit: '' });
+        component.onSubmit();
+        expect(service()).not.toHaveBeenCalled();
+        expect(component.saving()).toBeFalse();
+        await pressEscape();
+        expect(dialogOpen()).toBeFalse();
+      });
+    });
+  });
+
+  it('create przez przycisk: payload bez zmian, ponowne kliknięcie nie wysyła drugiego POST', async () => {
+    await open(CREATE_DATA);
+    const submit = Array.from(overlay.querySelectorAll('button'))
+      .find(b => b.textContent?.includes('Dodaj cenę')) as HTMLButtonElement;
+    submit.click();
+    component.onSubmit();
+    expect(priceService.create).toHaveBeenCalledOnceWith({
+      name: undefined, description: undefined, unit: 'piece', currency: 'PLN', currentPrice: 10,
+      sourceUrl: undefined, urlSelector: undefined
+    });
+  });
+
+  it('edit: puste pola opcjonalne nadal wysyłane jako jawne puste stringi', async () => {
+    await open({ mode: 'edit', price: { ...EDIT_PRICE, description: 'x', sourceUrl: 'http://a', urlSelector: '.p' } });
+    typeInto('[formControlName="description"]', '');
+    typeInto('[formControlName="sourceUrl"]', '');
+    typeInto('[formControlName="urlSelector"]', '');
+    component.onSubmit();
+    expect(priceService.update).toHaveBeenCalledOnceWith(7, {
+      name: 'Zawiasy', description: '', unit: 'piece', currency: 'PLN', currentPrice: 12.5,
+      sourceUrl: '', urlSelector: '', isActive: true
+    });
+  });
+
+  it('zniszczenie dialogu w trakcie zapisu kończy subskrypcję (obecny lifecycle)', async () => {
+    await open(CREATE_DATA);
+    component.onSubmit();
+    expect(pending.observed).toBeTrue();
+    dialogRef.disableClose = false;
+    dialogRef.close();
+    await macrotask();
+    expect(pending.observed).toBeFalse();
   });
 });
