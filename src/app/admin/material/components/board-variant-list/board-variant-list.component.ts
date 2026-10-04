@@ -81,22 +81,12 @@ export class BoardVariantListComponent extends VariantListBase<BoardVariantAdmin
   }
 
   override loadVariants(): void {
-    this.loading.set(true);
-    this.materialService.getBoardVariants(
-      this.pageIndex(), this.pageSize(), this.searchQuery || undefined, this.activeOnly
-    ).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      next: page => {
-        this.variants.set(page.content);
-        this.totalElements.set(page.totalElements);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.toast.error('Błąd podczas ładowania wariantów płyt');
-        this.loading.set(false);
-      },
-    });
+    this.loadPage(
+      this.materialService.getBoardVariants(
+        this.pageIndex(), this.pageSize(), this.searchQuery || undefined, this.activeOnly
+      ),
+      () => this.toast.error('Błąd podczas ładowania wariantów płyt')
+    );
   }
 
   onClearSearch(): void {

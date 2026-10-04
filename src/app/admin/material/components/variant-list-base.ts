@@ -1,5 +1,8 @@
 import { DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PageEvent } from '@angular/material/paginator';
+import { Observable, Subscription } from 'rxjs';
+import { Page } from '../model/material-variant.model';
 
 /**
  * Abstrakcyjna baza dla list wariantów (płyty, komponenty, prace).
@@ -18,7 +21,31 @@ export abstract class VariantListBase<T> {
 
   protected readonly destroyRef = inject(DestroyRef);
 
+  private activeRequest?: Subscription;
+
   abstract loadVariants(): void;
+
+  /**
+   * Pobiera stronę wariantów; tylko ostatnie wywołanie może zmienić dane, licznik, loading i pokazać błąd.
+   * Poprzednie, jeszcze trwające żądanie jest anulowane (jego odpowiedź ani błąd nie są już obsługiwane).
+   */
+  protected loadPage(source$: Observable<Page<T>>, onError: () => void): void {
+    this.activeRequest?.unsubscribe();
+    this.loading.set(true);
+    this.activeRequest = source$.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: page => {
+        this.variants.set(page.content);
+        this.totalElements.set(page.totalElements);
+        this.loading.set(false);
+      },
+      error: () => {
+        onError();
+        this.loading.set(false);
+      },
+    });
+  }
 
   get totalVariantsLabel(): string {
     return pluralizeVariants(this.totalElements());

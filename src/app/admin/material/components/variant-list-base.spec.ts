@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { PageEvent } from '@angular/material/paginator';
+import { Observable, Subject } from 'rxjs';
+import { Page } from '../model/material-variant.model';
 import { VariantListBase, pluralizeVariants } from './variant-list-base';
 
 class TestVariantList extends VariantListBase<string> {
@@ -7,6 +9,18 @@ class TestVariantList extends VariantListBase<string> {
   override loadVariants(): void {
     this.loadCallCount++;
   }
+}
+
+class FetchingVariantList extends VariantListBase<string> {
+  source$!: Observable<Page<string>>;
+  errors = 0;
+  override loadVariants(): void {
+    this.loadPage(this.source$, () => this.errors++);
+  }
+}
+
+function pageOf(content: string[], totalElements: number): Page<string> {
+  return { content, totalElements, totalPages: 1, size: 10, number: 0, first: true, last: true, empty: !content.length };
 }
 
 function createList(): TestVariantList {
@@ -71,6 +85,65 @@ describe('VariantListBase', () => {
 
       expect(list.totalVariantsLabel).toBe('5 wariantów');
     });
+  });
+});
+
+describe('VariantListBase.loadPage', () => {
+  let list: FetchingVariantList;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    list = TestBed.runInInjectionContext(() => new FetchingVariantList());
+  });
+
+  function load(): Subject<Page<string>> {
+    const subject = new Subject<Page<string>>();
+    list.source$ = subject;
+    list.loadVariants();
+    return subject;
+  }
+
+  it('ustawia loading, a po odpowiedzi dane i licznik', () => {
+    const request$ = load();
+    expect(list.loading()).toBeTrue();
+
+    request$.next(pageOf(['a'], 7));
+
+    expect(list.variants()).toEqual(['a']);
+    expect(list.totalElements()).toBe(7);
+    expect(list.loading()).toBeFalse();
+  });
+
+  it('nowsze żądanie anuluje poprzednie i ignoruje jego odpowiedź oraz błąd', () => {
+    const first$ = load();
+    const second$ = load();
+
+    expect(first$.observers.length).toBe(0);
+    first$.next(pageOf(['stara'], 100));
+    first$.error(new Error('stary'));
+
+    expect(list.variants()).toEqual([]);
+    expect(list.loading()).toBeTrue();
+    expect(list.errors).toBe(0);
+
+    second$.next(pageOf(['nowa'], 1));
+    expect(list.variants()).toEqual(['nowa']);
+    expect(list.loading()).toBeFalse();
+  });
+
+  it('błąd aktualnego żądania wywołuje callback raz i kończy loading', () => {
+    load().error(new Error('błąd'));
+
+    expect(list.errors).toBe(1);
+    expect(list.loading()).toBeFalse();
+  });
+
+  it('zniszczenie kończy odbiór', () => {
+    const request$ = load();
+
+    TestBed.resetTestingModule();
+
+    expect(request$.observers.length).toBe(0);
   });
 });
 
