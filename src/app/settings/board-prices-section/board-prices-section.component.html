@@ -106,9 +106,9 @@
     Ładowanie cennika...
   </div>
 
-  <div *ngIf="bulkSaveNotice" class="settings-inline-status settings-inline-status--error board-inline-note board-bulk-notice"
+  <div *ngIf="saveNotice" class="settings-inline-status settings-inline-status--error board-inline-note board-save-notice"
        role="alert">
-    {{ bulkSaveNotice }}
+    {{ saveNotice }}
   </div>
 
   <div *ngIf="!boardPricesLoading && boardPrices.length > 0"
