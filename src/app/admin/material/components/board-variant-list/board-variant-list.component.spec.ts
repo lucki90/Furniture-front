@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { MatPaginator } from '@angular/material/paginator';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of, Subject } from 'rxjs';
+import { config, of, Subject } from 'rxjs';
 import { ToastService } from '../../../../core/error/toast.service';
 import { LanguageService } from '../../../../service/language.service';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
@@ -277,5 +277,195 @@ describe('BoardVariantListComponent', () => {
       expect(materialAdminService.getBoardVariants).toHaveBeenCalledTimes(2);
       expect(materialAdminService.getBoardVariants.calls.mostRecent().args).toEqual([3, list.pageSize(), 'abc', true]);
     });
+  });
+});
+
+describe('BoardVariantListComponent — odzyskiwanie tłumaczeń po błędzie', () => {
+  const PL = { 'MATERIAL.CHIPBOARD': 'Płyta wiórowa', 'BOARD_VARIANT.WHITE': 'Biały' };
+  const EN = { 'MATERIAL.CHIPBOARD': 'Chipboard', 'BOARD_VARIANT.WHITE': 'White' };
+
+  const variant: BoardVariantAdminResponse = {
+    id: 1,
+    materialId: 10,
+    materialCode: 'CHIPBOARD',
+    materialName: 'MATERIAL.CHIPBOARD',
+    thicknessMm: 18,
+    colorCode: 'WHITE',
+    colorName: null,
+    colorHex: '#ffffff',
+    varnished: false,
+    densityKgDm3: null,
+    materialActive: true,
+    priceEntryId: 100,
+    currentPrice: 45,
+    translationKey: 'BOARD_VARIANT.WHITE',
+    active: true,
+    createdById: null,
+    createdByName: null,
+    createdAt: '2026-05-14T10:00:00Z',
+    updatedAt: '2026-05-14T10:00:00Z'
+  };
+
+  let fixture: ComponentFixture<BoardVariantListComponent>;
+  let component: BoardVariantListComponent;
+  let lang: ReturnType<typeof signal<'pl' | 'en'>>;
+  let translationService: jasmine.SpyObj<TranslationService>;
+  let materialAdminService: jasmine.SpyObj<MaterialAdminService>;
+  let responses: Subject<Record<string, string>>[];
+  let unhandledErrors: unknown[];
+
+  function rowText(): string {
+    return (fixture.nativeElement.querySelector('tr.mat-mdc-row') as HTMLElement).textContent ?? '';
+  }
+
+  function respond(index: number, value: Record<string, string>): void {
+    responses[index].next(value);
+    responses[index].complete();
+    fixture.detectChanges();
+  }
+
+  function fail(index: number): void {
+    responses[index].error(new Error('błąd tłumaczeń'));
+    fixture.detectChanges();
+  }
+
+  function switchTo(next: 'pl' | 'en'): void {
+    lang.set(next);
+    fixture.detectChanges();
+  }
+
+  // RxJS zgłasza unhandled error w setTimeout(0) — poczekaj na ten callback przed oceną.
+  async function flushReportedErrors(): Promise<void> {
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+  }
+
+  beforeEach(async () => {
+    unhandledErrors = [];
+    config.onUnhandledError = err => unhandledErrors.push(err);
+    lang = signal<'pl' | 'en'>('pl');
+    responses = [];
+
+    materialAdminService = jasmine.createSpyObj<MaterialAdminService>('MaterialAdminService', [
+      'getBoardVariants',
+      'deleteBoardVariant'
+    ]);
+    materialAdminService.getBoardVariants.and.returnValue(of(makeBoardPage([variant])));
+    translationService = jasmine.createSpyObj<TranslationService>('TranslationService', ['getByCategories']);
+    translationService.getByCategories.and.callFake(() => {
+      const subject = new Subject<Record<string, string>>();
+      responses.push(subject);
+      return subject;
+    });
+
+    await TestBed.configureTestingModule({
+      imports: [BoardVariantListComponent, NoopAnimationsModule],
+      providers: [
+        { provide: MaterialAdminService, useValue: materialAdminService },
+        { provide: ToastService, useValue: jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']) },
+        { provide: TranslationService, useValue: translationService },
+        { provide: LanguageService, useValue: { lang } },
+        { provide: ConfirmDialogService, useValue: jasmine.createSpyObj<ConfirmDialogService>('ConfirmDialogService', ['confirm']) }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(BoardVariantListComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(async () => {
+    await flushReportedErrors();
+    config.onUnhandledError = null;
+  });
+
+  it('błąd PL nie kończy obserwacji języka — przełączenie na EN pobiera i pokazuje EN', async () => {
+    fail(0);
+    expect(rowText()).toContain('CHIPBOARD');
+
+    switchTo('en');
+    expect(translationService.getByCategories).toHaveBeenCalledTimes(2);
+    expect(translationService.getByCategories.calls.mostRecent().args).toEqual([['MATERIAL', 'BOARD_VARIANT'], 'en']);
+    respond(1, EN);
+
+    expect(rowText()).toContain('Chipboard');
+    expect(rowText()).toContain('White');
+    await flushReportedErrors();
+    expect(unhandledErrors).toEqual([]);
+  });
+
+  it('błąd EN po sukcesie PL czyści słownik i pokazuje fallbacki zamiast starych etykiet PL', async () => {
+    respond(0, PL);
+    expect(rowText()).toContain('Płyta wiórowa');
+
+    switchTo('en');
+    fail(1);
+
+    expect(component.translations()).toEqual({});
+    expect(rowText()).toContain('CHIPBOARD');
+    expect(rowText()).toContain('WHITE');
+    expect(rowText()).not.toContain('Płyta wiórowa');
+    expect(rowText()).not.toContain('Biały');
+    await flushReportedErrors();
+    expect(unhandledErrors).toEqual([]);
+  });
+
+  it('kolejne przełączenie języka po błędzie nadal działa', () => {
+    respond(0, PL);
+    switchTo('en');
+    fail(1);
+
+    switchTo('pl');
+    expect(translationService.getByCategories).toHaveBeenCalledTimes(3);
+    respond(2, PL);
+    expect(rowText()).toContain('Płyta wiórowa');
+
+    switchTo('en');
+    respond(3, EN);
+    expect(rowText()).toContain('Chipboard');
+  });
+
+  it('starsza odpowiedź PL nie nadpisuje potwierdzonej EN', () => {
+    switchTo('en');
+    respond(1, EN);
+    respond(0, PL);
+
+    expect(rowText()).toContain('Chipboard');
+    expect(rowText()).not.toContain('Płyta wiórowa');
+    expect(responses[0].observed).toBeFalse();
+  });
+
+  it('stary błąd PL nie czyści potwierdzonej EN', () => {
+    switchTo('en');
+    respond(1, EN);
+    responses[0].error(new Error('stary błąd'));
+    fixture.detectChanges();
+
+    expect(rowText()).toContain('Chipboard');
+  });
+
+  it('brak klucza w odpowiedzi używa dotychczasowego fallbacku', () => {
+    respond(0, { 'MATERIAL.CHIPBOARD': 'Płyta wiórowa' });
+
+    expect(rowText()).toContain('Płyta wiórowa');
+    expect(rowText()).toContain('WHITE');
+  });
+
+  it('po zniszczeniu komponentu odpowiedź nie zmienia słownika', () => {
+    fixture.destroy();
+    expect(responses[0].observed).toBeFalse();
+
+    responses[0].next(PL);
+    expect(component.translations()).toEqual({});
+  });
+
+  it('błąd tłumaczeń nie usuwa wariantów ani nie zmienia paginatora i loadingu', () => {
+    fail(0);
+
+    expect(component.variants().map(v => v.id)).toEqual([1]);
+    expect(component.totalElements()).toBe(1);
+    expect(component.loading()).toBeFalse();
+    expect(component.pageIndex()).toBe(0);
+    expect(fixture.debugElement.query(By.directive(MatPaginator)).componentInstance.length).toBe(1);
+    expect(materialAdminService.getBoardVariants).toHaveBeenCalledTimes(1);
   });
 });

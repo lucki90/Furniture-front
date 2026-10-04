@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { filter, switchMap } from 'rxjs';
+import { catchError, filter, of, switchMap } from 'rxjs';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
@@ -54,7 +54,11 @@ export class BoardVariantListComponent extends VariantListBase<BoardVariantAdmin
   constructor() {
     super();
     toObservable(this.languageService.lang).pipe(
-      switchMap(lang => this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT'], lang)),
+      // catchError jest WEWNĄTRZ switchMap — błąd jednego GET nie kończy obserwacji języka.
+      // Po błędzie słownik jest czyszczony, żeby zadziałały fallbacki zamiast etykiet poprzedniego języka.
+      switchMap(lang => this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT'], lang).pipe(
+        catchError(() => of<Record<string, string>>({}))
+      )),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(translations => this.translations.set({ ...translations }));
   }
