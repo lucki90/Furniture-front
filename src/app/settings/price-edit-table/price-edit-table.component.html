@@ -122,7 +122,7 @@
       (ngModelChange)="setPageSize($event)"
       [ngModel]="internalPageSize"
       class="form-control form-control--compact pte-page-size-select settings-page-size-select">
-      <option *ngFor="let s of pageSizeOptions" [value]="s">{{ s }}</option>
+      <option *ngFor="let s of pageSizeOptions" [ngValue]="s">{{ s }}</option>
     </select>
   </div>
 

@@ -175,6 +175,157 @@ describe('PriceEditTableComponent', () => {
     });
   });
 
+  // The select hands over what its options carry, so these go through the real DOM, not setPageSize().
+  describe('page size chosen in the select', () => {
+    const pageSizeSelect = () => fixture.nativeElement.querySelector('.pte-page-size-select') as HTMLSelectElement;
+    const renderedRows = () => Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[];
+    const renderedIds = () => renderedRows().map(tr => Number(tr.cells[1].textContent!.trim().replace('Item ', '')));
+    const pageInfo = () =>
+      (fixture.nativeElement.querySelector('.pte-page-info') as HTMLElement | null)?.textContent!.trim() ?? null;
+    const range = (first: number, last: number) => Array.from({ length: last - first + 1 }, (_, i) => first + i);
+
+    async function stabilize(): Promise<void> {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    async function showRows(count: number): Promise<void> {
+      host.rows = makeRows(count);
+      host.pageSize = 10;
+      await stabilize();
+    }
+
+    async function choosePageSize(label: string): Promise<void> {
+      const select = pageSizeSelect();
+      const option = Array.from(select.options).find(o => o.text.trim() === label);
+      if (!option) {
+        throw new Error(`No page size option ${label}`);
+      }
+      select.value = option.value;
+      select.dispatchEvent(new Event('change'));
+      await stabilize();
+    }
+
+    async function clickPage(page: number): Promise<void> {
+      const button = (Array.from(fixture.nativeElement.querySelectorAll('.pte-page-btn')) as HTMLButtonElement[])
+        .find(b => b.textContent!.trim() === String(page));
+      if (!button) {
+        throw new Error(`No button for page ${page}`);
+      }
+      button.click();
+      await stabilize();
+    }
+
+    it('renders exactly rows 26–50 on page 2 after choosing 25 of 100 rows', async () => {
+      await showRows(100);
+
+      await choosePageSize('25');
+      await clickPage(2);
+
+      expect(typeof table.internalPageSize).toBe('number');
+      expect(table.internalPageSize).toBe(25);
+      expect(renderedIds()).toEqual(range(26, 50));
+      expect(renderedRows().length).toBe(25);
+      expect(pageInfo()).toBe('26–50 z 100');
+    });
+
+    it('offers 10, 25, 50 and 100 rows per page', async () => {
+      await showRows(100);
+
+      expect(Array.from(pageSizeSelect().options).map(o => o.text.trim())).toEqual(['10', '25', '50', '100']);
+      expect(pageSizeSelect().selectedOptions[0].text.trim()).toBe('10');
+    });
+
+    // 107 rows leave an incomplete last page for every offered size.
+    [10, 25, 50, 100].forEach(size => {
+      it(`pages 107 rows by ${size} chosen in the select, up to the incomplete last page`, async () => {
+        await showRows(107);
+
+        await choosePageSize(String(size));
+
+        const lastPage = Math.ceil(107 / size);
+        expect(table.internalPageSize).toBe(size);
+        expect(pageSizeSelect().selectedOptions[0].text.trim()).toBe(String(size));
+        expect(table.pageNumbers).toEqual(range(1, lastPage));
+        for (let page = 1; page <= lastPage; page++) {
+          await clickPage(page);
+          const first = (page - 1) * size + 1;
+          const last = Math.min(page * size, 107);
+          expect(renderedIds()).withContext(`page ${page}`).toEqual(range(first, last));
+          expect(pageInfo()).withContext(`page ${page}`).toBe(`${first}–${last} z 107`);
+        }
+      });
+    });
+
+    it('renders rows 51–75 on page 3 after choosing 25', async () => {
+      await showRows(100);
+
+      await choosePageSize('25');
+      await clickPage(3);
+
+      expect(renderedIds()).toEqual(range(51, 75));
+      expect(pageInfo()).toBe('51–75 z 100');
+    });
+
+    it('returns to page 1 and clears the selection when another page size is chosen', async () => {
+      await showRows(100);
+      await clickPage(3);
+      renderedRows()[0].cells[0].querySelector('input')!.click();
+      renderedRows()[1].cells[0].querySelector('input')!.click();
+      await stabilize();
+      expect(Array.from(table.selectedIds)).toEqual([21, 22]);
+
+      await choosePageSize('25');
+
+      expect(table.currentPage).toBe(1);
+      expect(table.selectedCount).toBe(0);
+      expect(fixture.nativeElement.querySelector('.pte-action-bar')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.pte-page-btn.is-active').textContent.trim()).toBe('1');
+      expect(renderedIds()).toEqual(range(1, 25));
+    });
+
+    it('selects exactly the rows of the current page with the header checkbox', async () => {
+      await showRows(100);
+      await choosePageSize('25');
+      await clickPage(2);
+
+      (fixture.nativeElement.querySelector('thead input[type="checkbox"]') as HTMLInputElement).click();
+      await stabilize();
+
+      expect(Array.from(table.selectedIds)).toEqual(range(26, 50));
+      expect(fixture.nativeElement.querySelector('.pte-action-label').textContent.trim()).toBe('Zaznaczono 25:');
+      expect(renderedRows().every(tr => tr.cells[0].querySelector('input')!.checked)).toBeTrue();
+    });
+
+    it('selects only the rows of the incomplete last page with the header checkbox', async () => {
+      await showRows(107);
+      await choosePageSize('25');
+      await clickPage(5);
+
+      (fixture.nativeElement.querySelector('thead input[type="checkbox"]') as HTMLInputElement).click();
+      await stabilize();
+
+      expect(Array.from(table.selectedIds)).toEqual(range(101, 107));
+    });
+
+    it('keeps the chosen page size when the host filters the rows', async () => {
+      await showRows(100);
+      await choosePageSize('25');
+      await clickPage(2);
+
+      host.rows = makeRows(100).filter(row => row.id % 2 === 0);
+      await stabilize();
+
+      expect(table.internalPageSize).toBe(25);
+      expect(table.currentPage).toBe(1);
+      expect(renderedIds()).toEqual(range(1, 25).map(i => i * 2));
+      await clickPage(2);
+      expect(renderedIds()).toEqual(range(26, 50).map(i => i * 2));
+      expect(pageInfo()).toBe('26–50 z 50');
+    });
+  });
+
   describe('checkbox selection', () => {
     beforeEach(() => {
       host.rows = makeRows(5);
