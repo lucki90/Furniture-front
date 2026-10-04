@@ -206,6 +206,174 @@ describe('BoardPricesSectionComponent', () => {
     });
   });
 
+  // The select hands over what its options carry, so these go through the real DOM, not setBoardPageSize().
+  describe('page size chosen in the select', () => {
+    const boards = (count: number, overrides: (id: number) => Partial<BoardPrice> = () => ({})) =>
+      Array.from({ length: count }, (_, i) => makeBoardPrice(i + 1, 'OWN', overrides(i + 1)));
+    const pageSizeSelect = () => fixture.nativeElement.querySelector('.board-page-size-select') as HTMLSelectElement;
+    const renderedRows = () => Array.from(fixture.nativeElement.querySelectorAll('tbody tr')) as HTMLTableRowElement[];
+    const renderedIds = () => visibleColors().map(color => Number(color.replace('Color ', '')));
+    const pageInfo = () =>
+      (fixture.nativeElement.querySelector('.board-page-info') as HTMLElement | null)?.textContent!.trim() ?? null;
+    const range = (first: number, last: number) => Array.from({ length: last - first + 1 }, (_, i) => first + i);
+
+    async function stabilize(): Promise<void> {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    }
+
+    async function chooseOption(select: HTMLSelectElement, label: string): Promise<void> {
+      const option = Array.from(select.options).find(o => o.text.trim() === label);
+      if (!option) {
+        throw new Error(`No option ${label}`);
+      }
+      select.value = option.value;
+      select.dispatchEvent(new Event('change'));
+      await stabilize();
+    }
+
+    async function clickPage(page: number): Promise<void> {
+      const button = (Array.from(fixture.nativeElement.querySelectorAll('.board-page-btn')) as HTMLButtonElement[])
+        .find(b => b.textContent!.trim() === String(page));
+      if (!button) {
+        throw new Error(`No button for page ${page}`);
+      }
+      button.click();
+      await stabilize();
+    }
+
+    it('renders exactly boards 26–50 on page 2 after choosing 25 of 100 boards', async () => {
+      loadRows(boards(100));
+      await stabilize();
+
+      await chooseOption(pageSizeSelect(), '25');
+      await clickPage(2);
+
+      expect(typeof component.boardPageSize).toBe('number');
+      expect(component.boardPageSize).toBe(25);
+      expect(renderedIds()).toEqual(range(26, 50));
+      expect(renderedRows().length).toBe(25);
+      expect(pageInfo()).toBe('26–50 z 100');
+    });
+
+    it('offers 10, 25, 50 and 100 boards per page', async () => {
+      loadRows(boards(100));
+      await stabilize();
+
+      expect(Array.from(pageSizeSelect().options).map(o => o.text.trim())).toEqual(['10', '25', '50', '100']);
+      expect(pageSizeSelect().selectedOptions[0].text.trim()).toBe('10');
+    });
+
+    // 107 boards leave an incomplete last page for every offered size.
+    [10, 25, 50, 100].forEach(size => {
+      it(`pages 107 boards by ${size} chosen in the select, up to the incomplete last page`, async () => {
+        loadRows(boards(107));
+        await stabilize();
+
+        await chooseOption(pageSizeSelect(), String(size));
+
+        const lastPage = Math.ceil(107 / size);
+        expect(component.boardPageSize).toBe(size);
+        expect(pageSizeSelect().selectedOptions[0].text.trim()).toBe(String(size));
+        expect(component.boardPageNumbers).toEqual(range(1, lastPage));
+        for (let page = 1; page <= lastPage; page++) {
+          await clickPage(page);
+          const first = (page - 1) * size + 1;
+          const last = Math.min(page * size, 107);
+          expect(renderedIds()).withContext(`page ${page}`).toEqual(range(first, last));
+          expect(pageInfo()).withContext(`page ${page}`).toBe(`${first}–${last} z 107`);
+        }
+      });
+    });
+
+    it('renders boards 51–75 on page 3 after choosing 25', async () => {
+      loadRows(boards(100));
+      await stabilize();
+
+      await chooseOption(pageSizeSelect(), '25');
+      await clickPage(3);
+
+      expect(renderedIds()).toEqual(range(51, 75));
+      expect(pageInfo()).toBe('51–75 z 100');
+    });
+
+    it('returns to page 1 and clears the selection when another page size is chosen', async () => {
+      loadRows(boards(100));
+      await stabilize();
+      await clickPage(3);
+      checkbox(renderedRows()[0]).click();
+      checkbox(renderedRows()[1]).click();
+      await stabilize();
+      expect(Array.from(component.selectedBoardIds)).toEqual([21, 22]);
+
+      await chooseOption(pageSizeSelect(), '25');
+
+      expect(component.boardCurrentPage).toBe(1);
+      expect(component.selectedBoardCount).toBe(0);
+      expect(fixture.nativeElement.querySelector('.board-action-bar')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.board-page-btn.is-active').textContent.trim()).toBe('1');
+      expect(renderedIds()).toEqual(range(1, 25));
+    });
+
+    it('selects exactly the boards of the current page with the header checkbox', async () => {
+      loadRows(boards(100));
+      await stabilize();
+      await chooseOption(pageSizeSelect(), '25');
+      await clickPage(2);
+
+      (fixture.nativeElement.querySelector('thead input[type="checkbox"]') as HTMLInputElement).click();
+      await stabilize();
+
+      expect(Array.from(component.selectedBoardIds)).toEqual(range(26, 50));
+      expect(fixture.nativeElement.querySelector('.board-action-label').textContent.trim()).toBe('Zaznaczono 25:');
+      expect(renderedRows().every(tr => checkbox(tr).checked)).toBeTrue();
+    });
+
+    it('selects only the boards of the incomplete last page with the header checkbox', async () => {
+      loadRows(boards(107));
+      await stabilize();
+      await chooseOption(pageSizeSelect(), '25');
+      await clickPage(5);
+
+      (fixture.nativeElement.querySelector('thead input[type="checkbox"]') as HTMLInputElement).click();
+      await stabilize();
+
+      expect(Array.from(component.selectedBoardIds)).toEqual(range(101, 107));
+    });
+
+    it('keeps the chosen page size and restarts at page 1 when the material filter changes', async () => {
+      loadRows(boards(100, id => id % 2 === 0 ? { materialCode: 'MDF', materialName: 'MATERIAL.MDF' } : {}));
+      await stabilize();
+      await chooseOption(pageSizeSelect(), '25');
+      await clickPage(2);
+
+      await chooseOption(fixture.nativeElement.querySelectorAll('.board-filter-bar select')[0], 'MDF');
+
+      expect(component.materialFilter).toBe('MDF');
+      expect(component.boardPageSize).toBe(25);
+      expect(component.boardCurrentPage).toBe(1);
+      expect(renderedIds()).toEqual(range(1, 25).map(i => i * 2));
+      await clickPage(2);
+      expect(renderedIds()).toEqual(range(26, 50).map(i => i * 2));
+      expect(pageInfo()).toBe('26–50 z 50');
+    });
+
+    it('pages the numeric thickness filter by the chosen page size', async () => {
+      loadRows(boards(100, id => id > 40 ? { thicknessMm: 22 } : {}));
+      await stabilize();
+      await chooseOption(pageSizeSelect(), '25');
+
+      await chooseOption(fixture.nativeElement.querySelectorAll('.board-filter-bar select')[1], '22 mm');
+
+      expect(component.thicknessFilter).toBe(22);
+      expect(component.boardPageSize).toBe(25);
+      await clickPage(3);
+      expect(renderedIds()).toEqual(range(91, 100));
+      expect(pageInfo()).toBe('51–60 z 60');
+    });
+  });
+
   describe('deleteBoard', () => {
     it('reloads list after successful delete', () => {
       serviceSpy.deactivate.and.returnValue(of(undefined));
