@@ -48,7 +48,7 @@
           </button>
           <button (click)="openImportDialog()" class="btn btn-outline" type="button">
             <mat-icon aria-hidden="true" class="workflow-action-icon">upload_file</mat-icon>
-            Import CSV/Excel
+            Import CSV
           </button>
           <button (click)="onScrapeAll()" [disabled]="scrapingInProgress()" class="btn btn-secondary" type="button">
             <mat-icon aria-hidden="true" class="workflow-action-icon">{{ scrapingInProgress() ? 'autorenew' : 'sync'

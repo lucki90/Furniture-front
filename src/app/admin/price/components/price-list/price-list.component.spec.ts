@@ -52,6 +52,16 @@ describe('PriceListComponent', () => {
     expect(component.totalElements()).toBe(0);
   });
 
+  it('przycisk importu reklamuje wyłącznie obsługiwany format CSV', () => {
+    setup();
+    const importButton = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button')
+    ).find(button => button.textContent?.includes('Import'));
+
+    expect(importButton?.textContent).toContain('Import CSV');
+    expect(importButton?.textContent).not.toContain('Excel');
+  });
+
   it('wyświetla błąd z polskim komunikatem gdy ładowanie nie powiedzie się', () => {
     setup();
     priceService.getAll.and.returnValue(throwError(() => new Error('500')));
