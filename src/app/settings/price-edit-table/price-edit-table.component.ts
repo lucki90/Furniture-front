@@ -231,7 +231,7 @@ export class PriceEditTableComponent implements OnChanges {
   bulkSaving = false;
 
   submitBulkForSelected(): void {
-    if (this.selectedIds.size === 0) return;
+    if (this.saveInProgress || this.selectedIds.size === 0) return;
     this.bulkSaving = true;
     this.bulkSave.emit({
       ids: Array.from(this.selectedIds),
@@ -250,19 +250,31 @@ export class PriceEditTableComponent implements OnChanges {
 
   editingId: number | null = null;
   editPrice = 0;
+  /** Set until the parent calls complete(), even when a row change has closed the editor. */
   saving = false;
 
+  /**
+   * True while a single or bulk save waits for complete(). Only one save of this table runs
+   * at a time, so a complete() can never settle an operation started after it.
+   */
+  get saveInProgress(): boolean {
+    return this.saving || this.bulkSaving;
+  }
+
   startEdit(row: any): void {
+    if (this.saveInProgress) return;
     this.editingId = row.id;
     this.editPrice = row[this.priceField] ?? 0;
   }
 
   cancelEdit(): void {
+    // Closing the editor would not stop the pending request.
+    if (this.saving) return;
     this.editingId = null;
-    this.saving = false;
   }
 
   submitEdit(row: any): void {
+    if (this.saveInProgress || !this.isEditing(row)) return;
     this.saving = true;
     this.save.emit({
       id: row.id,

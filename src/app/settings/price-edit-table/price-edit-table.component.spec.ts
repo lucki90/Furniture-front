@@ -28,9 +28,11 @@ class TestHostComponent {
   bulkSaveError: string | null = null;
   lastSave: PriceSaveEvent | null = null;
   lastBulkSave: BulkSaveEvent | null = null;
+  saveEvents: PriceSaveEvent[] = [];
+  bulkSaveEvents: BulkSaveEvent[] = [];
 
-  onSave(e: PriceSaveEvent) { this.lastSave = e; }
-  onBulkSave(e: BulkSaveEvent) { this.lastBulkSave = e; }
+  onSave(e: PriceSaveEvent) { this.lastSave = e; this.saveEvents.push(e); }
+  onBulkSave(e: BulkSaveEvent) { this.lastBulkSave = e; this.bulkSaveEvents.push(e); }
 }
 
 function makeRows(count: number) {
@@ -467,6 +469,231 @@ describe('PriceEditTableComponent', () => {
 
       expect(table.selectedCount).toBe(1);
       expect(table.bulkSaving).toBeFalse();
+    });
+  });
+
+  describe('save operation isolation', () => {
+    beforeEach(() => {
+      host.rows = makeRows(5);
+      host.pageSize = 5;
+      fixture.detectChanges();
+    });
+
+    function startSingleSave(row: any, price: number): PriceSaveEvent {
+      table.startEdit(row);
+      table.editPrice = price;
+      table.submitEdit(row);
+      fixture.detectChanges();
+      return host.saveEvents[host.saveEvents.length - 1];
+    }
+
+    function actionButton(rowIndex: number, selector: string): HTMLButtonElement | null {
+      const row = fixture.debugElement.queryAll(By.css('tbody tr'))[rowIndex];
+      return row?.query(By.css(`.pte-actions-cell ${selector}`))?.nativeElement ?? null;
+    }
+
+    function bulkButton(): HTMLButtonElement {
+      return fixture.debugElement.query(By.css('.pte-action-bar .btn-primary')).nativeElement;
+    }
+
+    const EDIT = '.btn-outline:not(.pte-btn-cancel)';
+    const SAVE = '.btn-primary';
+    const CANCEL = '.pte-btn-cancel';
+
+    it('ignores submitEdit for a row that is not being edited', () => {
+      table.startEdit(host.rows[0]);
+      table.submitEdit(host.rows[1]);
+
+      expect(host.saveEvents.length).toBe(0);
+      expect(table.saving).toBeFalse();
+    });
+
+    describe('while a single save is pending', () => {
+      let pending: PriceSaveEvent;
+
+      beforeEach(() => {
+        pending = startSingleSave(host.rows[0], 25);
+      });
+
+      it('ignores startEdit, cancelEdit and another submitEdit called without the DOM', () => {
+        table.startEdit(host.rows[1]);
+        table.cancelEdit();
+        table.submitEdit(host.rows[0]);
+        table.submitEdit(host.rows[1]);
+
+        expect(host.saveEvents.length).toBe(1);
+        expect(table.editingId).toBe(1);
+        expect(table.editPrice).toBe(25);
+        expect(table.saving).toBeTrue();
+      });
+
+      it('ignores submitBulkForSelected called without the DOM', () => {
+        table.toggleSelection(2);
+        table.bulkPrice = 50;
+
+        table.submitBulkForSelected();
+
+        expect(host.bulkSaveEvents.length).toBe(0);
+        expect(table.bulkSaving).toBeFalse();
+        expect(table.selectedCount).toBe(1);
+      });
+
+      it('disables Zapisz, Anuluj, Edytuj in other rows and the bulk action', () => {
+        table.toggleSelection(2);
+        table.bulkPrice = 50;
+        fixture.detectChanges();
+
+        expect(actionButton(0, SAVE)!.disabled).toBeTrue();
+        expect(actionButton(0, CANCEL)!.disabled).toBeTrue();
+        expect(actionButton(1, EDIT)!.disabled).toBeTrue();
+        expect(actionButton(4, EDIT)!.disabled).toBeTrue();
+        expect(bulkButton().disabled).toBeTrue();
+        expect(bulkButton().textContent).toContain('Ustal cene zaznaczonym');
+      });
+
+      it('complete(true) closes the editor and releases the table', () => {
+        pending.complete(true);
+        fixture.detectChanges();
+
+        expect(table.saving).toBeFalse();
+        expect(table.editingId).toBeNull();
+        expect(actionButton(0, EDIT)!.disabled).toBeFalse();
+        expect(actionButton(1, EDIT)!.disabled).toBeFalse();
+
+        startSingleSave(host.rows[1], 40);
+        expect(host.saveEvents.length).toBe(2);
+        expect(host.saveEvents[1].id).toBe(2);
+      });
+
+      it('complete(false) keeps the draft and allows a retry', () => {
+        pending.complete(false);
+        fixture.detectChanges();
+
+        expect(table.saving).toBeFalse();
+        expect(table.editingId).toBe(1);
+        expect(table.editPrice).toBe(25);
+        expect(actionButton(0, SAVE)!.disabled).toBeFalse();
+        expect(actionButton(0, CANCEL)!.disabled).toBeFalse();
+
+        table.submitEdit(host.rows[0]);
+
+        expect(host.saveEvents.length).toBe(2);
+        expect(host.saveEvents[1].id).toBe(1);
+        expect(host.saveEvents[1].price).toBe(25);
+      });
+
+      it('stays busy when the row set changes before the save settles', () => {
+        host.rows = makeRows(3).map(row => ({ ...row, id: row.id + 10 }));
+        fixture.detectChanges();
+
+        expect(table.editingId).toBeNull();
+        expect(table.saving).toBeTrue();
+        expect(actionButton(0, EDIT)!.disabled).toBeTrue();
+        table.startEdit(host.rows[0]);
+        table.toggleSelection(11);
+        table.bulkPrice = 50;
+        table.submitBulkForSelected();
+        expect(table.editingId).toBeNull();
+        expect(host.bulkSaveEvents.length).toBe(0);
+
+        pending.complete(false);
+        fixture.detectChanges();
+
+        expect(table.saving).toBeFalse();
+        expect(table.editingId).toBeNull();
+        expect(actionButton(0, EDIT)!.disabled).toBeFalse();
+        table.startEdit(host.rows[0]);
+        expect(table.editingId).toBe(11);
+      });
+
+      it('keeps the pending editor while another page is shown', () => {
+        host.pageSize = 3;
+        fixture.detectChanges();
+        table.goToPage(2);
+        fixture.detectChanges();
+
+        expect(actionButton(0, EDIT)!.disabled).toBeTrue();
+        expect(actionButton(1, EDIT)!.disabled).toBeTrue();
+        table.startEdit(host.rows[3]);
+        expect(table.editingId).toBe(1);
+
+        pending.complete(false);
+        table.goToPage(1);
+        fixture.detectChanges();
+
+        expect(table.editingId).toBe(1);
+        expect(table.editPrice).toBe(25);
+        expect(actionButton(0, SAVE)!.disabled).toBeFalse();
+      });
+    });
+
+    describe('while a bulk save is pending', () => {
+      let pending: BulkSaveEvent;
+
+      beforeEach(() => {
+        table.startEdit(host.rows[0]);
+        table.editPrice = 25;
+        table.toggleSelection(2);
+        table.toggleSelection(3);
+        table.bulkPrice = 50;
+        table.submitBulkForSelected();
+        fixture.detectChanges();
+        pending = host.bulkSaveEvents[0];
+      });
+
+      it('ignores submitEdit, startEdit and another submitBulkForSelected called without the DOM', () => {
+        table.submitEdit(host.rows[0]);
+        table.startEdit(host.rows[1]);
+        table.submitBulkForSelected();
+
+        expect(host.saveEvents.length).toBe(0);
+        expect(host.bulkSaveEvents.length).toBe(1);
+        expect(table.editingId).toBe(1);
+        expect(table.saving).toBeFalse();
+      });
+
+      it('disables Zapisz and Edytuj but lets the user close an editor that is not saving', () => {
+        expect(bulkButton().disabled).toBeTrue();
+        expect(actionButton(0, SAVE)!.disabled).toBeTrue();
+        expect(actionButton(1, EDIT)!.disabled).toBeTrue();
+        expect(actionButton(0, CANCEL)!.disabled).toBeFalse();
+
+        actionButton(0, CANCEL)!.click();
+        fixture.detectChanges();
+
+        expect(table.editingId).toBeNull();
+        expect(table.bulkSaving).toBeTrue();
+        expect(actionButton(0, EDIT)!.disabled).toBeTrue();
+      });
+
+      it('complete(false) keeps the selection and releases single and bulk saves', () => {
+        pending.complete(false);
+        fixture.detectChanges();
+
+        expect(table.bulkSaving).toBeFalse();
+        expect(table.selectedCount).toBe(2);
+        expect(bulkButton().disabled).toBeFalse();
+        expect(actionButton(0, SAVE)!.disabled).toBeFalse();
+
+        table.submitBulkForSelected();
+        expect(host.bulkSaveEvents.length).toBe(2);
+        expect(host.bulkSaveEvents[1].ids).toEqual(jasmine.arrayWithExactContents([2, 3]));
+
+        host.bulkSaveEvents[1].complete(false);
+        table.submitEdit(host.rows[0]);
+        expect(host.saveEvents.length).toBe(1);
+        expect(host.saveEvents[0].price).toBe(25);
+      });
+
+      it('complete(true) clears the selection and releases the open editor', () => {
+        pending.complete(true);
+        fixture.detectChanges();
+
+        expect(table.selectedCount).toBe(0);
+        expect(actionButton(0, SAVE)!.disabled).toBeFalse();
+        table.submitEdit(host.rows[0]);
+        expect(host.saveEvents.length).toBe(1);
+      });
     });
   });
 });

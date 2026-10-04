@@ -13,7 +13,7 @@
     step="0.01"
     type="number"/>
   <span class="pte-action-unit">{{ priceUnit }}</span>
-  <button (click)="submitBulkForSelected()" [disabled]="bulkSaving || bulkPrice <= 0"
+  <button (click)="submitBulkForSelected()" [disabled]="saveInProgress || bulkPrice <= 0"
           class="btn btn-sm btn-primary pte-btn">
     <mat-icon [class.pte-inline-icon--spin]="bulkSaving" aria-hidden="true" class="pte-inline-icon">{{ bulkSaving ?
       'autorenew' : 'save' }}
@@ -81,14 +81,15 @@
         </td>
 
         <td class="pte-actions-cell">
-          <button (click)="startEdit(row)" *ngIf="!isEditing(row)" class="btn btn-sm btn-outline pte-btn">
+          <button (click)="startEdit(row)" *ngIf="!isEditing(row)" [disabled]="saveInProgress"
+                  class="btn btn-sm btn-outline pte-btn">
             Edytuj
           </button>
           <ng-container *ngIf="isEditing(row)">
-            <button (click)="submitEdit(row)" [disabled]="saving" class="btn btn-sm btn-primary pte-btn">
+            <button (click)="submitEdit(row)" [disabled]="saveInProgress" class="btn btn-sm btn-primary pte-btn">
               {{ saving ? '...' : 'Zapisz' }}
             </button>
-            <button (click)="cancelEdit()" class="btn btn-sm btn-outline pte-btn pte-btn-cancel">
+            <button (click)="cancelEdit()" [disabled]="saving" class="btn btn-sm btn-outline pte-btn pte-btn-cancel">
               Anuluj
             </button>
           </ng-container>
