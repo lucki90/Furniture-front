@@ -2,6 +2,8 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { Observable, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { MatIconModule } from '@angular/material/icon';
 import { SettingsService } from './settings.service';
 import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
@@ -139,9 +141,11 @@ export class SettingsComponent implements OnInit {
   distanceFromWallSelectOptions: number[] = [400, 450, 480, 510, 540, 560, 600, 650, 700];
 
   constructor() {
+    // Jeden przepływ: switchMap anuluje odbiór poprzedniego języka, a takeUntilDestroyed obejmuje też aktywne żądanie.
     toObservable(this.languageService.lang).pipe(
+      switchMap(lang => this.loadTranslations(lang)),
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(lang => this.loadTranslations(lang));
+    ).subscribe(t => { this.translations = t; });
   }
 
   ngOnInit(): void {
@@ -155,10 +159,11 @@ export class SettingsComponent implements OnInit {
   // Metody loadLogo, onLogoSelected, removeLogo przeniesione do CompanyInfoSectionComponent.
   // Sekcja wczytuje logo sama po utworzeniu (ngOnInit), także po asynchronicznym GET i ponownym rozwinięciu.
 
-  private loadTranslations(lang: string): void {
-    this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT', 'MATERIAL_PRESET'], lang).subscribe(t => {
-      this.translations = t;
-    });
+  /** Błąd GET kończy tylko to żądanie: puste tłumaczenia dają fallback na kody, a późniejsza zmiana języka działa dalej. */
+  private loadTranslations(lang: string): Observable<Record<string, string>> {
+    return this.translationService.getByCategories(['MATERIAL', 'BOARD_VARIANT', 'MATERIAL_PRESET'], lang).pipe(
+      catchError(() => of<Record<string, string>>({}))
+    );
   }
 
   private loadMaterialOptions(): void {
