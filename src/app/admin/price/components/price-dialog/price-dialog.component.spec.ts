@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { PriceDialogComponent, PriceDialogData } from './price-dialog.component';
 import { PriceAdminService } from '../../service/price-admin.service';
@@ -111,6 +113,149 @@ describe('PriceDialogComponent', () => {
       component.onSubmit();
       expect(errorHandler.handle).toHaveBeenCalledTimes(1);
       expect(component.saving()).toBeFalse();
+    });
+  });
+
+  describe('edycja przez prawdziwy HTTP (czyszczenie pól opcjonalnych)', () => {
+    const FULL_PRICE: PriceEntryAdminResponse = {
+      id: 7, name: 'Zawiasy', description: 'Opis', unit: 'piece', currency: 'PLN',
+      currentPrice: 12.50, sourceUrl: 'https://example.com/product', urlSelector: '.price',
+      isActive: true, createdAt: '', updatedAt: ''
+    };
+    let http: HttpTestingController;
+    let realDialogRef: jasmine.SpyObj<MatDialogRef<PriceDialogComponent>>;
+    let realErrorHandler: jasmine.SpyObj<ApiErrorHandler>;
+
+    beforeEach(() => {
+      realDialogRef = jasmine.createSpyObj<MatDialogRef<PriceDialogComponent>>('MatDialogRef', ['close']);
+      realErrorHandler = jasmine.createSpyObj<ApiErrorHandler>('ApiErrorHandler', ['handle']);
+      TestBed.configureTestingModule({
+        imports: [PriceDialogComponent, NoopAnimationsModule],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: MatDialogRef, useValue: realDialogRef },
+          { provide: MAT_DIALOG_DATA, useValue: { mode: 'edit', price: FULL_PRICE } as PriceDialogData },
+          { provide: ApiErrorHandler, useValue: realErrorHandler }
+        ]
+      });
+      http = TestBed.inject(HttpTestingController);
+      fixture = TestBed.createComponent(PriceDialogComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+    });
+
+    afterEach(() => http.verify());
+
+    function type(selector: string, value: string): void {
+      const el = fixture.nativeElement.querySelector(selector) as HTMLInputElement | HTMLTextAreaElement;
+      el.value = value;
+      el.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    }
+
+    function save(): void {
+      const buttons = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+      buttons.find(b => b.textContent?.includes('Zapisz zmiany'))!.click();
+    }
+
+    function expectPut() {
+      return http.expectOne(r => r.method === 'PUT' && r.url.endsWith('/admin/prices/7'));
+    }
+
+    const SELECTORS = {
+      description: '[formControlName="description"]',
+      sourceUrl: '[formControlName="sourceUrl"]',
+      urlSelector: '[formControlName="urlSelector"]'
+    } as const;
+
+    (Object.keys(SELECTORS) as Array<keyof typeof SELECTORS>).forEach(field => {
+      it(`wyczyszczenie pola ${field} wysyła jawny pusty string`, () => {
+        type(SELECTORS[field], '');
+        save();
+        const req = expectPut();
+        const body = JSON.parse(req.request.serializeBody() as string);
+        expect(body[field]).toBe('');
+        req.flush({ ...FULL_PRICE, [field]: null });
+      });
+    });
+
+    it('wyczyszczenie wszystkich trzech pól naraz, reszta danych i isActive zachowane', () => {
+      type(SELECTORS.description, '');
+      type(SELECTORS.sourceUrl, '');
+      type(SELECTORS.urlSelector, '');
+      save();
+      const req = expectPut();
+      const body = JSON.parse(req.request.serializeBody() as string);
+      expect(body).toEqual({
+        name: 'Zawiasy', description: '', unit: 'piece', currency: 'PLN',
+        currentPrice: 12.5, sourceUrl: '', urlSelector: '', isActive: true
+      });
+      req.flush({ ...FULL_PRICE, description: null, sourceUrl: null, urlSelector: null });
+      expect(realDialogRef.close).toHaveBeenCalledWith(true);
+      expect(component.saving()).toBeFalse();
+      // formularz nie odtwarza starego tekstu po odpowiedzi z pustymi polami
+      expect(component.form.value.description).toBe('');
+    });
+
+    it('zmiana na nowy niepusty tekst jest wysyłana dokładnie', () => {
+      type(SELECTORS.description, ' Nowy opis ');
+      save();
+      const req = expectPut();
+      const body = JSON.parse(req.request.serializeBody() as string);
+      expect(body.description).toBe(' Nowy opis ');
+      req.flush(FULL_PRICE);
+    });
+
+    it('niezmienione teksty są wysyłane bez utraty', () => {
+      save();
+      const req = expectPut();
+      const body = JSON.parse(req.request.serializeBody() as string);
+      expect(body.description).toBe('Opis');
+      expect(body.sourceUrl).toBe('https://example.com/product');
+      expect(body.urlSelector).toBe('.price');
+      req.flush(FULL_PRICE);
+    });
+
+    it('invalid form nie wysyła żądania', () => {
+      component.form.patchValue({ unit: '' });
+      component.onSubmit();
+      http.expectNone(r => r.method === 'PUT');
+      expect(component.saving()).toBeFalse();
+    });
+
+    it('błąd PUT nie zamyka dialogu i resetuje saving', () => {
+      save();
+      expectPut().flush('err', { status: 500, statusText: 'Server Error' });
+      expect(realDialogRef.close).not.toHaveBeenCalled();
+      expect(realErrorHandler.handle).toHaveBeenCalledTimes(1);
+      expect(component.saving()).toBeFalse();
+    });
+  });
+
+  describe('tworzenie przez prawdziwy HTTP', () => {
+    it('puste pola opcjonalne nadal są pomijane w payloadzie', () => {
+      TestBed.configureTestingModule({
+        imports: [PriceDialogComponent, NoopAnimationsModule],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          { provide: MatDialogRef, useValue: jasmine.createSpyObj('MatDialogRef', ['close']) },
+          { provide: MAT_DIALOG_DATA, useValue: CREATE_DATA },
+          { provide: ApiErrorHandler, useValue: jasmine.createSpyObj('ApiErrorHandler', ['handle']) }
+        ]
+      });
+      const http = TestBed.inject(HttpTestingController);
+      fixture = TestBed.createComponent(PriceDialogComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+      component.form.patchValue({ unit: 'm2', currentPrice: 5 });
+      component.onSubmit();
+      const req = http.expectOne(r => r.method === 'POST');
+      const body = JSON.parse(req.request.serializeBody() as string);
+      expect(body).toEqual({ unit: 'm2', currency: 'PLN', currentPrice: 5 });
+      req.flush(EDIT_PRICE);
+      http.verify();
     });
   });
 });

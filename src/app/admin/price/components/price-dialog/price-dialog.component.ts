@@ -133,12 +133,13 @@ export class PriceDialogComponent implements OnInit {
 
     const request: PriceEntryUpdateRequest = {
       name: this.form.value.name || undefined,
-      description: this.form.value.description || undefined,
+      // BE: null/brak pola = zachowaj starą wartość; "" = wyczyść
+      description: this.form.value.description ?? '',
       unit: this.form.value.unit,
       currency: this.form.value.currency,
       currentPrice: this.form.value.currentPrice,
-      sourceUrl: this.form.value.sourceUrl || undefined,
-      urlSelector: this.form.value.urlSelector || undefined,
+      sourceUrl: this.form.value.sourceUrl ?? '',
+      urlSelector: this.form.value.urlSelector ?? '',
       isActive: this.form.value.isActive
     };
 
