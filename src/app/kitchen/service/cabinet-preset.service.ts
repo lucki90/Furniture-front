@@ -76,7 +76,14 @@ export class CabinetPresetService {
   create(name: string, cabinet: ProjectCabinetRequest): Observable<CabinetPresetResponse> {
     const request: CreateCabinetPresetRequest = { name, cabinet };
     return this.http.post<CabinetPresetResponse>(this.baseUrl, request).pipe(
-      tap(preset => this._presets.update(presets => [...presets, preset]))
+      tap(preset => {
+        if (this._loaded()) {
+          this._presets.update(presets => [...presets, preset]);
+        } else {
+          // Lista nie była wczytana (np. błąd sieci) — dopisanie dałoby niepełny wybór bez wbudowanych.
+          this.ensureLoaded();
+        }
+      })
     );
   }
 

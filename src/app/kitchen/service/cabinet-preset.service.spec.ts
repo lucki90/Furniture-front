@@ -79,6 +79,22 @@ describe('CabinetPresetService', () => {
     expect(service.ownOptions().map(option => option.preset.id)).toEqual([41]);
   });
 
+  it('zapis przy niewczytanej liście wczytuje całą listę zamiast dopisywać', () => {
+    service.ensureLoaded();
+    http.expectOne(url).flush('błąd', { status: 500, statusText: 'Server Error' });
+    expect(service.loaded()).toBeFalse();
+
+    service.create('Narożna', { cabinetId: 'cab-1' } as ProjectCabinetRequest).subscribe();
+    http.expectOne(request => request.method === 'POST').flush(
+      drawersPresetFixture({ id: 41, system: false, translationKey: null, name: 'Narożna' }));
+    http.expectOne(request => request.method === 'GET').flush([
+      drawersPresetFixture(), drawersPresetFixture({ id: 41, system: false, translationKey: null, name: 'Narożna' })
+    ]);
+
+    expect(service.builtInOptions()).toHaveSize(1);
+    expect(service.ownOptions().map(option => option.label)).toEqual(['Narożna']);
+  });
+
   it('nieznany klucz tłumaczenia — etykietą jest klucz', () => {
     expect(cabinetPresetLabel(drawersPresetFixture({ translationKey: 'CABINET_PRESET.X' }), {}))
       .toBe('CABINET_PRESET.X');
