@@ -383,7 +383,7 @@
       (ngModelChange)="setBoardPageSize($event)"
       [ngModel]="boardPageSize"
       class="form-control form-control--compact board-page-size-select settings-page-size-select">
-      <option *ngFor="let s of boardPageSizeOptions; trackBy: trackByIndex" [value]="s">{{ s }}</option>
+      <option *ngFor="let s of boardPageSizeOptions; trackBy: trackByIndex" [ngValue]="s">{{ s }}</option>
     </select>
   </div>
 

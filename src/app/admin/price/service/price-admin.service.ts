@@ -66,7 +66,7 @@ export class PriceAdminService {
   }
 
   /**
-   * Importuje ceny z pliku CSV lub Excel.
+   * Importuje ceny płyt z pliku CSV (UTF-8, separator średnik) jako multipart/form-data z polem `file`.
    */
   importPrices(file: File): Observable<PriceImportResultResponse> {
     const formData = new FormData();

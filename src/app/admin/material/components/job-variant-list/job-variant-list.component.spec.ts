@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { MatPaginator } from '@angular/material/paginator';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of, Subject } from 'rxjs';
 import { ToastService } from '../../../../core/error/toast.service';
@@ -90,5 +92,162 @@ describe('JobVariantListComponent', () => {
     localFixture.destroy();
 
     expect(result$.observers.length).toBe(0);
+  });
+
+  describe('kolejność odpowiedzi listy', () => {
+    let first$: Subject<Page<JobVariantAdminResponse>>;
+    let second$: Subject<Page<JobVariantAdminResponse>>;
+    let third$: Subject<Page<JobVariantAdminResponse>>;
+    let listFixture: ComponentFixture<JobVariantListComponent>;
+    let list: JobVariantListComponent;
+    let toastSpy: jasmine.SpyObj<ToastService>;
+
+    const variantB: JobVariantAdminResponse = { ...variants[0], id: 2, jobCode: 'EDGING', variantCode: 'LASER' };
+
+    function pageOf(content: JobVariantAdminResponse[], totalElements: number): Page<JobVariantAdminResponse> {
+      return { ...makeJobPage(content), totalElements };
+    }
+
+    function renderedText(): string {
+      return (listFixture.nativeElement as HTMLElement).textContent ?? '';
+    }
+
+    function paginatorLength(): number {
+      return listFixture.debugElement.query(By.directive(MatPaginator)).componentInstance.length;
+    }
+
+    function spinner(): Element | null {
+      return (listFixture.nativeElement as HTMLElement).querySelector('mat-spinner');
+    }
+
+    beforeEach(() => {
+      first$ = new Subject<Page<JobVariantAdminResponse>>();
+      second$ = new Subject<Page<JobVariantAdminResponse>>();
+      third$ = new Subject<Page<JobVariantAdminResponse>>();
+      toastSpy = TestBed.inject(ToastService) as jasmine.SpyObj<ToastService>;
+      materialAdminService.getJobVariants.calls.reset();
+      materialAdminService.getJobVariants.and.returnValues(first$, second$, third$);
+
+      listFixture = TestBed.createComponent(JobVariantListComponent);
+      listFixture.detectChanges();
+      list = listFixture.componentInstance;
+    });
+
+    it('starsza odpowiedź nie nadpisuje listy ani paginatora po nowszym wyszukiwaniu', () => {
+      list.searchQuery = 'B';
+      list.onSearch();
+      expect(materialAdminService.getJobVariants).toHaveBeenCalledTimes(2);
+
+      second$.next(pageOf([variantB], 2));
+      second$.complete();
+      first$.next(pageOf([variants[0]], 100));
+      first$.complete();
+      listFixture.detectChanges();
+
+      expect(list.variants().map(v => v.id)).toEqual([2]);
+      expect(list.totalElements()).toBe(2);
+      expect(list.loading()).toBeFalse();
+      expect(paginatorLength()).toBe(2);
+      expect(renderedText()).toContain('EDGING');
+      expect(renderedText()).not.toContain('CUTTING');
+      expect(renderedText()).toContain('2 warianty');
+    });
+
+    it('stary błąd nie kończy loadingu ani nie pokazuje toastu, gdy trwa nowsze żądanie', () => {
+      list.searchQuery = 'B';
+      list.onSearch();
+
+      first$.error(new Error('stary błąd'));
+      listFixture.detectChanges();
+
+      expect(list.loading()).toBeTrue();
+      expect(spinner()).not.toBeNull();
+      expect(toastSpy.error).not.toHaveBeenCalled();
+
+      second$.next(pageOf([variantB], 1));
+      second$.complete();
+      listFixture.detectChanges();
+
+      expect(list.variants().map(v => v.id)).toEqual([2]);
+      expect(list.loading()).toBeFalse();
+      expect(spinner()).toBeNull();
+      expect(toastSpy.error).not.toHaveBeenCalled();
+    });
+
+    it('zachowuje kolejność zmiany strony i filtra activeOnly — dane ustawia tylko ostatnie żądanie', () => {
+      const initialPageSize = list.pageSize();
+      list.onPageChange({ pageIndex: 2, pageSize: 50, length: 100 });
+      list.activeOnly = true;
+      list.onActiveFilterChange();
+
+      const calls = materialAdminService.getJobVariants.calls.allArgs();
+      expect(calls).toEqual([
+        [0, initialPageSize, undefined, false],
+        [2, 50, undefined, false],
+        [0, 50, undefined, true],
+      ]);
+
+      third$.next(pageOf([variantB], 1));
+      third$.complete();
+      second$.next(pageOf([variants[0]], 100));
+      second$.complete();
+      first$.next(pageOf([variants[0]], 200));
+      first$.complete();
+
+      expect(list.pageIndex()).toBe(0);
+      expect(list.variants().map(v => v.id)).toEqual([2]);
+      expect(list.totalElements()).toBe(1);
+      expect(list.loading()).toBeFalse();
+    });
+
+    it('błąd aktualnego żądania pokazuje jeden toast i kończy loading', () => {
+      first$.error(new Error('błąd'));
+
+      expect(toastSpy.error).toHaveBeenCalledTimes(1);
+      expect(toastSpy.error).toHaveBeenCalledWith('Błąd podczas ładowania wariantów prac');
+      expect(list.loading()).toBeFalse();
+    });
+
+    it('kolejne wyszukanie po błędzie działa', () => {
+      first$.error(new Error('błąd'));
+      list.searchQuery = 'B';
+      list.onSearch();
+      expect(list.loading()).toBeTrue();
+
+      second$.next(pageOf([variantB], 1));
+      second$.complete();
+
+      expect(materialAdminService.getJobVariants).toHaveBeenCalledTimes(2);
+      expect(list.variants().map(v => v.id)).toEqual([2]);
+      expect(list.loading()).toBeFalse();
+      expect(toastSpy.error).toHaveBeenCalledTimes(1);
+    });
+
+    it('zniszczenie komponentu kończy odbiór wszystkich żądań', () => {
+      list.onSearch();
+      expect(first$.observers.length).toBe(0);
+      expect(second$.observers.length).toBe(1);
+
+      listFixture.destroy();
+
+      expect(second$.observers.length).toBe(0);
+    });
+
+    it('po usunięciu przeładowuje listę z bieżącymi filtrami', () => {
+      const confirm = TestBed.inject(ConfirmDialogService) as jasmine.SpyObj<ConfirmDialogService>;
+      confirm.confirm.and.returnValue(of(true));
+      materialAdminService.deleteJobVariant.and.returnValue(of(undefined as void));
+      first$.next(pageOf([variants[0]], 1));
+      first$.complete();
+      list.searchQuery = 'abc';
+      list.activeOnly = true;
+      list.pageIndex.set(3);
+
+      list.onDelete(variants[0]);
+
+      expect(materialAdminService.deleteJobVariant).toHaveBeenCalledWith(variants[0].id);
+      expect(materialAdminService.getJobVariants).toHaveBeenCalledTimes(2);
+      expect(materialAdminService.getJobVariants.calls.mostRecent().args).toEqual([3, list.pageSize(), 'abc', true]);
+    });
   });
 });

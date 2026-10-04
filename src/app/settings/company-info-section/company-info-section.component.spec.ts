@@ -392,5 +392,186 @@ describe('CompanyInfoSectionComponent', () => {
       expect(createObjectUrlSpy.calls.allArgs()).toEqual([[oldLogo], [newLogo]]);
       expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL], [NEW_LOGO_URL]]);
     });
+
+    describe('jedna operacja zapisu logo naraz w bieżącej sekcji', () => {
+      const fileInput = (): HTMLInputElement => fixture.nativeElement.querySelector('input[type="file"]');
+      const fileLabel = (): HTMLElement => fileInput().closest('label') as HTMLElement;
+      const removeButton = (): HTMLButtonElement => fixture.nativeElement.querySelector('.logo-filled-actions button');
+
+      function showOldLogo(): void {
+        fixture.detectChanges();
+        respondLogoRead(logoReads[0], oldLogoBytes());
+        expectLogoShown(OLD_LOGO_URL);
+      }
+
+      /** Zdarzenie change spoza szablonu — sprawdza guard metody niezależnie od atrybutu disabled. */
+      function changeEventFor(file: File): Event {
+        const input = document.createElement('input');
+        input.type = 'file';
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        input.files = dataTransfer.files;
+        return { target: input } as unknown as Event;
+      }
+
+      it('powinien wysłać dokładnie jedno DELETE, gdy Usuń kliknięto ponownie w trakcie usuwania', () => {
+        showOldLogo();
+
+        clickRemoveLogo();
+        clickRemoveLogo();
+
+        expect(settingsService.deleteLogo).toHaveBeenCalledTimes(1);
+        expect(removeButton().disabled).toBeTrue();
+        expectLogoShown(OLD_LOGO_URL);
+      });
+
+      it('nie powinien rozpocząć uploadu, gdy w trakcie usuwania wybrano nowy plik', () => {
+        showOldLogo();
+        clickRemoveLogo();
+
+        expect(fileInput().disabled).toBeTrue();
+        selectLogoFile(newLogo);
+
+        expect(settingsService.uploadLogo).not.toHaveBeenCalled();
+        expect(settingsService.deleteLogo).toHaveBeenCalledTimes(1);
+        expectLogoShown(OLD_LOGO_URL);
+      });
+
+      it('powinien zablokować ponowne usunięcie i upload wywołane bez DOM, dopóki DELETE trwa', () => {
+        showOldLogo();
+        clickRemoveLogo();
+
+        component.removeLogo();
+        component.onLogoSelected(changeEventFor(newLogo));
+
+        expect(settingsService.deleteLogo).toHaveBeenCalledTimes(1);
+        expect(settingsService.uploadLogo).not.toHaveBeenCalled();
+        expectLogoShown(OLD_LOGO_URL);
+      });
+
+      it('powinien trzymać blokadę do potwierdzenia DELETE, potem usunąć podgląd, zwolnić URL i pozwolić na nowy upload', () => {
+        showOldLogo();
+
+        clickRemoveLogo();
+        expect(removeButton().disabled).toBeTrue();
+        expect(removeButton().textContent?.trim()).toBe('Usuwanie…');
+        expect(fileInput().disabled).toBeTrue();
+        expect(fileLabel().classList).toContain('disabled');
+        expect(revokeObjectUrlSpy).not.toHaveBeenCalled();
+
+        confirmWrite(delete$);
+
+        expectNoLogo();
+        expect(logoError()).toBeUndefined();
+        expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+        expect(fileInput().disabled).toBeFalse();
+        expect(fileLabel().classList).not.toContain('disabled');
+
+        selectLogoFile(newLogo);
+        expect(settingsService.uploadLogo).toHaveBeenCalledOnceWith(newLogo);
+        confirmWrite(upload$);
+
+        expectLogoShown(NEW_LOGO_URL);
+        expect(settingsService.deleteLogo).toHaveBeenCalledTimes(1);
+        expect(createObjectUrlSpy).toHaveBeenCalledTimes(2);
+      });
+
+      it('po błędzie DELETE powinien zachować logo, pokazać komunikat i odblokować usuwanie oraz upload', () => {
+        spyOn(console, 'error');
+        showOldLogo();
+        clickRemoveLogo();
+
+        failWrite(delete$);
+
+        expectLogoShown(OLD_LOGO_URL);
+        expect(logoError()).toBe('Nie udało się usunąć logo.');
+        expect(removeButton().disabled).toBeFalse();
+        expect(removeButton().textContent?.trim()).toBe('Usuń');
+        expect(fileInput().disabled).toBeFalse();
+        expect(revokeObjectUrlSpy).not.toHaveBeenCalled();
+
+        selectLogoFile(newLogo);
+        expect(settingsService.uploadLogo).toHaveBeenCalledOnceWith(newLogo);
+        confirmWrite(upload$);
+
+        expectLogoShown(NEW_LOGO_URL);
+        expect(logoError()).toBeUndefined();
+        expect(settingsService.deleteLogo).toHaveBeenCalledTimes(1);
+        expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+      });
+
+      it('powinien blokować wybór pliku w pustym stanie, gdy GET bez logo odpowie w trakcie DELETE', () => {
+        showOldLogo();
+        component.loadLogo();
+        clickRemoveLogo();
+
+        failLogoRead(logoReads[1], 404);
+
+        expectNoLogo();
+        expect(fileInput().disabled).toBeTrue();
+        expect(fileLabel().classList).toContain('disabled');
+        selectLogoFile(newLogo);
+        expect(settingsService.uploadLogo).not.toHaveBeenCalled();
+
+        confirmWrite(delete$);
+
+        expectNoLogo();
+        expect(fileInput().disabled).toBeFalse();
+        expect(fileLabel().classList).not.toContain('disabled');
+      });
+
+      it('nie powinien przywrócić starego logo z GET rozpoczętego w trakcie DELETE, który odpowie po jego potwierdzeniu', () => {
+        showOldLogo();
+        clickRemoveLogo();
+        component.loadLogo();
+        expect(logoReads.length).toBe(2);
+
+        confirmWrite(delete$);
+        respondLogoRead(logoReads[1], oldLogoBytes());
+
+        expectNoLogo();
+        expect(createObjectUrlSpy).toHaveBeenCalledTimes(1);
+        expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+      });
+
+      it('w trakcie uploadu powinien blokować usuwanie i kolejny upload, także wywołane bez DOM', () => {
+        const otherLogo = new File([new Uint8Array([0xff, 0xd8])], 'inne-logo.jpg', { type: 'image/jpeg' });
+        showOldLogo();
+
+        selectLogoFile(newLogo);
+        expect(removeButton().disabled).toBeTrue();
+        expect(fileInput().disabled).toBeTrue();
+
+        selectLogoFile(otherLogo);
+        component.onLogoSelected(changeEventFor(otherLogo));
+        component.removeLogo();
+        clickRemoveLogo();
+
+        expect(settingsService.uploadLogo).toHaveBeenCalledOnceWith(newLogo);
+        expect(settingsService.deleteLogo).not.toHaveBeenCalled();
+
+        confirmWrite(upload$);
+
+        expectLogoShown(NEW_LOGO_URL);
+        expect(component.logoUploading).toBeFalse();
+        expect(removeButton().disabled).toBeFalse();
+        expect(fileInput().disabled).toBeFalse();
+      });
+
+      it('nie powinien tworzyć URL ani zwalniać go ponownie, gdy DELETE odpowie po zniszczeniu sekcji', () => {
+        showOldLogo();
+        clickRemoveLogo();
+
+        fixture.destroy();
+        expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+
+        delete$.next();
+        delete$.complete();
+
+        expect(createObjectUrlSpy).toHaveBeenCalledTimes(1);
+        expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([[OLD_LOGO_URL]]);
+        expect(component.companyLogoUrl).toBeNull();
+      });
+    });
   });
 });

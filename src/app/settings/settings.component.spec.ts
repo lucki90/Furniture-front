@@ -1,11 +1,12 @@
-import { signal } from '@angular/core';
+import { WritableSignal, signal } from '@angular/core';
 import { CabinetPresetService } from '../kitchen/service/cabinet-preset.service';
+import { ApiErrorHandler } from '../core/error/api-error-handler.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { NEVER, Subject, of } from 'rxjs';
+import { NEVER, Observable, Subject, of } from 'rxjs';
 import { MaterialAdminService } from '../admin/material/service/material-admin.service';
 import { LanguageService } from '../service/language.service';
 import { KitchenStateService } from '../kitchen/service/kitchen-state.service';
-import { MaterialPresetService } from '../kitchen/service/material-preset.service';
+import { MaterialPresetResponse, MaterialPresetService } from '../kitchen/service/material-preset.service';
 import { TranslationService } from '../translation/translation.service';
 import { BoardPriceService } from './board-price.service';
 import { ComponentPriceService } from './component-price.service';
@@ -13,6 +14,18 @@ import { JobPriceService } from './job-price.service';
 import { DEFAULT_USER_SETTINGS, UpdateUserSettingsRequest, UserSettings } from './settings.model';
 import { SettingsService } from './settings.service';
 import { SettingsComponent } from './settings.component';
+
+/**
+ * Sekcja presetów szafek w pełnym widoku ustawień — bez żądań HTTP i bez obsługi błędów, która sama pobiera
+ * tłumaczenia (testy tłumaczeń liczą wywołania `getByCategories`). Sekcję testuje jej własny spec.
+ */
+const CABINET_PRESETS_SECTION_STUBS = [
+  {
+    provide: CabinetPresetService,
+    useValue: { ensureLoaded: () => {}, builtInOptions: signal([]), ownOptions: signal([]) }
+  },
+  { provide: ApiErrorHandler, useValue: { handle: () => {} } }
+];
 
 describe('SettingsComponent — rzaz', () => {
   let settingsService: jasmine.SpyObj<SettingsService>;
@@ -123,10 +136,7 @@ describe('SettingsComponent — dane firmy w pełnym widoku', () => {
         { provide: BoardPriceService, useValue: { list: () => of([]) } },
         { provide: ComponentPriceService, useValue: { list: () => of([]) } },
         { provide: JobPriceService, useValue: { list: () => of([]) } },
-        {
-          provide: CabinetPresetService,
-          useValue: { ensureLoaded: () => {}, builtInOptions: signal([]), ownOptions: signal([]) }
-        },
+        ...CABINET_PRESETS_SECTION_STUBS,
         { provide: MaterialAdminService, useValue: { getMaterialOptions: () => of([]) } },
         { provide: MaterialPresetService, useValue: { listActive: () => of([]) } },
         { provide: TranslationService, useValue: { getByCategories: () => of({}) } },
@@ -307,5 +317,204 @@ describe('SettingsComponent — dane firmy w pełnym widoku', () => {
     fixture.destroy();
     expect(revokeObjectUrlSpy.calls.allArgs()).toEqual([['blob:logo-1'], ['blob:logo-2']]);
     expect(createObjectUrlSpy).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('SettingsComponent — tłumaczenia przy zmianie języka', () => {
+  const CATEGORIES = ['MATERIAL', 'BOARD_VARIANT', 'MATERIAL_PRESET'];
+  const PL = { 'PRESET.ONE': 'Płyta wiórowa' };
+  const EN = { 'PRESET.ONE': 'Chipboard' };
+  const PRESET = {
+    code: 'ONE',
+    translationKey: 'PRESET.ONE',
+    defaultPreset: true,
+    sortOrder: 1,
+    varnishedFront: false,
+    materialRequest: {},
+    backMaterial: 'HDF',
+    backBoardThickness: 3,
+    backColor: 'WHITE'
+  } as unknown as MaterialPresetResponse;
+
+  let fixture: ComponentFixture<SettingsComponent>;
+  let lang: WritableSignal<string>;
+  let requests: { lang: string; response$: Subject<Record<string, string>> }[];
+  let translationService: { getByCategories: jasmine.Spy };
+  let settingsService: jasmine.SpyObj<SettingsService>;
+
+  beforeEach(async () => {
+    lang = signal('pl');
+    requests = [];
+    translationService = {
+      getByCategories: jasmine.createSpy('getByCategories').and.callFake(
+        (_categories: string[], requestLang: string): Observable<Record<string, string>> => {
+          const response$ = new Subject<Record<string, string>>();
+          requests.push({ lang: requestLang, response$ });
+          return response$;
+        })
+    };
+    settingsService = jasmine.createSpyObj<SettingsService>('SettingsService', [
+      'getSettings', 'getOptions', 'getLogo', 'updateSettings', 'uploadLogo', 'deleteLogo'
+    ]);
+    settingsService.getSettings.and.returnValue(of(DEFAULT_USER_SETTINGS));
+    settingsService.getOptions.and.returnValue(NEVER);
+    settingsService.getLogo.and.returnValue(NEVER);
+
+    await TestBed.configureTestingModule({
+      imports: [SettingsComponent],
+      providers: [
+        { provide: SettingsService, useValue: settingsService },
+        { provide: BoardPriceService, useValue: { list: () => of([]) } },
+        { provide: ComponentPriceService, useValue: { list: () => of([]) } },
+        { provide: JobPriceService, useValue: { list: () => of([]) } },
+        ...CABINET_PRESETS_SECTION_STUBS,
+        { provide: MaterialAdminService, useValue: { getMaterialOptions: () => of([]) } },
+        { provide: MaterialPresetService, useValue: { listActive: () => of([PRESET]) } },
+        { provide: TranslationService, useValue: translationService },
+        { provide: LanguageService, useValue: { lang } },
+        {
+          provide: KitchenStateService,
+          useValue: jasmine.createSpyObj<KitchenStateService>('KitchenStateService', [
+            'setGlobalDefaults', 'setMaterialDefaults', 'setCountertopJointDefaults', 'setGrainDirectionDefaults'
+          ])
+        }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SettingsComponent);
+  });
+
+  afterEach(() => {
+    fixture.destroy();
+  });
+
+  async function render(): Promise<void> {
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  async function switchLanguage(next: string): Promise<void> {
+    lang.set(next);
+    await render();
+  }
+
+  function presetLabel(): string {
+    const option = fixture.nativeElement.querySelector('option[value="ONE"]') as HTMLOptionElement | null;
+    return (option?.textContent ?? '').trim();
+  }
+
+  it('pobiera tłumaczenia dla języka startowego i zachowuje kategorie zapytania', async () => {
+    await render();
+
+    expect(translationService.getByCategories).toHaveBeenCalledOnceWith(CATEGORIES, 'pl');
+    requests[0].response$.next(PL);
+    await render();
+    expect(fixture.componentInstance.translations).toEqual(PL);
+    expect(presetLabel()).toBe('Płyta wiórowa');
+  });
+
+  it('pl → en: spóźniona odpowiedź pl nie nadpisuje nazw angielskich', async () => {
+    await render();
+    await switchLanguage('en');
+    expect(requests.map(r => r.lang)).toEqual(['pl', 'en']);
+
+    requests[1].response$.next(EN);
+    await render();
+    expect(presetLabel()).toBe('Chipboard');
+
+    requests[0].response$.next(PL);
+    await render();
+
+    expect(fixture.componentInstance.translations).toEqual(EN);
+    expect(presetLabel()).toBe('Chipboard');
+  });
+
+  it('pl → en → pl: odpowiedzi w odwróconej kolejności pozostawiają tylko ostatni język', async () => {
+    await render();
+    await switchLanguage('en');
+    await switchLanguage('pl');
+    expect(requests.map(r => r.lang)).toEqual(['pl', 'en', 'pl']);
+
+    requests[2].response$.next(PL);
+    await render();
+    requests[1].response$.next(EN);
+    requests[0].response$.next(EN);
+    await render();
+
+    expect(fixture.componentInstance.translations).toEqual(PL);
+    expect(presetLabel()).toBe('Płyta wiórowa');
+  });
+
+  it('błąd starego żądania nie psuje aktywnego języka', async () => {
+    await render();
+    await switchLanguage('en');
+    requests[1].response$.next(EN);
+    await render();
+
+    requests[0].response$.error(new Error('stary GET'));
+    await render();
+
+    expect(fixture.componentInstance.translations).toEqual(EN);
+    expect(presetLabel()).toBe('Chipboard');
+  });
+
+  it('błąd aktywnego żądania czyści stare nazwy (fallback na kod) i nie kończy obserwowania języka', async () => {
+    await render();
+    requests[0].response$.next(PL);
+    await render();
+    expect(presetLabel()).toBe('Płyta wiórowa');
+
+    await switchLanguage('en');
+    requests[1].response$.error(new Error('GET en'));
+    await render();
+
+    expect(fixture.componentInstance.translations).toEqual({});
+    expect(presetLabel()).toBe('ONE');
+
+    await switchLanguage('pl');
+    expect(requests.map(r => r.lang)).toEqual(['pl', 'en', 'pl']);
+    requests[2].response$.next(PL);
+    await render();
+    expect(presetLabel()).toBe('Płyta wiórowa');
+  });
+
+  it('po zniszczeniu komponentu spóźniona odpowiedź nie zmienia stanu', async () => {
+    await render();
+    requests[0].response$.next(PL);
+    await switchLanguage('en');
+    const component = fixture.componentInstance;
+
+    fixture.destroy();
+    expect(requests[1].response$.observed).toBeFalse();
+    requests[1].response$.next(EN);
+
+    expect(component.translations).toEqual(PL);
+  });
+
+  it('zmiana języka nie przeładowuje ustawień ani nie zapisuje danych', async () => {
+    await render();
+    const component = fixture.componentInstance;
+    component.cuttingKerfMm = 9;
+    const loadSettingsCalls = settingsService.getSettings.calls.count();
+
+    await switchLanguage('en');
+    requests[1].response$.next(EN);
+    await render();
+
+    expect(settingsService.getSettings.calls.count()).toBe(loadSettingsCalls);
+    expect(settingsService.updateSettings).not.toHaveBeenCalled();
+    expect(component.cuttingKerfMm).toBe(9);
+  });
+
+  it('synchroniczny cache ustawia tłumaczenia od razu, także po zmianie języka', async () => {
+    translationService.getByCategories.and.callFake((_c: string[], requestLang: string) =>
+      of(requestLang === 'en' ? EN : PL));
+
+    await render();
+    expect(presetLabel()).toBe('Płyta wiórowa');
+
+    await switchLanguage('en');
+    expect(presetLabel()).toBe('Chipboard');
   });
 });

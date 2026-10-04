@@ -1,6 +1,6 @@
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { filter, switchMap } from 'rxjs';
+import { Subscription, filter, switchMap } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -66,13 +66,17 @@ export class PriceListComponent implements OnInit {
   private readonly confirmDialog = inject(ConfirmDialogService);
   private readonly destroyRef = inject(DestroyRef);
 
+  private activeLoad?: Subscription;
+
   ngOnInit(): void {
     this.loadPrices();
   }
 
+  /** Tylko ostatni odczyt listy może zmienić dane, licznik, loading i pokazać błąd - poprzedni GET jest anulowany. */
   loadPrices(): void {
+    this.activeLoad?.unsubscribe();
     this.loading.set(true);
-    this.priceService.getAll(
+    this.activeLoad = this.priceService.getAll(
       this.pageIndex(),
       this.pageSize(),
       this.searchName || undefined,
