@@ -13,6 +13,7 @@ import { KitchenProjectWorkflowFacade } from './kitchen-project-workflow.facade'
 import { KitchenStateService } from './kitchen-state.service';
 import { KitchenProjectRequestsFacade } from './kitchen-project-requests.facade';
 import { createKitchenValidationErrorOptions } from './kitchen-validation-error-options';
+import { KitchenProjectConflictService } from './kitchen-project-conflict.service';
 
 export interface KitchenProjectTransitionHooks {
   onProceed: () => void;
@@ -28,6 +29,7 @@ export class KitchenProjectTransitionGuardService {
   private readonly workflowFacade = inject(KitchenProjectWorkflowFacade);
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ApiErrorHandler);
+  private readonly conflictService = inject(KitchenProjectConflictService);
   private readonly transitionLocked = signal(false);
 
   /** Wspólny stan blokady dla wszystkich entry-pointów zmieniających aktualny projekt. */
@@ -157,6 +159,10 @@ export class KitchenProjectTransitionGuardService {
         error: err => {
           console.error('Error saving project:', err);
           finishSaving();
+          if (this.conflictService.isVersionConflict(err)) {
+            this.conflictService.handle(() => this.openSaveProjectDialogAndPersist(options));
+            return;
+          }
           this.errorHandler.handle(err, createKitchenValidationErrorOptions(this.stateService.walls()));
         }
       });

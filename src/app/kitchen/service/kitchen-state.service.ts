@@ -329,6 +329,11 @@ export class KitchenStateService {
     this._cleanWorkspaceSignature.set('');
   }
 
+  /** Następny zapis utworzy nowy projekt z bieżącej treści (konflikt wersji). */
+  detachFromSavedProject(): void {
+    this.metadataService.detachFromSavedProject();
+  }
+
   setProjectInfo(
     projectId: number,
     projectName: string,

@@ -88,7 +88,8 @@ export class KitchenProjectRequestsFacade {
       roomWidthMm: this.metadataService.currentProjectRoomWidthMm(),
       roomDepthMm: this.metadataService.currentProjectRoomDepthMm(),
       grainDirections: this.metadataService.currentProjectGrainDirections(),
-      restoredFromVersion: this.metadataService.restoringFromVersion()
+      restoredFromVersion: this.metadataService.restoringFromVersion(),
+      expectedVersion: this.metadataService.currentProjectVersion()
     };
   }
 }

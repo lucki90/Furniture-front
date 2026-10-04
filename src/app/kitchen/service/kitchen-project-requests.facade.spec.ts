@@ -88,7 +88,8 @@ describe('KitchenProjectRequestsFacade', () => {
             currentProjectRoomWidthMm: roomWidthSig.asReadonly(),
             currentProjectRoomDepthMm: roomDepthSig.asReadonly(),
             currentProjectGrainDirections: grainSig.asReadonly(),
-            restoringFromVersion: restoringSig.asReadonly()
+            restoringFromVersion: restoringSig.asReadonly(),
+            currentProjectVersion: signal(4).asReadonly()
           }
         }
       ]
@@ -221,6 +222,10 @@ describe('KitchenProjectRequestsFacade', () => {
   });
 
   describe('buildUpdateProjectRequest', () => {
+    it('L1: zapis niesie wersję, na której pracuje użytkownik', () => {
+      expect(facade.buildUpdateProjectRequest('Kuchnia').expectedVersion).toBe(4);
+    });
+
     it('przywrócenie wersji z historii trafia do requestu; zwykły zapis bez wersji źródłowej', () => {
       expect(facade.buildUpdateProjectRequest('Kuchnia').restoredFromVersion).toBeNull();
 

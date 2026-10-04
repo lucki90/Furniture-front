@@ -392,6 +392,8 @@ export interface UpdateKitchenProjectRequest {
   roomDepthMm?: number | null;
   /** Wersja z historii, z której otwarto zapisywaną treść (przywrócenie); trafia tylko do historii projektu. */
   restoredFromVersion?: number | null;
+  /** Wersja, na której pracował użytkownik; inna niż zapisana — backend odrzuca zapis (konflikt 409). */
+  expectedVersion?: number;
 }
 
 /**

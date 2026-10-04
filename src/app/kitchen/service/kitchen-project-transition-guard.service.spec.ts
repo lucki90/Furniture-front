@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -10,6 +11,7 @@ import { KitchenProjectTransitionGuardService } from './kitchen-project-transiti
 import { KitchenProjectWorkflowFacade } from './kitchen-project-workflow.facade';
 import { KitchenStateService } from './kitchen-state.service';
 import { KitchenProjectRequestsFacade } from './kitchen-project-requests.facade';
+import { KitchenProjectConflictService } from './kitchen-project-conflict.service';
 
 describe('KitchenProjectTransitionGuardService', () => {
   let service: KitchenProjectTransitionGuardService;
@@ -19,6 +21,7 @@ describe('KitchenProjectTransitionGuardService', () => {
   let workflowFacade: jasmine.SpyObj<KitchenProjectWorkflowFacade>;
   let toast: jasmine.SpyObj<ToastService>;
   let errorHandler: jasmine.SpyObj<ApiErrorHandler>;
+  let conflictService: jasmine.SpyObj<KitchenProjectConflictService>;
 
   beforeEach(() => {
     dialog = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
@@ -41,6 +44,10 @@ describe('KitchenProjectTransitionGuardService', () => {
     workflowFacade = jasmine.createSpyObj<KitchenProjectWorkflowFacade>('KitchenProjectWorkflowFacade', ['saveProject']);
     toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'info']);
     errorHandler = jasmine.createSpyObj<ApiErrorHandler>('ApiErrorHandler', ['handle']);
+    conflictService = jasmine.createSpyObj<KitchenProjectConflictService>('KitchenProjectConflictService',
+      ['isVersionConflict', 'handle']);
+    conflictService.isVersionConflict.and.callFake(error =>
+      error instanceof HttpErrorResponse && error.status === 409);
     stateService.currentProjectId.and.returnValue(null);
     stateService.currentProjectName.and.returnValue('');
     stateService.currentProjectDescription.and.returnValue('');
@@ -56,7 +63,8 @@ describe('KitchenProjectTransitionGuardService', () => {
         { provide: KitchenProjectRequestsFacade, useValue: requestsFacade },
         { provide: KitchenProjectWorkflowFacade, useValue: workflowFacade },
         { provide: ToastService, useValue: toast },
-        { provide: ApiErrorHandler, useValue: errorHandler }
+        { provide: ApiErrorHandler, useValue: errorHandler },
+        { provide: KitchenProjectConflictService, useValue: conflictService }
       ]
     });
 
@@ -204,6 +212,27 @@ describe('KitchenProjectTransitionGuardService', () => {
       jasmine.objectContaining({ formatArgument: jasmine.any(Function) })
     );
     expect(service.isTransitioning()).toBeFalse();
+  });
+
+  it('L1: konflikt wersji przy zapisie — okno konfliktu zamiast zwykłego błędu, „zapisz jako nowy” otwiera zapis', () => {
+    const saveResult: SaveProjectDialogResult = {
+      name: 'Kuchnia', description: '', clientName: '', clientPhone: '', clientEmail: ''
+    };
+    requestsFacade.buildMultiWallProjectRequest.and.returnValue({ name: 'Kuchnia', walls: [] } as never);
+    dialog.open.and.returnValue({ afterClosed: () => of(saveResult) } as MatDialogRef<unknown>);
+    workflowFacade.saveProject.and.returnValue(throwError(() => new HttpErrorResponse({
+      status: 409, error: { code: 'ex.project.version.conflict' }
+    })));
+
+    service.openSaveProjectDialogAndPersist();
+
+    expect(errorHandler.handle).not.toHaveBeenCalled();
+    expect(conflictService.handle).toHaveBeenCalled();
+    expect(service.isTransitioning()).toBeFalse();
+
+    workflowFacade.saveProject.and.returnValue(EMPTY);
+    conflictService.handle.calls.mostRecent().args[0]();
+    expect(dialog.open).toHaveBeenCalledTimes(2);
   });
 
   it('blocks opening a second save dialog until the first dialog closes', () => {

@@ -128,6 +128,18 @@ export class ProjectMetadataService {
     this._restoringFromVersion.set(version);
   }
 
+  /**
+   * Odłącza treść edytora od zapisanego projektu (konflikt wersji — „zapisz jako nowy projekt”): następny zapis
+   * utworzy nowy projekt; nazwa, klient i ustawienia projektu zostają.
+   */
+  detachFromSavedProject(): void {
+    this._currentProjectId.set(null);
+    this._currentProjectVersion.set(0);
+    this._restoringFromVersion.set(null);
+    this._currentProjectStatus.set('DRAFT');
+    this._currentProjectAllowedTransitions.set([]);
+  }
+
   updateRoomDimensions(roomWidthMm?: number | null, roomDepthMm?: number | null): void {
     this._currentProjectRoomWidthMm.set(roomWidthMm ?? null);
     this._currentProjectRoomDepthMm.set(roomDepthMm ?? null);
