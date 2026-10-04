@@ -8,6 +8,7 @@ import {
   ProjectVersionConflictChoice,
   ProjectVersionConflictDialogComponent
 } from '../project-conflict/project-version-conflict-dialog.component';
+import { KitchenDraftService } from './kitchen-draft.service';
 import { KitchenProjectVersionsFacade } from './kitchen-project-versions.facade';
 import { KitchenStateService } from './kitchen-state.service';
 
@@ -24,6 +25,7 @@ export class KitchenProjectConflictService {
   private readonly versionsFacade = inject(KitchenProjectVersionsFacade);
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ApiErrorHandler);
+  private readonly draftService = inject(KitchenDraftService);
 
   isVersionConflict(error: unknown): boolean {
     return error instanceof HttpErrorResponse
@@ -39,6 +41,8 @@ export class KitchenProjectConflictService {
       .afterClosed()
       .subscribe((choice: ProjectVersionConflictChoice | null | undefined) => {
         if (choice === 'SAVE_AS_NEW') {
+          // Kopia przechodzi z zapisanego projektu na nowy (autozapis po odłączeniu).
+          this.draftService.discardCurrent();
           this.stateService.detachFromSavedProject();
           saveAsNew();
         } else if (choice === 'LOAD_LATEST') {
@@ -52,6 +56,7 @@ export class KitchenProjectConflictService {
     if (projectId === null) {
       return;
     }
+    this.draftService.discardCurrent();
     this.versionsFacade.returnToCurrent(projectId).subscribe({
       next: () => this.toast.info('Wczytano najnowszą wersję projektu'),
       error: err => this.errorHandler.handle(err)

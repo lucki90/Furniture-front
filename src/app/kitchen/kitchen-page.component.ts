@@ -31,6 +31,7 @@ import { KitchenPageFooterComponent } from './page-footer/kitchen-page-footer.co
 import { KitchenProjectsDrawerComponent } from './projects-drawer/kitchen-projects-drawer.component';
 import { ProjectHistoryPanelComponent } from './project-history/project-history-panel.component';
 import { KitchenProjectVersionsFacade } from './service/kitchen-project-versions.facade';
+import { KitchenDraftService } from './service/kitchen-draft.service';
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
 import { buildCalculationViewState } from './kitchen-page-view-state';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
@@ -105,6 +106,7 @@ export class KitchenPageComponent {
   private projectTransitionGuard = inject(KitchenProjectTransitionGuardService);
   private requestsFacade = inject(KitchenProjectRequestsFacade);
   private versionsFacade = inject(KitchenProjectVersionsFacade);
+  private draftService = inject(KitchenDraftService);
 
   readonly projectTransitionInProgress = this.projectTransitionGuard.isTransitioning;
 
@@ -169,6 +171,8 @@ export class KitchenPageComponent {
     ).subscribe((translations: Record<string, string>) => {
       this.bomTranslations.set(translations);
     });
+    // Kopia lokalna niezapisanych zmian i propozycja jej odzyskania.
+    this.draftService.start(this.destroyRef);
   }
 
   // Sync wall-level config with global signals when selected wall changes

@@ -129,6 +129,14 @@ export class ProjectMetadataService {
   }
 
   /**
+   * Wersja, na której powstała odzyskana kopia lokalna — zapis na starszej wersji trafi w konflikt wersji zamiast
+   * nadpisać zmiany zapisane w międzyczasie.
+   */
+  restoreBaseVersion(version: number): void {
+    this._currentProjectVersion.set(version);
+  }
+
+  /**
    * Odłącza treść edytora od zapisanego projektu (konflikt wersji — „zapisz jako nowy projekt”): następny zapis
    * utworzy nowy projekt; nazwa, klient i ustawienia projektu zostają.
    */

@@ -19,6 +19,7 @@ import { LanguageService } from '../service/language.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
+import { KitchenDraftService } from './service/kitchen-draft.service';
 import { EMPTY, of, throwError } from 'rxjs';
 import { DEFAULT_GRAIN_DIRECTIONS, GrainDirections, NO_GRAIN_OVERRIDE } from '../shared/model/grain-direction';
 
@@ -112,7 +113,8 @@ describe('KitchenPageComponent — keyboard shortcuts', () => {
             isTransitioning: signal(false).asReadonly()
           }
         },
-        { provide: KitchenProjectRequestsFacade, useValue: { buildMultiWallCalculateRequest: () => ({ walls: [] }) } }
+        { provide: KitchenProjectRequestsFacade, useValue: { buildMultiWallCalculateRequest: () => ({ walls: [] }) } },
+        { provide: KitchenDraftService, useValue: { start: () => {} } }
       ]
     }).compileComponents();
 

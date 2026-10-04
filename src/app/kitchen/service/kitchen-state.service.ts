@@ -5,6 +5,7 @@ import { ProjectMetadataService } from './project-metadata.service';
 import { KitchenWallMetricsService } from './kitchen-wall-metrics.service';
 import { KitchenProjectStateMapper } from './kitchen-project-state.mapper';
 import { KitchenWorkspaceStore } from './kitchen-workspace.store';
+import { WorkspaceSnapshot } from './kitchen-history.service';
 import {
   CabinetFormData,
   CountertopConfig,
@@ -78,6 +79,9 @@ export class KitchenStateService {
   readonly showCountertop = this.settingsService.showCountertop;
   readonly showUpperCabinets = this.settingsService.showUpperCabinets;
   private _cleanWorkspaceSignature = signal(this.buildPersistedWorkspaceSignature());
+  private readonly _openedProjectSession = signal(0);
+  /** Rośnie przy wczytaniu projektu i rozpoczęciu nowego — moment na propozycję odzyskania kopii lokalnej. */
+  readonly openedProjectSession = this._openedProjectSession.asReadonly();
 
   readonly selectedWall = computed(() => {
     const wallId = this.selectedWallId();
@@ -300,9 +304,15 @@ export class KitchenStateService {
   startNewProject(): void {
     this.clearAll();
     this.markProjectAsClean();
+    this._openedProjectSession.update(session => session + 1);
   }
 
   loadProject(project: KitchenProjectDetailResponse): void {
+    this.applyProject(project);
+    this._openedProjectSession.update(session => session + 1);
+  }
+
+  private applyProject(project: KitchenProjectDetailResponse): void {
     const mappedState = this.projectStateMapper.mapProject(project, {
       fillerWidthMm: this.settingsService.fillerWidthMm()
     });
@@ -323,10 +333,38 @@ export class KitchenStateService {
    */
   openProjectVersion(versionProject: KitchenProjectDetailResponse): void {
     const liveVersion = this.metadataService.currentProjectVersion();
-    this.loadProject(versionProject);
+    this.applyProject(versionProject);
     this.metadataService.startRestoringVersion(versionProject.version, liveVersion);
     // Treść wersji różni się od zapisanego projektu, więc wymaga zapisu.
     this._cleanWorkspaceSignature.set('');
+  }
+
+  /** Sygnatura treści zapisywanej w projekcie (ściany, ustawienia, wymiary pomieszczenia, słój). */
+  persistedSignature(): string {
+    return this.buildPersistedWorkspaceSignature();
+  }
+
+  /** Migawka obszaru roboczego do kopii lokalnej — bez pełnych odpowiedzi kalkulacji szafek. */
+  exportDraftSnapshot(): WorkspaceSnapshot {
+    const snapshot = this.workspaceStore.exportSnapshot();
+    return {
+      ...snapshot,
+      walls: snapshot.walls.map(wall => ({
+        ...wall,
+        cabinets: wall.cabinets.map(cabinet => ({ ...cabinet, calculationResponse: undefined }))
+      }))
+    };
+  }
+
+  /**
+   * Przywraca kopię lokalną niezapisanych zmian (krok do cofnięcia). Dla zapisanego projektu wraca wersja, na której
+   * powstała kopia — zapis na starszej wersji zgłosi konflikt.
+   */
+  restoreDraft(snapshot: WorkspaceSnapshot, baseVersion: number): void {
+    this.workspaceStore.restoreSnapshot(snapshot);
+    if (this.metadataService.currentProjectId() !== null) {
+      this.metadataService.restoreBaseVersion(baseVersion);
+    }
   }
 
   /** Następny zapis utworzy nowy projekt z bieżącej treści (konflikt wersji). */

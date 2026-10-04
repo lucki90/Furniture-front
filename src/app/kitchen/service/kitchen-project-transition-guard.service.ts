@@ -14,6 +14,7 @@ import { KitchenStateService } from './kitchen-state.service';
 import { KitchenProjectRequestsFacade } from './kitchen-project-requests.facade';
 import { createKitchenValidationErrorOptions } from './kitchen-validation-error-options';
 import { KitchenProjectConflictService } from './kitchen-project-conflict.service';
+import { KitchenDraftService } from './kitchen-draft.service';
 
 export interface KitchenProjectTransitionHooks {
   onProceed: () => void;
@@ -30,6 +31,7 @@ export class KitchenProjectTransitionGuardService {
   private readonly toast = inject(ToastService);
   private readonly errorHandler = inject(ApiErrorHandler);
   private readonly conflictService = inject(KitchenProjectConflictService);
+  private readonly draftService = inject(KitchenDraftService);
   private readonly transitionLocked = signal(false);
 
   /** Wspólny stan blokady dla wszystkich entry-pointów zmieniających aktualny projekt. */
@@ -52,6 +54,7 @@ export class KitchenProjectTransitionGuardService {
 
     dialogRef.afterClosed().subscribe((decision: UnsavedChangesDecision | undefined) => {
       if (decision === 'discard') {
+        this.draftService.discardCurrent();
         this.proceedAndRelease(hooks.onProceed);
         return;
       }
@@ -111,6 +114,7 @@ export class KitchenProjectTransitionGuardService {
       }
 
       options?.onSavingChange?.(true);
+      const previousProjectId = this.stateService.currentProjectId();
       let savingFinished = false;
       const finishSaving = (): void => {
         if (savingFinished) {
@@ -152,6 +156,7 @@ export class KitchenProjectTransitionGuardService {
             projectInfo.clientEmail
           );
           this.stateService.markProjectAsClean();
+          this.draftService.clearAfterSave(previousProjectId, projectInfo.id);
           this.toast.success(successMessage);
           finishSaving();
           options?.onSuccess?.();

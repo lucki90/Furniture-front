@@ -12,6 +12,7 @@ import { KitchenProjectWorkflowFacade } from './kitchen-project-workflow.facade'
 import { KitchenStateService } from './kitchen-state.service';
 import { KitchenProjectRequestsFacade } from './kitchen-project-requests.facade';
 import { KitchenProjectConflictService } from './kitchen-project-conflict.service';
+import { KitchenDraftService } from './kitchen-draft.service';
 
 describe('KitchenProjectTransitionGuardService', () => {
   let service: KitchenProjectTransitionGuardService;
@@ -22,6 +23,7 @@ describe('KitchenProjectTransitionGuardService', () => {
   let toast: jasmine.SpyObj<ToastService>;
   let errorHandler: jasmine.SpyObj<ApiErrorHandler>;
   let conflictService: jasmine.SpyObj<KitchenProjectConflictService>;
+  let draftService: jasmine.SpyObj<KitchenDraftService>;
 
   beforeEach(() => {
     dialog = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
@@ -46,6 +48,8 @@ describe('KitchenProjectTransitionGuardService', () => {
     errorHandler = jasmine.createSpyObj<ApiErrorHandler>('ApiErrorHandler', ['handle']);
     conflictService = jasmine.createSpyObj<KitchenProjectConflictService>('KitchenProjectConflictService',
       ['isVersionConflict', 'handle']);
+    draftService = jasmine.createSpyObj<KitchenDraftService>('KitchenDraftService',
+      ['discardCurrent', 'clearAfterSave']);
     conflictService.isVersionConflict.and.callFake(error =>
       error instanceof HttpErrorResponse && error.status === 409);
     stateService.currentProjectId.and.returnValue(null);
@@ -64,7 +68,8 @@ describe('KitchenProjectTransitionGuardService', () => {
         { provide: KitchenProjectWorkflowFacade, useValue: workflowFacade },
         { provide: ToastService, useValue: toast },
         { provide: ApiErrorHandler, useValue: errorHandler },
-        { provide: KitchenProjectConflictService, useValue: conflictService }
+        { provide: KitchenProjectConflictService, useValue: conflictService },
+        { provide: KitchenDraftService, useValue: draftService }
       ]
     });
 
@@ -92,6 +97,7 @@ describe('KitchenProjectTransitionGuardService', () => {
     service.confirmUnsavedAndProceed('otwórz inny projekt', { onProceed });
 
     expect(onProceed).toHaveBeenCalled();
+    expect(draftService.discardCurrent).toHaveBeenCalled();
     expect(service.isTransitioning()).toBeFalse();
   });
 
@@ -141,6 +147,8 @@ describe('KitchenProjectTransitionGuardService', () => {
     expect(workflowFacade.saveProject).toHaveBeenCalled();
     expect(stateService.setProjectInfo).toHaveBeenCalled();
     expect(stateService.markProjectAsClean).toHaveBeenCalled();
+    expect(draftService.clearAfterSave).toHaveBeenCalledWith(7, 7);
+    expect(draftService.discardCurrent).not.toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith('Projekt został zaktualizowany');
     expect(onProceed).toHaveBeenCalled();
     expect(service.isTransitioning()).toBeFalse();

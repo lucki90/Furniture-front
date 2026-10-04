@@ -315,6 +315,56 @@ describe('KitchenStateService', () => {
     expect(service.restoringFromVersion()).toBeNull();
   });
 
+  it('kopia lokalna: migawka bez kalkulacji, przywrócenie jako krok undo z wersją bazową zapisanego projektu', () => {
+    const base = {
+      id: 21, name: 'Kuchnia', status: 'DRAFT', version: 3, totalCost: 0, totalBoardsCost: 0,
+      totalComponentsCost: 0, totalJobsCost: 0, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
+      walls: [{ id: 1, wallType: 'MAIN', widthMm: 3600, heightMm: 2600, wallCost: 0, cabinetCount: 0,
+        usedWidthMm: 0, remainingWidthMm: 3600, cabinets: [] }]
+    } as unknown as KitchenProjectDetailResponse;
+    const sessionBefore = service.openedProjectSession();
+    service.loadProject(base);
+    expect(service.openedProjectSession()).toBe(sessionBefore + 1);
+    service.addCabinet({
+      kitchenCabinetType: KitchenCabinetType.BASE_WITH_DRAWERS,
+      openingType: 'HANDLE',
+      width: 800,
+      height: 720,
+      depth: 560,
+      positionY: 0,
+      shelfQuantity: 1,
+      drawerQuantity: 3,
+      drawerModel: 'ANTARO'
+    } as CabinetFormData, {
+      boards: [], components: [], jobs: [], summaryCosts: 1000, boardTotalCost: 400, componentTotalCost: 350,
+      jobTotalCost: 250
+    });
+    const dirtySignature = service.persistedSignature();
+
+    const snapshot = service.exportDraftSnapshot();
+    expect(snapshot.walls[0].cabinets).toHaveSize(1);
+    expect(snapshot.walls[0].cabinets[0].calculationResponse).toBeUndefined();
+    expect(service.cabinets()[0].calculationResponse).toBeDefined();
+
+    service.loadProject(base);
+    service.restoreDraft(JSON.parse(JSON.stringify(snapshot)), 2);
+
+    expect(service.totalCabinetCount()).toBe(1);
+    expect(service.persistedSignature()).toBe(dirtySignature);
+    expect(service.hasUnsavedChanges()).toBeTrue();
+    expect(service.currentProjectVersion()).toBe(2);
+    expect(service.undo()).toBeTrue();
+    expect(service.totalCabinetCount()).toBe(0);
+
+    const sessionAfterLoad = service.openedProjectSession();
+    service.openProjectVersion({ ...base, version: 1 } as KitchenProjectDetailResponse);
+    expect(service.openedProjectSession()).toBe(sessionAfterLoad);
+    service.startNewProject();
+    expect(service.openedProjectSession()).toBe(sessionAfterLoad + 1);
+    service.restoreDraft(JSON.parse(JSON.stringify(snapshot)), 2);
+    expect(service.currentProjectVersion()).toBe(0);
+  });
+
   it('should load project grain override, undo it and treat it as a persisted change', () => {
     const project = {
       id: 22,

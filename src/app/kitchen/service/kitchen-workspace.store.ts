@@ -102,6 +102,17 @@ export class KitchenWorkspaceStore {
     this.historyService.push(this.snapshotCurrentState());
   }
 
+  /** Migawka całego obszaru roboczego (jak dla undo) — do kopii lokalnej niezapisanych zmian. */
+  exportSnapshot(): WorkspaceSnapshot {
+    return this.snapshotCurrentState();
+  }
+
+  /** Odtworzenie migawki jako krok, który można cofnąć (odzyskanie kopii lokalnej). */
+  restoreSnapshot(snapshot: WorkspaceSnapshot): void {
+    this.recordHistorySnapshot();
+    this.applySnapshot(structuredClone(snapshot));
+  }
+
   addWall(
     type: WallType,
     widthMm: number,

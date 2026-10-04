@@ -7,6 +7,7 @@ import { ApiErrorHandler } from '../../core/error/api-error-handler.service';
 import { ToastService } from '../../core/error/toast.service';
 import { KitchenProjectDetailResponse } from '../model/kitchen-project.model';
 import { KitchenProjectConflictService } from './kitchen-project-conflict.service';
+import { KitchenDraftService } from './kitchen-draft.service';
 import { KitchenProjectVersionsFacade } from './kitchen-project-versions.facade';
 import { KitchenStateService } from './kitchen-state.service';
 
@@ -15,6 +16,7 @@ describe('KitchenProjectConflictService', () => {
   let state: jasmine.SpyObj<KitchenStateService>;
   let versions: jasmine.SpyObj<KitchenProjectVersionsFacade>;
   let toast: jasmine.SpyObj<ToastService>;
+  let draftService: jasmine.SpyObj<KitchenDraftService>;
   let service: KitchenProjectConflictService;
 
   beforeEach(() => {
@@ -23,12 +25,14 @@ describe('KitchenProjectConflictService', () => {
       { currentProjectId: signal(6).asReadonly() });
     versions = jasmine.createSpyObj<KitchenProjectVersionsFacade>('KitchenProjectVersionsFacade', ['returnToCurrent']);
     toast = jasmine.createSpyObj<ToastService>('ToastService', ['info']);
+    draftService = jasmine.createSpyObj<KitchenDraftService>('KitchenDraftService', ['discardCurrent']);
     TestBed.configureTestingModule({
       providers: [
         { provide: MatDialog, useValue: dialog },
         { provide: KitchenStateService, useValue: state },
         { provide: KitchenProjectVersionsFacade, useValue: versions },
         { provide: ToastService, useValue: toast },
+        { provide: KitchenDraftService, useValue: draftService },
         { provide: ApiErrorHandler, useValue: jasmine.createSpyObj('ApiErrorHandler', ['handle']) }
       ]
     });
@@ -55,6 +59,7 @@ describe('KitchenProjectConflictService', () => {
 
     expect(state.detachFromSavedProject).toHaveBeenCalled();
     expect(saveAsNew).toHaveBeenCalled();
+    expect(draftService.discardCurrent).toHaveBeenCalled();
   });
 
   it('wczytaj najnowszą: wczytuje zapisany projekt', () => {
@@ -65,6 +70,7 @@ describe('KitchenProjectConflictService', () => {
 
     expect(versions.returnToCurrent).toHaveBeenCalledWith(6);
     expect(toast.info).toHaveBeenCalled();
+    expect(draftService.discardCurrent).toHaveBeenCalled();
   });
 
   it('zamknięcie okna zostawia zmiany w edytorze', () => {
@@ -76,5 +82,6 @@ describe('KitchenProjectConflictService', () => {
     expect(saveAsNew).not.toHaveBeenCalled();
     expect(state.detachFromSavedProject).not.toHaveBeenCalled();
     expect(versions.returnToCurrent).not.toHaveBeenCalled();
+    expect(draftService.discardCurrent).not.toHaveBeenCalled();
   });
 });
