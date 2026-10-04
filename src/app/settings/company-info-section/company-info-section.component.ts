@@ -54,7 +54,8 @@ export function companyInfoToRequest(info: CompanyInfo): {
  * Wzorzec integracji z parentem:
  * - `[(value)]` — model danych firmy trzymany przez parenta; sekcja może być niszczona przy zwinięciu
  *   i tworzona ponownie, a wartości (także niezapisane edycje) zostają w parencie
- * - Logo: wczytywane przy każdym utworzeniu sekcji przez SettingsService, URL blob zwalniany przy zniszczeniu
+ * - Logo: wczytywane przy każdym utworzeniu sekcji przez SettingsService, URL blob zwalniany przy zniszczeniu;
+ *   odpowiedź odczytu rozpoczętego przed potwierdzonym uploadem/usunięciem jest pomijana
  */
 @Component({
   selector: 'app-company-info-section',
@@ -67,6 +68,8 @@ export class CompanyInfoSectionComponent implements OnInit, OnDestroy {
 
   private settingsService = inject(SettingsService);
   private destroyed = false;
+  /** Licznik potwierdzonych zmian logo — odczyt rozpoczęty przed zmianą nie może jej nadpisać. */
+  private confirmedLogoChanges = 0;
 
   // ── Company form fields ──────────────────────────────────────────────────────
 
@@ -99,9 +102,10 @@ export class CompanyInfoSectionComponent implements OnInit, OnDestroy {
    * Wywoływane w ngOnInit tej sekcji.
    */
   loadLogo(): void {
+    const changesAtStart = this.confirmedLogoChanges;
     this.settingsService.getLogo().subscribe({
-      next: (blob) => this.applyLogoBlob(blob),
-      error: () => this.applyLogoBlob(null)
+      next: (blob) => this.applyLogoRead(changesAtStart, blob),
+      error: () => this.applyLogoRead(changesAtStart, null)
     });
   }
 
@@ -127,6 +131,7 @@ export class CompanyInfoSectionComponent implements OnInit, OnDestroy {
 
     this.settingsService.uploadLogo(file).subscribe({
       next: () => {
+        this.confirmedLogoChanges++;
         this.applyLogoBlob(file);
         this.logoUploading = false;
       },
@@ -143,6 +148,7 @@ export class CompanyInfoSectionComponent implements OnInit, OnDestroy {
   removeLogo(): void {
     this.settingsService.deleteLogo().subscribe({
       next: () => {
+        this.confirmedLogoChanges++;
         this.applyLogoBlob(null);
         this.logoError = null;
       },
@@ -154,6 +160,13 @@ export class CompanyInfoSectionComponent implements OnInit, OnDestroy {
   }
 
   // ── Private ──────────────────────────────────────────────────────────────────
+
+  private applyLogoRead(changesAtStart: number, blob: Blob | null): void {
+    // Wynik (także błąd) starszy niż potwierdzony upload/usunięcie przywróciłby nieaktualny stan logo
+    if (changesAtStart === this.confirmedLogoChanges) {
+      this.applyLogoBlob(blob);
+    }
+  }
 
   private applyLogoBlob(blob: Blob | null): void {
     if (this.companyLogoUrl?.startsWith('blob:')) {
