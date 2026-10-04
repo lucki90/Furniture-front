@@ -46,6 +46,10 @@ export class ProjectHistoryPanelComponent implements OnChanges {
   @Input() projectVersion: number | null = null;
 
   @Output() closeRequested = new EventEmitter<void>();
+  /** Otwarcie wersji w edytorze (zapis przywróci ją jako bieżącą). */
+  @Output() openVersion = new EventEmitter<number>();
+  /** Kopia wersji jako nowy projekt. */
+  @Output() cloneVersion = new EventEmitter<number>();
 
   readonly events = signal<FormattedProjectEvent[]>([]);
   readonly loading = signal(false);

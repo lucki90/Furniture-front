@@ -54,6 +54,28 @@ describe('ProjectHistoryPanelComponent', () => {
     expect(text).toContain('Szkic → Oferta wysłana');
   });
 
+  it('wersje: „Otwórz w edytorze” tylko dla starszej wersji, kopia dla każdej wersji', () => {
+    history.getHistory.and.returnValue(of([
+      { ...events[0], id: 3, version: 2 },
+      { ...events[0], id: 1, type: 'CREATED', version: 1, summary: { wallsAfter: 1, cabinetsAfter: 1 } }
+    ]));
+    const opened: number[] = [];
+    const cloned: number[] = [];
+    component.openVersion.subscribe(version => opened.push(version));
+    component.cloneVersion.subscribe(version => cloned.push(version));
+
+    open(6, 2);
+    const openButtons = fixture.nativeElement.querySelectorAll('.history-open-btn');
+    const cloneButtons = fixture.nativeElement.querySelectorAll('.history-clone-btn');
+    openButtons[0].click();
+    cloneButtons[0].click();
+
+    expect(openButtons.length).toBe(1);
+    expect(cloneButtons.length).toBe(2);
+    expect(opened).toEqual([1]);
+    expect(cloned).toEqual([2]);
+  });
+
   it('zamknięty panel i projekt bez id nie wczytują historii', () => {
     fixture.componentRef.setInput('projectId', 6);
     fixture.detectChanges();

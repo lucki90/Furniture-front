@@ -30,6 +30,7 @@ import { KitchenCostsSectionComponent } from './costs-section/kitchen-costs-sect
 import { KitchenPageFooterComponent } from './page-footer/kitchen-page-footer.component';
 import { KitchenProjectsDrawerComponent } from './projects-drawer/kitchen-projects-drawer.component';
 import { ProjectHistoryPanelComponent } from './project-history/project-history-panel.component';
+import { KitchenProjectVersionsFacade } from './service/kitchen-project-versions.facade';
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
 import { buildCalculationViewState } from './kitchen-page-view-state';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
@@ -103,6 +104,7 @@ export class KitchenPageComponent {
   private destroyRef = inject(DestroyRef);
   private projectTransitionGuard = inject(KitchenProjectTransitionGuardService);
   private requestsFacade = inject(KitchenProjectRequestsFacade);
+  private versionsFacade = inject(KitchenProjectVersionsFacade);
 
   readonly projectTransitionInProgress = this.projectTransitionGuard.isTransitioning;
 
@@ -455,6 +457,53 @@ export class KitchenPageComponent {
 
   toggleHistory(): void {
     this.isHistoryOpen.update(v => !v);
+  }
+
+  readonly restoringFromVersion = this.stateService.restoringFromVersion;
+
+  /** Otwiera wersję z historii w edytorze; zapis przywróci ją jako bieżącą. */
+  openHistoryVersion(version: number): void {
+    const projectId = this.currentProjectId();
+    if (projectId === null) return;
+    this.projectTransitionGuard.confirmUnsavedAndProceed(`otwórz wersję ${version}`, {
+      onProceed: () => this.versionsFacade.openVersion(projectId, version).subscribe({
+        next: () => {
+          this.clearLocalWorkspaceViewState();
+          this.isHistoryOpen.set(false);
+          this.toast.success(`Otwarto wersję ${version} — zapisz projekt, aby przywrócić ją jako bieżącą`);
+        },
+        error: err => this.errorHandler.handle(err)
+      }),
+      onSavingChange: isSaving => this.isSavingProject.set(isSaving)
+    });
+  }
+
+  /** Tworzy nowy projekt z wersji z historii i go otwiera. */
+  cloneHistoryVersion(version: number): void {
+    const projectId = this.currentProjectId();
+    if (projectId === null) return;
+    this.projectTransitionGuard.confirmUnsavedAndProceed(`utwórz kopię wersji ${version}`, {
+      onProceed: () => this.versionsFacade.cloneVersion(projectId, version).subscribe({
+        next: clone => {
+          this.clearLocalWorkspaceViewState();
+          this.isHistoryOpen.set(false);
+          this.router.navigate(['/kitchen'], { queryParams: { projectId: clone.id } });
+          this.toast.success(`Utworzono projekt „${clone.name}” z wersji ${version}`);
+        },
+        error: err => this.errorHandler.handle(err)
+      }),
+      onSavingChange: isSaving => this.isSavingProject.set(isSaving)
+    });
+  }
+
+  /** Porzuca otwartą wersję i wczytuje bieżący zapis projektu. */
+  returnToCurrentVersion(): void {
+    const projectId = this.currentProjectId();
+    if (projectId === null) return;
+    this.versionsFacade.returnToCurrent(projectId).subscribe({
+      next: () => this.clearLocalWorkspaceViewState(),
+      error: err => this.errorHandler.handle(err)
+    });
   }
 
   closeProjectsDrawer(): void {

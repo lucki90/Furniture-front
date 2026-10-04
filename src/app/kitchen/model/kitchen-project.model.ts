@@ -390,6 +390,8 @@ export interface UpdateKitchenProjectRequest {
   // Pozwalamy na jawny null, żeby PUT mógł wyczyścić wcześniej zapisane wymiary pomieszczenia.
   roomWidthMm?: number | null;
   roomDepthMm?: number | null;
+  /** Wersja z historii, z której otwarto zapisywaną treść (przywrócenie); trafia tylko do historii projektu. */
+  restoredFromVersion?: number | null;
 }
 
 /**

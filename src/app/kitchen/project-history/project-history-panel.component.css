@@ -154,3 +154,10 @@
 .history-item__lines li + li {
   margin-top: 2px;
 }
+
+.history-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}

@@ -35,6 +35,7 @@ describe('KitchenProjectRequestsFacade', () => {
   let roomWidthSig: WritableSignal<number | null>;
   let roomDepthSig: WritableSignal<number | null>;
   let grainSig: WritableSignal<GrainDirections>;
+  let restoringSig: WritableSignal<number | null>;
   let projectNameSig: WritableSignal<string | null>;
   let plinthHeightSig: WritableSignal<number>;
   let countertopThicknessSig: WritableSignal<number>;
@@ -48,6 +49,7 @@ describe('KitchenProjectRequestsFacade', () => {
     roomDepthSig = signal<number | null>(null);
     grainSig = signal<GrainDirections>(NO_GRAIN_OVERRIDE);
     projectNameSig = signal<string | null>('Moja kuchnia');
+    restoringSig = signal<number | null>(null);
     plinthHeightSig = signal(100);
     countertopThicknessSig = signal(38);
     upperFillerHeightSig = signal(100);
@@ -85,7 +87,8 @@ describe('KitchenProjectRequestsFacade', () => {
             currentProjectName: projectNameSig.asReadonly(),
             currentProjectRoomWidthMm: roomWidthSig.asReadonly(),
             currentProjectRoomDepthMm: roomDepthSig.asReadonly(),
-            currentProjectGrainDirections: grainSig.asReadonly()
+            currentProjectGrainDirections: grainSig.asReadonly(),
+            restoringFromVersion: restoringSig.asReadonly()
           }
         }
       ]
@@ -218,6 +221,14 @@ describe('KitchenProjectRequestsFacade', () => {
   });
 
   describe('buildUpdateProjectRequest', () => {
+    it('przywrócenie wersji z historii trafia do requestu; zwykły zapis bez wersji źródłowej', () => {
+      expect(facade.buildUpdateProjectRequest('Kuchnia').restoredFromVersion).toBeNull();
+
+      restoringSig.set(2);
+
+      expect(facade.buildUpdateProjectRequest('Kuchnia').restoredFromVersion).toBe(2);
+    });
+
     it('używa podanej nazwy', () => {
       const request = facade.buildUpdateProjectRequest('Zmieniona nazwa');
 

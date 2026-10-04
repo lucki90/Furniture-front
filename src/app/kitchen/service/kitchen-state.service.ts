@@ -57,6 +57,7 @@ export class KitchenStateService {
   readonly currentProjectClientPhone = this.metadataService.currentProjectClientPhone;
   readonly currentProjectClientEmail = this.metadataService.currentProjectClientEmail;
   readonly currentProjectVersion = this.metadataService.currentProjectVersion;
+  readonly restoringFromVersion = this.metadataService.restoringFromVersion;
   readonly currentProjectStatus = this.metadataService.currentProjectStatus;
   readonly currentProjectAllowedTransitions = this.metadataService.currentProjectAllowedTransitions;
   readonly currentProjectRoomWidthMm = this.metadataService.currentProjectRoomWidthMm;
@@ -314,6 +315,18 @@ export class KitchenStateService {
       project.upperFillerHeightMm ?? 100
     );
     this.markProjectAsClean();
+  }
+
+  /**
+   * Otwiera wersję projektu z historii jako niezapisaną treść bieżącego projektu: zapis nadpisze bieżący projekt
+   * i zgłosi przywrócenie tej wersji.
+   */
+  openProjectVersion(versionProject: KitchenProjectDetailResponse): void {
+    const liveVersion = this.metadataService.currentProjectVersion();
+    this.loadProject(versionProject);
+    this.metadataService.startRestoringVersion(versionProject.version, liveVersion);
+    // Treść wersji różni się od zapisanego projektu, więc wymaga zapisu.
+    this._cleanWorkspaceSignature.set('');
   }
 
   setProjectInfo(

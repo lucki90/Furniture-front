@@ -108,10 +108,14 @@ export class KitchenService {
    * Klonuje projekt — tworzy nowy DRAFT z kopią ścian i szafek.
    * Opcjonalna nazwa: gdy pusta, backend stosuje prefiks "Kopia — ".
    */
-  cloneProject(projectId: number, name?: string): Observable<KitchenProjectDetailResponse> {
+  /** Klon projektu; {@code fromVersion} — klon wersji z historii zamiast bieżącego stanu. */
+  cloneProject(projectId: number, name?: string, fromVersion?: number): Observable<KitchenProjectDetailResponse> {
     return this.http.post<KitchenProjectDetailResponse>(
       `${this.projectsUrl}/${projectId}/clone`,
-      name ? { name } : {}
+      {
+        ...(name ? { name } : {}),
+        ...(fromVersion != null ? { fromVersion } : {})
+      }
     );
   }
 

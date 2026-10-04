@@ -296,6 +296,25 @@ describe('KitchenStateService', () => {
     expect(service.hasUnsavedChanges()).toBeFalse();
   });
 
+  it('otwarcie wersji z historii: bieżący numer wersji do zapisu, wersja źródłowa i niezapisane zmiany', () => {
+    const base = {
+      id: 21, name: 'Kuchnia', status: 'DRAFT', version: 3, totalCost: 0, totalBoardsCost: 0,
+      totalComponentsCost: 0, totalJobsCost: 0, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
+      walls: [{ id: 1, wallType: 'MAIN', widthMm: 3600, heightMm: 2600, wallCost: 0, cabinetCount: 0,
+        usedWidthMm: 0, remainingWidthMm: 3600, cabinets: [] }]
+    } as unknown as KitchenProjectDetailResponse;
+    service.loadProject(base);
+
+    service.openProjectVersion({ ...base, version: 1 } as KitchenProjectDetailResponse);
+
+    expect(service.currentProjectVersion()).toBe(3);
+    expect(service.restoringFromVersion()).toBe(1);
+    expect(service.hasUnsavedChanges()).toBeTrue();
+
+    service.loadProject(base);
+    expect(service.restoringFromVersion()).toBeNull();
+  });
+
   it('should load project grain override, undo it and treat it as a persisted change', () => {
     const project = {
       id: 22,

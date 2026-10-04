@@ -87,7 +87,8 @@ export class KitchenProjectRequestsFacade {
       // mógł wyczyścić wcześniej zapisane wymiary pomieszczenia.
       roomWidthMm: this.metadataService.currentProjectRoomWidthMm(),
       roomDepthMm: this.metadataService.currentProjectRoomDepthMm(),
-      grainDirections: this.metadataService.currentProjectGrainDirections()
+      grainDirections: this.metadataService.currentProjectGrainDirections(),
+      restoredFromVersion: this.metadataService.restoringFromVersion()
     };
   }
 }

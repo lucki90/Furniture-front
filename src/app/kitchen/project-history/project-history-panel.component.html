@@ -32,6 +32,16 @@
           <ul class="history-item__lines">
             <li *ngFor="let line of event.lines; trackBy: trackByIndex">{{ line }}</li>
           </ul>
+          <div *ngIf="event.restorable" class="history-item__actions">
+            <button (click)="openVersion.emit(event.version)" *ngIf="event.version !== projectVersion"
+                    class="btn btn-outline btn-sm history-open-btn" type="button">
+              Otwórz w edytorze
+            </button>
+            <button (click)="cloneVersion.emit(event.version)" class="btn btn-outline btn-sm history-clone-btn"
+                    type="button">
+              Kopia jako nowy projekt
+            </button>
+          </div>
         </li>
       </ol>
     </div>

@@ -31,6 +31,7 @@ export class ProjectMetadataService {
   private _currentProjectRoomWidthMm = signal<number | null>(null);
   private _currentProjectRoomDepthMm = signal<number | null>(null);
   private _currentProjectGrainDirections = signal<GrainDirections>(NO_GRAIN_OVERRIDE);
+  private _restoringFromVersion = signal<number | null>(null);
 
   // ============ PUBLIC READONLY SIGNALS ============
 
@@ -46,6 +47,8 @@ export class ProjectMetadataService {
   readonly currentProjectRoomWidthMm = this._currentProjectRoomWidthMm.asReadonly();
   readonly currentProjectRoomDepthMm = this._currentProjectRoomDepthMm.asReadonly();
   readonly currentProjectGrainDirections = this._currentProjectGrainDirections.asReadonly();
+  /** Wersja z historii otwarta w edytorze; zapis przywróci ją jako bieżącą. */
+  readonly restoringFromVersion = this._restoringFromVersion.asReadonly();
 
   // ============ METHODS ============
 
@@ -72,6 +75,7 @@ export class ProjectMetadataService {
     this._currentProjectClientPhone.set(clientPhone ?? null);
     this._currentProjectClientEmail.set(clientEmail ?? null);
     this._currentProjectVersion.set(version);
+    this._restoringFromVersion.set(null);
     if (status) this._currentProjectStatus.set(status);
     if (allowedTransitions) this._currentProjectAllowedTransitions.set(allowedTransitions);
     if (roomWidthMm !== undefined) {
@@ -106,12 +110,22 @@ export class ProjectMetadataService {
     this._currentProjectClientPhone.set(project.clientPhone ?? null);
     this._currentProjectClientEmail.set(project.clientEmail ?? null);
     this._currentProjectVersion.set(project.version);
+    this._restoringFromVersion.set(null);
     this._currentProjectStatus.set(project.status);
     this._currentProjectAllowedTransitions.set(project.allowedTransitions ?? []);
     this._currentProjectRoomWidthMm.set(project.roomWidthMm ?? null);
     this._currentProjectRoomDepthMm.set(project.roomDepthMm ?? null);
     // Projekt sprzed pola nie ma nadpisania — obowiązują ustawienia użytkownika.
     this._currentProjectGrainDirections.set({ ...NO_GRAIN_OVERRIDE, ...project.grainDirections });
+  }
+
+  /**
+   * Treść otwarta ze starszej wersji: wersja projektu wraca do bieżącej (zapis nadpisze bieżący projekt), a zapis
+   * zgłosi przywrócenie wersji {@code version}.
+   */
+  startRestoringVersion(version: number, liveVersion: number): void {
+    this._currentProjectVersion.set(liveVersion);
+    this._restoringFromVersion.set(version);
   }
 
   updateRoomDimensions(roomWidthMm?: number | null, roomDepthMm?: number | null): void {
@@ -135,6 +149,7 @@ export class ProjectMetadataService {
     this._currentProjectClientPhone.set(null);
     this._currentProjectClientEmail.set(null);
     this._currentProjectVersion.set(0);
+    this._restoringFromVersion.set(null);
     this._currentProjectStatus.set('DRAFT');
     this._currentProjectAllowedTransitions.set([]);
     this._currentProjectRoomWidthMm.set(null);

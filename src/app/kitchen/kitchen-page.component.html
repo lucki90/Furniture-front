@@ -31,6 +31,12 @@
     [view]="view()">
   </app-kitchen-page-header>
 
+  <div *ngIf="restoringFromVersion() as version" class="restore-banner" role="status">
+    <span>Otwarta jest wersja {{ version }} projektu. Zapisz projekt, aby przywrócić ją jako bieżącą.</span>
+    <button (click)="onSaveProject()" class="btn btn-primary btn-sm" type="button">Zapisz</button>
+    <button (click)="returnToCurrentVersion()" class="btn btn-outline btn-sm" type="button">Wróć do bieżącej</button>
+  </div>
+
   <div class="kitchen-page-body">
 
     <!-- ============ TRYB: KONFIGURATOR (workspace + lista szafek) ============ -->
@@ -172,6 +178,8 @@
 
   <app-project-history-panel
     (closeRequested)="isHistoryOpen.set(false)"
+    (cloneVersion)="cloneHistoryVersion($event)"
+    (openVersion)="openHistoryVersion($event)"
     [open]="isHistoryOpen() && !!currentProjectId()"
     [projectId]="currentProjectId()"
     [projectVersion]="currentProjectVersion()">
