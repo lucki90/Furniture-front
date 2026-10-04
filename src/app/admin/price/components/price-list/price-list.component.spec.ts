@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of, throwError } from 'rxjs';
+import { Observable, Subject, of, throwError } from 'rxjs';
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { MatDialog } from '@angular/material/dialog';
 import { PriceListComponent } from './price-list.component';
@@ -103,6 +103,161 @@ describe('PriceListComponent', () => {
     component.prices.set([active, active, inactive]);
     expect(component.activeVisibleCount()).toBe(2);
     expect(component.inactiveVisibleCount()).toBe(1);
+  });
+});
+
+describe('PriceListComponent - kolejność odpowiedzi odczytu listy', () => {
+  let fixture: ComponentFixture<PriceListComponent>;
+  let component: PriceListComponent;
+  let priceService: jasmine.SpyObj<PriceAdminService>;
+  let toast: jasmine.SpyObj<ToastService>;
+  let requests: Subject<Page<PriceEntryAdminResponse>>[];
+
+  function priceEntry(id: number, name: string): PriceEntryAdminResponse {
+    return { id, name, unit: 'szt', currentPrice: 10, currency: 'PLN', sourceUrl: null, isActive: true } as PriceEntryAdminResponse;
+  }
+
+  function pageOf(names: string[], totalElements: number): Page<PriceEntryAdminResponse> {
+    return {
+      ...EMPTY_PAGE,
+      content: names.map((name, index) => priceEntry(index + 1, name)),
+      totalElements,
+      empty: names.length === 0
+    };
+  }
+
+  function setup(): void {
+    requests = [];
+    priceService = jasmine.createSpyObj<PriceAdminService>('PriceAdminService', ['getAll']);
+    priceService.getAll.and.callFake((): Observable<Page<PriceEntryAdminResponse>> => {
+      const request = new Subject<Page<PriceEntryAdminResponse>>();
+      requests.push(request);
+      return request;
+    });
+    toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']);
+
+    TestBed.configureTestingModule({
+      imports: [PriceListComponent, NoopAnimationsModule],
+      providers: [
+        { provide: PriceAdminService, useValue: priceService },
+        { provide: ToastService, useValue: toast },
+        {
+          provide: ConfirmDialogService,
+          useValue: jasmine.createSpyObj<ConfirmDialogService>('ConfirmDialogService', ['confirm'])
+        },
+        { provide: MatDialog, useValue: jasmine.createSpyObj<MatDialog>('MatDialog', ['open']) }
+      ]
+    });
+
+    fixture = TestBed.createComponent(PriceListComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  const host = () => fixture.nativeElement as HTMLElement;
+  const spinner = () => host().querySelector('mat-spinner');
+  const rowNames = () => Array.from(host().querySelectorAll('tr.mat-mdc-row')).map(row => row.textContent);
+  const rangeLabel = () => host().querySelector('.mat-mdc-paginator-range-label')?.textContent?.trim();
+
+  function searchFor(name: string): void {
+    component.searchName = name;
+    component.onSearch();
+    fixture.detectChanges();
+  }
+
+  it('spóźniona odpowiedź poprzedniego wyszukiwania nie nadpisuje danych ani licznika', () => {
+    setup();
+    searchFor('Latest');
+    expect(requests.length).toBe(2);
+
+    requests[1].next(pageOf(['Latest price'], 2));
+    requests[1].complete();
+    requests[0].next(pageOf(['Old price'], 100));
+    fixture.detectChanges();
+
+    expect(component.prices().map(price => price.name)).toEqual(['Latest price']);
+    expect(component.totalElements()).toBe(2);
+    expect(rowNames().length).toBe(1);
+    expect(rowNames()[0]).toContain('Latest price');
+    expect(host().textContent).not.toContain('Old price');
+    expect(rangeLabel()).toContain('2');
+    expect(rangeLabel()).not.toContain('100');
+    expect(component.loading()).toBeFalse();
+    expect(spinner()).toBeNull();
+  });
+
+  it('spóźniony błąd poprzedniego odczytu nie kończy loading ani nie pokazuje toastu', () => {
+    setup();
+    searchFor('Latest');
+
+    requests[0].error(new Error('stary błąd'));
+    fixture.detectChanges();
+
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(component.loading()).toBeTrue();
+    expect(spinner()).not.toBeNull();
+
+    requests[1].next(pageOf(['Latest price'], 2));
+    requests[1].complete();
+    fixture.detectChanges();
+
+    expect(component.prices().map(price => price.name)).toEqual(['Latest price']);
+    expect(component.totalElements()).toBe(2);
+    expect(component.loading()).toBeFalse();
+    expect(spinner()).toBeNull();
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('błąd bieżącego odczytu daje jeden toast, kończy loading, a kolejne wyszukanie działa', () => {
+    setup();
+    searchFor('A');
+    requests[1].error(new Error('500'));
+    fixture.detectChanges();
+
+    expect(toast.error).toHaveBeenCalledOnceWith('Błąd podczas ładowania cen');
+    expect(component.loading()).toBeFalse();
+    expect(spinner()).toBeNull();
+
+    searchFor('B');
+    expect(component.loading()).toBeTrue();
+    requests[2].next(pageOf(['B price'], 1));
+    fixture.detectChanges();
+
+    expect(component.prices().map(price => price.name)).toEqual(['B price']);
+    expect(component.totalElements()).toBe(1);
+    expect(component.loading()).toBeFalse();
+    expect(toast.error).toHaveBeenCalledTimes(1);
+  });
+
+  it('zmiana strony, rozmiaru strony, activeOnly i czyszczenie wyszukiwania przekazują aktualne parametry', () => {
+    setup();
+    component.onPageChange({ pageIndex: 2, pageSize: 50, length: 200 });
+    expect(priceService.getAll).toHaveBeenCalledWith(2, 50, undefined, false);
+
+    component.activeOnly = true;
+    component.searchName = 'HDF';
+    component.onSearch();
+    expect(priceService.getAll).toHaveBeenCalledWith(0, 50, 'HDF', true);
+
+    component.onClearSearch();
+    expect(priceService.getAll).toHaveBeenCalledWith(0, 50, undefined, true);
+
+    requests[3].next(pageOf(['Last'], 1));
+    requests[2].next(pageOf(['Stale'], 9));
+    requests[1].next(pageOf(['Stale'], 9));
+    requests[0].next(pageOf(['Stale'], 9));
+    expect(component.prices().map(price => price.name)).toEqual(['Last']);
+    expect(component.totalElements()).toBe(1);
+  });
+
+  it('po zniszczeniu komponentu odpowiedź w toku jest ignorowana', () => {
+    setup();
+    fixture.destroy();
+
+    expect(requests[0].observed).toBeFalse();
+    requests[0].next(pageOf(['Zombie'], 5));
+    expect(component.prices()).toEqual([]);
+    expect(component.totalElements()).toBe(0);
   });
 });
 
