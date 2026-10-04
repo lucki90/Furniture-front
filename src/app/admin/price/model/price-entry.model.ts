@@ -1,3 +1,5 @@
+import { CsvImportResultResponse } from '../../material/model/material-variant.model';
+
 /**
  * Response z danymi pozycji cenowej dla panelu administracyjnego.
  */
@@ -43,20 +45,10 @@ export interface PriceEntryUpdateRequest {
 }
 
 /**
- * Wynik importu cen z pliku CSV/Excel.
+ * Wynik importu CSV (wariantów/cen płyt) zwracany przez POST /admin/prices/import.
+ * Kontrakt jest identyczny z importem CSV wariantów materiałów.
  */
-export interface PriceImportResultResponse {
-  totalRows: number;
-  successfulImports: number;
-  failedImports: number;
-  errors: ImportError[] | null;
-}
-
-export interface ImportError {
-  rowNumber: number;
-  field?: string;
-  message: string;
-}
+export type PriceImportResultResponse = CsvImportResultResponse;
 
 /**
  * Wynik scrapingu pojedynczej ceny.
