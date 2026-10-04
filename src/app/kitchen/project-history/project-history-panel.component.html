@@ -1,0 +1,39 @@
+<div [attr.aria-hidden]="!open" [class.history-shell--open]="open" class="history-shell">
+  <button (click)="requestClose()" aria-label="Zamknij historię projektu" class="history-backdrop" type="button"></button>
+
+  <aside aria-label="Historia projektu" aria-modal="true" class="history-panel" id="project-history-panel" role="dialog">
+    <header class="history-panel__header">
+      <div>
+        <p class="history-panel__eyebrow">Projekt</p>
+        <h2>Historia zmian</h2>
+      </div>
+      <button (click)="requestClose()" aria-label="Zamknij" class="history-close-btn" type="button">&times;</button>
+    </header>
+
+    <div class="history-panel__body">
+      <p *ngIf="loading()" class="history-state">Wczytywanie historii…</p>
+      <div *ngIf="error() as message" class="history-state history-state--error">
+        {{ message }}
+        <button (click)="reload()" class="btn btn-outline btn-sm" type="button">Spróbuj ponownie</button>
+      </div>
+      <p *ngIf="!loading() && !error() && events().length === 0" class="history-state">
+        Brak zdarzeń — historia zbiera się od zapisu projektu.
+      </p>
+
+      <ol *ngIf="!loading() && events().length > 0" class="history-list">
+        <li *ngFor="let event of events(); trackBy: trackById" class="history-item">
+          <div class="history-item__head">
+            <span class="history-item__title">{{ event.title }}</span>
+            <span *ngIf="event.restorable" class="history-item__version">wersja {{ event.version }}</span>
+          </div>
+          <div class="history-item__meta">
+            {{ event.when }}<ng-container *ngIf="event.actor"> · {{ event.actor }}</ng-container>
+          </div>
+          <ul class="history-item__lines">
+            <li *ngFor="let line of event.lines; trackBy: trackByIndex">{{ line }}</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+  </aside>
+</div>

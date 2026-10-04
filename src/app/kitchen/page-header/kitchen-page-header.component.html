@@ -84,6 +84,18 @@
         Projekty
       </button>
       <button
+        (click)="toggleHistory.emit()"
+        *ngIf="hasProjectId"
+        [attr.aria-expanded]="isHistoryOpen"
+        [class.projects-toggle-btn--active]="isHistoryOpen"
+        aria-controls="project-history-panel"
+        class="btn btn-outline history-toggle-btn"
+        title="Historia zmian projektu"
+        type="button">
+        <mat-icon aria-hidden="true" class="btn-icon-text">history</mat-icon>
+        Historia
+      </button>
+      <button
         (click)="undoAction.emit()"
         [disabled]="!canUndo"
         aria-label="Cofnij"

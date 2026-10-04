@@ -29,6 +29,7 @@ import { KitchenWorkspaceSectionComponent } from './workspace-section/kitchen-wo
 import { KitchenCostsSectionComponent } from './costs-section/kitchen-costs-section.component';
 import { KitchenPageFooterComponent } from './page-footer/kitchen-page-footer.component';
 import { KitchenProjectsDrawerComponent } from './projects-drawer/kitchen-projects-drawer.component';
+import { ProjectHistoryPanelComponent } from './project-history/project-history-panel.component';
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
 import { buildCalculationViewState } from './kitchen-page-view-state';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
@@ -78,7 +79,8 @@ const MATERIAL_NAMES_PL: Record<string, string> = {
     KitchenWorkspaceSectionComponent,
     KitchenCostsSectionComponent,
     KitchenPageFooterComponent,
-    KitchenProjectsDrawerComponent
+    KitchenProjectsDrawerComponent,
+    ProjectHistoryPanelComponent
   ],
   providers: [KitchenPagePricingService, CuttingLayoutService]
 })
@@ -126,6 +128,7 @@ export class KitchenPageComponent {
     this.stateService.totalCabinetCount() > 0
   ));
   readonly isProjectsDrawerOpen = signal(false);
+  readonly isHistoryOpen = signal(false);
   readonly openingProjectFromDrawerId = signal<number | null>(null);
 
   // Active tab in project details panel
@@ -448,6 +451,10 @@ export class KitchenPageComponent {
 
   toggleProjectsDrawer(): void {
     this.isProjectsDrawerOpen.update(v => !v);
+  }
+
+  toggleHistory(): void {
+    this.isHistoryOpen.update(v => !v);
   }
 
   closeProjectsDrawer(): void {

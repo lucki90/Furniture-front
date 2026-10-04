@@ -36,11 +36,13 @@ export class KitchenPageHeaderComponent {
   @Input() hasCalculationResult = false;
   @Input() isEditingCabinet = false;
   @Input() isProjectsDrawerOpen = false;
+  @Input() isHistoryOpen = false;
 
   @Output() saveProject = new EventEmitter<void>();
   @Output() calculateProject = new EventEmitter<void>();
   @Output() clearAll = new EventEmitter<void>();
   @Output() toggleProjectsDrawer = new EventEmitter<void>();
+  @Output() toggleHistory = new EventEmitter<void>();
   @Output() statusChange = new EventEmitter<ProjectStatus>();
   @Output() undoAction = new EventEmitter<void>();
   @Output() redoAction = new EventEmitter<void>();

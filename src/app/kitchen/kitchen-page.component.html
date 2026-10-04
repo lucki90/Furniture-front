@@ -7,6 +7,7 @@
     (saveProject)="onSaveProject()"
     (statusChange)="onStatusChange($event)"
     (toggleProjectsDrawer)="toggleProjectsDrawer()"
+    (toggleHistory)="toggleHistory()"
     (undoAction)="undo()"
     (viewChange)="setView($event)"
     [allowedTransitions]="currentProjectTransitionOptions"
@@ -18,6 +19,7 @@
     [isChangingStatus]="isChangingStatus()"
     [isEditingCabinet]="editingCabinetId() !== null"
     [isProjectsDrawerOpen]="isProjectsDrawerOpen()"
+    [isHistoryOpen]="isHistoryOpen()"
     [isSavingProject]="isSavingProject() || projectTransitionInProgress()"
     [projectDisplayName]="currentProjectName() || 'Nowy projekt kuchni'"
     [projectId]="currentProjectId()"
@@ -167,4 +169,11 @@
     [open]="isProjectsDrawerOpen()"
     [openingProjectId]="openingProjectFromDrawerId()">
   </app-kitchen-projects-drawer>
+
+  <app-project-history-panel
+    (closeRequested)="isHistoryOpen.set(false)"
+    [open]="isHistoryOpen() && !!currentProjectId()"
+    [projectId]="currentProjectId()"
+    [projectVersion]="currentProjectVersion()">
+  </app-project-history-panel>
 </div>

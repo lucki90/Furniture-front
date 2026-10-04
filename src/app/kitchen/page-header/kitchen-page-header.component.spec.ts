@@ -89,6 +89,19 @@ describe('KitchenPageHeaderComponent', () => {
     expect(component.clearAll.emit).toHaveBeenCalled();
   });
 
+  it('przycisk historii tylko dla zapisanego projektu i przełącza panel historii', () => {
+    spyOn(component.toggleHistory, 'emit');
+    fixture.componentRef.setInput('hasProjectId', false);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.history-toggle-btn')).toBeNull();
+
+    fixture.componentRef.setInput('hasProjectId', true);
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('.history-toggle-btn').click();
+
+    expect(component.toggleHistory.emit).toHaveBeenCalled();
+  });
+
   it('emits projects drawer toggle from header button', () => {
     spyOn(component.toggleProjectsDrawer, 'emit');
 
