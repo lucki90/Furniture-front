@@ -120,6 +120,7 @@ export class ProjectSettingsService {
    * Zapisuje globalne defaults z user_settings DB i natychmiast je stosuje na sygnałach.
    * Wywoływać TYLKO raz przy starcie aplikacji (app.component.ts ngOnInit).
    * Dzięki temu resetToGlobalDefaults() i addWall() mogą dziedziczyć wartości z bazy.
+   * `applyProjectValues: false` zostawia na sygnałach wartości zapisywane w projekcie (cokół, blat, blenda górna).
    */
   setGlobalDefaults(settings: {
     plinthHeightMm: number;
@@ -130,7 +131,7 @@ export class ProjectSettingsService {
     fillerWidthMm?: number;
     frontGapMm?: number;
     supportHeightReductionMm?: number;
-  }): void {
+  }, options: { applyProjectValues: boolean } = { applyProjectValues: true }): void {
     // Zapamiętaj jako globalne defaults
     this._globalDefaultPlinthHeightMm = settings.plinthHeightMm;
     this._globalDefaultCountertopThicknessMm = settings.countertopThicknessMm;
@@ -142,7 +143,8 @@ export class ProjectSettingsService {
     if (settings.supportHeightReductionMm !== undefined) this._globalDefaultSupportHeightReductionMm = settings.supportHeightReductionMm;
 
     // Zastosuj od razu do live signals
-    this.updateProjectSettings(settings);
+    const { plinthHeightMm, countertopThicknessMm, upperFillerHeightMm, ...enclosureSettings } = settings;
+    this.updateProjectSettings(options.applyProjectValues ? settings : enclosureSettings);
   }
 
   /**

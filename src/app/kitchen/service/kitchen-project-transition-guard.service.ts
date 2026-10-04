@@ -20,6 +20,15 @@ export interface KitchenProjectTransitionHooks {
   onProceed: () => void;
   onSavingChange?: (isSaving: boolean) => void;
   onSaveDialogCanceled?: () => void;
+  /** Przejście nie zostało wykonane: trwa inne przejście, użytkownik anulował albo zapis się nie powiódł. */
+  onAbort?: () => void;
+}
+
+interface SaveProjectDialogOptions {
+  onSuccess?: () => void;
+  onSavingChange?: (isSaving: boolean) => void;
+  onCancel?: () => void;
+  onError?: () => void;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -39,6 +48,7 @@ export class KitchenProjectTransitionGuardService {
 
   confirmUnsavedAndProceed(targetLabel: string, hooks: KitchenProjectTransitionHooks): void {
     if (!this.acquireTransitionLock()) {
+      hooks.onAbort?.();
       return;
     }
 
@@ -66,20 +76,19 @@ export class KitchenProjectTransitionGuardService {
           onCancel: () => {
             hooks.onSaveDialogCanceled?.();
             this.toast.info('Anulowano zapis - projekt nie został przełączony.');
-          }
+            hooks.onAbort?.();
+          },
+          onError: hooks.onAbort
         });
         return;
       }
 
       this.releaseTransitionLock();
+      hooks.onAbort?.();
     });
   }
 
-  openSaveProjectDialogAndPersist(options?: {
-    onSuccess?: () => void;
-    onSavingChange?: (isSaving: boolean) => void;
-    onCancel?: () => void;
-  }): void {
+  openSaveProjectDialogAndPersist(options?: SaveProjectDialogOptions): void {
     if (!this.acquireTransitionLock()) {
       return;
     }
@@ -87,11 +96,7 @@ export class KitchenProjectTransitionGuardService {
     this.openSaveProjectDialogAndPersistInternal(options);
   }
 
-  private openSaveProjectDialogAndPersistInternal(options?: {
-    onSuccess?: () => void;
-    onSavingChange?: (isSaving: boolean) => void;
-    onCancel?: () => void;
-  }): void {
+  private openSaveProjectDialogAndPersistInternal(options?: SaveProjectDialogOptions): void {
     const isUpdate = this.stateService.currentProjectId() !== null;
 
     const dialogRef = this.dialog.open(SaveProjectDialogComponent, {
@@ -165,10 +170,11 @@ export class KitchenProjectTransitionGuardService {
           console.error('Error saving project:', err);
           finishSaving();
           if (this.conflictService.isVersionConflict(err)) {
-            this.conflictService.handle(() => this.openSaveProjectDialogAndPersist(options));
+            this.conflictService.handle(() => this.openSaveProjectDialogAndPersist(options), options?.onError);
             return;
           }
           this.errorHandler.handle(err, createKitchenValidationErrorOptions(this.stateService.walls()));
+          options?.onError?.();
         }
       });
     });

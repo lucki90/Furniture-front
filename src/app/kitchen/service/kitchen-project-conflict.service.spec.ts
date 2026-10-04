@@ -73,6 +73,21 @@ describe('KitchenProjectConflictService', () => {
     expect(draftService.discardCurrent).toHaveBeenCalled();
   });
 
+  it('porzucenie zapisu (anulowanie, wczytanie najnowszej) zgłasza onAbandon; zapis jako nowy — nie', () => {
+    const onAbandon = jasmine.createSpy('onAbandon');
+    versions.returnToCurrent.and.returnValue(of({} as KitchenProjectDetailResponse));
+
+    choose(null);
+    service.handle(jasmine.createSpy('saveAsNew'), onAbandon);
+    choose('LOAD_LATEST');
+    service.handle(jasmine.createSpy('saveAsNew'), onAbandon);
+    expect(onAbandon).toHaveBeenCalledTimes(2);
+
+    choose('SAVE_AS_NEW');
+    service.handle(jasmine.createSpy('saveAsNew'), onAbandon);
+    expect(onAbandon).toHaveBeenCalledTimes(2);
+  });
+
   it('zamknięcie okna zostawia zmiany w edytorze', () => {
     choose(null);
     const saveAsNew = jasmine.createSpy('saveAsNew');

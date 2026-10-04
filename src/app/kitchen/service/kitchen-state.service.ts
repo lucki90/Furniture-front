@@ -220,8 +220,19 @@ export class KitchenStateService {
     this.settingsService.updateProjectSettings(settings);
   }
 
+  /**
+   * Globalne domyślne z ustawień użytkownika. Wartości zapisywane w projekcie (cokół, blat, blenda górna) trafiają do
+   * edytora tylko przy nowym projekcie — otwarty zapisany projekt zachowuje własne, także gdy ustawienia przyjdą po
+   * wczytaniu projektu z adresu strony. Nowy projekt bez zmian użytkownika nie dostaje przez nie niezapisanych zmian.
+   */
   setGlobalDefaults(settings: Parameters<ProjectSettingsService['setGlobalDefaults']>[0]): void {
-    this.settingsService.setGlobalDefaults(settings);
+    const wasClean = !this.hasUnsavedChanges();
+    this.settingsService.setGlobalDefaults(settings, {
+      applyProjectValues: this.metadataService.currentProjectId() === null
+    });
+    if (wasClean) {
+      this.markProjectAsClean();
+    }
   }
 
   getGlobalDefaultPlinthHeightMm(): number {

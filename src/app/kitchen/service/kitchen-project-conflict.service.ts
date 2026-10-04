@@ -35,8 +35,10 @@ export class KitchenProjectConflictService {
 
   /**
    * @param saveAsNew otwiera zapis jako nowy projekt — wywoływany po odłączeniu treści od zapisanego projektu
+   * @param onAbandon zapis nie dojdzie do skutku (anulowanie albo wczytanie najnowszej wersji) — np. przejście do
+   *                  innego projektu zostaje porzucone
    */
-  handle(saveAsNew: () => void): void {
+  handle(saveAsNew: () => void, onAbandon?: () => void): void {
     this.dialog.open(ProjectVersionConflictDialogComponent, { width: DIALOG_WIDTH.STANDARD })
       .afterClosed()
       .subscribe((choice: ProjectVersionConflictChoice | null | undefined) => {
@@ -45,9 +47,12 @@ export class KitchenProjectConflictService {
           this.draftService.discardCurrent();
           this.stateService.detachFromSavedProject();
           saveAsNew();
-        } else if (choice === 'LOAD_LATEST') {
+          return;
+        }
+        if (choice === 'LOAD_LATEST') {
           this.loadLatest();
         }
+        onAbandon?.();
       });
   }
 

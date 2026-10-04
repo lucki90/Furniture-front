@@ -1,4 +1,7 @@
-<div class="kitchen-page">
+<div
+  [attr.aria-busy]="isLoadingProjectFromUrl()"
+  [attr.inert]="isLoadingProjectFromUrl() ? '' : null"
+  class="kitchen-page">
   <!-- PAGE HEADER -->
   <app-kitchen-page-header
     (calculateProject)="calculateProject()"
@@ -21,7 +24,7 @@
     [isProjectsDrawerOpen]="isProjectsDrawerOpen()"
     [isHistoryOpen]="isHistoryOpen()"
     [isSavingProject]="isSavingProject() || projectTransitionInProgress()"
-    [projectDisplayName]="currentProjectName() || 'Nowy projekt kuchni'"
+    [projectDisplayName]="projectDisplayName()"
     [projectId]="currentProjectId()"
     [projectStatusColor]="currentProjectStatusColor"
     [projectStatusLabel]="currentProjectStatusLabel"
@@ -187,4 +190,9 @@
     [projectId]="currentProjectId()"
     [projectVersion]="currentProjectVersion()">
   </app-project-history-panel>
+</div>
+
+<!-- Poza blokowaną stroną, żeby czytnik ekranu ogłosił stan wczytywania. -->
+<div *ngIf="isLoadingProjectFromUrl()" class="kitchen-page-loading" role="status">
+  Wczytywanie projektu…
 </div>

@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, effect, DestroyRef, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, HostListener, inject, effect, DestroyRef, ChangeDetectionStrategy, OnInit, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from "@angular/common";
 import { FormsModule } from '@angular/forms';
@@ -39,6 +39,7 @@ import { buildCalculationViewState } from './kitchen-page-view-state';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
 import { KitchenService } from './service/kitchen.service';
 import { KitchenProjectTransitionGuardService } from './service/kitchen-project-transition-guard.service';
+import { KitchenProjectRouteSyncService } from './service/kitchen-project-route-sync.service';
 import { KitchenProjectRequestsFacade } from './service/kitchen-project-requests.facade';
 import { CuttingLayoutService } from './service/cutting-layout.service';
 import { buildCabinetLabels, createKitchenValidationErrorOptions } from './service/kitchen-validation-error-options';
@@ -86,9 +87,9 @@ const MATERIAL_NAMES_PL: Record<string, string> = {
     KitchenProjectsDrawerComponent,
     ProjectHistoryPanelComponent
   ],
-  providers: [KitchenPagePricingService, CuttingLayoutService]
+  providers: [KitchenPagePricingService, CuttingLayoutService, KitchenProjectRouteSyncService]
 })
-export class KitchenPageComponent {
+export class KitchenPageComponent implements OnInit {
 
   private stateService = inject(KitchenStateService);
   protected readonly pricingService = inject(KitchenPagePricingService);
@@ -111,8 +112,11 @@ export class KitchenPageComponent {
   private draftService = inject(KitchenDraftService);
   private cabinetPresetsFacade = inject(KitchenCabinetPresetsFacade);
   private bulkCabinetChangeService = inject(KitchenBulkCabinetChangeService);
+  private projectRouteSync = inject(KitchenProjectRouteSyncService);
 
   readonly projectTransitionInProgress = this.projectTransitionGuard.isTransitioning;
+  /** Projekt wskazany w adresie strony jest wczytywany — edytor jest zablokowany do odpowiedzi. */
+  readonly isLoadingProjectFromUrl = computed(() => this.projectRouteSync.loadingProjectId() !== null);
 
   // Single cabinet calculation result shown in the sidebar detail panel
   readonly result = signal<CabinetResponse | null>(null);
@@ -179,6 +183,12 @@ export class KitchenPageComponent {
     this.draftService.start(this.destroyRef);
   }
 
+  ngOnInit(): void {
+    this.projectRouteSync.connect({
+      onWorkspaceReplaced: () => this.clearLocalWorkspaceViewState()
+    });
+  }
+
   // Sync wall-level config with global signals when selected wall changes
   private syncEffect = effect(() => {
     const wallId = this.selectedWallId();
@@ -210,6 +220,9 @@ export class KitchenPageComponent {
   readonly currentProjectVersion = this.stateService.currentProjectVersion;
   readonly currentProjectStatus = this.stateService.currentProjectStatus;
   readonly currentProjectAllowedTransitions = this.stateService.currentProjectAllowedTransitions;
+  readonly projectDisplayName = computed(() => this.isLoadingProjectFromUrl()
+    ? 'Wczytywanie projektu…'
+    : this.currentProjectName() || 'Nowy projekt kuchni');
 
   // Legacy compatibility
   readonly cabinets = this.stateService.cabinets;
@@ -225,6 +238,7 @@ export class KitchenPageComponent {
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
     if (!event.ctrlKey && !event.metaKey) return;
+    if (this.isLoadingProjectFromUrl()) return;
     const tag = (event.target as HTMLElement)?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
@@ -461,6 +475,7 @@ export class KitchenPageComponent {
     this.workspaceActionsFacade.confirmAndClearAll().subscribe(cleared => {
       if (!cleared) return;
       this.clearLocalWorkspaceViewState();
+      this.projectRouteSync.syncUrlWithOpenProject();
     });
   }
 
@@ -619,6 +634,8 @@ export class KitchenPageComponent {
    */
   onSaveProject(): void {
     this.projectTransitionGuard.openSaveProjectDialogAndPersist({
+      // Zapis nowego projektu nadaje mu identyfikator — adres ma go wskazywać.
+      onSuccess: () => this.projectRouteSync.syncUrlWithOpenProject(),
       onSavingChange: isSaving => {
         this.isSavingProject.set(isSaving);
       }
