@@ -11,10 +11,10 @@
     <div *ngIf="!companyLogoUrl" class="logo-dropzone">
       <span class="logo-dropzone-icon">🖼️</span>
       <span class="logo-dropzone-text">Nie ustawiono logo</span>
-      <label [class.disabled]="logoUploading" class="btn btn-sm logo-upload-btn">
+      <label [class.disabled]="logoBusy" class="btn btn-sm logo-upload-btn">
         <span *ngIf="logoUploading" class="spinner spinner-sm logo-spinner"></span>
         {{ logoUploading ? 'Przesyłanie…' : 'Wybierz plik' }}
-        <input (change)="onLogoSelected($event)" [disabled]="logoUploading"
+        <input (change)="onLogoSelected($event)" [disabled]="logoBusy"
                accept="image/png,image/jpeg"
                class="settings-hidden-file-input"
                type="file"/>
@@ -27,17 +27,17 @@
         <img [src]="companyLogoUrl" alt="Logo firmy" class="logo-img"/>
       </div>
       <div class="logo-filled-actions">
-        <label [class.disabled]="logoUploading" class="btn btn-sm btn-outline">
+        <label [class.disabled]="logoBusy" class="btn btn-sm btn-outline">
           <span *ngIf="logoUploading" class="spinner spinner-sm logo-spinner"></span>
           {{ logoUploading ? 'Przesyłanie…' : 'Zmień' }}
-          <input (change)="onLogoSelected($event)" [disabled]="logoUploading"
+          <input (change)="onLogoSelected($event)" [disabled]="logoBusy"
                  accept="image/png,image/jpeg"
                  class="settings-hidden-file-input"
                  type="file"/>
         </label>
         <button (click)="removeLogo()"
-                [disabled]="logoUploading" class="btn btn-sm btn-outline-danger">
-          Usuń
+                [disabled]="logoBusy" class="btn btn-sm btn-outline-danger">
+          {{ logoDeleting ? 'Usuwanie…' : 'Usuń' }}
         </button>
       </div>
     </div>
