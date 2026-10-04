@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastService } from '../../../../core/error/toast.service';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSlideToggle, MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MaterialAdminService } from '../../service/material-admin.service';
 import { MaterialOption } from '../../model/material-variant.model';
@@ -33,6 +33,7 @@ export class MaterialListComponent implements OnInit {
 
   materials = signal<MaterialOption[]>([]);
   loading = signal(false);
+  togglingMaterialIds = signal<ReadonlySet<number>>(new Set());
 
   private readonly destroyRef = inject(DestroyRef);
 
@@ -81,7 +82,16 @@ export class MaterialListComponent implements OnInit {
       });
   }
 
-  onToggleActive(material: MaterialOption): void {
+  isToggling(materialId: number): boolean {
+    return this.togglingMaterialIds().has(materialId);
+  }
+
+  onToggleActive(material: MaterialOption, toggle?: MatSlideToggle): void {
+    if (this.isToggling(material.id)) {
+      return;
+    }
+
+    this.setToggling(material.id, true);
     this.materialAdminService.toggleMaterialActive(material.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -91,13 +101,32 @@ export class MaterialListComponent implements OnInit {
           );
 
           this.materials.set(nextMaterials);
+          this.setToggling(material.id, false);
+          if (toggle) {
+            toggle.checked = !!updated.active;
+          }
           const status = updated.active ? 'aktywny' : 'nieaktywny';
           this.toast.success(`Materiał "${updated.code}" - ${status}`);
         },
         error: () => {
+          this.setToggling(material.id, false);
+          if (toggle) {
+            // MatSlideToggle flips itself on click; restore the last confirmed state.
+            toggle.checked = !!this.materials().find(item => item.id === material.id)?.active;
+          }
           this.toast.error('Błąd podczas zmiany statusu materiału');
         }
       });
+  }
+
+  private setToggling(materialId: number, toggling: boolean): void {
+    const next = new Set(this.togglingMaterialIds());
+    if (toggling) {
+      next.add(materialId);
+    } else {
+      next.delete(materialId);
+    }
+    this.togglingMaterialIds.set(next);
   }
 
   private pluralize(count: number, singular: string, paucal: string, plural: string): string {
