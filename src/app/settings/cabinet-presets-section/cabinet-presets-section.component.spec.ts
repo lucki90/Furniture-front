@@ -1,7 +1,12 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import { AppLanguage, LanguageService } from '../../service/language.service';
+import { TranslationService } from '../../translation/translation.service';
 import { ApiErrorHandler } from '../../core/error/api-error-handler.service';
 import { ToastService } from '../../core/error/toast.service';
 import { drawersPresetFixture } from '../../kitchen/cabinet-presets/testing/cabinet-preset.fixture';
@@ -69,5 +74,57 @@ describe('CabinetPresetsSectionComponent', () => {
     dialog.open.and.returnValue({ afterClosed: () => of(true) } as never);
     (element.querySelector('.preset-remove-btn') as HTMLButtonElement).click();
     expect(presetService.remove).toHaveBeenCalledWith(40);
+  });
+});
+
+describe('CabinetPresetsSectionComponent z prawdziwym serwisem presetów', () => {
+  const url = `${environment.apiUrl}/kitchen/cabinet-presets`;
+
+  it('lista jest dostępna przy błędzie tłumaczeń, etykieta wbudowanego reaguje na język, katalog pobrany raz', () => {
+    const lang = signal<AppLanguage>('pl');
+    const responses: Subject<Record<string, string>>[] = [];
+    TestBed.configureTestingModule({
+      imports: [CabinetPresetsSectionComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: LanguageService, useValue: { lang } },
+        {
+          provide: TranslationService,
+          useValue: {
+            getByCategories: () => {
+              const response = new Subject<Record<string, string>>();
+              responses.push(response);
+              return response;
+            }
+          }
+        },
+        { provide: MatDialog, useValue: jasmine.createSpyObj<MatDialog>('MatDialog', ['open']) },
+        { provide: ToastService, useValue: jasmine.createSpyObj('ToastService', ['success']) },
+        { provide: ApiErrorHandler, useValue: jasmine.createSpyObj('ApiErrorHandler', ['handle']) }
+      ]
+    });
+    const http = TestBed.inject(HttpTestingController);
+    const fixture = TestBed.createComponent(CabinetPresetsSectionComponent);
+    fixture.detectChanges();
+    http.expectOne(url).flush([drawersPresetFixture(), drawersPresetFixture({ id: 40, system: false, name: 'Moja' })]);
+    responses[0].error(new Error('translations down'));
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const labels = (selector: string) =>
+      Array.from(element.querySelectorAll(`${selector} .presets-item__label`)).map(node => node.textContent?.trim());
+
+    expect(labels('.presets-item--system')).toEqual(['Dolna 600 z 3 szufladami']);
+    expect(labels('.presets-item--own')).toEqual(['Moja']);
+
+    lang.set('en');
+    fixture.detectChanges();
+    responses[1].next({ 'CABINET_PRESET.BASE_WITH_DRAWERS_600': 'Base 600 drawers' });
+    fixture.detectChanges();
+
+    expect(labels('.presets-item--system')).toEqual(['Base 600 drawers']);
+    expect(labels('.presets-item--own')).toEqual(['Moja']);
+    http.expectNone(url);
+    http.verify();
   });
 });
