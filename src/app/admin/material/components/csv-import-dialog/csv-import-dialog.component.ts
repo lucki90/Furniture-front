@@ -30,6 +30,9 @@ export class CsvImportDialogComponent {
   importResult: CsvImportResultResponse | null = null;
   error: string | null = null;
 
+  private closeLocked = false;
+  private previousDisableClose: boolean | undefined;
+
   readonly acceptedTypes = '.csv';
   readonly maxFileSizeBytes = 10 * 1024 * 1024; // 10 MB
 
@@ -59,18 +62,18 @@ export class CsvImportDialogComponent {
   }
 
   onImport(): void {
-    if (!this.selectedFile) return;
+    if (!this.selectedFile || this.importing) return;
 
-    this.importing = true;
+    this.beginImport();
     this.error = null;
 
     this.materialService.importBoardVariantsCsv(this.selectedFile).subscribe({
       next: (result) => {
-        this.importing = false;
+        this.endImport();
         this.importResult = result;
       },
       error: (err) => {
-        this.importing = false;
+        this.endImport();
         this.error = err.error?.message || 'Błąd podczas importu pliku';
         console.error('Import error:', err);
       }
@@ -91,7 +94,27 @@ export class CsvImportDialogComponent {
     });
   }
 
+  // Zamknięcie dialogu w trakcie POST odcięłoby rodzica od wyniku zapisu, więc na czas importu
+  // blokujemy Escape/tło, a po odpowiedzi przywracamy konfigurację ustawioną przez wywołującego.
+  private beginImport(): void {
+    this.importing = true;
+    if (!this.closeLocked) {
+      this.closeLocked = true;
+      this.previousDisableClose = this.dialogRef.disableClose;
+      this.dialogRef.disableClose = true;
+    }
+  }
+
+  private endImport(): void {
+    this.importing = false;
+    if (this.closeLocked) {
+      this.closeLocked = false;
+      this.dialogRef.disableClose = this.previousDisableClose;
+    }
+  }
+
   onClose(): void {
+    if (this.importing) return;
     this.dialogRef.close(this.hasImported);
   }
 
