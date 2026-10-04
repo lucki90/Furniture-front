@@ -585,4 +585,6 @@ export interface CabinetCalculatedEvent {
   formData: CabinetFormData;
   result: CabinetResponse;
   editingCabinetId?: string;
+  /** Ile jednakowych szafek dodać (dodawanie: 1–10, edycja: zawsze 1). */
+  quantity?: number;
 }

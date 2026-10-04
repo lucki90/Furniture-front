@@ -45,6 +45,7 @@
     <div [class.list-content--fixed]="selectedWallType() !== 'ISLAND'" class="list-content">
       <app-kitchen-cabinet-list
         (clone)="cloneCabinet.emit($event)"
+        (saveAsPreset)="saveCabinetAsPreset.emit($event)"
         (edit)="editCabinet.emit($event)"
         (remove)="removeCabinet.emit($event)"
         (showDrawing)="selectTechnicalDrawing($event)"

@@ -66,6 +66,9 @@
       <button (click)="scrollTo('sec-margins')" class="nav-item" type="button">
         <mat-icon aria-hidden="true" class="nav-item-icon">payments</mat-icon>
         <span>Marże i rabaty</span></button>
+      <button (click)="scrollTo('sec-cabinet-presets')" class="nav-item" type="button">
+        <mat-icon aria-hidden="true" class="nav-item-icon">bookmarks</mat-icon>
+        <span>Presety szafek</span></button>
       <p class="nav-group-label">Cenniki</p>
       <button (click)="scrollTo('sec-board-prices')" class="nav-item" type="button">
         <mat-icon aria-hidden="true" class="nav-item-icon">table_chart</mat-icon>
@@ -515,6 +518,21 @@
                      step="1" type="number"/>
             </app-form-field>
           </div>
+        </div>
+      </section>
+
+      <!-- Presety szafek (Faza 19) -->
+      <section [class.is-collapsed]="isSectionCollapsed('sec-cabinet-presets')" class="panel-card"
+               id="sec-cabinet-presets">
+        <button (click)="toggleSection('sec-cabinet-presets')" [attr.aria-expanded]="!isSectionCollapsed('sec-cabinet-presets')"
+                class="panel-header" type="button">
+          <mat-icon aria-hidden="true" class="panel-header-icon">bookmarks</mat-icon>
+          <span class="panel-header-title">Presety szafek</span>
+          <span class="panel-header-desc">Wbudowane i własne konfiguracje szafek</span>
+          <span aria-hidden="true" class="panel-header-toggle-indicator">▾</span>
+        </button>
+        <div *ngIf="!isSectionCollapsed('sec-cabinet-presets')" class="panel-body">
+          <app-cabinet-presets-section></app-cabinet-presets-section>
         </div>
       </section>
 

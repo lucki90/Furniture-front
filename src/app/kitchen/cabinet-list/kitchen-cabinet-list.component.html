@@ -76,6 +76,15 @@
                 <mat-icon aria-hidden="true">content_copy</mat-icon>
               </button>
               <button
+                (click)="$event.stopPropagation(); onSaveAsPreset(cabinet.id)"
+                [disabled]="editingCabinetId !== null"
+                aria-label="Zapisz jako preset"
+                class="cabinet-card-btn cabinet-card-btn--preset"
+                title="Zapisz jako preset"
+                type="button">
+                <mat-icon aria-hidden="true">bookmark_add</mat-icon>
+              </button>
+              <button
                 (click)="$event.stopPropagation(); onRemove(cabinet.id)"
                 [disabled]="editingCabinetId !== null"
                 aria-label="Usuń szafkę"

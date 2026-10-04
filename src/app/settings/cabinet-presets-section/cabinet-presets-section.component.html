@@ -1,0 +1,36 @@
+<p class="presets-intro">
+  Preset zapamiętuje typ, wymiary i konfigurację szafki — bez pozycji i materiałów. Wybierzesz go nad formularzem
+  „Dodaj szafkę”; nowy zapiszesz przyciskiem „Preset” w formularzu albo ikoną zakładki na liście szafek.
+</p>
+
+<h4 class="presets-group-title">Moje presety</h4>
+@if (presetService.ownOptions().length > 0) {
+  <ul class="presets-list">
+    @for (option of presetService.ownOptions(); track option.preset.id) {
+      <li class="presets-item presets-item--own">
+        <span class="presets-item__label">{{ option.label }}</span>
+        <span class="presets-item__dims">{{ option.dimensions }}</span>
+        <button (click)="rename(option)" aria-label="Zmień nazwę presetu" class="presets-item__btn preset-rename-btn"
+                title="Zmień nazwę" type="button">
+          <mat-icon aria-hidden="true">edit</mat-icon>
+        </button>
+        <button (click)="remove(option)" aria-label="Usuń preset" class="presets-item__btn preset-remove-btn"
+                title="Usuń" type="button">
+          <mat-icon aria-hidden="true">delete</mat-icon>
+        </button>
+      </li>
+    }
+  </ul>
+} @else {
+  <p class="presets-empty">Nie masz jeszcze własnych presetów.</p>
+}
+
+<h4 class="presets-group-title">Wbudowane</h4>
+<ul class="presets-list">
+  @for (option of presetService.builtInOptions(); track option.preset.id) {
+    <li class="presets-item presets-item--system">
+      <span class="presets-item__label">{{ option.label }}</span>
+      <span class="presets-item__dims">{{ option.dimensions }}</span>
+    </li>
+  }
+</ul>

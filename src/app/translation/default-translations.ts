@@ -22,6 +22,10 @@ export const DEFAULT_TRANSLATIONS: { [key: string]: string } = {
   'PROJECT_FIELD.discountPct': 'rabat',
   'PROJECT_FIELD.manualPriceOverride': 'cena ręczna',
   'PROJECT_FIELD.offerNotes': 'notatki oferty',
+  // Presety szafek (Faza 19) — wbudowane
+  'CABINET_PRESET.BASE_WITH_DRAWERS_600': 'Dolna 600 z 3 szufladami',
+  'CABINET_PRESET.BASE_ONE_DOOR_600': 'Dolna 600 z drzwiami',
+  'CABINET_PRESET.UPPER_ONE_DOOR_600': 'Wisząca 600 z drzwiami',
   // UI translations
   'UI.additionalInfo': 'Dodatkowe informacje',
   'UI.backInGroove': 'Plecki umieszczone we wpuście',

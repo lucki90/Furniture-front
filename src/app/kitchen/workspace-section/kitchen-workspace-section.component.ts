@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { KitchenFloorPlanComponent } from '../floor-plan/kitchen-floor-plan.component';
 import { KitchenLayoutComponent } from '../kitchen-layout/kitchen-layout.component';
 import { CabinetFormComponent } from '../cabinet-form/cabinet-form.component';
 import { WallConfigComponent } from '../wall-config/wall-config.component';
+import { CabinetPresetPickerComponent } from '../cabinet-presets/cabinet-preset-picker.component';
 import { CabinetCalculatedEvent, KitchenCabinet } from '../model/kitchen-state.model';
 import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 import { GrainDirectionFieldsComponent } from '../../shared/grain-direction-fields/grain-direction-fields.component';
@@ -25,7 +26,8 @@ import {
     KitchenLayoutComponent,
     CabinetFormComponent,
     WallConfigComponent,
-    GrainDirectionFieldsComponent
+    GrainDirectionFieldsComponent,
+    CabinetPresetPickerComponent
   ],
   templateUrl: './kitchen-workspace-section.component.html',
   styleUrls: ['./kitchen-workspace-section.component.css'],
@@ -54,11 +56,18 @@ export class KitchenWorkspaceSectionComponent {
   @Output() projectGrainDirectionsChange = new EventEmitter<GrainDirections>();
   @Output() wallConfigChanged = new EventEmitter<void>();
   @Output() cabinetCalculated = new EventEmitter<CabinetCalculatedEvent>();
+  @Output() savePresetFromForm = new EventEmitter<CabinetCalculatedEvent>();
   @Output() cancelEdit = new EventEmitter<void>();
   @Output() editCabinet = new EventEmitter<string>();
   @Output() cloneCabinet = new EventEmitter<string>();
   @Output() removeCabinet = new EventEmitter<string>();
   @Output() selectCabinet = new EventEmitter<string | null>();
+
+  @ViewChild(CabinetFormComponent) private cabinetForm?: CabinetFormComponent;
+
+  onPresetSelected(cabinet: KitchenCabinet): void {
+    this.cabinetForm?.applyPreset(cabinet);
+  }
 
   onWallLengthInput(value: string): void {
     const parsedValue = Number(value);

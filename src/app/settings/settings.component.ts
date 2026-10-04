@@ -20,6 +20,7 @@ import {
   companyInfoToRequest
 } from './company-info-section/company-info-section.component';
 import { MaterialPresetResponse, MaterialPresetService } from '../kitchen/service/material-preset.service';
+import { CabinetPresetsSectionComponent } from './cabinet-presets-section/cabinet-presets-section.component';
 import { DEFAULT_GRAIN_DIRECTIONS, EffectiveGrainDirections, GrainDirections, userGrainDirections } from '../shared/model/grain-direction';
 import { GrainDirectionFieldsComponent } from '../shared/grain-direction-fields/grain-direction-fields.component';
 import { ComponentPricesSectionComponent } from './component-prices-section/component-prices-section.component';
@@ -30,7 +31,7 @@ import { JobPricesSectionComponent } from './job-prices-section/job-prices-secti
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, FormFieldComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent, GrainDirectionFieldsComponent, ComponentPricesSectionComponent, JobPricesSectionComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, FormFieldComponent, BoardPricesSectionComponent, CompanyInfoSectionComponent, GrainDirectionFieldsComponent, ComponentPricesSectionComponent, JobPricesSectionComponent, CabinetPresetsSectionComponent],
 })
 export class SettingsComponent implements OnInit {
 

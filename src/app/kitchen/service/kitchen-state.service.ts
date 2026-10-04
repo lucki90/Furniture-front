@@ -256,8 +256,8 @@ export class KitchenStateService {
     return this.workspaceStore.getPlinthConfig(wallId);
   }
 
-  addCabinet(formData: CabinetFormData, calculatedResult: CabinetResponse): void {
-    this.workspaceStore.addCabinetToSelectedWall(formData, calculatedResult);
+  addCabinet(formData: CabinetFormData, calculatedResult: CabinetResponse, count = 1): void {
+    this.workspaceStore.addCabinetToSelectedWall(formData, calculatedResult, count);
   }
 
   removeCabinet(cabinetId: string): void {

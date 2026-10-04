@@ -199,14 +199,16 @@ export class KitchenWorkspaceStore {
     return this._walls().find(wall => wall.id === wallId)?.plinthConfig;
   }
 
-  addCabinetToSelectedWall(formData: CabinetFormData, calculatedResult: CabinetResponse): void {
+  /** Dodaje `count` jednakowych szafek z jednej kalkulacji jako jeden krok undo. */
+  addCabinetToSelectedWall(formData: CabinetFormData, calculatedResult: CabinetResponse, count = 1): void {
     this.recordHistorySnapshot();
-    const newCabinet = this.cabinetFactory.fromFormData(formData, this.generateCabinetId(), calculatedResult);
+    const newCabinets = Array.from({ length: Math.max(1, count) }, () =>
+      this.cabinetFactory.fromFormData(formData, this.generateCabinetId(), calculatedResult));
     const selectedWallId = this._selectedWallId();
 
     this._walls.update(walls =>
       walls.map(wall => wall.id === selectedWallId
-        ? { ...wall, cabinets: [...wall.cabinets, newCabinet] }
+        ? { ...wall, cabinets: [...wall.cabinets, ...newCabinets] }
         : wall
       )
     );

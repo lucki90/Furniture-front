@@ -97,49 +97,64 @@ export class ProjectWallCabinetsBuilder {
 
     return cabinets.map(cab => {
       const pos = positionMap.get(cab.id);
-      const positionX = pos?.x ?? 0;
-
       // positionY convention differs between SVG display and backend API:
       // - Geometry service returns plinthHeightMm for BOTTOM zone (SVG: body starts above plinth).
       // - Backend expects 0 for BOTTOM zone (floor-level coordinate; plinth is separate).
       // - FULL (TALL/BASE_FRIDGE) and TOP zones use geometry service Y directly (same as backend).
-      const zone = getCabinetZone(cab);
-      const positionY = zone === 'BOTTOM' ? 0 : (pos?.y ?? 0);
-      const materialRequest = this.buildMaterialRequest(cab, materialDefaults);
+      const positionY = getCabinetZone(cab) === 'BOTTOM' ? 0 : (pos?.y ?? 0);
+      return this.buildCabinetRequest(cab, pos?.x ?? 0, positionY, cabinetSide, materialDefaults);
+    });
+  }
 
-      return {
-        cabinetId: cab.id,
-        name: cab.name?.trim() || undefined,
-        kitchenCabinetType: cab.type,
-        openingType: cab.openingType,
-        frontMountingType: cab.frontMountingType ?? 'OVERLAY',
-        height: cab.height,
-        width: cab.width,
-        depth: cab.depth,
-        positionX,
-        positionY,
-        shelfQuantity: cab.shelfQuantity,
+  /** Szafka bez pozycji na ścianie (preset) — te same pola konfiguracji co w zapisie projektu. */
+  buildCabinetConfiguration(
+    cab: KitchenCabinet,
+    materialDefaults: typeof DEFAULT_MATERIAL_DEFAULTS = DEFAULT_MATERIAL_DEFAULTS
+  ): ProjectCabinetRequest {
+    return this.buildCabinetRequest(cab, 0, 0, cab.cabinetSide ?? 'FRONT', materialDefaults);
+  }
+
+  private buildCabinetRequest(
+    cab: KitchenCabinet,
+    positionX: number,
+    positionY: number,
+    cabinetSide: CabinetSide,
+    materialDefaults: typeof DEFAULT_MATERIAL_DEFAULTS
+  ): ProjectCabinetRequest {
+    const materialRequest = this.buildMaterialRequest(cab, materialDefaults);
+
+    return {
+      cabinetId: cab.id,
+      name: cab.name?.trim() || undefined,
+      kitchenCabinetType: cab.type,
+      openingType: cab.openingType,
+      frontMountingType: cab.frontMountingType ?? 'OVERLAY',
+      height: cab.height,
+      width: cab.width,
+      depth: cab.depth,
+      positionX,
+      positionY,
+      shelfQuantity: cab.shelfQuantity,
       // Persisted cabinet material wins over current user defaults.
       varnishedFront: cab.varnishedFront ?? materialDefaults.varnishedFront,
       materialRequest,
       materialPresetCode: cab.materialPresetCode ?? null,
       drawerRequest: this.buildDrawerRequest(cab),
-        segments: this.buildSegments(cab),
-        cascadeSegments: this.buildCascadeSegments(cab),
-        cornerRequest: this.buildCornerRequest(cab),
-        positioningMode: cab.positioningMode,
-        gapFromCountertopMm: cab.gapFromCountertopMm,
-        gapFromAnchorMm: cab.gapFromAnchorMm ?? undefined,
-        blockUpperAbove: cab.blockUpperAbove ?? false,
-        gapBeforeMm: Math.max(0, cab.gapBeforeMm ?? 0),
-        cabinetSide,
-        leftEnclosure: this.mapEnclosure(cab, 'left'),
-        rightEnclosure: this.mapEnclosure(cab, 'right'),
-        distanceFromWallMm: cab.distanceFromWallMm ?? null,
-        bottomWreathOnFloor: cab.bottomWreathOnFloor ?? false,
-        ...this.buildTypeSpecificFields(cab)
-      };
-    });
+      segments: this.buildSegments(cab),
+      cascadeSegments: this.buildCascadeSegments(cab),
+      cornerRequest: this.buildCornerRequest(cab),
+      positioningMode: cab.positioningMode,
+      gapFromCountertopMm: cab.gapFromCountertopMm,
+      gapFromAnchorMm: cab.gapFromAnchorMm ?? undefined,
+      blockUpperAbove: cab.blockUpperAbove ?? false,
+      gapBeforeMm: Math.max(0, cab.gapBeforeMm ?? 0),
+      cabinetSide,
+      leftEnclosure: this.mapEnclosure(cab, 'left'),
+      rightEnclosure: this.mapEnclosure(cab, 'right'),
+      distanceFromWallMm: cab.distanceFromWallMm ?? null,
+      bottomWreathOnFloor: cab.bottomWreathOnFloor ?? false,
+      ...this.buildTypeSpecificFields(cab)
+    };
   }
 
   private buildMaterialRequest(cab: KitchenCabinet, materialDefaults: typeof DEFAULT_MATERIAL_DEFAULTS): MaterialRequest {

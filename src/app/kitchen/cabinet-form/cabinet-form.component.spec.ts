@@ -63,6 +63,47 @@ describe('CabinetFormComponent', () => {
     fixture.detectChanges();
   });
 
+  describe('presety i ilość (Faza 19)', () => {
+    const preset = { id: 'preset-1', type: KitchenCabinetType.BASE_ONE_DOOR, width: 600, name: '' } as KitchenCabinet;
+
+    it('P4: preset idzie przez cykl typu jak edytowana szafka; nazwa i odstęp jak dla nowej szafki', () => {
+      const lifecycle = TestBed.inject(CabinetFormTypeLifecycleService);
+      const applyTypeChange = spyOn(lifecycle, 'applyTypeChange').and.callThrough();
+      component.form.patchValue({ name: 'Stara', gapBeforeMm: 50 }, { emitEvent: false });
+
+      component.applyPreset(preset);
+
+      expect(applyTypeChange).toHaveBeenCalledWith(component.form, KitchenCabinetType.BASE_ONE_DOOR, preset);
+      expect(component.form.get('kitchenCabinetType')?.value).toBe(KitchenCabinetType.BASE_ONE_DOOR);
+      expect(component.form.get('name')?.value).toBe('');
+      expect(component.form.get('gapBeforeMm')?.value).toBe(0);
+
+      component.applyPreset(preset);
+      expect(applyTypeChange.calls.mostRecent().args[2]).toBe(preset);
+      component.form.get('kitchenCabinetType')?.setValue(KitchenCabinetType.BASE_OPEN);
+      expect(applyTypeChange.calls.mostRecent().args[2]).toBeNull();
+    });
+
+    it('N1: dodanie przekazuje ilość (1–10) i wraca do 1; „Preset” emituje osobne zdarzenie', () => {
+      component.form.patchValue({ kitchenCabinetType: KitchenCabinetType.BASE_ONE_DOOR, width: 600, height: 720,
+        depth: 500 }, { emitEvent: false });
+      const added: { quantity?: number }[] = [];
+      const presetRequests: unknown[] = [];
+      component.calculated.subscribe(event => added.push(event));
+      component.presetRequested.subscribe(event => presetRequests.push(event));
+
+      component.quantityControl.setValue(3);
+      component.calculate();
+      component.quantityControl.setValue(25);
+      component.calculate();
+      component.calculate('preset');
+
+      expect(added.map(event => event.quantity)).toEqual([3, 10]);
+      expect(component.quantityControl.value).toBe(1);
+      expect(presetRequests).toHaveSize(1);
+    });
+  });
+
   it('blocks saving a freestanding oven with invalid or missing edited dimensions', () => {
     component.form.patchValue({ kitchenCabinetType: KitchenCabinetType.BASE_OVEN_FREESTANDING,
       width: 600, height: 720, depth: 560 });

@@ -697,3 +697,18 @@
     min-width: 100%;
   }
 }
+
+.insert-quantity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.insert-quantity .form-label {
+  margin: 0;
+}
+
+.insert-quantity-input {
+  width: 72px;
+}

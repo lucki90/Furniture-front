@@ -1,4 +1,5 @@
 import { signal } from '@angular/core';
+import { CabinetPresetService } from '../kitchen/service/cabinet-preset.service';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NEVER, Subject, of } from 'rxjs';
 import { MaterialAdminService } from '../admin/material/service/material-admin.service';
@@ -122,6 +123,10 @@ describe('SettingsComponent — dane firmy w pełnym widoku', () => {
         { provide: BoardPriceService, useValue: { list: () => of([]) } },
         { provide: ComponentPriceService, useValue: { list: () => of([]) } },
         { provide: JobPriceService, useValue: { list: () => of([]) } },
+        {
+          provide: CabinetPresetService,
+          useValue: { ensureLoaded: () => {}, builtInOptions: signal([]), ownOptions: signal([]) }
+        },
         { provide: MaterialAdminService, useValue: { getMaterialOptions: () => of([]) } },
         { provide: MaterialPresetService, useValue: { listActive: () => of([]) } },
         { provide: TranslationService, useValue: { getByCategories: () => of({}) } },

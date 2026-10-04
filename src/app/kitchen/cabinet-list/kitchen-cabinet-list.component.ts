@@ -44,6 +44,7 @@ export class KitchenCabinetListComponent implements OnChanges {
   @Output() remove = new EventEmitter<string>();
   @Output() edit = new EventEmitter<string>();
   @Output() clone = new EventEmitter<string>();
+  @Output() saveAsPreset = new EventEmitter<string>();
   @Output() showDrawing = new EventEmitter<string>();
 
   protected trackByCabinetId = (_: number, cabinet: KitchenCabinet) => cabinet.id;
@@ -80,6 +81,10 @@ export class KitchenCabinetListComponent implements OnChanges {
 
   onClone(cabinetId: string): void {
     this.clone.emit(cabinetId);
+  }
+
+  onSaveAsPreset(cabinetId: string): void {
+    this.saveAsPreset.emit(cabinetId);
   }
 
   onShowDrawing(cabinetId: string): void {

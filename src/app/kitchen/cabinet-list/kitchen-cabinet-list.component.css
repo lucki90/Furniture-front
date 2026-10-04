@@ -238,6 +238,11 @@
   border-color: var(--success-color);
 }
 
+.cabinet-card-btn--preset:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
 .cabinet-card-btn--drawing:hover:not(:disabled),
 .cabinet-card-btn--drawing.cabinet-card-btn--active {
   border-color: var(--accent-color);

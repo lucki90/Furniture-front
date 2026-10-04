@@ -6,7 +6,7 @@ import {
   WallWithCabinets,
   cabinetRequiresCountertop
 } from '../model/kitchen-state.model';
-import { CabinetSide, ProjectWallRequest, WallConnectionRequest } from '../model/kitchen-project.model';
+import { CabinetSide, ProjectCabinetRequest, ProjectWallRequest, WallConnectionRequest } from '../model/kitchen-project.model';
 import { SegmentRequest, SegmentFormData, SegmentType, SegmentFrontType } from '../cabinet-form/model/segment.model';
 import { CountertopRequest } from '../model/countertop.model';
 import { PlinthRequest } from '../model/plinth.model';
@@ -80,6 +80,14 @@ export class ProjectRequestBuilderService {
   }
 
   /** Połączenia narożne wyliczone z typów ścian; indeksy odpowiadają kolejności `walls` w requeście. */
+  /** Szafka bez pozycji na ścianie (zapis presetu). */
+  buildCabinetConfiguration(
+    cabinet: KitchenCabinet,
+    materialDefaults: typeof DEFAULT_MATERIAL_DEFAULTS = DEFAULT_MATERIAL_DEFAULTS
+  ): ProjectCabinetRequest {
+    return this.wallCabinetsBuilder.buildCabinetConfiguration(cabinet, materialDefaults);
+  }
+
   buildConnections(walls: WallWithCabinets[]): WallConnectionRequest[] {
     return toWallConnectionRequests(resolveWallTopology(walls), walls);
   }

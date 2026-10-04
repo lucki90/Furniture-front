@@ -524,6 +524,13 @@
     <span>{{ addDisabledReason }}</span>
   </div>
 
+  <!-- Ilość przy dodawaniu: jedna kalkulacja, N jednakowych szafek, jeden krok cofania -->
+  <div *ngIf="!isEditMode" class="insert-quantity">
+    <label class="form-label" for="insert-quantity">Ilość</label>
+    <input [formControl]="quantityControl" [max]="maxInsertQuantity" class="form-control insert-quantity-input"
+           id="insert-quantity" min="1" step="1" type="number">
+  </div>
+
   <!-- Przyciski -->
   <div class="form-actions">
     <!-- Wrapper ze tooltipem: disabled <button> nie odbiera zdarzen hover, wiec title trzymamy na <span>. -->
@@ -538,6 +545,15 @@
         {{ isEditMode ? 'Zapisz' : 'Dodaj szafke' }}
       </button>
     </span>
+    <button
+      (click)="calculate('preset')"
+      [disabled]="isAddDisabled"
+      class="btn btn-secondary cabinet-preset-save-btn"
+      title="Zapisz konfigurację szafki jako preset"
+      type="button">
+      <mat-icon aria-hidden="true" class="form-action-icon">bookmark_add</mat-icon>
+      Preset
+    </button>
     <button
       (click)="onCancel()"
       *ngIf="isEditMode"

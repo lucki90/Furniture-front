@@ -2,7 +2,8 @@
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MAX_INSERT_QUANTITY } from '../model/cabinet-preset.model';
 import { ApiErrorHandler } from '../../core/error/api-error-handler.service';
 import { DictionaryService } from '../service/dictionary.service';
 import { KitchenCabinetType } from './model/kitchen-cabinet-type';
@@ -75,6 +76,16 @@ export class CabinetFormComponent implements OnChanges {
 
   @Output()
   cancelEdit = new EventEmitter<void>();
+
+  /** „Zapisz jako preset” — bieżąca konfiguracja po udanej kalkulacji. */
+  @Output()
+  presetRequested = new EventEmitter<CabinetCalculatedEvent>();
+
+  /** Ilość jednakowych szafek przy dodawaniu (poza formularzem szafki — nie trafia do jej danych). */
+  readonly quantityControl = new FormControl(1, { nonNullable: true });
+  readonly maxInsertQuantity = MAX_INSERT_QUANTITY;
+  /** Preset stosowany w trybie dodawania — odtwarzany po preparerze typu jak edytowana szafka. */
+  private presetCabinet: KitchenCabinet | null = null;
 
   private readonly dictionaryService = inject(DictionaryService);
   private readonly dialog = inject(MatDialog);
@@ -600,13 +611,35 @@ export class CabinetFormComponent implements OnChanges {
     }
   }
 
+  /**
+   * Wypełnia formularz dodawania konfiguracją presetu — ta sama ścieżka co edycja szafki (preparer typu, potem
+   * odtworzenie wartości). Materiały zostają z projektu, pozycja i nazwa jak dla nowej szafki.
+   */
+  applyPreset(cabinet: KitchenCabinet): void {
+    if (this.editingCabinet) {
+      return;
+    }
+    this.presetCabinet = cabinet;
+    this.form.get('kitchenCabinetType')?.setValue(cabinet.type, { emitEvent: false });
+    this.previousCabinetType = cabinet.type;
+    this.onTypeChange(cabinet.type);
+    this.presetCabinet = null;
+    this.form.patchValue({
+      name: '',
+      gapBeforeMm: 0,
+      cabinetSide: this.isIslandWall ? this.stateService.visibleIslandSide() : 'FRONT'
+    }, { emitEvent: false });
+    this.cdr.markForCheck();
+  }
+
   private fillFormWithCabinet(cabinet: KitchenCabinet): void {
     this.cabinetFormEditingService.patchFormForEditing(this.form, cabinet);
     this.onTypeChange(cabinet.type);
   }
 
   private onTypeChange(type: KitchenCabinetType): void {
-    const lifecycleResult = this.typeLifecycleService.applyTypeChange(this.form, type, this.editingCabinet);
+    const lifecycleResult = this.typeLifecycleService.applyTypeChange(this.form, type,
+      this.editingCabinet ?? this.presetCabinet);
     this.setVisibility(lifecycleResult.visibility);
 
     // UPPER_LIFT_UP — po przywróceniu wartości edytowanej szafki widoczność opcji zależnych od mechanizmu
@@ -646,7 +679,8 @@ export class CabinetFormComponent implements OnChanges {
     this.selectedSegmentIndex = -1;
   }
 
-  calculate(): void {
+  /** @param target `preset` — po kalkulacji „Zapisz jako preset” zamiast dodania lub zapisu szafki */
+  calculate(target: 'cabinet' | 'preset' = 'cabinet'): void {
     // Oznacz wszystkie kontrolki jako touched - pokazuje błędy inline
     this.form.markAllAsTouched();
 
@@ -666,7 +700,12 @@ export class CabinetFormComponent implements OnChanges {
       preservePersistedMaterial
     ).subscribe({
       next: event => {
-        this.calculated.emit(event);
+        if (target === 'preset') {
+          this.presetRequested.emit(event);
+        } else {
+          this.calculated.emit({ ...event, quantity: this.isEditMode ? 1 : this.insertQuantity() });
+          this.quantityControl.setValue(1);
+        }
         this.loading = false;
         this.cdr.markForCheck(); // OnPush: HTTP callback nie jest DOM eventem
       },
@@ -715,6 +754,11 @@ export class CabinetFormComponent implements OnChanges {
 
   onCancel(): void {
     this.cancelEdit.emit();
+  }
+
+  private insertQuantity(): number {
+    const quantity = Math.round(Number(this.quantityControl.value));
+    return Number.isFinite(quantity) ? Math.min(MAX_INSERT_QUANTITY, Math.max(1, quantity)) : 1;
   }
 
   // ====== Segment actions ======

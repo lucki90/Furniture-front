@@ -32,6 +32,32 @@ describe('KitchenWorkspaceStore', () => {
     expect(store.getWallsSnapshot()).toHaveSize(1);
   });
 
+  it('N1: wstawienie 3 szafek z jednej kalkulacji — różne identyfikatory, jeden krok cofania', () => {
+    const formData = {
+      kitchenCabinetType: KitchenCabinetType.BASE_ONE_DOOR,
+      openingType: 'HANDLE',
+      width: 600,
+      height: 720,
+      depth: 500,
+      positionY: 0,
+      shelfQuantity: 1
+    } as CabinetFormData;
+    const result = {
+      boards: [], components: [], jobs: [], summaryCosts: 500, boardTotalCost: 300, componentTotalCost: 100,
+      jobTotalCost: 100
+    };
+
+    store.addCabinetToSelectedWall(formData, result, 3);
+
+    const cabinets = store.getWallsSnapshot()[0].cabinets;
+    expect(cabinets).toHaveSize(3);
+    expect(new Set(cabinets.map(cabinet => cabinet.id)).size).toBe(3);
+    expect(cabinets.every(cabinet => cabinet.width === 600)).toBeTrue();
+
+    expect(store.undo()).toBeTrue();
+    expect(store.getWallsSnapshot()[0].cabinets).toHaveSize(0);
+  });
+
   it('should add, update, clone and clear cabinets on the selected wall', () => {
     const formData = {
       kitchenCabinetType: KitchenCabinetType.BASE_WITH_DRAWERS,

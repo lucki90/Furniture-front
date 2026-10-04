@@ -32,6 +32,7 @@ import { KitchenProjectsDrawerComponent } from './projects-drawer/kitchen-projec
 import { ProjectHistoryPanelComponent } from './project-history/project-history-panel.component';
 import { KitchenProjectVersionsFacade } from './service/kitchen-project-versions.facade';
 import { KitchenDraftService } from './service/kitchen-draft.service';
+import { KitchenCabinetPresetsFacade } from './service/kitchen-cabinet-presets.facade';
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
 import { buildCalculationViewState } from './kitchen-page-view-state';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
@@ -107,6 +108,7 @@ export class KitchenPageComponent {
   private requestsFacade = inject(KitchenProjectRequestsFacade);
   private versionsFacade = inject(KitchenProjectVersionsFacade);
   private draftService = inject(KitchenDraftService);
+  private cabinetPresetsFacade = inject(KitchenCabinetPresetsFacade);
 
   readonly projectTransitionInProgress = this.projectTransitionGuard.isTransitioning;
 
@@ -406,10 +408,18 @@ export class KitchenPageComponent {
       this.stateService.updateCabinet(event.editingCabinetId, event.formData, event.result);
       this.editingCabinet.set(null);
     } else {
-      this.stateService.addCabinet(event.formData, event.result);
+      this.stateService.addCabinet(event.formData, event.result, event.quantity ?? 1);
     }
 
     this.resetProjectResult();
+  }
+
+  onSavePresetFromForm(event: CabinetCalculatedEvent): void {
+    this.cabinetPresetsFacade.saveCalculated(event);
+  }
+
+  onSaveCabinetAsPreset(cabinetId: string): void {
+    this.cabinetPresetsFacade.saveCabinet(cabinetId);
   }
 
   onEditCabinet(cabinetId: string): void {

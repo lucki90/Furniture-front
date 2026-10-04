@@ -112,9 +112,12 @@
         </button>
       </div>
       <div class="panel-content">
+        <app-cabinet-preset-picker (presetSelected)="onPresetSelected($event)" *ngIf="!editingCabinet">
+        </app-cabinet-preset-picker>
         <app-cabinet-form
           (calculated)="cabinetCalculated.emit($event)"
           (cancelEdit)="cancelEdit.emit()"
+          (presetRequested)="savePresetFromForm.emit($event)"
           [editingCabinet]="editingCabinet">
         </app-cabinet-form>
       </div>

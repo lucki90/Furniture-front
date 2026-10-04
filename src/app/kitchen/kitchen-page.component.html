@@ -45,6 +45,7 @@
       <app-kitchen-workspace-section
         (addWallRequested)="onAddWallRequested()"
         (cabinetCalculated)="onCabinetCalculated($event)"
+        (savePresetFromForm)="onSavePresetFromForm($event)"
         (cancelEdit)="onCancelEdit()"
         (cloneCabinet)="onCloneCabinet($event)"
         (editCabinet)="onEditCabinet($event)"
@@ -76,6 +77,7 @@
           (cloneCabinet)="onCloneCabinet($event)"
           (editCabinet)="onEditCabinet($event)"
           (removeCabinet)="onRemoveCabinet($event)"
+          (saveCabinetAsPreset)="onSaveCabinetAsPreset($event)"
           (selectCabinet)="onCabinetSelected($event)"
           [cabinets]="cabinets()"
           [editingCabinetId]="editingCabinetId()"
