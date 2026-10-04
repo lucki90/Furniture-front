@@ -17,8 +17,8 @@
 
     <div (click)="fileInput.click()" *ngIf="!selectedFile" class="drop-content">
       <mat-icon aria-hidden="true">cloud_upload</mat-icon>
-      <p>Przeciagnij plik tutaj lub kliknij, aby wybrac</p>
-      <span class="hint">Obslugiwane formaty: CSV, XLSX, XLS</span>
+      <p>Przeciągnij plik CSV tutaj lub kliknij, aby wybrać</p>
+      <span class="hint">Format: CSV (UTF-8), średnik jako separator</span>
     </div>
 
     <div *ngIf="selectedFile" class="file-info">
@@ -40,32 +40,33 @@
 
   <div *ngIf="importResult" class="import-result">
     <div
-      [class.failed]="importResult.successfulImports === 0"
-      [class.partial]="importResult.failedImports > 0 && importResult.successfulImports > 0"
-      [class.success]="importResult.failedImports === 0"
+      [class.failed]="savedCount === 0"
+      [class.partial]="hasErrors && savedCount > 0"
+      [class.success]="!hasErrors && savedCount > 0"
       class="result-summary">
 
-      <mat-icon *ngIf="importResult.failedImports === 0">check_circle</mat-icon>
-      <mat-icon *ngIf="importResult.failedImports > 0">warning</mat-icon>
+      <mat-icon *ngIf="!hasErrors">check_circle</mat-icon>
+      <mat-icon *ngIf="hasErrors">warning</mat-icon>
 
       <div class="summary-text">
-        <h3>Import zakonczony</h3>
+        <h3>Import zakończony</h3>
         <p>
-          <strong>{{ importResult.successfulImports }}</strong> z
-          <strong>{{ importResult.totalRows }}</strong> wierszy zaimportowano pomyslnie
+          Dodano: <strong>{{ importResult.added }}</strong>,
+          zaktualizowano: <strong>{{ importResult.updated }}</strong><ng-container *ngIf="hasErrors">,
+          błędów: <strong>{{ importResult.errors?.length }}</strong></ng-container>
         </p>
+        <p *ngIf="savedCount === 0 && !hasErrors">Nie zapisano żadnych zmian.</p>
       </div>
     </div>
 
-    <mat-progress-bar [value]="successRate" mode="determinate"></mat-progress-bar>
-
     <div *ngIf="hasErrors" class="errors-section">
-      <h4>Bledy importu ({{ importResult.errors?.length }})</h4>
+      <h4>Błędy importu ({{ importResult.errors?.length }})</h4>
       <mat-list dense>
         <mat-list-item *ngFor="let error of importResult.errors; trackBy: trackByIndex">
           <mat-icon color="warn" matListItemIcon>error</mat-icon>
-          <span matListItemTitle>Wiersz {{ error.rowNumber }}</span>
+          <span matListItemTitle>{{ error.lineNumber > 0 ? 'Wiersz ' + error.lineNumber : 'Błąd pliku' }}</span>
           <span matListItemLine>{{ error.message }}</span>
+          <span *ngIf="error.line" class="error-line" matListItemLine>{{ error.line }}</span>
         </mat-list-item>
       </mat-list>
     </div>
@@ -77,9 +78,11 @@
   </div>
 
   <div *ngIf="!importResult && !importing" class="format-hint">
-    <h4>Format pliku CSV:</h4>
-    <code>name,unit,currency,currentPrice,sourceUrl,urlSelector,description</code>
-    <p>Pierwszy wiersz to naglowek i zostanie pominiety.</p>
+    <h4>Format pliku CSV (UTF-8, separator: średnik):</h4>
+    <code>materialCode;thicknessMm;colorCode;colorName;colorHex;varnished;pricePerM2</code>
+    <p>Opcjonalnie 9 kolumn: dodatkowo <code>namePL;nameEN</code>.</p>
+    <p>Przykładowy wiersz: <code>CHIPBOARD;18;WHITE;Biały;#FFFFFF;false;45.00</code></p>
+    <p>Pierwszy wiersz to nagłówek i zostanie pominięty. Import dodaje lub aktualizuje warianty i ceny płyt.</p>
   </div>
 </mat-dialog-content>
 

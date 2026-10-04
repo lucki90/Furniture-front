@@ -1,12 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
+import { OverlayContainer } from '@angular/cdk/overlay';
 import { MatDialog } from '@angular/material/dialog';
 import { PriceListComponent } from './price-list.component';
 import { PriceAdminService } from '../../service/price-admin.service';
 import { ToastService } from '../../../../core/error/toast.service';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
-import { Page, PriceEntryAdminResponse } from '../../model/price-entry.model';
+import { Page, PriceEntryAdminResponse, PriceImportResultResponse } from '../../model/price-entry.model';
 
 const EMPTY_PAGE: Page<PriceEntryAdminResponse> = {
   content: [], totalElements: 0, totalPages: 0, size: 20, number: 0, first: true, last: true, empty: true
@@ -92,5 +93,78 @@ describe('PriceListComponent', () => {
     component.prices.set([active, active, inactive]);
     expect(component.activeVisibleCount()).toBe(2);
     expect(component.inactiveVisibleCount()).toBe(1);
+  });
+});
+
+describe('PriceListComponent - import cen przez prawdziwy dialog', () => {
+  let fixture: ComponentFixture<PriceListComponent>;
+  let priceService: jasmine.SpyObj<PriceAdminService>;
+  let overlay: HTMLElement;
+
+  function setup(result: PriceImportResultResponse): void {
+    priceService = jasmine.createSpyObj<PriceAdminService>('PriceAdminService', ['getAll', 'importPrices']);
+    priceService.getAll.and.returnValue(of(EMPTY_PAGE));
+    priceService.importPrices.and.returnValue(of(result));
+
+    TestBed.configureTestingModule({
+      imports: [PriceListComponent, NoopAnimationsModule],
+      providers: [
+        { provide: PriceAdminService, useValue: priceService },
+        { provide: ToastService, useValue: jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']) },
+        {
+          provide: ConfirmDialogService,
+          useValue: jasmine.createSpyObj<ConfirmDialogService>('ConfirmDialogService', ['confirm'])
+        }
+      ]
+    });
+
+    fixture = TestBed.createComponent(PriceListComponent);
+    fixture.detectChanges();
+    overlay = TestBed.inject(OverlayContainer).getContainerElement();
+  }
+
+  async function importAndClose(): Promise<void> {
+    fixture.componentInstance.openImportDialog();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const input = overlay.querySelector('input[type="file"]') as HTMLInputElement;
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['x'], 'ceny.csv', { type: 'text/csv' }));
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    const clickButton = (label: string) =>
+      (Array.from(overlay.querySelectorAll('button')).find(b => b.textContent?.trim() === label) as HTMLButtonElement).click();
+
+    clickButton('Importuj');
+    fixture.detectChanges();
+    clickButton('Zamknij');
+    fixture.detectChanges();
+    await fixture.whenStable();
+  }
+
+  afterEach(() => TestBed.inject(OverlayContainer).ngOnDestroy());
+
+  it('przeładowuje listę raz po potwierdzonym zapisie', async () => {
+    setup({ added: 1, updated: 0, errors: [] });
+    priceService.getAll.calls.reset();
+    await importAndClose();
+    expect(priceService.getAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('przeładowuje listę raz przy częściowym sukcesie', async () => {
+    setup({ added: 1, updated: 2, errors: [{ lineNumber: 4, line: 'invalid row', message: 'Nieprawidłowa cena' }] });
+    priceService.getAll.calls.reset();
+    await importAndClose();
+    expect(priceService.getAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('nie przeładowuje listy gdy nic nie zapisano', async () => {
+    setup({ added: 0, updated: 0, errors: [{ lineNumber: 2, line: 'x', message: 'Zły wiersz' }] });
+    priceService.getAll.calls.reset();
+    await importAndClose();
+    expect(priceService.getAll).not.toHaveBeenCalled();
   });
 });

@@ -4,7 +4,6 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatListModule } from '@angular/material/list';
 
 import { PriceAdminService } from '../../service/price-admin.service';
@@ -21,7 +20,6 @@ import { PriceImportResultResponse } from '../../model/price-entry.model';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatProgressBarModule,
     MatListModule
   ]
 })
@@ -31,7 +29,7 @@ export class PriceImportDialogComponent {
   importResult: PriceImportResultResponse | null = null;
   error: string | null = null;
 
-  acceptedTypes = '.csv,.xlsx,.xls';
+  acceptedTypes = '.csv';
 
   constructor(
     private readonly priceService: PriceAdminService,
@@ -41,20 +39,7 @@ export class PriceImportDialogComponent {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-
-      const validExtensions = ['.csv', '.xlsx', '.xls'];
-      const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-
-      if (!validExtensions.includes(extension)) {
-        this.error = 'Nieobsługiwany format pliku. Dozwolone: CSV, XLSX, XLS';
-        this.selectedFile = null;
-        return;
-      }
-
-      this.selectedFile = file;
-      this.error = null;
-      this.importResult = null;
+      this.selectFile(input.files[0]);
     }
   }
 
@@ -68,20 +53,24 @@ export class PriceImportDialogComponent {
     event.stopPropagation();
 
     if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-      const file = event.dataTransfer.files[0];
-      const validExtensions = ['.csv', '.xlsx', '.xls'];
-      const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-
-      if (!validExtensions.includes(extension)) {
-        this.error = 'Nieobsługiwany format pliku. Dozwolone: CSV, XLSX, XLS';
-        this.selectedFile = null;
-        return;
-      }
-
-      this.selectedFile = file;
-      this.error = null;
-      this.importResult = null;
+      this.selectFile(event.dataTransfer.files[0]);
     }
+  }
+
+  private selectFile(file: File): void {
+    if (!this.isCsvFile(file)) {
+      this.error = 'Nieobsługiwany format pliku. Dozwolony: CSV';
+      this.selectedFile = null;
+      return;
+    }
+
+    this.selectedFile = file;
+    this.error = null;
+    this.importResult = null;
+  }
+
+  private isCsvFile(file: File): boolean {
+    return file.name.toLowerCase().endsWith('.csv');
   }
 
   onImport(): void {
@@ -104,7 +93,7 @@ export class PriceImportDialogComponent {
   }
 
   onClose(): void {
-    this.dialogRef.close(this.importResult !== null && this.importResult.successfulImports > 0);
+    this.dialogRef.close(this.savedCount > 0);
   }
 
   clearSelectedFile(fileInput: HTMLInputElement): void {
@@ -125,9 +114,8 @@ export class PriceImportDialogComponent {
       this.importResult.errors.length > 0;
   }
 
-  get successRate(): number {
-    if (!this.importResult || this.importResult.totalRows === 0) return 0;
-    return (this.importResult.successfulImports / this.importResult.totalRows) * 100;
+  get savedCount(): number {
+    return this.importResult ? this.importResult.added + this.importResult.updated : 0;
   }
 
   protected trackByIndex = (index: number) => index;
