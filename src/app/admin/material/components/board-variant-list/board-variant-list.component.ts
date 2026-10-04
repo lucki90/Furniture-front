@@ -99,12 +99,16 @@ export class BoardVariantListComponent extends VariantListBase<BoardVariantAdmin
   }
 
   openImportDialog(): void {
-    this.dialog.open(CsvImportDialogComponent, {
+    const dialogRef = this.dialog.open(CsvImportDialogComponent, {
       width: '550px',
-    }).afterClosed().pipe(
+    });
+    const importDialog = dialogRef.componentInstance;
+
+    // Escape/tło zamykają dialog z result === undefined, więc potwierdzony zapis czytamy z samego dialogu.
+    dialogRef.afterClosed().pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(result => {
-      if (result) {
+      if (result || importDialog.importConfirmed) {
         this.loadVariants();
         this.toast.success('Import zakończony pomyślnie');
       }

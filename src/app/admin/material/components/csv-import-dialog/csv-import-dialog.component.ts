@@ -31,6 +31,7 @@ export class CsvImportDialogComponent {
   error: string | null = null;
 
   private closeLocked = false;
+  private confirmedImport = false;
   private previousDisableClose: boolean | undefined;
 
   readonly acceptedTypes = '.csv';
@@ -71,6 +72,7 @@ export class CsvImportDialogComponent {
       next: (result) => {
         this.endImport();
         this.importResult = result;
+        this.confirmedImport = this.confirmedImport || result.added + result.updated > 0;
       },
       error: (err) => {
         this.endImport();
@@ -115,7 +117,7 @@ export class CsvImportDialogComponent {
 
   onClose(): void {
     if (this.importing) return;
-    this.dialogRef.close(this.hasImported);
+    this.dialogRef.close(this.importConfirmed);
   }
 
   removeFile(fileInput: HTMLInputElement): void {
@@ -144,8 +146,10 @@ export class CsvImportDialogComponent {
     return !!this.importResult?.errors?.length;
   }
 
-  get hasImported(): boolean {
-    return this.importResult !== null && this.successCount > 0;
+  // Potwierdzony zapis (added+updated>0) zostaje także po wyczyszczeniu wyświetlanego wyniku i kolejnym
+  // niepowodzeniu; rodzic odczytuje go po zamknięciu dialogu Escape/tłem, gdy afterClosed emituje undefined.
+  get importConfirmed(): boolean {
+    return this.confirmedImport;
   }
 
   get successRate(): number {
