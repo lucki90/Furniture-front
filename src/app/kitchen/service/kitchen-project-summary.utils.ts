@@ -69,7 +69,8 @@ export function buildBoardExcelRows(
     return {
       lp: index + 1,
       quantity: board.quantity,
-      symbol: board.color || materialLabel,
+      // Dodatki ściany (blat, cokół) mają gotową nazwę materiału z agregacji; klucz `material` jest techniczny.
+      symbol: board.color || (board.materialName ?? materialLabel),
       thickness: board.thickness,
       length: order.length,
       lengthVeneer: order.lengthVeneer,

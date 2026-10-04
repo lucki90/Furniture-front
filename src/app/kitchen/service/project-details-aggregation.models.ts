@@ -2,7 +2,7 @@ import { MultiWallCalculateResponse } from '../model/kitchen-project.model';
 import { GrainAxis } from '../../shared/model/grain-direction';
 
 export interface AggregatedBoard {
-  /** Nazwa elementu lub etykieta dodatku, np. FRONT_NAME, BLAT_LAMINATE. */
+  /** Klucz grupowania: nazwa elementu albo techniczna etykieta dodatku (FRONT_NAME, BLAT_LAMINATE); do wyświetlenia `boardLabel`. */
   material: string;
   /** Właściwy materiał formatki z BoardDto; brak w starszych odpowiedziach. */
   boardMaterial?: string;
@@ -19,6 +19,8 @@ export interface AggregatedBoard {
   veneerY?: number;
   veneerColor?: string;
   boardLabel?: string;
+  /** Czytelna nazwa materiału (np. „Laminat”), gdy `material` jest kluczem technicznym — kolumna symbolu w Excelu. */
+  materialName?: string;
   cabinetRefs?: string[];
   remarks?: string;
   veneerEdgeLabel?: string;

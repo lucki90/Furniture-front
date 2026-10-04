@@ -176,6 +176,21 @@ describe('KitchenCostsSectionComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Brak płyt do wyświetlenia');
   });
 
+  it('zakładka płyt pokazuje czytelną etykietę, a bez niej klucz materiału', () => {
+    component.projectResult = { allFit: true, wallCount: 1, totalCabinetCount: 1, walls: [] } as any;
+    const board = { thickness: 38, width: 1200, height: 600, quantity: 1, unitCost: 100, totalCost: 100 };
+    component.aggregatedBoards = [
+      { ...board, material: 'BLAT_LAMINATE', boardLabel: 'Blat — laminat' },
+      { ...board, material: 'Blenda górna', thickness: 18 }
+    ];
+
+    fixture.detectChanges();
+
+    const names = Array.from(fixture.nativeElement.querySelectorAll('.bom-table tbody tr td:first-child') as NodeListOf<HTMLElement>)
+      .map(cell => cell.textContent?.replace(/\s+/g, ' ').trim());
+    expect(names).toEqual(['Blat — laminat (38mm)', 'Blenda górna (18mm)']);
+  });
+
   it('renders sheet waste under boards and keeps it out of components', () => {
     component.projectResult = {
       allFit: true,
