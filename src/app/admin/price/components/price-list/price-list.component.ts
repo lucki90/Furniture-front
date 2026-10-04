@@ -210,9 +210,11 @@ export class PriceListComponent implements OnInit {
     const dialogRef = this.dialog.open(PriceImportDialogComponent, {
       width: DIALOG_WIDTH.STANDARD
     });
+    const importDialog = dialogRef.componentInstance;
 
+    // Escape/tło zamykają dialog z result === undefined, więc potwierdzony zapis czytamy z samego dialogu.
     dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
-      if (result) {
+      if (result || importDialog.importConfirmed) {
         this.loadPrices();
       }
     });

@@ -1,14 +1,16 @@
-import { signal } from '@angular/core';
+import { ApplicationRef, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { OverlayContainer } from '@angular/cdk/overlay';
+import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { config, of, Subject } from 'rxjs';
+import { Observable, config, of, Subject } from 'rxjs';
 import { ToastService } from '../../../../core/error/toast.service';
 import { LanguageService } from '../../../../service/language.service';
 import { ConfirmDialogService } from '../../../../shared/confirm-dialog/confirm-dialog.service';
 import { TranslationService } from '../../../../translation/translation.service';
-import { BoardVariantAdminResponse, Page } from '../../model/material-variant.model';
+import { BoardVariantAdminResponse, CsvImportResultResponse, Page } from '../../model/material-variant.model';
 import { MaterialAdminService } from '../../service/material-admin.service';
 import { BoardVariantListComponent } from './board-variant-list.component';
 
@@ -467,5 +469,190 @@ describe('BoardVariantListComponent — odzyskiwanie tłumaczeń po błędzie', 
     expect(component.pageIndex()).toBe(0);
     expect(fixture.debugElement.query(By.directive(MatPaginator)).componentInstance.length).toBe(1);
     expect(materialAdminService.getBoardVariants).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('BoardVariantListComponent - import CSV przez prawdziwy dialog', () => {
+  let fixture: ComponentFixture<BoardVariantListComponent>;
+  let service: jasmine.SpyObj<MaterialAdminService>;
+  let toast: jasmine.SpyObj<ToastService>;
+  let pending: Subject<CsvImportResultResponse>;
+  let overlay: HTMLElement;
+
+  const dialogOpen = (): boolean => overlay.querySelector('mat-dialog-container') !== null;
+  const button = (label: string): HTMLButtonElement =>
+    Array.from(overlay.querySelectorAll('button')).find(b => b.textContent?.trim() === label) as HTMLButtonElement;
+
+  async function settle(): Promise<void> {
+    TestBed.inject(ApplicationRef).tick();
+    await Promise.resolve();
+    TestBed.inject(ApplicationRef).tick();
+  }
+
+  async function macrotask(): Promise<void> {
+    await settle();
+    await new Promise(resolve => setTimeout(resolve));
+  }
+
+  async function openAndStartImport(): Promise<void> {
+    fixture.componentInstance.openImportDialog();
+    await settle();
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['materialCode;thicknessMm'], 'warianty.csv', { type: 'text/csv' }));
+    const input = overlay.querySelector('input[type="file"]') as HTMLInputElement;
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+    await settle();
+    button('Importuj').click();
+    await settle();
+  }
+
+  async function pressEscape(): Promise<void> {
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+    await macrotask();
+  }
+
+  async function clickBackdrop(): Promise<void> {
+    (overlay.querySelector('.cdk-overlay-backdrop') as HTMLElement).click();
+    await macrotask();
+  }
+
+  beforeEach(async () => {
+    service = jasmine.createSpyObj<MaterialAdminService>('MaterialAdminService',
+      ['getBoardVariants', 'importBoardVariantsCsv']);
+    service.getBoardVariants.and.returnValue(of(makeBoardPage([])));
+    pending = new Subject<CsvImportResultResponse>();
+    service.importBoardVariantsCsv.and.returnValue(pending as Observable<CsvImportResultResponse>);
+    toast = jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']);
+    const translationService = jasmine.createSpyObj<TranslationService>('TranslationService', ['getByCategories']);
+    translationService.getByCategories.and.returnValue(of({}));
+
+    await TestBed.configureTestingModule({
+      imports: [BoardVariantListComponent, NoopAnimationsModule],
+      providers: [
+        { provide: MaterialAdminService, useValue: service },
+        { provide: ToastService, useValue: toast },
+        { provide: TranslationService, useValue: translationService },
+        { provide: LanguageService, useValue: { lang: signal<'pl' | 'en'>('pl') } },
+        { provide: ConfirmDialogService, useValue: jasmine.createSpyObj<ConfirmDialogService>('ConfirmDialogService', ['confirm']) }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(BoardVariantListComponent);
+    fixture.detectChanges();
+    overlay = TestBed.inject(OverlayContainer).getContainerElement();
+    service.getBoardVariants.calls.reset();
+  });
+
+  afterEach(() => {
+    TestBed.inject(MatDialog).closeAll();
+    TestBed.inject(OverlayContainer).ngOnDestroy();
+  });
+
+  it('Escape po potwierdzonym zapisie odświeża listę dokładnie raz i pokazuje jeden komunikat', async () => {
+    await openAndStartImport();
+    pending.next({ added: 2, updated: 0, errors: [] });
+    await settle();
+
+    await pressEscape();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(service.getBoardVariants).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledOnceWith('Import zakończony pomyślnie');
+  });
+
+  it('kliknięcie tła po potwierdzonym zapisie odświeża listę dokładnie raz', async () => {
+    await openAndStartImport();
+    pending.next({ added: 0, updated: 1, errors: [] });
+    await settle();
+
+    await clickBackdrop();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(service.getBoardVariants).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledTimes(1);
+  });
+
+  it('Escape po częściowym sukcesie odświeża listę dokładnie raz', async () => {
+    await openAndStartImport();
+    pending.next({ added: 1, updated: 1, errors: [{ lineNumber: 4, line: 'x', message: 'Zła cena' }] });
+    await settle();
+
+    await pressEscape();
+
+    expect(service.getBoardVariants).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledTimes(1);
+  });
+
+  it('przycisk Zamknij po zapisie nadal odświeża listę dokładnie raz', async () => {
+    await openAndStartImport();
+    pending.next({ added: 1, updated: 0, errors: [] });
+    await settle();
+
+    button('Zamknij').click();
+    await macrotask();
+
+    expect(service.getBoardVariants).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledTimes(1);
+  });
+
+  it('same błędy wierszy: Escape nie odświeża listy', async () => {
+    await openAndStartImport();
+    pending.next({ added: 0, updated: 0, errors: [{ lineNumber: 2, line: 'x', message: 'Zły wiersz' }] });
+    await settle();
+
+    await pressEscape();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(service.getBoardVariants).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it('błąd HTTP: Escape nie odświeża listy', async () => {
+    spyOn(console, 'error');
+    await openAndStartImport();
+    pending.error({ status: 500 });
+    await settle();
+
+    await pressEscape();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(service.getBoardVariants).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it('bez importu Escape nie odświeża listy', async () => {
+    fixture.componentInstance.openImportDialog();
+    await settle();
+
+    await pressEscape();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(service.getBoardVariants).not.toHaveBeenCalled();
+  });
+
+  it('podczas POST Escape ani tło nie zamykają dialogu i nie odświeżają listy', async () => {
+    await openAndStartImport();
+
+    await pressEscape();
+    await clickBackdrop();
+
+    expect(dialogOpen()).toBeTrue();
+    expect(service.getBoardVariants).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
+  });
+
+  it('po zniszczeniu listy zamknięcie dialogu nie odświeża listy', async () => {
+    await openAndStartImport();
+    pending.next({ added: 1, updated: 0, errors: [] });
+    await settle();
+
+    fixture.destroy();
+    TestBed.inject(MatDialog).closeAll();
+    await macrotask();
+
+    expect(service.getBoardVariants).not.toHaveBeenCalled();
+    expect(toast.success).not.toHaveBeenCalled();
   });
 });

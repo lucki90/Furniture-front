@@ -1,3 +1,4 @@
+import { ApplicationRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Observable, Subject, of, throwError } from 'rxjs';
@@ -330,6 +331,168 @@ describe('PriceListComponent - import cen przez prawdziwy dialog', () => {
     setup({ added: 0, updated: 0, errors: [{ lineNumber: 2, line: 'x', message: 'Zły wiersz' }] });
     priceService.getAll.calls.reset();
     await importAndClose();
+    expect(priceService.getAll).not.toHaveBeenCalled();
+  });
+});
+
+describe('PriceListComponent - zamknięcie dialogu importu przez Escape/tło', () => {
+  let fixture: ComponentFixture<PriceListComponent>;
+  let priceService: jasmine.SpyObj<PriceAdminService>;
+  let pending: Subject<PriceImportResultResponse>;
+  let overlay: HTMLElement;
+
+  const dialogOpen = (): boolean => overlay.querySelector('mat-dialog-container') !== null;
+  const button = (label: string): HTMLButtonElement =>
+    Array.from(overlay.querySelectorAll('button')).find(b => b.textContent?.trim() === label) as HTMLButtonElement;
+
+  async function settle(): Promise<void> {
+    TestBed.inject(ApplicationRef).tick();
+    await Promise.resolve();
+    TestBed.inject(ApplicationRef).tick();
+  }
+
+  async function macrotask(): Promise<void> {
+    await settle();
+    await new Promise(resolve => setTimeout(resolve));
+  }
+
+  async function openAndStartImport(): Promise<void> {
+    fixture.componentInstance.openImportDialog();
+    await settle();
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(['x'], 'ceny.csv', { type: 'text/csv' }));
+    const input = overlay.querySelector('input[type="file"]') as HTMLInputElement;
+    input.files = transfer.files;
+    input.dispatchEvent(new Event('change'));
+    await settle();
+    button('Importuj').click();
+    await settle();
+  }
+
+  async function pressEscape(): Promise<void> {
+    document.body.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+    await macrotask();
+  }
+
+  async function clickBackdrop(): Promise<void> {
+    (overlay.querySelector('.cdk-overlay-backdrop') as HTMLElement).click();
+    await macrotask();
+  }
+
+  beforeEach(() => {
+    priceService = jasmine.createSpyObj<PriceAdminService>('PriceAdminService', ['getAll', 'importPrices']);
+    priceService.getAll.and.returnValue(of(EMPTY_PAGE));
+    pending = new Subject<PriceImportResultResponse>();
+    priceService.importPrices.and.returnValue(pending as Observable<PriceImportResultResponse>);
+
+    TestBed.configureTestingModule({
+      imports: [PriceListComponent, NoopAnimationsModule],
+      providers: [
+        { provide: PriceAdminService, useValue: priceService },
+        { provide: ToastService, useValue: jasmine.createSpyObj<ToastService>('ToastService', ['success', 'error']) },
+        {
+          provide: ConfirmDialogService,
+          useValue: jasmine.createSpyObj<ConfirmDialogService>('ConfirmDialogService', ['confirm'])
+        }
+      ]
+    });
+
+    fixture = TestBed.createComponent(PriceListComponent);
+    fixture.detectChanges();
+    overlay = TestBed.inject(OverlayContainer).getContainerElement();
+    priceService.getAll.calls.reset();
+  });
+
+  afterEach(() => {
+    TestBed.inject(MatDialog).closeAll();
+    TestBed.inject(OverlayContainer).ngOnDestroy();
+  });
+
+  it('Escape po potwierdzonym zapisie odświeża listę dokładnie raz', async () => {
+    await openAndStartImport();
+    pending.next({ added: 1, updated: 0, errors: [] });
+    await settle();
+
+    await pressEscape();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(priceService.getAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('kliknięcie tła po potwierdzonym zapisie odświeża listę dokładnie raz', async () => {
+    await openAndStartImport();
+    pending.next({ added: 0, updated: 3, errors: [] });
+    await settle();
+
+    await clickBackdrop();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(priceService.getAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('Escape po częściowym sukcesie odświeża listę dokładnie raz', async () => {
+    await openAndStartImport();
+    pending.next({ added: 1, updated: 2, errors: [{ lineNumber: 4, line: 'x', message: 'Zła cena' }] });
+    await settle();
+
+    await pressEscape();
+
+    expect(priceService.getAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('same błędy wierszy: Escape nie odświeża listy', async () => {
+    await openAndStartImport();
+    pending.next({ added: 0, updated: 0, errors: [{ lineNumber: 2, line: 'x', message: 'Zły wiersz' }] });
+    await settle();
+
+    await pressEscape();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(priceService.getAll).not.toHaveBeenCalled();
+  });
+
+  it('błąd HTTP: Escape nie odświeża listy', async () => {
+    spyOn(console, 'error');
+    await openAndStartImport();
+    pending.error({ status: 500 });
+    await settle();
+
+    await pressEscape();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(priceService.getAll).not.toHaveBeenCalled();
+  });
+
+  it('bez importu Escape nie odświeża listy', async () => {
+    fixture.componentInstance.openImportDialog();
+    await settle();
+
+    await pressEscape();
+
+    expect(dialogOpen()).toBeFalse();
+    expect(priceService.getAll).not.toHaveBeenCalled();
+  });
+
+  it('podczas POST Escape ani tło nie zamykają dialogu i nie odświeżają listy', async () => {
+    await openAndStartImport();
+
+    await pressEscape();
+    await clickBackdrop();
+
+    expect(dialogOpen()).toBeTrue();
+    expect(priceService.getAll).not.toHaveBeenCalled();
+  });
+
+  it('po zniszczeniu listy zamknięcie dialogu nie odświeża listy', async () => {
+    await openAndStartImport();
+    pending.next({ added: 1, updated: 0, errors: [] });
+    await settle();
+
+    fixture.destroy();
+    TestBed.inject(MatDialog).closeAll();
+    await macrotask();
+
     expect(priceService.getAll).not.toHaveBeenCalled();
   });
 });

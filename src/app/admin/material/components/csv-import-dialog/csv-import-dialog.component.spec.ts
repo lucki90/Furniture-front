@@ -181,6 +181,105 @@ describe('CsvImportDialogComponent', () => {
       expect(dialogOpen()).toBeFalse();
     });
 
+
+
+
+    it('sukces + Escape: dialog zamyka się z undefined, ale zapamiętuje potwierdzony zapis', async () => {
+      await openRealDialog();
+      await startImport();
+      expect(realComponent.importConfirmed).toBeFalse();
+      pending.next({ added: 1, updated: 0, errors: [] });
+      await settle();
+      expect(realComponent.importConfirmed).toBeTrue();
+
+      await pressEscape();
+
+      expect(dialogOpen()).toBeFalse();
+      expect(afterClosed).toHaveBeenCalledOnceWith(undefined);
+      expect(realComponent.importConfirmed).toBeTrue();
+    });
+
+    it('sukces + tło: potwierdzony zapis zostaje dostępny po zamknięciu', async () => {
+      await openRealDialog();
+      await startImport();
+      pending.next({ added: 0, updated: 2, errors: [] });
+      await settle();
+
+      await clickBackdrop();
+
+      expect(dialogOpen()).toBeFalse();
+      expect(realComponent.importConfirmed).toBeTrue();
+    });
+
+    it('częściowy sukces + Escape: potwierdzenie zostaje mimo błędów wierszy', async () => {
+      await openRealDialog();
+      await startImport();
+      pending.next({ added: 1, updated: 1, errors: [{ lineNumber: 4, line: 'x', message: 'Zła cena' }] });
+      await settle();
+
+      await pressEscape();
+
+      expect(realComponent.importConfirmed).toBeTrue();
+    });
+
+    it('same błędy wierszy + Escape: brak potwierdzenia zapisu', async () => {
+      await openRealDialog();
+      await startImport();
+      pending.next({ added: 0, updated: 0, errors: [{ lineNumber: 2, line: 'x', message: 'Zły wiersz' }] });
+      await settle();
+
+      await pressEscape();
+
+      expect(realComponent.importConfirmed).toBeFalse();
+    });
+
+    it('błąd HTTP + Escape: brak potwierdzenia zapisu', async () => {
+      spyOn(console, 'error');
+      await openRealDialog();
+      await startImport();
+      pending.error({ status: 500 });
+      await settle();
+
+      await pressEscape();
+
+      expect(realComponent.importConfirmed).toBeFalse();
+    });
+
+    it('podczas POST brak potwierdzenia, a Escape nie zamyka dialogu', async () => {
+      await openRealDialog();
+      await startImport();
+
+      await pressEscape();
+
+      expect(realComponent.importConfirmed).toBeFalse();
+      expect(dialogOpen()).toBeTrue();
+    });
+
+    it('potwierdzenie przeżywa wyczyszczenie wyniku nowym plikiem i kolejny błąd HTTP', async () => {
+      spyOn(console, 'error');
+      await openRealDialog();
+      await startImport();
+      pending.next({ added: 1, updated: 0, errors: [] });
+      await settle();
+      expect(realComponent.importConfirmed).toBeTrue();
+
+      const next = new Subject<CsvImportResultResponse>();
+      materialService.importBoardVariantsCsv.and.returnValue(next as Observable<CsvImportResultResponse>);
+      const file = new File(['x'], 'drugi.csv', { type: 'text/csv' });
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.files = transfer.files;
+      realComponent.onFileSelected({ target: input } as unknown as Event);
+      expect(realComponent.importResult).toBeNull();
+      realComponent.onImport();
+      next.error({ status: 500 });
+      await settle();
+
+      expect(realComponent.importConfirmed).toBeTrue();
+    });
+
     it('bez importu Escape zamyka dialog', async () => {
       await openRealDialog();
       await pressEscape();

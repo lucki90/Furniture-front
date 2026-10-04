@@ -30,6 +30,7 @@ export class PriceImportDialogComponent {
   error: string | null = null;
 
   private closeLocked = false;
+  private confirmedImport = false;
   private previousDisableClose: boolean | undefined;
 
   acceptedTypes = '.csv';
@@ -86,6 +87,7 @@ export class PriceImportDialogComponent {
       next: (result) => {
         this.endImport();
         this.importResult = result;
+        this.confirmedImport = this.confirmedImport || result.added + result.updated > 0;
       },
       error: (err) => {
         this.endImport();
@@ -116,7 +118,7 @@ export class PriceImportDialogComponent {
 
   onClose(): void {
     if (this.importing) return;
-    this.dialogRef.close(this.savedCount > 0);
+    this.dialogRef.close(this.importConfirmed);
   }
 
   clearSelectedFile(fileInput: HTMLInputElement): void {
@@ -135,6 +137,12 @@ export class PriceImportDialogComponent {
     return this.importResult !== null &&
       this.importResult.errors !== null &&
       this.importResult.errors.length > 0;
+  }
+
+  // Potwierdzony zapis (added+updated>0) zostaje także po wyczyszczeniu wyświetlanego wyniku i kolejnym
+  // niepowodzeniu; rodzic odczytuje go po zamknięciu dialogu Escape/tłem, gdy afterClosed emituje undefined.
+  get importConfirmed(): boolean {
+    return this.confirmedImport;
   }
 
   get savedCount(): number {
