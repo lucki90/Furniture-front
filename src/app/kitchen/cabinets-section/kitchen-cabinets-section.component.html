@@ -39,6 +39,13 @@
           class="btn btn-sm btn-secondary">
           Wyczyść
         </button>
+        <button
+          (click)="bulkChangeRequested.emit()"
+          [disabled]="totalCabinetCount() === 0 || editingCabinetId() !== null"
+          class="btn btn-sm btn-secondary bulk-change-btn"
+          title="Zmień rodzaj otwierania, osadzenie frontu albo materiał wielu szafek naraz">
+          Zmień wiele
+        </button>
       </div>
     </div>
 

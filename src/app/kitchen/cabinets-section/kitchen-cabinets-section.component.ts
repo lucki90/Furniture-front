@@ -41,6 +41,7 @@ export class KitchenCabinetsSectionComponent {
   readonly removeCabinet = output<string>();
   readonly cloneCabinet = output<string>();
   readonly saveCabinetAsPreset = output<string>();
+  readonly bulkChangeRequested = output<void>();
   readonly selectCabinet = output<string | null>();
 
   protected readonly drawingCabinets = computed(() =>

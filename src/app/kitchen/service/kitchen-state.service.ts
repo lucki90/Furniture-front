@@ -264,6 +264,10 @@ export class KitchenStateService {
     this.workspaceStore.removeCabinet(cabinetId);
   }
 
+  replaceCabinets(cabinets: KitchenCabinet[]): void {
+    this.workspaceStore.replaceCabinets(cabinets);
+  }
+
   cloneCabinet(cabinetId: string): void {
     this.workspaceStore.cloneCabinet(cabinetId);
   }

@@ -7,7 +7,7 @@ import {
   CabinetPresetNameDialogComponent,
   CabinetPresetNameDialogData
 } from '../cabinet-presets/cabinet-preset-name-dialog.component';
-import { CABINET_TYPE_PICKER_LABELS } from '../cabinet-form/types/cabinet-type-labels';
+import { cabinetDisplayName } from '../model/cabinet-display-name';
 import { CabinetCalculatedEvent, KitchenCabinet } from '../model/kitchen-state.model';
 import { CabinetPresetService } from './cabinet-preset.service';
 import { KitchenCabinetStateFactory } from './kitchen-cabinet-state.factory';
@@ -41,7 +41,7 @@ export class KitchenCabinetPresetsFacade {
   private askNameAndSave(cabinet: KitchenCabinet): void {
     const data: CabinetPresetNameDialogData = {
       title: 'Zapisz jako preset',
-      name: defaultCabinetPresetName(cabinet),
+      name: cabinetDisplayName(cabinet),
       confirmLabel: 'Zapisz preset'
     };
     this.dialog.open(CabinetPresetNameDialogComponent, { width: DIALOG_WIDTH.STANDARD, data })
@@ -58,10 +58,4 @@ export class KitchenCabinetPresetsFacade {
         });
       });
   }
-}
-
-/** Nazwa szafki albo typ z szerokością, np. „Dolna - szuflady 600”. */
-export function defaultCabinetPresetName(cabinet: KitchenCabinet): string {
-  const name = cabinet.name?.trim();
-  return name || `${CABINET_TYPE_PICKER_LABELS[cabinet.type] ?? cabinet.type} ${cabinet.width}`;
 }

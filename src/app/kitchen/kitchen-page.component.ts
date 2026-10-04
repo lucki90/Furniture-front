@@ -33,6 +33,7 @@ import { ProjectHistoryPanelComponent } from './project-history/project-history-
 import { KitchenProjectVersionsFacade } from './service/kitchen-project-versions.facade';
 import { KitchenDraftService } from './service/kitchen-draft.service';
 import { KitchenCabinetPresetsFacade } from './service/kitchen-cabinet-presets.facade';
+import { KitchenBulkCabinetChangeService } from './service/kitchen-bulk-cabinet-change.service';
 import { KitchenBomTranslationsService } from './service/kitchen-bom-translations.service';
 import { buildCalculationViewState } from './kitchen-page-view-state';
 import { KitchenPagePricingService } from './service/kitchen-page-pricing.service';
@@ -109,6 +110,7 @@ export class KitchenPageComponent {
   private versionsFacade = inject(KitchenProjectVersionsFacade);
   private draftService = inject(KitchenDraftService);
   private cabinetPresetsFacade = inject(KitchenCabinetPresetsFacade);
+  private bulkCabinetChangeService = inject(KitchenBulkCabinetChangeService);
 
   readonly projectTransitionInProgress = this.projectTransitionGuard.isTransitioning;
 
@@ -420,6 +422,17 @@ export class KitchenPageComponent {
 
   onSaveCabinetAsPreset(cabinetId: string): void {
     this.cabinetPresetsFacade.saveCabinet(cabinetId);
+  }
+
+  onBulkChangeRequested(): void {
+    this.bulkCabinetChangeService.run().subscribe({
+      next: report => {
+        if (report && report.changed > 0) {
+          this.resetProjectResult();
+        }
+      },
+      error: err => this.errorHandler.handle(err)
+    });
   }
 
   onEditCabinet(cabinetId: string): void {

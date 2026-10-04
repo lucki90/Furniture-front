@@ -1,3 +1,4 @@
+import { CabinetCalculationResult } from '../model/bulk-cabinet-change.model';
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
@@ -10,6 +11,7 @@ import {
   KitchenProjectResponse,
   MultiWallCalculateRequest,
   MultiWallCalculateResponse,
+  ProjectCabinetRequest,
   ProjectStatus,
   UpdateKitchenProjectRequest
 } from '../model/kitchen-project.model';
@@ -109,6 +111,11 @@ export class KitchenService {
    * Opcjonalna nazwa: gdy pusta, backend stosuje prefiks "Kopia — ".
    */
   /** Klon projektu; {@code fromVersion} — klon wersji z historii zamiast bieżącego stanu. */
+  /** Przeliczenie listy szafek z kontraktu projektu — wynik albo błąd domenowy dla każdej (masowa zmiana). */
+  calculateCabinets(cabinets: ProjectCabinetRequest[]): Observable<CabinetCalculationResult[]> {
+    return this.http.post<CabinetCalculationResult[]>(`${this.baseUrl}/cabinets/calculate`, { cabinets });
+  }
+
   cloneProject(projectId: number, name?: string, fromVersion?: number): Observable<KitchenProjectDetailResponse> {
     return this.http.post<KitchenProjectDetailResponse>(
       `${this.projectsUrl}/${projectId}/clone`,

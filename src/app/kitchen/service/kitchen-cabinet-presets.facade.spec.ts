@@ -8,7 +8,8 @@ import { drawersPresetFixture } from '../cabinet-presets/testing/cabinet-preset.
 import { DEFAULT_MATERIAL_DEFAULTS } from '../cabinet-form/type-config/request-mapper/kitchen-cabinet-request-mapper';
 import { CabinetCalculatedEvent, CabinetFormData, KitchenCabinet } from '../model/kitchen-state.model';
 import { CabinetPresetService } from './cabinet-preset.service';
-import { defaultCabinetPresetName, KitchenCabinetPresetsFacade } from './kitchen-cabinet-presets.facade';
+import { cabinetDisplayName } from '../model/cabinet-display-name';
+import { KitchenCabinetPresetsFacade } from './kitchen-cabinet-presets.facade';
 import { KitchenStateService } from './kitchen-state.service';
 
 describe('KitchenCabinetPresetsFacade', () => {
@@ -90,6 +91,6 @@ describe('KitchenCabinetPresetsFacade', () => {
   });
 
   it('nazwa szafki ma pierwszeństwo przed typem', () => {
-    expect(defaultCabinetPresetName({ ...cabinet, name: ' Przy oknie ' })).toBe('Przy oknie');
+    expect(cabinetDisplayName({ ...cabinet, name: ' Przy oknie ' })).toBe('Przy oknie');
   });
 });

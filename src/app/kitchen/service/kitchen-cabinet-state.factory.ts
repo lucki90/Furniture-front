@@ -231,6 +231,15 @@ export class KitchenCabinetStateFactory {
    * z licznikiem nowych szafek; zapisany `cabinetId` służy tylko do odtworzenia nazwy starszych zapisów. Fallbacki
    * type-specific poniżej dotyczą wyłącznie projektów zapisanych przed dodaniem odpowiadających im pól kontraktu.
    */
+  /** Szafka z nowym wynikiem kalkulacji (np. po masowej zmianie). */
+  withCalculation(cabinet: KitchenCabinet, calculatedResult: CabinetResponse): KitchenCabinet {
+    return {
+      ...cabinet,
+      calculatedResult: this.requestBuilder.mapCalculationResult(calculatedResult),
+      calculationResponse: structuredClone(calculatedResult)
+    };
+  }
+
   fromPlacementResponse(cabResp: CabinetPlacementResponse, loadedId: string): KitchenCabinet {
     const effectiveWidth = cabResp.cabinetType === KitchenCabinetType.CORNER_CABINET && cabResp.cornerWidthA
       ? cabResp.cornerWidthA

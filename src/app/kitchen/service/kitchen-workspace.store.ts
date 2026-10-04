@@ -258,6 +258,21 @@ export class KitchenWorkspaceStore {
     );
   }
 
+  /** Podmienia wskazane szafki (po identyfikatorze) jednym krokiem cofania. */
+  replaceCabinets(cabinets: KitchenCabinet[]): void {
+    if (cabinets.length === 0) {
+      return;
+    }
+    this.recordHistorySnapshot();
+    const byId = new Map(cabinets.map(cabinet => [cabinet.id, cabinet]));
+    this._walls.update(walls =>
+      walls.map(wall => ({
+        ...wall,
+        cabinets: wall.cabinets.map(cabinet => byId.get(cabinet.id) ?? cabinet)
+      }))
+    );
+  }
+
   clearSelectedWallCabinets(): void {
     this.recordHistorySnapshot();
     const selectedWallId = this._selectedWallId();

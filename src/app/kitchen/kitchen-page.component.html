@@ -78,6 +78,7 @@
           (editCabinet)="onEditCabinet($event)"
           (removeCabinet)="onRemoveCabinet($event)"
           (saveCabinetAsPreset)="onSaveCabinetAsPreset($event)"
+          (bulkChangeRequested)="onBulkChangeRequested()"
           (selectCabinet)="onCabinetSelected($event)"
           [cabinets]="cabinets()"
           [editingCabinetId]="editingCabinetId()"

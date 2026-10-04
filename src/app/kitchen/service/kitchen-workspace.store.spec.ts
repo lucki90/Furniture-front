@@ -58,6 +58,26 @@ describe('KitchenWorkspaceStore', () => {
     expect(store.getWallsSnapshot()[0].cabinets).toHaveSize(0);
   });
 
+  it('masowa zmiana: podmiana szafek po identyfikatorze jednym krokiem cofania', () => {
+    const formData = {
+      kitchenCabinetType: KitchenCabinetType.BASE_ONE_DOOR, openingType: 'HANDLE', width: 600, height: 720,
+      depth: 500, positionY: 0, shelfQuantity: 1
+    } as CabinetFormData;
+    const result = {
+      boards: [], components: [], jobs: [], summaryCosts: 500, boardTotalCost: 300, componentTotalCost: 100,
+      jobTotalCost: 100
+    };
+    store.addCabinetToSelectedWall(formData, result, 2);
+    const [first, second] = store.getWallsSnapshot()[0].cabinets;
+
+    store.replaceCabinets([{ ...second, openingType: 'CLICK' }]);
+
+    expect(store.getWallsSnapshot()[0].cabinets.map(cabinet => cabinet.openingType)).toEqual(['HANDLE', 'CLICK']);
+    expect(store.getWallsSnapshot()[0].cabinets[0]).toEqual(first);
+    expect(store.undo()).toBeTrue();
+    expect(store.getWallsSnapshot()[0].cabinets.map(cabinet => cabinet.openingType)).toEqual(['HANDLE', 'HANDLE']);
+  });
+
   it('should add, update, clone and clear cabinets on the selected wall', () => {
     const formData = {
       kitchenCabinetType: KitchenCabinetType.BASE_WITH_DRAWERS,

@@ -89,6 +89,21 @@ describe('KitchenCabinetsSectionComponent', () => {
     expect(component.clearSelectedWallCabinets.emit).toHaveBeenCalled();
   });
 
+  it('„Zmień wiele” aktywne, gdy projekt ma szafki, także przy pustej ścianie', () => {
+    spyOn(component.bulkChangeRequested, 'emit');
+    fixture.componentRef.setInput('cabinets', []);
+    fixture.componentRef.setInput('totalCabinetCount', 0);
+    fixture.detectChanges();
+    const bulkButton = () => fixture.nativeElement.querySelector('.bulk-change-btn') as HTMLButtonElement;
+    expect(bulkButton().disabled).toBeTrue();
+
+    fixture.componentRef.setInput('totalCabinetCount', 4);
+    fixture.detectChanges();
+    bulkButton().click();
+
+    expect(component.bulkChangeRequested.emit).toHaveBeenCalled();
+  });
+
   it('hides technical drawing UI while the spike is paused', () => {
     fixture.componentRef.setInput('selectedWallLabel', 'Ściana główna');
     fixture.componentRef.setInput('cabinets', [
