@@ -56,6 +56,7 @@ export function companyInfoToRequest(info: CompanyInfo): {
  *   i tworzona ponownie, a wartości (także niezapisane edycje) zostają w parencie
  * - Logo: wczytywane przy każdym utworzeniu sekcji przez SettingsService, URL blob zwalniany przy zniszczeniu;
  *   odpowiedź odczytu rozpoczętego przed potwierdzonym uploadem/usunięciem jest pomijana
+ * - Upload i usunięcie logo nie nakładają się w tej instancji sekcji — kolejna operacja czeka na wynik bieżącej
  */
 @Component({
   selector: 'app-company-info-section',
@@ -80,7 +81,13 @@ export class CompanyInfoSectionComponent implements OnInit, OnDestroy {
 
   companyLogoUrl: string | null = null;
   logoUploading = false;
+  logoDeleting = false;
   logoError: string | null = null;
+
+  /** Upload lub usunięcie logo czeka na odpowiedź — do tego czasu nie startujemy kolejnego zapisu logo. */
+  get logoBusy(): boolean {
+    return this.logoUploading || this.logoDeleting;
+  }
 
   ngOnInit(): void {
     // Logo wymaga tokenu Bearer — ładujemy po faktycznym utworzeniu sekcji, także po jej ponownym rozwinięciu
@@ -113,6 +120,11 @@ export class CompanyInfoSectionComponent implements OnInit, OnDestroy {
 
   onLogoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
+    // Zdarzenie change dociera do handlera także przy zablokowanym inpucie, więc blokada musi być i tutaj
+    if (this.logoBusy) {
+      input.value = '';
+      return;
+    }
     const file = input.files?.[0];
     if (!file) return;
 
@@ -146,15 +158,20 @@ export class CompanyInfoSectionComponent implements OnInit, OnDestroy {
   }
 
   removeLogo(): void {
+    if (this.logoBusy) return;
+    this.logoDeleting = true;
+
     this.settingsService.deleteLogo().subscribe({
       next: () => {
         this.confirmedLogoChanges++;
         this.applyLogoBlob(null);
         this.logoError = null;
+        this.logoDeleting = false;
       },
       error: (err) => {
         console.error('Logo delete failed', err);
         this.logoError = 'Nie udało się usunąć logo.';
+        this.logoDeleting = false;
       }
     });
   }
